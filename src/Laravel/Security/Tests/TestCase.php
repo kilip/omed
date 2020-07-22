@@ -16,7 +16,6 @@ namespace Omed\Laravel\Security\Tests;
 use Kilip\LaravelDoctrine\ORM\KilipDoctrineServiceProvider;
 use Kilip\SanctumORM\SanctumORMServiceProvider;
 use Laravel\Sanctum\SanctumServiceProvider;
-use LaravelDoctrine\Extensions\GedmoExtensionsServiceProvider;
 use LaravelDoctrine\ORM\DoctrineServiceProvider;
 use Omed\Laravel\Core\CoreServiceProvider;
 use Omed\Laravel\Security\Model\Tokens;

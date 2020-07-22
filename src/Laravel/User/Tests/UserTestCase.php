@@ -17,7 +17,6 @@ use Kilip\LaravelDoctrine\ORM\KilipDoctrineServiceProvider;
 use Kilip\LaravelDoctrine\ORM\Testing\ORMTestTrait;
 use Kilip\SanctumORM\SanctumORMServiceProvider;
 use Laravel\Sanctum\SanctumServiceProvider;
-use LaravelDoctrine\Extensions\GedmoExtensionsServiceProvider;
 use LaravelDoctrine\ORM\DoctrineServiceProvider;
 use Omed\Component\User\Model\UserInterface;
 use Omed\Laravel\Security\SecurityServiceProvider;
