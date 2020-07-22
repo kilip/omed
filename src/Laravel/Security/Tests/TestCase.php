@@ -18,6 +18,7 @@ use Kilip\SanctumORM\SanctumORMServiceProvider;
 use Laravel\Sanctum\SanctumServiceProvider;
 use LaravelDoctrine\Extensions\GedmoExtensionsServiceProvider;
 use LaravelDoctrine\ORM\DoctrineServiceProvider;
+use Omed\Laravel\Core\CoreServiceProvider;
 use Omed\Laravel\Security\Model\Tokens;
 use Omed\Laravel\Security\SecurityServiceProvider;
 use Omed\Laravel\Security\Tests\Resources\Model\TestSecurityUser;
@@ -36,10 +37,10 @@ class TestCase extends BaseTestCase
     {
         return [
             DoctrineServiceProvider::class,
-            GedmoExtensionsServiceProvider::class,
             KilipDoctrineServiceProvider::class,
             SanctumServiceProvider::class,
             SanctumORMServiceProvider::class,
+            CoreServiceProvider::class,
             SecurityServiceProvider::class,
         ];
     }

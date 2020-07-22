@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Omed\Laravel\Core;
 
 use Illuminate\Support\ServiceProvider;
+use LaravelDoctrine\Extensions\GedmoExtensionsServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,8 @@ class CoreServiceProvider extends ServiceProvider
             [__DIR__.'/Resources/config/omed.php' => config_path('omed/core.php')],
             'config'
         );
+
+        $this->app->register(GedmoExtensionsServiceProvider::class);
     }
 
     public function register()

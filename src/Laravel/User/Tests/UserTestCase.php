@@ -42,7 +42,6 @@ class UserTestCase extends OrchestraTestCase
     {
         return [
             DoctrineServiceProvider::class,
-            GedmoExtensionsServiceProvider::class,
             KilipDoctrineServiceProvider::class,
             SanctumServiceProvider::class,
             SanctumORMServiceProvider::class,

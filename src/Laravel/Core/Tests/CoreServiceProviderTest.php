@@ -13,10 +13,17 @@ declare(strict_types=1);
 
 namespace Omed\Laravel\Core\Tests;
 
+use LaravelDoctrine\Extensions\GedmoExtensionsServiceProvider;
+
 class CoreServiceProviderTest extends TestCase
 {
     public function testDefaultConfig()
     {
         $this->assertEquals('api', config('omed.core.api_prefix'));
+    }
+
+    public function testShouldLoadGedmoExtensionProvider()
+    {
+        $this->assertTrue($this->app->providerIsLoaded(GedmoExtensionsServiceProvider::class));
     }
 }
