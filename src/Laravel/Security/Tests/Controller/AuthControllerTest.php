@@ -23,7 +23,7 @@ class AuthControllerTest extends TestCase
     public function testLogin()
     {
         $this->createUser();
-        $response = $this->post(route('omed.security.routes.login'), [
+        $response = $this->post(route('omed.routes.security.login'), [
             'usernameOrEmail' => 'test@example.com',
             'password' => 'test',
         ]);
@@ -37,7 +37,7 @@ class AuthControllerTest extends TestCase
     public function testFailedLogin()
     {
         $this->createUser();
-        $response = $this->post(route('omed.security.routes.login'), [
+        $response = $this->post(route('omed.routes.security.login'), [
             'usernameOrEmail' => 'test@example.com',
             'password' => 'foo',
         ]);

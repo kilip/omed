@@ -85,14 +85,14 @@ interface UserInterface
     public function eraseCredentials();
 
     /**
-     * Get username for the user
+     * Get username for the user.
      *
      * @return string|null
      */
     public function getUsername(): ?string;
 
     /**
-     * Set username for user
+     * Set username for user.
      *
      * @param string $username
      *
@@ -101,14 +101,14 @@ interface UserInterface
     public function setUsername(string $username);
 
     /**
-     * Get canonical username
+     * Get canonical username.
      *
      * @return string|null
      */
     public function getUsernameCanonical(): ?string;
 
     /**
-     * Set username canonical
+     * Set username canonical.
      *
      * @param string|null $usernameCanonical
      *
@@ -117,29 +117,30 @@ interface UserInterface
     public function setUsernameCanonical(?string $usernameCanonical);
 
     /**
-     * Set email for user
+     * Set email for user.
      *
      * @param string $email
+     *
      * @return static
      */
     public function setEmail(string $email);
 
     /**
-     * Get email for user
+     * Get email for user.
      *
      * @return string|null
      */
     public function getEmail(): ?string;
 
     /**
-     * Set canonical email for user
+     * Set canonical email for user.
      *
      * @return string|null
      */
     public function getEmailCanonical(): ?string;
 
     /**
-     * Set canonical email for user
+     * Set canonical email for user.
      *
      * @param string|null $emailCanonical
      *
@@ -148,14 +149,14 @@ interface UserInterface
     public function setEmailCanonical(?string $emailCanonical);
 
     /**
-     * Get salt for user
+     * Get salt for user.
      *
      * @return string|null
      */
     public function getSalt(): ?string;
 
     /**
-     * Set salt for user
+     * Set salt for user.
      *
      * @param string|null $salt
      *
@@ -164,14 +165,14 @@ interface UserInterface
     public function setSalt(?string $salt);
 
     /**
-     * Get password for the user
+     * Get password for the user.
      *
      * @return string|null
      */
     public function getPassword();
 
     /**
-     * Set password for user
+     * Set password for user.
      *
      * @param string $password
      *
@@ -180,29 +181,30 @@ interface UserInterface
     public function setPassword(string $password);
 
     /**
-     * Get plainPassword for user
+     * Get plainPassword for user.
      *
      * @return string|null
      */
     public function getPlainPassword(): ?string;
 
     /**
-     * Set plainPassword for user
+     * Set plainPassword for user.
      *
      * @param string|null $plainPassword
+     *
      * @return static
      */
     public function setPlainPassword(?string $plainPassword);
 
     /**
-     * Get user last login
+     * Get user last login.
      *
      * @return \DateTime|null
      */
     public function getLastLogin(): ?\DateTime;
 
     /**
-     * Set last login for user
+     * Set last login for user.
      *
      * @param \DateTime|null $lastLogin
      *
@@ -211,90 +213,97 @@ interface UserInterface
     public function setLastLogin(?\DateTime $lastLogin);
 
     /**
-     * Get user email verification token
+     * Get user email verification token.
      *
      * @return string|null
      */
     public function getEmailVerificationToken(): ?string;
 
     /**
-     * Set email verification token for user
+     * Set email verification token for user.
      *
      * @param string|null $emailVerificationToken
+     *
      * @return static
      */
     public function setEmailVerificationToken(?string $emailVerificationToken);
 
     /**
-     * Get password reset token for user
+     * Get password reset token for user.
      *
      * @return string|null
      */
     public function getPasswordResetToken(): ?string;
 
     /**
-     * Set password reset token for user
+     * Set password reset token for user.
      *
      * @param string|null $passwordResetToken
+     *
      * @return static
      */
     public function setPasswordResetToken(?string $passwordResetToken);
 
     /**
-     * Get password requested time
+     * Get password requested time.
      *
      * @return \DateTime|null
      */
     public function getPasswordRequestedAt(): ?\DateTime;
 
     /**
-     * Set password requested time
+     * Set password requested time.
      *
      * @param \DateTime|null $passwordRequestedAt
+     *
      * @return static
      */
     public function setPasswordRequestedAt(?\DateTime $passwordRequestedAt);
 
     /**
-     * Get email verified time
+     * Get email verified time.
      *
      * @return \DateTime|null
      */
     public function getEmailVerifiedAt(): ?\DateTime;
 
     /**
-     * Set email verified time
+     * Set email verified time.
      *
      * @param \DateTime|null $emailVerifiedAt
+     *
      * @return static
      */
     public function setEmailVerifiedAt(?\DateTime $emailVerifiedAt);
 
     /**
-     * Check if user is locked
+     * Check if user is locked.
      *
      * @return bool
      */
     public function isLocked(): bool;
 
     /**
-     * Set user locked status
+     * Set user locked status.
      *
      * @param bool $locked
+     *
      * @return static
      */
     public function setLocked(bool $locked);
 
     /**
-     * Get credentials expire time
+     * Get credentials expire time.
+     *
      * @return \DateTime|null
      */
     public function getCredentialsExpireAt(): ?\DateTime;
 
     /**
-     * Set credentials expire time
+     * Set credentials expire time.
      *
      * @param \DateTime|null $credentialsExpireAt
+     *
      * @return static
      */
     public function setCredentialsExpireAt(?\DateTime $credentialsExpireAt);

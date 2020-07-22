@@ -16,14 +16,17 @@ namespace Omed\Laravel\Security;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use Kilip\SanctumORM\Contracts\TokenModelInterface;
-use Omed\Laravel\Security\Controller\AuthController;
+use Omed\Laravel\Security\Http\Controllers\AuthController;
 use Omed\Laravel\Security\Model\Tokens;
 
 class SecurityServiceProvider extends ServiceProvider
 {
     public function boot(Application $app)
     {
-        $app->alias(AuthController::class, 'omed.security.controller.auth');
+        $this->publishes([
+            __DIR__.'/Resources/config/security.php' => config_path('omed/security.php'),
+        ], 'config');
+        $app->alias(AuthController::class, 'OmedSecurityAuthController');
 
         $app['config']->set('auth.guards.api.driver', 'sanctum');
         $this->loadRoutesFrom(__DIR__.'/Resources/routes/api.php');
@@ -42,7 +45,7 @@ class SecurityServiceProvider extends ServiceProvider
                 'dir' => __DIR__.'/Model',
             ],
         ];
-        $key = 'doctrine.managers.'.config('omed_security.entity_manager_name', 'default').'.mappings';
+        $key = 'doctrine.managers.'.config('omed.security.entity_manager_name', 'default').'.mappings';
         $mappings = array_merge($mappings, config($key, []));
         config([
             $key => $mappings,

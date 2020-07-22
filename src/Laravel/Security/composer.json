@@ -22,7 +22,10 @@
         "laravel": {
             "providers": [
                 "Omed\\Laravel\\Security\\SecurityServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "OmedSecurityAuthController": "Omed\\Laravel\\Security\\Http\\Controllers\\AuthController"
+            }
         }
     },
     "autoload": {
