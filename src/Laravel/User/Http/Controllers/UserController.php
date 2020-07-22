@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Omed\Laravel\User\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Omed\Laravel\Core\Http\Controllers\Controller;
 use Omed\Laravel\User\Http\Resources\UserResource;
 use Omed\Laravel\User\Services\UserManager;
@@ -26,16 +27,16 @@ class UserController extends Controller
      */
     public function index(UserManager $manager)
     {
-        $collection = $manager->findAll();
-
-        return UserResource::collection($collection);
+        $pager = $manager->getUserList();
+        $collection = UserResource::collection($pager['data']);
+        unset($pager['data']);
+        $collection->additional($pager);
+        return $collection;
     }
 
     public function show(UserManager $manager, $user)
     {
         $user = $manager->findById($user);
-        $config = config();
-
         return new UserResource($user);
     }
 }

@@ -25,6 +25,11 @@ use Omed\Component\User\Util\PasswordUpdaterInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+class TestUserManager extends UserManager
+{
+
+}
+
 class UserManagerTest extends TestCase
 {
     use DatabaseTestTrait;
@@ -71,7 +76,7 @@ class UserManagerTest extends TestCase
 
         $this->passwordUpdater = $passwordUpdater;
         $this->canonicalFieldsUpdater = $canonicalFieldsUpdater;
-        $this->userManager = new UserManager($passwordUpdater, $canonicalFieldsUpdater, $this->om, TestUser::class);
+        $this->userManager = new TestUserManager($passwordUpdater, $canonicalFieldsUpdater, $this->om, TestUser::class);
     }
 
     public function testConstruct()

@@ -22,16 +22,16 @@ class UserControllerTest extends UserTestCase
 
     public function testUnauthenticatedUserAccess()
     {
-        $response = $this->json('GET', route('users.index'));
+        $response = $this->json('GET', route('omed.routes.user.index'));
         $response->assertStatus(401);
     }
 
     public function testIndex()
     {
-        $this->assertStringContainsString('/api/users', route('users.index'));
+        $this->assertStringContainsString('/api/users', route('omed.routes.user.index'));
         $user = $this->generateUserData();
         $token = $this->createToken($user);
-        $response = $this->json('GET', route('users.index'), [], [
+        $response = $this->json('GET', route('omed.routes.user.index'), [], [
             'Authorization' => 'Bearer '.$token->plainTextToken,
         ]);
         $response->assertStatus(200);
@@ -41,9 +41,9 @@ class UserControllerTest extends UserTestCase
     {
         $user = $this->generateUserData();
         $token = $this->createToken($user);
-        $this->assertStringContainsString('/api/users', route('users.show', ['user' => $user->getId()]));
+        $this->assertStringContainsString('/api/users', route('omed.routes.user.show', ['user' => $user->getId()]));
 
-        $response = $this->json('GET', route('users.show', ['user' => $user->getId()]), [], [
+        $response = $this->json('GET', route('omed.routes.user.show', ['user' => $user->getId()]), [], [
             'Authorization' => 'Bearer '.$token->plainTextToken,
         ]);
 

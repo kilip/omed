@@ -14,10 +14,13 @@ declare(strict_types=1);
 namespace Omed\Laravel\User\Services;
 
 use Doctrine\Persistence\ObjectManager;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use LaravelDoctrine\ORM\Pagination\PaginatorAdapter;
 use Omed\Component\User\Manager\UserManager as BaseUserManager;
 use Omed\Component\User\Util\CanonicalFieldsUpdater;
 use Omed\Component\User\Util\Canonicalizer;
+use Omed\Laravel\User\Model\User;
 
 class UserManager extends BaseUserManager
 {
@@ -46,5 +49,18 @@ class UserManager extends BaseUserManager
         $data = $this->getRepository()->findAll();
 
         return new Collection($data);
+    }
+
+    /**
+     * @return User[]
+     */
+    public function getUserList()
+    {
+        $builder = $this->getManager()->createQueryBuilder();
+
+        $builder->select('u')
+            ->from(User::class,'u');
+
+        return PaginatorAdapter::fromRequest($builder->getQuery(),10)->make()->toArray();
     }
 }

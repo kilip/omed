@@ -32,6 +32,6 @@ class UserResource extends JsonResource
      */
     protected function getSelfRoute($resource)
     {
-        return route('users.show', ['user' => $resource->getId()]);
+        return route('omed.routes.user.show', ['user' => $resource->getId()]);
     }
 }

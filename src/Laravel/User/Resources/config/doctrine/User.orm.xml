@@ -3,7 +3,10 @@
                   xmlns:gedmo="http://gediminasm.org/schemas/orm/doctrine-extensions-mapping"
 >
 
-    <entity name="Omed\Laravel\User\Model\User" table="omed_users">
+    <entity
+            name="Omed\Laravel\User\Model\User"
+            table="omed_users"
+    >
         <entity-listeners>
             <entity-listener class="Omed\Laravel\User\Listener\UserChangedListener">
                 <lifecycle-callback type="preFlush" method="preFlushHandler"/>

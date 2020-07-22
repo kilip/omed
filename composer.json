@@ -13,7 +13,9 @@
     "prefer-stable": true,
     "config": {
         "sort-packages": true,
-        "preferred-install": "dist"
+        "preferred-install": {
+            "*": "dist"
+        }
     },
     "autoload": {
         "psr-4": {

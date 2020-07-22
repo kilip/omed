@@ -13,13 +13,15 @@ declare(strict_types=1);
 
 namespace Omed\Component\User\Manager;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
+use Omed\Component\User\Contracts\UserRepositoryInterface;
 use Omed\Component\User\Model\UserInterface;
 use Omed\Component\User\Util\CanonicalFieldsUpdater;
 use Omed\Component\User\Util\PasswordUpdaterInterface;
 
-class UserManager implements UserManagerInterface
+abstract class UserManager implements UserManagerInterface
 {
     /**
      * @var ObjectManager
@@ -58,6 +60,15 @@ class UserManager implements UserManagerInterface
     }
 
     /**
+     * @return ObjectManager|EntityManagerInterface
+     */
+    public function getManager()
+    {
+        return $this->om;
+    }
+
+
+    /**
      * @return UserInterface
      */
     public function createUser()
@@ -74,7 +85,7 @@ class UserManager implements UserManagerInterface
     }
 
     /**
-     * @return ObjectRepository
+     * @return ObjectRepository|UserRepositoryInterface
      */
     public function getRepository()
     {

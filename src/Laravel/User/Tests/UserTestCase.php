@@ -19,6 +19,7 @@ use Kilip\SanctumORM\SanctumORMServiceProvider;
 use Laravel\Sanctum\SanctumServiceProvider;
 use LaravelDoctrine\ORM\DoctrineServiceProvider;
 use Omed\Component\User\Model\UserInterface;
+use Omed\Laravel\Core\CoreServiceProvider;
 use Omed\Laravel\Security\SecurityServiceProvider;
 use Omed\Laravel\User\Model\User;
 use Omed\Laravel\User\SecurityEventServiceProvider;
@@ -44,6 +45,7 @@ class UserTestCase extends OrchestraTestCase
             KilipDoctrineServiceProvider::class,
             SanctumServiceProvider::class,
             SanctumORMServiceProvider::class,
+            CoreServiceProvider::class,
             SecurityServiceProvider::class,
             UserServiceProvider::class,
             SecurityEventServiceProvider::class,
