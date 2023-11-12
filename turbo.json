@@ -9,8 +9,7 @@
       "cache": false
     },
     "build": {
-      "dependsOn": ["^build", "^db:generate", "^db:push"],
-      "outputs": [".cache", "build", "public/build", "storybook-static/**"]
+      "dependsOn": ["^build", "^db:generate", "^db:push"]
     },
     "lint": {},
     "dev": {
