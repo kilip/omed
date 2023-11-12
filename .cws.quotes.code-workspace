@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "quotes",
+      "path": "apps/quotes"
+    },
+    {
+      "name": "pkg",
+      "path": "apps/quotes/app/pkg"
+    },
+    {
+      "name": "db",
+      "path": "packages/db"
+    },
+    {
+      "name": "root",
+      "path": "."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@omed/db",
+  "version": "0.0.0",
+  "description": "Omed database package",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push --skip-generate",
+    "format": "prisma format",
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@omed/tsconfig": "workspace:^",
+    "prisma": "^5.5.2",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6",
+    "vitest-mock-extended": "^1.3.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.5.2"
+  }
+}
