@@ -1,0 +1,23 @@
+{
+  "name": "@omed/utils",
+  "version": "0.0.0",
+  "description": "Omed utils package",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@omed/tsconfig": "workspace:^",
+    "prisma": "^5.5.2",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.5.2",
+    "tiny-invariant": "^1.3.1"
+  }
+}

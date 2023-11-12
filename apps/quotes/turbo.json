@@ -3,6 +3,9 @@
   "pipeline": {
     "build": {
       "outputs": ["build/**", "public/build/**"]
+    },
+    "test": {
+      "dotEnv": [".env"]
     }
   }
 }

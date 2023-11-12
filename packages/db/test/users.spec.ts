@@ -34,4 +34,17 @@ describe("users service", () => {
     expect(user).toEqual(expectedUser);
     expect(db.password.upsert).toBeCalled();
   });
+
+  it("should find user by email", async () => {
+    const user = await users.findUnique(
+      { email: "test@example.com" },
+      "withPassword"
+    );
+
+    expect(db.user.findUnique).toBeCalled();
+    expect(db.user.findUnique).toBeCalledWith({
+      include: { password: true },
+      where: { email: "test@example.com" },
+    });
+  });
 });
