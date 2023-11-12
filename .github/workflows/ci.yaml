@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, synchronize]
+
+env:
+  DATABASE_URL: postgres://omed:omed@localhost/omed
+  PGPASSWORD: omed
+
+jobs:
+  build:
+    name: Build and Test
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    # To use Remote Caching, uncomment the next lines and follow the steps below.
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 6.32.2
+
+      - name: Cache turbo build setup
+        uses: actions/cache@v3
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Setup postgres
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres psql -d template1 -c "CREATE USER omed WITH PASSWORD 'omed' CREATEDB"
+          createdb -h localhost -p 5432 -U omed omed
+          pg_isready -d omed -h localhost -p 5432 -U omed
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
