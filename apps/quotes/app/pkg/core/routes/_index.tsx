@@ -1,10 +1,11 @@
 import { Box, Card, Heading } from "@radix-ui/themes";
 import type { MetaFunction } from "@remix-run/node";
+import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "Quotes" },
+    { name: "description", content: "Welcome to Quotes!" },
   ];
 };
 
@@ -14,6 +15,7 @@ export default function Index() {
       <Box>
         <Card m="8">
           <Heading className="p-8">Welcome to Quotes!</Heading>
+          <Link to="/login">Login</Link>
         </Card>
       </Box>
     </main>

@@ -1,13 +1,15 @@
 import { Form, ValidatedInputText } from "@omed/ui";
 import { Button, Flex } from "@radix-ui/themes";
-import { LoginValidator } from "../services";
+import { LoginValidator } from "../auth.client";
 
 export default function Login() {
   return (
     <Form
+      action="/login"
       validator={LoginValidator}
       title="Login to Quotes"
-      style={{ minWidth: 300 }}>
+      style={{ minWidth: 300 }}
+      method="post">
       <Flex
         direction="column"
         gap="2">

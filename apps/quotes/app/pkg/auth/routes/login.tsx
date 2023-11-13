@@ -1,7 +1,10 @@
 import authenticator from "../authenticator";
 import Login from "../components/Login";
 
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import {
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+} from "@remix-run/node";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return await authenticator.isAuthenticated(request, {
@@ -10,10 +13,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  return await authenticator.authenticate("user-pass", request, {
-    successRedirect: "/",
+  const user = await authenticator.authenticate("user-pass", request, {
     failureRedirect: "/login",
+    successRedirect: "/",
   });
+
+  console.log(user);
+  return { user };
 }
 
 export default function LoginRoute() {

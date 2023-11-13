@@ -13,7 +13,7 @@ function authFormStrategy(authenticator: Authenticator) {
       // the type of this user must match the type you pass to the Authenticator
       // the strategy will automatically inherit the type if you instantiate
       // directly inside the `use` method
-      return user;
+      return null;
     }),
     // each strategy has a name and can be changed to use another one
     // same strategy multiple times, especially useful for the OAuth2 strategy.
@@ -30,6 +30,7 @@ const authenticator = new Authenticator<User>(sessionStorage);
 function registerStrategy(authenticator: Authenticator) {
   const strategies: AuthStrategy[] = [authFormStrategy];
   strategies.forEach((strategy) => {
+    console.log(strategy);
     strategy(authenticator);
   });
 }

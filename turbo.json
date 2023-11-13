@@ -8,6 +8,9 @@
     "db:push": {
       "cache": false
     },
+    "db:studio": {
+      "cache": false
+    },
     "build": {
       "dependsOn": ["^build", "^db:generate", "^db:push"]
     },
