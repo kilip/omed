@@ -9,6 +9,7 @@ on:
 env:
   DATABASE_URL: postgres://omed:omed@localhost/omed
   PGPASSWORD: omed
+  SECRET: CHANGEME!
 
 jobs:
   build:

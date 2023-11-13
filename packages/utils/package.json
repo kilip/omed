@@ -1,13 +1,10 @@
 {
-  "name": "@omed/db",
+  "name": "@omed/utils",
   "version": "0.0.0",
-  "description": "Omed database package",
+  "description": "Omed utils package",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push --skip-generate",
-    "format": "prisma format",
     "test": "vitest"
   },
   "keywords": [],
@@ -17,11 +14,10 @@
     "@omed/tsconfig": "workspace:^",
     "prisma": "^5.5.2",
     "typescript": "^5.2.2",
-    "vitest": "^0.34.6",
-    "vitest-mock-extended": "^1.3.1"
+    "vitest": "^0.34.6"
   },
   "dependencies": {
-    "@omed/utils": "workspace:*",
-    "@prisma/client": "^5.5.2"
+    "@prisma/client": "^5.5.2",
+    "tiny-invariant": "^1.3.1"
   }
 }

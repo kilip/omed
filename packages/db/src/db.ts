@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 
-import { singleton } from "./singleton";
+import { singleton } from "@omed/utils";
 
+function getConnectedDb() {
+  const db = singleton<PrismaClient>("db.prisma", () => new PrismaClient());
+  db.$connect();
+  return db;
+}
 // Hard-code a unique key, so we can look up the client when this module gets re-imported
-const db = singleton<PrismaClient>("prisma", () => new PrismaClient());
-db.$connect();
-
-export default db;
+export const db = getConnectedDb();

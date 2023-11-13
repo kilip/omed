@@ -18,6 +18,9 @@
       "persistent": true
     },
     "test": {
+      "cache": false
+    },
+    "e2e": {
       "dependsOn": ["^build", "^db:generate", "^db:push"],
       "cache": false
     }

@@ -5,7 +5,7 @@ import db from "../src/__mock__/db";
 vi.mock("../src/db", async () => {
   const mock = (await import("../src/__mock__/db")).default;
   return {
-    default: mock,
+    db: mock,
   };
 });
 
@@ -33,5 +33,18 @@ describe("users service", () => {
     expect(db.user.upsert).toBeCalled();
     expect(user).toEqual(expectedUser);
     expect(db.password.upsert).toBeCalled();
+  });
+
+  it("should find user by email", async () => {
+    const user = await users.findUnique(
+      { email: "test@example.com" },
+      "withPassword"
+    );
+
+    expect(db.user.findUnique).toBeCalled();
+    expect(db.user.findUnique).toBeCalledWith({
+      include: { password: true },
+      where: { email: "test@example.com" },
+    });
   });
 });

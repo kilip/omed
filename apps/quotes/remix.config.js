@@ -1,4 +1,4 @@
-import { flatRoutes } from "remix-flat-routes";
+import { flatRoutes } from "remix-flat-routes"
 
 /** @type {import('@remix-run/dev').AppConfig} */
 export default {
@@ -12,5 +12,10 @@ export default {
 
     return flatRoutes(dirs, defineRoutes);
   },
-  serverDependenciesToBundle: [/^@radix-ui.*/, /^@omed.*/, /^lodash.*/],
+  serverDependenciesToBundle: [ /^@radix-ui.*/, /^@omed.*/, /^lodash.*/ ],
+  browserNodeBuiltinsPolyfill: {
+    modules: {
+      crypto: true
+    }
+  }
 };
