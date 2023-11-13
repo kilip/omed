@@ -5,7 +5,7 @@ import db from "../src/__mock__/db";
 vi.mock("../src/db", async () => {
   const mock = (await import("../src/__mock__/db")).default;
   return {
-    default: mock,
+    db: mock,
   };
 });
 

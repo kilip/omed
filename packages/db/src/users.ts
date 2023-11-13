@@ -1,5 +1,5 @@
 import { Password, User } from "@prisma/client";
-import db from "./db";
+import { db } from "./db";
 
 export type UserPayload = Pick<User, "name" | "email"> & {
   password?: string;

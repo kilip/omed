@@ -208,6 +208,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@omed/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@prisma/client':
         specifier: ^5.5.2
         version: 5.5.2(prisma@5.5.2)

@@ -5,7 +5,7 @@
       "outputs": ["build/**", "public/build/**"]
     },
     "test": {
-      "dotEnv": [".env"]
+      "dotEnv": [".env.test"]
     }
   }
 }

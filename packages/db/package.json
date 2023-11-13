@@ -21,6 +21,7 @@
     "vitest-mock-extended": "^1.3.1"
   },
   "dependencies": {
+    "@omed/utils": "workspace:*",
     "@prisma/client": "^5.5.2"
   }
 }
