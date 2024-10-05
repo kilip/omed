@@ -9,11 +9,34 @@
   },
   "devDependencies": {
     "prettier": "^3.2.5",
+    "semantic-release-plugin-update-version-in-files": "^1.1.0",
     "turbo": "^2.1.3",
     "typescript": "^5.4.5"
   },
   "packageManager": "pnpm@8.15.6",
   "engines": {
     "node": ">=18"
+  },
+  "release": {
+    "branches": [
+      "+([0-9]).x",
+      {
+        "name": "beta",
+        "prerelease": true
+      }
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/github",
+      [
+        "semantic-release-plugin-update-version-in-files",
+        {
+          "files": [
+            "apps/web/src"
+          ]
+        }
+      ]
+    ]
   }
 }
