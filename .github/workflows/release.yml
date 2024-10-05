@@ -1,10 +1,10 @@
 name: Release
-"on":
+on:
   push:
     branches:
       - beta
       - "*.x"
-      - debug
+
 # These are recommended by the semantic-release docs: https://github.com/semantic-release/npm#npm-provenance
 permissions:
   contents: write # to be able to publish a GitHub release
@@ -27,7 +27,7 @@ jobs:
         name: Install pnpm
         with:
           run_install: false
-
+      - run: pnpm install
       - run: pnpm run build
       - run: npx semantic-release
         env:

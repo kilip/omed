@@ -20,8 +20,14 @@
   "release": {
     "branches": [
       "+([0-9]).x",
+      "main",
+      "next",
       {
         "name": "beta",
+        "prerelease": true
+      },
+      {
+        "name": "debug",
         "prerelease": true
       }
     ],
@@ -33,7 +39,7 @@
         "semantic-release-plugin-update-version-in-files",
         {
           "files": [
-            "apps/web/src"
+            "apps/web/src/*.ts"
           ]
         }
       ]
