@@ -9,6 +9,45 @@ on:
   pull_request:
 
 jobs:
+  api:
+    name: API
+    uses: kilip/gh-common/.github/workflows/php.yaml@main
+    with:
+      php_version: 8.4
+      working_dir: ./apps/api
+      codecov_flags: api
+    secrets: inherit
+
+  node:
+    name: "Test ${{ matrix.name }}"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - filter: "@omed/dash"
+            name: Dashboard
+            working_dir: apps/dash
+            coverage_flag: dash
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: kilip/gh-common/.github/actions/setup-node@main
+        with:
+          node_version: 22
+
+      - name: Run test
+        run: pnpm --filter=${{ matrix.filter }} coverage
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          working-directory: ${{ matrix.working_dir }}
+          directory: "coverage"
+          flags: ${{ matrix.coverage_flag }}
+          verbose: true
+
   e2e:
     name: E2E
     runs-on: ubuntu-latest

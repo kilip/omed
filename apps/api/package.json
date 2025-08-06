@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Omed API Source Code",
   "scripts": {
-    "test": "./vendor/bin/phpunit --color"
+    "phpstan": "./vendor/bin/phpstan analyse"
   },
   "keywords": [],
   "author": "",

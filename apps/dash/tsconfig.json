@@ -1,11 +1,18 @@
 {
   "extends": "@omed/typescript-config/nextjs.json",
   "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "ESNext"],
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["./app/*"]
+    }
   },
   "include": [
     "**/*.ts",
