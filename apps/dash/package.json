@@ -1,6 +1,6 @@
 {
-  "name": "web",
-  "version": "0.1.0",
+  "name": "@omed/dash",
+  "version": "0.0.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -24,5 +24,9 @@
     "@types/react-dom": "19.1.1",
     "eslint": "^9.31.0",
     "typescript": "5.8.2"
+  },
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": "^22.x"
   }
 }
