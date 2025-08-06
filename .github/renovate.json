@@ -1,4 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"]
+  "extends": [
+    "config:recommended",
+    "docker:enableMajor",
+    ":disableRateLimiting",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":skipStatusChecks",
+    ":timezone(Asia/Makassar)"
+  ],
+  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
+  "packageRules": [
+    {
+      "matchPackageNames": "*",
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ]
 }
