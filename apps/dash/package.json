@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@omed/ui": "workspace:*",
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@omed/eslint-config": "workspace:*",
     "@omed/typescript-config": "workspace:*",
+    "@playwright/test": "^1.54.2",
     "@types/node": "^22.15.3",
     "@types/react": "19.1.0",
     "@types/react-dom": "19.1.1",
