@@ -1,0 +1,11 @@
+{
+  "name": "@omed/api",
+  "version": "0.0.0",
+  "description": "Omed API Source Code",
+  "scripts": {
+    "test": "./vendor/bin/phpunit --color"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
