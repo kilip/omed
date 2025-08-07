@@ -1,9 +1,9 @@
 {
-  "name": "web",
+  "name": "@omed/web",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "next dev --turbopack --port 3000",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

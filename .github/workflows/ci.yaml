@@ -54,42 +54,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: kilip/gh-common/.github/actions/setup-node@main
         with:
-          run_install: false
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Get pnpm store path
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install dependencies
-        run: pnpm install
+          node_version: 22
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright # Adjust for Windows/macOS if needed
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }} # Include package.json hash for Playwright version changes
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/ppnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
+        id: pw_cache
 
       - name: Install Playwright browsers
         run: pnpx playwright install --with-deps
         working-directory: "apps/dash"
+        if: steps.pw_cache.outputs.cache-hit != 'true'
 
       - run: pnpm e2e
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: ["e2e"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        uses: ./.github/actions/build-container
+        with:
+          prefix: ghcr.io/kilip/omed
+          dockerfile: ./apps/api/Dockerfile
+          target: frankenphp_prod
+          context: ./apps/api
+          ref_name: ${{ github.ref_name }}
