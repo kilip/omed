@@ -1,6 +1,6 @@
 <?php
 
-namespace Omed\CMS\Factory;
+namespace Omed\CMS\DataFixtures\Factory;
 
 use Omed\CMS\Entity\Article;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Omed\CMS\Story;
+namespace Omed\CMS\DataFixtures\Story;
 
 use Zenstruck\Foundry\Attribute\AsFixture;
 use Zenstruck\Foundry\Story;

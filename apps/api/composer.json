@@ -47,7 +47,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Omed\\CMS\\": "src/"
+            "Omed\\CMS\\": "src/",
+            "Omed\\CMS\\DataFixtures\\": "fixtures/"
         }
     },
     "autoload-dev": {

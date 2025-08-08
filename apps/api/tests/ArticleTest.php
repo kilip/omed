@@ -3,10 +3,13 @@
 namespace Omed\CMS\Tests;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use Omed\CMS\Factory\ArticleFactory;
+use Omed\CMS\DataFixtures\Factory\ArticleFactory;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
+/**
+ * @covers \Omed\CMS\Entity\Article
+ */
 class ArticleTest extends ApiTestCase
 {
     use ResetDatabase, Factories;

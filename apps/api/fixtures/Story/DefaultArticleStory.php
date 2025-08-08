@@ -1,8 +1,8 @@
 <?php
 
-namespace Omed\CMS\Story;
+namespace Omed\CMS\DataFixtures\Story;
 
-use Omed\CMS\Factory\ArticleFactory;
+use Omed\CMS\DataFixtures\Factory\ArticleFactory;
 use Zenstruck\Foundry\Story;
 
 final class DefaultArticleStory extends Story

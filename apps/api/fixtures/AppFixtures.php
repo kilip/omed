@@ -4,7 +4,7 @@ namespace Omed\CMS\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Omed\CMS\Story\DefaultArticleStory;
+use Omed\CMS\DataFixtures\Story\DefaultArticleStory;
 
 class AppFixtures extends Fixture
 {
