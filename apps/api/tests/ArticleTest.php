@@ -25,7 +25,7 @@ class ArticleTest extends ApiTestCase
         ArticleFactory::createMany(5);
 
 
-        $response = static::createClient()->request('GET', '/api/articles');
+        $response = static::createClient()->request('GET', '/articles');
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type',  'application/ld+json; charset=utf-8');
         $this->assertCount(5, $response->toArray()['member']);
