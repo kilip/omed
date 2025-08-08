@@ -9,7 +9,7 @@ use Gedmo\Timestampable\Traits\Timestampable;
 
 #[ORM\Entity()]
 #[ORM\Table(name: 'cms_article')]
-#[ApiResource]
+#[ApiResource()]
 class Article
 {
     use Timestampable;
