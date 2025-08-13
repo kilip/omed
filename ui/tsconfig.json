@@ -1,0 +1,3 @@
+{
+  "extends": "@omed/typescript-config/base.json"
+}
