@@ -4,6 +4,7 @@ go 1.24.6
 
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
+	github.com/goccy/go-json v0.10.5
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/joho/godotenv v1.5.1
 	github.com/sirupsen/logrus v1.9.3
