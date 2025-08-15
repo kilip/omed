@@ -33,7 +33,7 @@ type OmedConfig struct {
 
 func setDefaults(v *viper.Viper){
 	v.SetDefault("db.type", "postgres")
-	v.SetDefault("db.host", "localhost")
+	v.SetDefault("db.host", "10.0.0.5")
 	v.SetDefault("db.port", 5432)
 	v.SetDefault("db.username", "omed")
 	v.SetDefault("db.password", "omed")

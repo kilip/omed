@@ -1,5 +1,12 @@
 package model
 
+type Resource[T any] struct {
+	Data T `json:"data"`
+	Meta struct {
+		Uri string `json:"uri"`
+	} `json:"meta,omitempty"`
+}
+
 type Resources[T any] struct {
 	Data			T	`json:"data"`
 	Meta struct {
