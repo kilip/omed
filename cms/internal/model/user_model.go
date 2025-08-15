@@ -16,6 +16,7 @@ type UserResponse struct {
 	Email string `json:"email,omitempty"`
 	CreatedAt int64 `json:"createdAt,omitempty"`
 	UpdatedAt int64 `json:"updatedAt,omitempty"`
+	Token string `json:"token,omitempty"`
 }
 
 func UserToResponse(user *entity.User) *UserResponse{
