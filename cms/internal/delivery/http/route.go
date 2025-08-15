@@ -13,4 +13,5 @@ func (c RouteConfig) Setup(){
 
 func (c RouteConfig) SetupUserRoutes(){
 	c.App.Post("/users", c.UserController.Register)
+	c.App.Post("/auth/login", c.UserController.Login)
 }

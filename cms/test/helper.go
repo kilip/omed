@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/kilip/omed/cms/internal/entity"
 	"github.com/kilip/omed/cms/internal/utils"
@@ -24,7 +25,7 @@ func IDonTHaveUser(email string) {
 
 func iHaveUser(user *entity.User){
 	ctx := context.Background()
-	_, err := gorm.G[entity.User](db).Where("email = ?", user.Email).First(ctx);
+	ex, err := gorm.G[entity.User](db).Where("email = ?", user.Email).First(ctx);
 
 	if errors.Is(err, gorm.ErrRecordNotFound){
 		password, err := utils.HashPassword("secret")
@@ -37,5 +38,16 @@ func iHaveUser(user *entity.User){
 			panic(err)
 		}
 	}
+
+	user.ID = ex.ID
 	
+}
+
+func iAmNotLogin(user *entity.User){
+	ctx := context.Background()
+	fmt.Println(user.ID)
+	_, err := gorm.G[entity.UserToken](db).Where("user_id = ?", user.ID).Delete(ctx);
+	if err != nil {
+		panic(err)
+	}
 }

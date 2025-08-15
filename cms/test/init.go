@@ -21,7 +21,7 @@ func init(){
 	db = config.NewDatabase(c, log)
 	app = config.NewFiber(c)
 
-	db.AutoMigrate(&entity.User{})
+	db.AutoMigrate(&entity.User{}, &entity.UserToken{})
 
 	config.Bootstrap(&config.Omed{
 		Config: c,

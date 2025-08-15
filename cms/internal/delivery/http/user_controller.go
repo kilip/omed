@@ -37,3 +37,19 @@ func (c UserController) Register(ctx *fiber.Ctx) error {
 	fmt.Printf("Data: %+v \n", response)
 	return ctx.Status(201).JSON(model.Resource[*model.UserResponse]{Data: response})
 }
+
+func (c UserController) Login(ctx *fiber.Ctx) error {
+	request := new(model.LoginRequest)
+	if err := ctx.BodyParser(request); err != nil {
+		c.Log.Warnf("Failed to parse request body : %+v", err)
+		return fiber.ErrBadRequest
+	}
+
+	response, err := c.Service.Login(ctx.UserContext(), request)
+	if err != nil {
+		c.Log.Warnf("Failed to login user : %+v", err)
+		return err
+	}
+
+	return ctx.JSON(model.Resource[*model.LoginResponse]{Data: response})
+}
