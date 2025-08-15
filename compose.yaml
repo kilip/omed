@@ -1,0 +1,34 @@
+services:
+  cms:
+    container_name: omed.cms
+    build:
+      context: ./cms
+    ports:
+      - 3000:3000
+    volumes:
+      - ./cms:/usr/src/cms
+    command: air cmd/main.go -b 0.0.0.0
+    env_file:
+      - .env
+      - .env.local
+    environment:
+      OMED_LISTEN: ${OMED_LISTEN}
+      OMED_DB_HOST: ${OMED_DB_HOST}
+      OMED_DB_PORT: ${OMED_DB_PORT}
+      OMED_DB_USERNAME: ${OMED_DB_USERNAME}
+      OMED_DB_PASSWORD: ${OMED_DB_PASSWORD}
+      OMED_DB_NAME: ${OMED_DB_NAME}
+  db:
+    container_name: omed.db
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: ${OMED_DB_USERNAME}
+      POSTGRES_PASSWORD: ${OMED_DB_PASSWORD}
+      POSTGRES_DB: ${OMED_DB_NAME}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./vars/db:/var/lib/postgresql/data
+
+volumes:
+  postgres-db:
