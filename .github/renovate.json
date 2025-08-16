@@ -10,7 +10,7 @@
   "dependencyDashboardApproval": true,
   "timezone": "Asia/Makassar",
   "constraints": {
-    "node": "1.24.x"
+    "node": "^22.0.0"
   },
   "packageRules": [
     {
