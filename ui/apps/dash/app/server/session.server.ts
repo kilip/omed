@@ -13,8 +13,8 @@ type SessionFlashData = {
   info: string;
 };
 
-const secrets = process.env.OMED_SECRET;
-invariant(secrets);
+const secrets = process.env.OMED_SECRET || "secret";
+// invariant(secrets, "OMED_SECRET env not configured");
 
 const { getSession, commitSession, destroySession } =
   createCookieSessionStorage<SessionData, SessionFlashData>({

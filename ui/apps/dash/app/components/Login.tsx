@@ -21,7 +21,9 @@ export default function Login({ error }: Props) {
           Password: <input type="password" name="password" />
         </label>
         <div>
-          <Button>Login</Button>
+          <Button name="submit" type="submit">
+            Login
+          </Button>
         </div>
       </form>
     </div>

@@ -1,8 +1,15 @@
 import { commitSession, getSession } from "~/server/session.server";
 import type { Route } from "./+types/login";
-import { data, redirect, redirectDocument } from "react-router";
+import { data, redirect } from "react-router";
 import Login from "~/components/Login";
 import type { LoggedInResponse, Resource } from "~/types";
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Login to Omed" },
+    { name: "description", content: "Please login to omed to continue" },
+  ];
+}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));

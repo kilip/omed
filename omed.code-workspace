@@ -8,6 +8,9 @@
       "name": "dash",
       "path": "ui/apps/dash",
     },
+    {
+      "path": ".github",
+    },
   ],
   "settings": {},
 }
