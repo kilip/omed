@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kilip/omed/cms/internal/delivery/http/controller"
 	"github.com/kilip/omed/cms/internal/delivery/http/middleware"
@@ -27,7 +27,6 @@ func Bootstrap(omed *Omed){
 	userService := service.NewUserService(omed.DB, omed.Log, omed.Validate, users)
 	authService := service.NewAuthService(omed.DB, omed.Log, omed.Validate, users, tokens)
 	
-
 	userController := controller.NewUserController(userService, omed.Log)
 	authController := controller.NewAuthController(authService, omed.Log)
 	authMiddleware := middleware.AuthMiddleware(authService)
