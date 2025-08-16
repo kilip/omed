@@ -5,20 +5,30 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-func NewDatabase(c *OmedConfig, log *logrus.Logger) *gorm.DB {
+
+type logrusWriter struct {
+	Logger *logrus.Logger
+}
+
+func (l *logrusWriter) Printf(message string, args ...interface{}) {
+	l.Logger.Tracef(message, args...)
+}
+
+func NewDatabase(c *viper.Viper, log *logrus.Logger) *gorm.DB {
 	
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		c.DB.Host,
-		c.DB.Username,
-		c.DB.Password,
-		c.DB.Database,
-		c.DB.Port,
+		c.Get("db.host"),
+		c.Get("db.username"),
+		c.Get("db.password"),
+		c.Get("db.database"),
+		c.Get("db.port"),
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -41,17 +51,9 @@ func NewDatabase(c *OmedConfig, log *logrus.Logger) *gorm.DB {
 	}
 
 	// connection.SetMaxIdleConns()
-	connection.SetMaxIdleConns(c.DB.Pool.Idle)
-	connection.SetMaxOpenConns(c.DB.Pool.Max)
-	connection.SetConnMaxLifetime(time.Second * time.Duration(c.DB.Pool.Lifetime))
+	connection.SetMaxIdleConns(c.GetInt("db.pool.idle"))
+	connection.SetMaxOpenConns(c.GetInt("db.pool.max"))
+	connection.SetConnMaxLifetime(time.Second * time.Duration(c.GetInt("db.pool.lifetime")))
 
 	return db
-}
-
-type logrusWriter struct {
-	Logger *logrus.Logger
-}
-
-func (l *logrusWriter) Printf(message string, args ...interface{}) {
-	l.Logger.Tracef(message, args...)
 }

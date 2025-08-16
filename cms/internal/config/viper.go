@@ -31,37 +31,30 @@ type OmedConfig struct {
 
 }
 
-func setDefaults(v *viper.Viper){
-	v.SetDefault("db.type", "postgres")
-	v.SetDefault("db.host", "10.0.0.5")
-	v.SetDefault("db.port", 5432)
-	v.SetDefault("db.username", "omed")
-	v.SetDefault("db.password", "omed")
-	v.SetDefault("db.database", "omed")
-	v.SetDefault("db.pool.idle", 10)
-	v.SetDefault("db.pool.max", 100)
-	v.SetDefault("db.pool.lifetime", 300)
+func setDefaults(config *viper.Viper){
+	config.SetDefault("db.type", "postgres")
+	config.SetDefault("db.host", "10.0.0.5")
+	config.SetDefault("db.port", 5432)
+	config.SetDefault("db.username", "omed")
+	config.SetDefault("db.password", "omed")
+	config.SetDefault("db.database", "omed")
+	config.SetDefault("db.pool.idle", 10)
+	config.SetDefault("db.pool.max", 100)
+	config.SetDefault("db.pool.lifetime", 300)
 	
-	v.SetDefault("log.level", "debug")
-	v.SetDefault("web.prefork", false)
-	v.SetDefault("web.port", 3000)
+	config.SetDefault("log.level", "debug")
+	config.SetDefault("web.prefork", false)
+	config.SetDefault("web.port", 3000)
 }
 
-func NewConfig() *OmedConfig {
-	var v = viper.New()
+func NewConfig() *viper.Viper {
+	var config = viper.New()
 
-	setDefaults(v)
+	setDefaults(config)
 
 	godotenv.Load()
-	v.AutomaticEnv()
-	v.SetEnvPrefix("omed")
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	var c OmedConfig
-	
-	err := v.Unmarshal(&c)
-	if err != nil {
-		panic(err)
-	}
-	return &c
+	config.AutomaticEnv()
+	config.SetEnvPrefix("omed")
+	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	return config
 }
