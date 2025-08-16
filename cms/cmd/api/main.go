@@ -8,14 +8,14 @@ import (
 
 func main(){
 
-	c := config.NewConfig()
-	log := config.NewLogger(c)
-	db := config.NewDatabase(c, log)
-	validate := config.NewValidator(c)
-	app := config.NewFiber(c)
+	conf := config.NewConfig()
+	log := config.NewLogger(conf)
+	db := config.NewDatabase(conf, log)
+	validate := config.NewValidator(conf)
+	app := config.NewFiber(conf)
 
 	config.Bootstrap(&config.Omed{
-		Config: c,
+		Config: conf,
 		Log: log,
 		DB: db,
 		Validate: validate,
@@ -23,7 +23,7 @@ func main(){
 	})
 
 	// start api server
-	port := c.GetInt("web.port")
+	port := conf.GetInt("web.port")
 	err := app.Listen(fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
