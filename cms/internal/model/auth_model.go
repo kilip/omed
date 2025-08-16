@@ -9,7 +9,8 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	UserID uint64 `json:"userId"`
-	Email string `json:"email"`
+	Name string `json:"name"`
+  Avatar string `json:"avatar"`
 	Token string `json:"token"`
 }
 
@@ -24,13 +25,14 @@ type AuthResponse struct {
 }
 
 type UserProfileRequest struct {
-	
+
 }
 
 func CreateLoginResponse(user *entity.User, token string) *LoginResponse {
 	return &LoginResponse{
 		UserID: user.ID,
-		Email: user.Email,
+		Name: user.Name,
+    Avatar: user.Avatar,
 		Token: token,
 	}
 }

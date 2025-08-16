@@ -84,6 +84,7 @@ func TestLogin(t *testing.T){
 	assert.Nil(t, err)
 	assert.Len(t, user.Tokens, 1)
 	assert.Equal(t, responseBody.Data.Token,user.Tokens[0].Token)
+  assert.Equal(t, user.Name, responseBody.Data.Name)
 }
 
 

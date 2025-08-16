@@ -4,11 +4,12 @@ services:
     image: ghcr.io/kilip/omed-cms:latest
     build:
       context: ./cms
-      target: prod
+      target: dev
     # command: "/omed/cms"
     ports:
       - 3000:3000
     volumes:
+      - ./cms:/go/source/omed
       - ./vars/data:/data
     env_file:
       - .env

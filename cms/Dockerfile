@@ -1,11 +1,19 @@
 # Get Go image from DockerHub.
-FROM golang:1.25 AS build
+FROM golang:1.25 AS base
 
 # Set working directory.
-WORKDIR /compiler
+WORKDIR /go/src/omed
+
+FROM base AS dev
+RUN go install github.com/air-verse/air@latest
+
+EXPOSE 3000
+CMD ["air", "./cmd/api/main.go", "-b", "0.0.0.0"]
+
+FROM base AS build
 
 # Copy dependency locks so we can cache.
-COPY go.mod go.sum /compiler/
+COPY go.mod go.sum ./
 
 # Get all of our dependencies.
 RUN go mod download
@@ -23,7 +31,7 @@ FROM scratch AS prod
 WORKDIR /omed
 
 # Copy our compiled executable from the last stage.
-COPY --from=build /compiler/cms .
+COPY --from=build /go/src/omed/cms .
 
 # Run application and expose port 8080.
 EXPOSE 3000

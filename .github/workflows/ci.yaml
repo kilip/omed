@@ -36,3 +36,34 @@ jobs:
         run: go mod tidy
       - name: Testing
         run: go test -test.v ./test
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Go 1.25
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.25
+          cache-dependency-path: "cms/go.sum"
+      - name: Install go dependencies
+        run: go mod tidy
+        working-directory: cms
+      - name: Install node dependencies
+        uses: kilip/gh-common/.github/actions/setup-node@main
+        with:
+          node_version: 22
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright # Default Playwright cache directory
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }} # Use package.json for versioning
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+      - name: Install playwright deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install
+      - name: Runs e2e tests
+        run: pnpm e2e
