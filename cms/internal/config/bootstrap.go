@@ -9,6 +9,7 @@ import (
 	"github.com/kilip/omed/cms/internal/repository"
 	"github.com/kilip/omed/cms/internal/service"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +17,7 @@ type Omed struct {
 	DB *gorm.DB
 	App *fiber.App
 	Log *logrus.Logger
-	Config *OmedConfig
+	Config *viper.Viper
 	Validate *validator.Validate
 }
 

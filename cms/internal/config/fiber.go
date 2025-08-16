@@ -1,6 +1,9 @@
 package config
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/viper"
+)
 
 func NewErrorHandler() fiber.ErrorHandler {
 	return func(ctx *fiber.Ctx, err error) error {
@@ -15,11 +18,11 @@ func NewErrorHandler() fiber.ErrorHandler {
 	}
 }
 
-func NewFiber(config *OmedConfig) *fiber.App{
+func NewFiber(config *viper.Viper) *fiber.App{
 	var app = fiber.New(fiber.Config{
-		AppName: config.AppName,
+		AppName: "omed",
 		ErrorHandler: NewErrorHandler(),
-		Prefork: config.Web.Prefork,
+		Prefork: config.GetBool("web.prefork"),
 	})
 
 	return app

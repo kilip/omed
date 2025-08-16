@@ -23,7 +23,7 @@ func main(){
 	})
 
 	// start api server
-	port := c.Web.Port
+	port := c.GetInt("web.port")
 	err := app.Listen(fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
