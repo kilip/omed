@@ -6,7 +6,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kilip/omed/cms/internal/config"
-	"github.com/kilip/omed/cms/internal/entity"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -25,8 +24,6 @@ func init(){
 	validate = config.NewValidator(conf)
 	db = config.NewDatabase(conf, log)
 	app = config.NewFiber(conf)
-
-	db.AutoMigrate(&entity.User{}, &entity.UserToken{})
 
 	config.Bootstrap(&config.Omed{
 		Config: conf,

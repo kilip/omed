@@ -1,23 +1,22 @@
 services:
   cms:
     container_name: omed.cms
+    image: ghcr.io/kilip/omed-cms:latest
     build:
       context: ./cms
+      target: prod
+    # command: "/omed/cms"
     ports:
       - 3000:3000
     volumes:
-      - ./cms:/usr/src/cms
-    command: air cmd/main.go -b 0.0.0.0
+      - ./vars/data:/data
     env_file:
       - .env
       - .env.local
     environment:
-      OMED_LISTEN: ${OMED_LISTEN}
-      OMED_DB_HOST: ${OMED_DB_HOST}
-      OMED_DB_PORT: ${OMED_DB_PORT}
-      OMED_DB_USERNAME: ${OMED_DB_USERNAME}
-      OMED_DB_PASSWORD: ${OMED_DB_PASSWORD}
-      OMED_DB_NAME: ${OMED_DB_NAME}
+      OMED_APP_ENV: production
+      OMED_DB_DRIVER: sqlite
+
   db:
     container_name: omed.db
     image: postgres:alpine

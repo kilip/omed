@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/glebarez/sqlite"
+	"github.com/kilip/omed/cms/internal/entity"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -63,7 +64,7 @@ func genDB(conf *viper.Viper, log *logrus.Logger)(*gorm.DB, error){
 }
 
 func NewDatabase(conf *viper.Viper, log *logrus.Logger) *gorm.DB {
-	
+
 	db, err := genDB(conf, log)
 
 	if err != nil {
@@ -79,6 +80,9 @@ func NewDatabase(conf *viper.Viper, log *logrus.Logger) *gorm.DB {
 	connection.SetMaxIdleConns(conf.GetInt("db.pool.idle"))
 	connection.SetMaxOpenConns(conf.GetInt("db.pool.max"))
 	connection.SetConnMaxLifetime(time.Second * time.Duration(conf.GetInt("db.pool.lifetime")))
+
+  // TODO: move this into migration
+  db.AutoMigrate(&entity.User{}, &entity.UserToken{})
 
 	return db
 }
