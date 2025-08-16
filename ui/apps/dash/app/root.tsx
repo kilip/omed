@@ -1,14 +1,21 @@
 import {
+  data,
   isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
+  redirect,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "react-router";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { verifyUser } from "~/server/auth.server";
+import invariant from "tiny-invariant";
+import { useState } from "react";
+import type { RootOutletContext } from "./types";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -22,6 +29,22 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const { authUser, headers } = await verifyUser(request);
+  if (!authUser && !request.url.includes("/login")) {
+    return redirect("/login");
+  }
+
+  return data(
+    {
+      authUser,
+    },
+    {
+      headers,
+    },
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,7 +65,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  const { authUser } = useLoaderData();
+  const [user, setUser] = useState(authUser);
+  return (
+    <Outlet
+      context={
+        {
+          user,
+        } satisfies RootOutletContext
+      }
+    />
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
