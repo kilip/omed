@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [":automergeEarlyMondays", ":dependencyDashboard"],
+  "extends": ["schedule:automergeEarlyMondays", ":dependencyDashboard"],
   "labels": ["dependencies"],
   "rangeStrategy": "replace",
   "dependencyDashboard": true,
