@@ -1,12 +1,14 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -20,18 +22,29 @@ func (l *logrusWriter) Printf(message string, args ...interface{}) {
 	l.Logger.Tracef(message, args...)
 }
 
-func NewDatabase(c *viper.Viper, log *logrus.Logger) *gorm.DB {
-	
+// Generate postgres connection
+func genPostgres(conf *viper.Viper, gormConfig *gorm.Config) (*gorm.DB, error){
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		c.Get("db.host"),
-		c.Get("db.username"),
-		c.Get("db.password"),
-		c.Get("db.database"),
-		c.Get("db.port"),
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		conf.Get("postgres.host"),
+		conf.GetInt("postgres.port"),
+		conf.Get("postgres.username"),
+		conf.Get("postgres.password"),
+		conf.Get("postgres.database"),
+		conf.Get("postgres.ssl"),
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	return gorm.Open(postgres.Open(dsn), gormConfig)
+}
+
+func genSqlite(conf *viper.Viper, gormConfig *gorm.Config) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("file:%s", conf.GetString("sqlite.path"))
+	return gorm.Open(sqlite.Open(dsn), gormConfig)
+}
+
+func genDB(conf *viper.Viper, log *logrus.Logger)(*gorm.DB, error){
+	driver := conf.GetString("db.driver")
+	gormConfig := &gorm.Config{
 		Logger: logger.New(&logrusWriter{Logger: log}, logger.Config{
 			SlowThreshold: time.Second * 5,
 			Colorful: false,
@@ -39,7 +52,19 @@ func NewDatabase(c *viper.Viper, log *logrus.Logger) *gorm.DB {
 			ParameterizedQueries: true,
 			LogLevel: logger.Info,
 		}),
-	})
+	}
+	switch driver {
+		case "postgres":
+			return genPostgres(conf, gormConfig)
+		case "sqlite":
+			return genSqlite(conf, gormConfig)
+	}
+	return nil, errors.New("Unsupported database driver: " + driver)
+}
+
+func NewDatabase(conf *viper.Viper, log *logrus.Logger) *gorm.DB {
+	
+	db, err := genDB(conf, log)
 
 	if err != nil {
 		log.Fatalf("failed to connect database %v", err)
@@ -51,9 +76,9 @@ func NewDatabase(c *viper.Viper, log *logrus.Logger) *gorm.DB {
 	}
 
 	// connection.SetMaxIdleConns()
-	connection.SetMaxIdleConns(c.GetInt("db.pool.idle"))
-	connection.SetMaxOpenConns(c.GetInt("db.pool.max"))
-	connection.SetConnMaxLifetime(time.Second * time.Duration(c.GetInt("db.pool.lifetime")))
+	connection.SetMaxIdleConns(conf.GetInt("db.pool.idle"))
+	connection.SetMaxOpenConns(conf.GetInt("db.pool.max"))
+	connection.SetConnMaxLifetime(time.Second * time.Duration(conf.GetInt("db.pool.lifetime")))
 
 	return db
 }
