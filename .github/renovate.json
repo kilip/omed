@@ -12,6 +12,7 @@
   "constraints": {
     "node": "^22.0.0"
   },
+  "automerge": true,
   "packageRules": [
     {
       "semanticCommitType": "chore",
