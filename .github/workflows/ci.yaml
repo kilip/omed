@@ -11,6 +11,10 @@ on:
       - next
       - main
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   cms:
     name: CMS Testing
