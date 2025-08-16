@@ -3,7 +3,9 @@ package config
 import (
 	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
-	"github.com/kilip/omed/cms/internal/delivery/http"
+	"github.com/kilip/omed/cms/internal/delivery/http/controller"
+	"github.com/kilip/omed/cms/internal/delivery/http/middleware"
+	"github.com/kilip/omed/cms/internal/delivery/http/route"
 	"github.com/kilip/omed/cms/internal/repository"
 	"github.com/kilip/omed/cms/internal/service"
 	"github.com/sirupsen/logrus"
@@ -19,14 +21,21 @@ type Omed struct {
 }
 
 func Bootstrap(omed *Omed){
-	userRepository := repository.NewUserRepository(omed.Log)
-	userService := service.NewUserService(omed.DB, omed.Log, omed.Validate, userRepository)
+	users := repository.NewUserRepository(omed.Log)
+	tokens := repository.NewTokenRepository(omed.Log)
+	userService := service.NewUserService(omed.DB, omed.Log, omed.Validate, users)
+	authService := service.NewAuthService(omed.DB, omed.Log, omed.Validate, users, tokens)
+	
 
-	userController := http.NewUserController(userService, omed.Log)
+	userController := controller.NewUserController(userService, omed.Log)
+	authController := controller.NewAuthController(authService, omed.Log)
+	authMiddleware := middleware.AuthMiddleware(authService)
 
-	routeConfig := http.RouteConfig{
+	routeConfig := route.RouteConfig{
 		App: omed.App,
 		UserController: userController,
+		AuthController: authController,
+		AuthMiddleware: authMiddleware,
 	}
 
 	routeConfig.Setup()

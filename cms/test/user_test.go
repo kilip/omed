@@ -14,7 +14,7 @@ import (
 )
 
 func TestRegister(t *testing.T){
-	IDonTHaveUser("john.doe@example.com")
+	iDonTHaveUser("john.doe@example.com")
 	requestBody := model.RegisterUserRequest {
 		Name: "John Doe",
 		Email: "john.doe@example.com",
@@ -25,7 +25,7 @@ func TestRegister(t *testing.T){
 
 	req, err := http.NewRequest(
 		http.MethodPost,
-		"/users",
+		"/register",
 		strings.NewReader(string(jsonBody)),
 	)
 	assert.Nil(t, err)
@@ -84,4 +84,38 @@ func TestLogin(t *testing.T){
 	assert.Nil(t, err)
 	assert.Len(t, user.Tokens, 1)
 	assert.Equal(t, responseBody.Data.Token,user.Tokens[0].Token)
+}
+
+
+func TestUserProfile(t *testing.T){
+	TestLogin(t)
+
+	token := new(entity.UserToken)
+	err := db.Where("user_id = ?", TestUser.ID).First(token).Error
+	assert.Nil(t, err)
+	assert.NotNil(t, token.Token)
+
+	request := httptest.NewRequest(
+		http.MethodGet,
+		"/me",
+		nil,
+	)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Accept", "application/json")
+	request.Header.Set("Authorization", token.Token)
+
+	response, err := app.Test(request)
+	assert.Nil(t, err)
+
+	bytes, err := io.ReadAll(response.Body)
+	assert.Nil(t, err)
+
+	responseBody := new(model.Resource[model.AuthResponse])
+	err = json.Unmarshal(bytes, responseBody)
+	assert.Nil(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, TestUser.ID, responseBody.Data.UserID)
+	assert.Equal(t, TestUser.Name, responseBody.Data.Name)
+	assert.Equal(t, TestUser.Avatar, responseBody.Data.Avatar)
 }

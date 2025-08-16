@@ -13,6 +13,20 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+type VerifyUserRequest struct {
+	Token string
+}
+
+type AuthResponse struct {
+	UserID uint64 `json:"userId"`
+	Name string `json:"name"`
+	Avatar string `json:"avatar,omitempty"`
+}
+
+type UserProfileRequest struct {
+	
+}
+
 func CreateLoginResponse(user *entity.User, token string) *LoginResponse {
 	return &LoginResponse{
 		UserID: user.ID,
