@@ -12,6 +12,10 @@ import (
 )
 
 func setDefaults(config *viper.Viper){
+  config.SetDefault("admin.email", "admin@example.com")
+  config.SetDefault("admin.password", "admin")
+  config.SetDefault("admin.name", "Omed Admin User")
+
 	config.SetDefault("db.driver", "sqlite")
 	config.SetDefault("db.pool.idle", 10)
 	config.SetDefault("db.pool.max", 100)
@@ -42,7 +46,7 @@ func setDefaults(config *viper.Viper){
 
 func loadEnv(config *viper.Viper){
 	env := config.GetString("app.env")
-	// ignore dotenv	
+	// ignore dotenv
 	if env == "production" {
 		return
 	}
@@ -76,10 +80,10 @@ func NewConfig() *viper.Viper {
 	var config = viper.New()
 
 	config.Set("app.env", env)
-	
+
 	loadEnv(config)
 	setDefaults(config)
-	
+
 
 	config.AutomaticEnv()
 	config.SetEnvPrefix("omed")

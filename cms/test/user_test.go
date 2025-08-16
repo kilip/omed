@@ -41,7 +41,7 @@ func TestRegister(t *testing.T){
 	responseBody := new(model.Resource[model.UserResponse])
 	err = json.Unmarshal(bytes, responseBody)
 	assert.Nil(t, err)
-	
+
 	assert.Equal(t, 201, res.StatusCode)
 	assert.NotEmpty(t, responseBody.Data)
 	assert.Equal(t, requestBody.Name, responseBody.Data.Name)
@@ -78,7 +78,7 @@ func TestLogin(t *testing.T){
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.NotNil(t, responseBody.Data.Token)
 
-	
+
 	user := new(entity.User)
 	err = db.Preload("Tokens").Where("email = ?", requestBody.Email).First(user).Error
 	assert.Nil(t, err)
@@ -118,4 +118,31 @@ func TestUserProfile(t *testing.T){
 	assert.Equal(t, TestUser.ID, responseBody.Data.UserID)
 	assert.Equal(t, TestUser.Name, responseBody.Data.Name)
 	assert.Equal(t, TestUser.Avatar, responseBody.Data.Avatar)
+}
+
+func TestAdminUserLogin(t *testing.T){
+  requestBody := model.LoginRequest{
+		Email: "admin@example.com",
+		Password: "admin",
+	}
+
+	bodyJson, err := json.Marshal(requestBody)
+	assert.Nil(t, err)
+
+	request := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(string(bodyJson)))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Accept", "application/json")
+
+	response, err := app.Test(request)
+	assert.Nil(t, err)
+
+	bytes, err := io.ReadAll(response.Body)
+	assert.Nil(t, err)
+
+	responseBody := new(model.Resource[model.LoginResponse])
+	err = json.Unmarshal(bytes, responseBody)
+	assert.Nil(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.NotNil(t, responseBody.Data.Token)
 }

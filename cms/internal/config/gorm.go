@@ -1,12 +1,14 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/glebarez/sqlite"
 	"github.com/kilip/omed/cms/internal/entity"
+	"github.com/kilip/omed/cms/internal/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
@@ -63,6 +65,35 @@ func genDB(conf *viper.Viper, log *logrus.Logger)(*gorm.DB, error){
 	return nil, errors.New("Unsupported database driver: " + driver)
 }
 
+// Ensuring admin user exists
+func ensureAdminUser(conf *viper.Viper, db *gorm.DB, log *logrus.Logger){
+  ctx := context.Background()
+  name := conf.GetString("admin.name")
+  email := conf.GetString("admin.email")
+  password := conf.GetString("admin.password")
+
+  _, err := gorm.G[entity.User](db).Where("email = ?", email).First(ctx)
+  if errors.Is(err, gorm.ErrRecordNotFound) {
+    hashed, err := utils.HashPassword(password)
+    if err != nil {
+      log.Fatalf("Failed to hash password: %+v", err)
+    }
+
+    user := &entity.User{
+      Name: name,
+      Email: email,
+      Password: hashed,
+    }
+
+    if err := gorm.G[entity.User](db).Create(ctx, user); err != nil {
+			panic(err)
+		}
+  }else if err != nil {
+    panic(err)
+  }
+
+}
+
 func NewDatabase(conf *viper.Viper, log *logrus.Logger) *gorm.DB {
 
 	db, err := genDB(conf, log)
@@ -84,5 +115,6 @@ func NewDatabase(conf *viper.Viper, log *logrus.Logger) *gorm.DB {
   // TODO: move this into migration
   db.AutoMigrate(&entity.User{}, &entity.UserToken{})
 
+  ensureAdminUser(conf, db, log)
 	return db
 }
