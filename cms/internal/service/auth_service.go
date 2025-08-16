@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kilip/omed/cms/internal/entity"
 	"github.com/kilip/omed/cms/internal/model"

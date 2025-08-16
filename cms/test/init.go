@@ -3,7 +3,7 @@ package test
 import (
 	"os"
 
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kilip/omed/cms/internal/config"
 	"github.com/kilip/omed/cms/internal/entity"
