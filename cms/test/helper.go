@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/kilip/omed/cms/internal/entity"
 	"github.com/kilip/omed/cms/internal/utils"
@@ -13,9 +12,10 @@ import (
 var TestUser = &entity.User{
 	Name: "Test User",
 	Email: "test@example.com",
+	Avatar: "https://example.com/avatar",
 }
 
-func IDonTHaveUser(email string) {
+func iDonTHaveUser(email string) {
 	ctx := context.Background()
 	_, err := gorm.G[entity.User](db).Where("email = ?", email).Delete(ctx)
 	if err != nil {
@@ -45,7 +45,6 @@ func iHaveUser(user *entity.User){
 
 func iAmNotLogin(user *entity.User){
 	ctx := context.Background()
-	fmt.Println(user.ID)
 	_, err := gorm.G[entity.UserToken](db).Where("user_id = ?", user.ID).Delete(ctx);
 	if err != nil {
 		panic(err)

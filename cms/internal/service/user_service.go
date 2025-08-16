@@ -75,37 +75,3 @@ func (c *UserService) Register(ctx context.Context, request *model.RegisterUserR
 	return model.UserToResponse(user), nil
 
 }
-
-func (c *UserService) Login(ctx context.Context, request *model.LoginRequest) (*model.LoginResponse, error){
-	tx := c.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
-
-	if err := c.Validate.Struct(request); err != nil {
-		c.Log.Warnf("Invalid request body  : %+v", err)
-		return nil, fiber.ErrBadRequest
-	}
-
-	user := new(entity.User)
-	if err := c.Repository.FindByEmail(tx, user, request.Email); err != nil {
-		c.Log.Warnf("Failed find user by email : %+v", err)
-		return nil, fiber.ErrUnauthorized
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)); err != nil {
-		c.Log.Warnf("Failed to compare user password with bcrype hash : %+v", err)
-		return nil, fiber.ErrUnauthorized
-	}
-	
-	token, err := c.Repository.CreateToken(tx, user)
-	if  err != nil {
-		c.Log.Warnf("Failed create token for user : %+v", err)
-		return nil, fiber.ErrInternalServerError
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		c.Log.Warnf("Failed commit transaction : %+v", err)
-		return nil, fiber.ErrInternalServerError
-	}
-
-	return model.CreateLoginResponse(user, token), nil
-}
