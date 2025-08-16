@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["schedule:automergeEarlySunday", ":dependencyDashboard"],
+  "extends": [":dependencyDashboard"],
   "labels": ["dependencies"],
   "rangeStrategy": "replace",
   "dependencyDashboard": true,
@@ -47,5 +47,6 @@
     "automerge": true,
     "ignoreTests": true,
     "automergeType": "pr"
-  }
+  },
+  "automergeSchedule": ["* * * * 0,6"]
 }
