@@ -17,12 +17,15 @@ func (s *Server) Start() error {
 }
 
 func NewServer(conf utils.Config) *Server {
-	app := fiber.New(fiber.Config{})
+	app := fiber.New(fiber.Config{
+		Prefork: true,
+	})
 	return &Server{conf, app, make([]Controller, 0)}
 }
 
 func (s *Server) AddController(controller Controller) {
 	s.controllers = append(s.controllers, controller)
+	controller.LoadRoutes(s.app)
 }
 
 func (s *Server) loadRoutes() {

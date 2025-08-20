@@ -1,5 +1,24 @@
 ---
 services:
+  api:
+    container_name: omed.api
+    image: ghcr.io/kilip/omed-api:latest
+    build:
+      context: .
+      target: dev
+    ports:
+      - 3000:3000
+    volumes:
+      - ./:/go/src/omed
+      - ./vars/data:/data
+    depends_on:
+      - db
+    environment:
+      OMED_POSTGRES_HOST: db
+      OMED_POSTGRES_USERNAME: omed
+      OMED_POSTGRES_PASSWORD: omed
+      OMED_POSTGRES_DATABASE: omed
+
   db:
     container_name: omed.database
     image: postgres:18beta3-alpine

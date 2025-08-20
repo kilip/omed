@@ -9,6 +9,11 @@ tasks:
       --format '\{\{ sql . \}\}' \
       > tmp/schema.sql
 
+  docker:build:
+    cmds:
+      - docker compose rm -f -s api
+      - docker compose build api
+      - docker compose up -d api
   migrate:initial:
     cmds:
       - task: migrate

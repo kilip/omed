@@ -9,10 +9,14 @@ type UserController struct {
 	users *user.UserService
 }
 
-func NewUserController(app *fiber.App, users *user.UserService) *UserController {
+func NewUserController(users *user.UserService) *UserController {
 	return &UserController{
 		users,
 	}
+}
+
+func (ctl UserController) LoadRoutes(app *fiber.App){
+
 }
 
 func (ctl *UserController) Create() {
