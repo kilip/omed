@@ -3,25 +3,24 @@ package service
 import (
 	"context"
 
-	"github.com/kilip/omed/internal/contracts"
+	"github.com/kilip/omed/internal/domain/user"
 	"github.com/kilip/omed/internal/dto"
-	"github.com/kilip/omed/internal/entity"
 )
 
 type UserService struct {
-	repository contracts.UserRepository
+	repository user.UserRepository
 }
 
-func NewUserService(repository contracts.UserRepository) *UserService {
+func NewUserService(repository user.UserRepository) *UserService {
 	return &UserService{repository}
 }
 
-func (s *UserService) List(ctx context.Context, req dto.UserListRequest) ([]*entity.User, error) {
+func (s *UserService) List(ctx context.Context, req dto.UserListRequest) ([]*user.User, error) {
 	return s.repository.List(ctx, req)
 }
 
-func (s *UserService) Create(ctx context.Context, req dto.UserRequest) (*entity.User, error) {
-	user := &entity.User{
+func (s *UserService) Create(ctx context.Context, req dto.UserRequest) (*user.User, error) {
+	user := &user.User{
 		Email: req.Email,
 		Name:  req.Name,
 	}
@@ -32,7 +31,7 @@ func (s *UserService) Create(ctx context.Context, req dto.UserRequest) (*entity.
 	return user, nil
 }
 
-func (s *UserService) Update(ctx context.Context, req dto.UserRequest) (*entity.User, error) {
+func (s *UserService) Update(ctx context.Context, req dto.UserRequest) (*user.User, error) {
 	existing, err := s.repository.FindByID(ctx, req.ID)
 	if err != nil {
 		return nil, err

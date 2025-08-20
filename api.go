@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/kilip/omed/internal/app/http"
+	"github.com/kilip/omed/internal/delivery/http"
 	"github.com/kilip/omed/internal/utils"
 )
 

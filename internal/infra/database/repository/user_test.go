@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/kilip/omed/internal/entity"
+	user2 "github.com/kilip/omed/internal/domain/user"
 	"github.com/kilip/omed/internal/infra/database/repository"
 	"github.com/kilip/omed/test"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +14,7 @@ var helper = test.NewUserHelper()
 var users = repository.NewUserRepository(helper.Q)
 var ctx = context.Background()
 
-var user = &entity.User{
+var user = &user2.User{
 	Name:   "Test User",
 	Email:  "test.user@example.com",
 	Avatar: "http://example.com/avatar",

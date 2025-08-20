@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/kilip/omed/internal/entity"
+	"github.com/kilip/omed/internal/domain/user"
 	"github.com/kilip/omed/internal/infra/database/dal"
 )
 
@@ -18,7 +18,7 @@ func NewUserRepository(dal *dal.Query) *UserRepository {
 	}
 }
 
-func (r UserRepository) Create(ctx context.Context, user *entity.User) error {
+func (r UserRepository) Create(ctx context.Context, user *user.User) error {
 	return r.q.Transaction(func(tx *dal.Query) error {
 		q := tx.User
 		if err := q.WithContext(ctx).Create(user); err != nil {
@@ -29,7 +29,7 @@ func (r UserRepository) Create(ctx context.Context, user *entity.User) error {
 	})
 }
 
-func (r UserRepository) Update(ctx context.Context, user *entity.User) error {
+func (r UserRepository) Update(ctx context.Context, user *user.User) error {
 	return r.q.Transaction(func(tx *dal.Query) error {
 		q := tx.User
 		if err := q.WithContext(ctx).Save(user); err != nil {

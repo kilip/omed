@@ -5,9 +5,10 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/kilip/omed/internal/domain/user"
 	"github.com/kilip/omed/internal/dto"
-	"github.com/kilip/omed/internal/entity"
 	"github.com/kilip/omed/internal/service"
+	"github.com/kilip/omed/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ var req = dto.UserRequest{
 	Password: "test",
 	Name:     "Test user",
 }
-var res = &entity.User{
+var res = &user.User{
 	Email: req.Email,
 	Name:  req.Name,
 }
@@ -27,8 +28,8 @@ var reqList = dto.UserListRequest{}
 func TestList(t *testing.T) {
 
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
-	repo.On("List", ctx, reqList).Return([]*entity.User{res}, nil)
+	repo := new(test.UserRepositoryMock)
+	repo.On("List", ctx, reqList).Return([]*user.User{res}, nil)
 
 	svc := service.NewUserService(repo)
 	users, err := svc.List(ctx, reqList)
@@ -40,8 +41,8 @@ func TestList(t *testing.T) {
 
 func TestListError(t *testing.T) {
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
-	repo.On("List", ctx, reqList).Return([]*entity.User{}, errors.New("failed"))
+	repo := new(test.UserRepositoryMock)
+	repo.On("List", ctx, reqList).Return([]*user.User{}, errors.New("failed"))
 
 	svc := service.NewUserService(repo)
 	users, err := svc.List(ctx, reqList)
@@ -53,7 +54,7 @@ func TestListError(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
+	repo := new(test.UserRepositoryMock)
 	repo.On("Create", ctx, res).Return(nil)
 
 	svc := service.NewUserService(repo)
@@ -66,7 +67,7 @@ func TestCreate(t *testing.T) {
 
 func TestCreateError(t *testing.T) {
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
+	repo := new(test.UserRepositoryMock)
 	repo.On("Create", ctx, res).Return(errors.New("failed"))
 
 	svc := service.NewUserService(repo)
@@ -79,7 +80,7 @@ func TestCreateError(t *testing.T) {
 
 func TestUpdateSuccess(t *testing.T) {
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
+	repo := new(test.UserRepositoryMock)
 	repo.On("FindByID", ctx, req.ID).Return(res, nil)
 	repo.On("Update", ctx, res).Return(nil)
 
@@ -93,8 +94,8 @@ func TestUpdateSuccess(t *testing.T) {
 
 func TestUpdateWithInvalidId(t *testing.T) {
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
-	repo.On("FindByID", ctx, req.ID).Return(&entity.User{}, errors.New("failed"))
+	repo := new(test.UserRepositoryMock)
+	repo.On("FindByID", ctx, req.ID).Return(&user.User{}, errors.New("failed"))
 
 	svc := service.NewUserService(repo)
 	_, err := svc.Update(ctx, req)
@@ -105,7 +106,7 @@ func TestUpdateWithInvalidId(t *testing.T) {
 
 func TestDeleteSuccessfull(t *testing.T) {
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
+	repo := new(test.UserRepositoryMock)
 	repo.On("FindByID", ctx, req.ID).Return(res, nil)
 	repo.On("Delete", ctx, req.ID).Return(nil)
 
@@ -119,8 +120,8 @@ func TestDeleteSuccessfull(t *testing.T) {
 
 func TestDeleteWithInvalidID(t *testing.T) {
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
-	repo.On("FindByID", ctx, req.ID).Return(&entity.User{}, errors.New("failed"))
+	repo := new(test.UserRepositoryMock)
+	repo.On("FindByID", ctx, req.ID).Return(&user.User{}, errors.New("failed"))
 	// repo.On("Delete", ctx, req.ID).Return(nil)
 
 	svc := service.NewUserService(repo)
@@ -132,7 +133,7 @@ func TestDeleteWithInvalidID(t *testing.T) {
 
 func TestDeleteFailed(t *testing.T) {
 	ctx := context.Background()
-	repo := new(UserRepositoryMock)
+	repo := new(test.UserRepositoryMock)
 	repo.On("FindByID", ctx, req.ID).Return(res, nil)
 	repo.On("Delete", ctx, req.ID).Return(errors.New("failed"))
 

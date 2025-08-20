@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/kilip/omed/internal/contracts"
-	"github.com/kilip/omed/internal/utils/dispatcher"
+	"github.com/kilip/omed/internal/infra/dispatcher"
 	"github.com/stretchr/testify/assert"
 )
 

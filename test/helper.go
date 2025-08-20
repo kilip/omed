@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/kilip/omed/internal/entity"
+	"github.com/kilip/omed/internal/domain/user"
 	"github.com/kilip/omed/internal/infra/database"
 	"github.com/kilip/omed/internal/infra/database/dal"
 	"github.com/kilip/omed/internal/utils"
@@ -25,7 +25,7 @@ func NewUserHelper() *UserHelper {
 	once.Do(func() {
 		conf := utils.NewConfig()
 		dab := database.NewGormDB(conf)
-		err := dab.AutoMigrate(&entity.User{})
+		err := dab.AutoMigrate(&user.User{})
 		if err != nil {
 			panic(err)
 		}
@@ -61,7 +61,7 @@ func (h UserHelper) IDonTHaveUser(ctx context.Context, email string) {
 
 }
 
-func (h UserHelper) IHaveUser(ctx context.Context, user *entity.User) {
+func (h UserHelper) IHaveUser(ctx context.Context, user *user.User) {
 	err := h.Q.Transaction(func(tx *dal.Query) error {
 		q := tx.User
 

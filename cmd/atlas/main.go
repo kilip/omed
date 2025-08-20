@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"ariga.io/atlas-provider-gorm/gormschema"
-	"github.com/kilip/omed/internal/entity"
+	"github.com/kilip/omed/internal/domain/user"
 	"github.com/kilip/omed/internal/infra/database"
 	"github.com/kilip/omed/internal/utils"
 )
@@ -15,7 +15,7 @@ func main() {
 	conf := utils.NewConfig()
 	gdb := database.NewGormDB(conf)
 	stmts, err := gormschema.New("postgres", gormschema.WithConfig(gdb.Config)).Load(
-		&entity.User{},
+		&user.User{},
 	)
 
 	if err != nil {
