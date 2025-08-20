@@ -1,0 +1,53 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["schedule:automergeEarlyMondays", ":dependencyDashboard"],
+  "labels": ["dependencies"],
+  "rangeStrategy": "replace",
+  "dependencyDashboard": true,
+  "semanticCommitType": "fix",
+  "automergeStrategy": "rebase",
+  "automergeType": "pr",
+  "dependencyDashboardApproval": true,
+  "timezone": "Asia/Makassar",
+  "constraints": {
+    "node": "^22.0.0"
+  },
+  "automerge": true,
+  "packageRules": [
+    {
+      "semanticCommitType": "chore",
+      "matchPackageNames": ["*"]
+    },
+    {
+      "matchDepTypes": ["dependencies", "peerDependencies"],
+      "semanticCommitType": "fix"
+    },
+    {
+      "matchDepTypes": ["action"],
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "action"
+    },
+    {
+      "matchPackageNames": ["@types/node"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": true
+    },
+    {
+      "matchPackageNames": ["next"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": true
+    },
+    {
+      "matchPackageNames": ["astro"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": true
+    }
+  ],
+  "postUpdateOptions": ["npmDedupe"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "ignoreTests": true,
+    "automergeType": "pr"
+  }
+}

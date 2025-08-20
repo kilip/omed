@@ -1,0 +1,21 @@
+---
+- name: bug
+  color: "d73a4a"
+- name: feature
+  color: "0e8a16"
+- name: improvement
+  color: "0e8a16"
+- name: dependencies
+  color: "0e8a16"
+- name: test
+  color: "0e8a16"
+- name: ci
+  color: "0e8a16"
+- name: cms
+  color: "1d76db"
+- name: demo
+  color: "1d76db"
+- name: dash
+  color: "1d76db"
+- name: docs
+  color: "1d76db"

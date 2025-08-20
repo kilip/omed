@@ -1,0 +1,17 @@
+{
+  "http": {
+    "port": 3000,
+    "host": "",
+    "context": {
+      "timeout": 5
+    }
+  },
+  "postgres": {
+    "host": "10.0.0.5",
+    "port": 5432,
+    "username": "omed",
+    "password": "omed",
+    "database": "omed",
+    "sslmode": "disable"
+  }
+}

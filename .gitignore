@@ -1,0 +1,15 @@
+.turbo
+/.tmp/*
+!/.tmp/.gitkeep
+.env.local
+config/local.json
+
+# testing
+coverage
+/playwright-report
+/blob-report
+/playwright/.cache
+
+# Playwright
+node_modules/
+/test-results/

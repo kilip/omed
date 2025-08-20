@@ -1,0 +1,114 @@
+---
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - next
+  pull_request:
+    branches:
+      - next
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  OMED_DB_DRIVER: postgres
+  OMED_POSTGRES_HOST: localhost
+  OMED_POSTGRES_DATABASE: omed
+  OMED_POSTGRES_USERNAME: omed
+  OMED_POSTGRES_PASSWORD: omed
+
+jobs:
+  cms:
+    name: CMS Testing
+    runs-on: "ubuntu-latest"
+    services:
+      postgres:
+        image: postgres:18beta3-alpine # Specify the beta version here
+        env:
+          POSTGRES_DB: ${{ env.OMED_POSTGRES_DATABASE }}
+          POSTGRES_USER: ${{ env.OMED_POSTGRES_USERNAME }}
+          POSTGRES_PASSWORD: ${{ env.OMED_POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U myuser; do
+            echo "Waiting for Postgres..."
+            sleep 1
+          done
+        env:
+          PGPASSWORD: ${{ env.OMED_POSTGRES_PASSWORD }}
+      - name: Setup Go 1.25
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.25
+      # You can test your matrix by printing the current Go version
+      - name: Display Go version
+        run: go version
+      - name: Install dependencies
+        run: go mod tidy
+      - name: Testing
+        run: go test -test.v ./test/...
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18beta3-alpine # Specify the beta version here
+        env:
+          POSTGRES_DB: ${{ env.OMED_POSTGRES_DATABASE }}
+          POSTGRES_USER: ${{ env.OMED_POSTGRES_USERNAME }}
+          POSTGRES_PASSWORD: ${{ env.OMED_POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U omed; do
+            echo "Waiting for Postgres..."
+            sleep 1
+          done
+        env:
+          PGPASSWORD: ${{ env.OMED_POSTGRES_PASSWORD }}
+      - name: Setup Go 1.25
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.25
+      - name: Install go dependencies
+        run: go mod tidy
+      - name: Install node dependencies
+        uses: kilip/gh-common/.github/actions/setup-node@main
+        with:
+          node_version: 22
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright # Default Playwright cache directory
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }} # Use package.json for versioning
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+      - name: Install playwright deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install
+      - name: Runs e2e tests
+        run: pnpm e2e

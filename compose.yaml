@@ -1,0 +1,14 @@
+---
+services:
+  db:
+    container_name: omed.database
+    image: postgres:18beta3-alpine
+    environment:
+      POSTGRES_USER: ${OMED_POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${OMED_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${OMED_POSTGRES_DATABASE}
+      PGDATA: "/data"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.tmp/postgres:/data

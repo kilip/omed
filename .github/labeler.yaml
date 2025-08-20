@@ -1,0 +1,35 @@
+---
+# Areas
+cms:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "cms/**/*"
+
+dash:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ui/apps/dash/**/*"
+
+demo:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ui/apps/demo/**/*"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**/*"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "README.md"
+
+test:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "cms/test/**/*"
+          - "ui/apps/**/*.spec.ts"
+          - "ui/apps/**/*.test.ts"
+          - "ui/packages/**/*.spec.ts"
+          - "ui/packages/**/*.test.ts"

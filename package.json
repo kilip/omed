@@ -1,0 +1,19 @@
+{
+  "name": "omed",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo run dev",
+    "e2e": "playwright test"
+  },
+  "keywords": [],
+  "author": "Anthonius Munthi",
+  "license": "MIT",
+  "packageManager": "pnpm@10.15.0",
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^20.19.11",
+    "turbo": "^2.5.6"
+  }
+}

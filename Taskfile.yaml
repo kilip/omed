@@ -1,0 +1,28 @@
+---
+version: 3
+
+tasks:
+  atlas:inspect:
+    cmd: atlas schema inspect \
+      --env local \
+      --url "file://migrations?format=golang-migrate" \
+      --format '\{\{ sql . \}\}' \
+      > tmp/schema.sql
+
+  migrate:initial:
+    cmds:
+      - task: migrate
+        vars:
+          dir: down
+      - rm -rf migrations
+      - task: migrate:create
+        vars:
+          name: initial
+
+  migrate:create:
+    cmd: atlas migrate diff --env local {{.name}}
+
+  migrate:
+    cmd: migrate -source file://migrations -database postgres://omed:omed@localhost:5432/omed?sslmode=disable {{.dir}}
+    vars:
+      dir: '{{.dir | default "up" }}'
