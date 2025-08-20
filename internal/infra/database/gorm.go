@@ -3,13 +3,13 @@ package database
 import (
 	"fmt"
 
-	"github.com/kilip/omed/internal/utils"
+	"github.com/kilip/omed/internal/infra/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
 
-func NewGormDB(conf utils.Config) *gorm.DB {
+func NewGormDB(conf config.Config) *gorm.DB {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		conf.Postgres.Host,

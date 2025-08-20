@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["schedule:automergeEarlyMondays", ":dependencyDashboard", ":semanticCommits"],
+  "extends": [
+    "schedule:automergeEarlyMondays",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
   "labels": ["dependencies"],
   "rangeStrategy": "replace",
   "dependencyDashboard": true,
@@ -39,6 +43,12 @@
     },
     {
       "matchPackageNames": ["astro"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": true
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["node"],
       "matchUpdateTypes": ["minor", "patch"],
       "enabled": true
     }
