@@ -13,6 +13,8 @@
   "license": "MIT",
   "packageManager": "pnpm@10.15.0",
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@playwright/test": "^1.54.2",
     "@types/node": "^20.19.11",
     "husky": "^9.1.7",
