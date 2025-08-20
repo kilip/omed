@@ -1,5 +1,5 @@
 {
-  "name": "dash",
+  "name": "omed/dash",
   "private": true,
   "type": "module",
   "scripts": {

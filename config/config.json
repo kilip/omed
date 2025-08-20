@@ -7,7 +7,7 @@
     }
   },
   "postgres": {
-    "host": "10.0.0.5",
+    "host": "localhost",
     "port": 5432,
     "username": "omed",
     "password": "omed",

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/kilip/omed/internal/domain/user"
 	"github.com/kilip/omed/internal/dto"
 	"github.com/kilip/omed/internal/service"
@@ -12,8 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var xid, _ = uuid.NewUUID()
 var req = dto.UserRequest{
-	ID:       "405A7AC9-BCBC-4DDA-9C70-B865FE8F686B",
+	ID:       xid,
 	Email:    "test@example.com",
 	Password: "test",
 	Name:     "Test user",
@@ -24,33 +26,6 @@ var res = &user.User{
 }
 
 var reqList = dto.UserListRequest{}
-
-func TestList(t *testing.T) {
-
-	ctx := context.Background()
-	repo := new(test.UserRepositoryMock)
-	repo.On("List", ctx, reqList).Return([]*user.User{res}, nil)
-
-	svc := service.NewUserService(repo)
-	users, err := svc.List(ctx, reqList)
-
-	assert.Nil(t, err)
-	repo.AssertExpectations(t)
-	assert.Len(t, users, 1)
-}
-
-func TestListError(t *testing.T) {
-	ctx := context.Background()
-	repo := new(test.UserRepositoryMock)
-	repo.On("List", ctx, reqList).Return([]*user.User{}, errors.New("failed"))
-
-	svc := service.NewUserService(repo)
-	users, err := svc.List(ctx, reqList)
-
-	assert.NotNil(t, err)
-	repo.AssertExpectations(t)
-	assert.Len(t, users, 0)
-}
 
 func TestCreate(t *testing.T) {
 	ctx := context.Background()

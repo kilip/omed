@@ -13,7 +13,7 @@ type Config struct {
 		Path   string `mapstructure:"path"`
 		Secret string `mapstructure:"secret"`
 	} `mapstructure:"app"`
-	Http struct {
+	Api struct {
 		Host    string `mapstructure:"host" json:"host"`
 		Port    int    `mapstructure:"port" json:"port"`
 		Context struct {

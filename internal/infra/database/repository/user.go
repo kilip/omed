@@ -18,6 +18,17 @@ func NewUserRepository(dal *dal.Query) *UserRepository {
 	}
 }
 
+func (r UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*user.User, error){
+	user := r.q.User
+
+	return user.WithContext(ctx).Where(user.ID.Eq(id)).First()
+}
+
+func (r UserRepository) FindByEmail(ctx context.Context, email string)  (*user.User, error){
+	user := r.q.User
+	return user.WithContext(ctx).Where(user.Email.Eq(email)).First()
+}
+
 func (r UserRepository) Create(ctx context.Context, user *user.User) error {
 	return r.q.Transaction(func(tx *dal.Query) error {
 		q := tx.User
@@ -39,13 +50,9 @@ func (r UserRepository) Update(ctx context.Context, user *user.User) error {
 	})
 }
 
-func (r UserRepository) Delete(ctx context.Context, id string) error {
+func (r UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.q.Transaction(func(tx *dal.Query) error {
 		q := tx.User
-		id, err := uuid.Parse(id)
-		if err != nil {
-			return err
-		}
 
 		if _, err := q.WithContext(ctx).Where(q.ID.Eq(id)).Delete(); err != nil {
 			return err

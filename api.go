@@ -1,15 +1,26 @@
 package main
 
 import (
-	"github.com/kilip/omed/internal/delivery/http"
+	"fmt"
+
+	"github.com/kilip/omed/internal/delivery/api"
+	"github.com/kilip/omed/internal/delivery/api/controller"
+	"github.com/kilip/omed/internal/infra/database"
+	"github.com/kilip/omed/internal/infra/database/dal"
+	"github.com/kilip/omed/internal/infra/database/repository"
+	"github.com/kilip/omed/internal/service"
 	"github.com/kilip/omed/internal/utils"
 )
 
 func main() {
 	conf := utils.NewConfig()
-	server := http.NewServer(conf)
+	server := api.NewServer(conf)
+	query := dal.Use(database.NewGormDB(conf))
 
-	if err := server.Start(); err != nil {
-		panic(err)
-	}
+	userR := repository.NewUserRepository(query)
+	userS := service.NewUserService(userR)
+	controller.NewUserController(server, userS)
+
+	listen := fmt.Sprintf("%s:%d", conf.Api.Host, conf.Api.Port)
+	server.Listen(listen)
 }

@@ -38,7 +38,7 @@ func TestUpdate(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	helper.IHaveUser(ctx, user)
-	err := users.Delete(ctx, user.ID.String())
+	err := users.Delete(ctx, user.ID)
 
 	assert.Nil(t, err)
 }

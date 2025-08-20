@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/kilip/omed/internal/domain/user"
 	"github.com/kilip/omed/internal/dto"
 )
@@ -13,10 +14,6 @@ type UserService struct {
 
 func NewUserService(repository user.UserRepository) *UserService {
 	return &UserService{repository}
-}
-
-func (s *UserService) List(ctx context.Context, req dto.UserListRequest) ([]*user.User, error) {
-	return s.repository.List(ctx, req)
 }
 
 func (s *UserService) Create(ctx context.Context, req dto.UserRequest) (*user.User, error) {
@@ -32,6 +29,7 @@ func (s *UserService) Create(ctx context.Context, req dto.UserRequest) (*user.Us
 }
 
 func (s *UserService) Update(ctx context.Context, req dto.UserRequest) (*user.User, error) {
+
 	existing, err := s.repository.FindByID(ctx, req.ID)
 	if err != nil {
 		return nil, err
@@ -47,7 +45,7 @@ func (s *UserService) Update(ctx context.Context, req dto.UserRequest) (*user.Us
 	return existing, nil
 }
 
-func (s *UserService) Delete(ctx context.Context, id string) error {
+func (s *UserService) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := s.repository.FindByID(ctx, id)
 	if err != nil {
 		return err
