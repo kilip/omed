@@ -2,6 +2,7 @@
 
 # omed
 .pglite
+.scratch
 
 # dependencies
 /node_modules
