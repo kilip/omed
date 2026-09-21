@@ -1,0 +1,57 @@
+{
+  "name": "omed",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "auth:schema": "bun x auth@latest generate --output ./src/database/schema/better-auth.ts --yes",
+    "db:push": "drizzle-kit push --force",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.7.5",
+    "@neondatabase/serverless": "^1.1.0",
+    "@t3-oss/env-core": "^0.13.11",
+    "@t3-oss/env-nextjs": "^0.13.11",
+    "better-auth": "^1.7.5",
+    "drizzle-orm": "^1.0.0-rc.4",
+    "nanoid": "^6.0.1",
+    "next": "16.3.5",
+    "pg": "^8.23.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "uuid": "^14.0.2",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.2",
+    "@electric-sql/pglite": "^0.5.8",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.1.1",
+    "drizzle-kit": "^1.0.0-rc.4",
+    "jsdom": "^30.1.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.0.1"
+  },
+  "packageManager": "bun@1.4.2",
+  "ignoreScripts": [
+    "sharp",
+    "unrs-resolver"
+  ],
+  "trustedDependencies": [
+    "sharp",
+    "unrs-resolver"
+  ]
+}
