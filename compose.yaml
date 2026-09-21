@@ -1,0 +1,22 @@
+services:
+  database:
+    image: paradedb/paradedb:latest-pg18
+    container_name: "omed-database"
+    environment:
+      - POSTGRES_DB=omed
+      - POSTGRES_PASSWORD=omed
+      - PGDATA=/data
+    ports:
+      - 5432:5432
+    volumes:
+      - 'pgdata:/data'
+    command: ['postgres', '-c', 'shared_preload_libraries=pg_search']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: no
+
+volumes:
+  pgdata:
