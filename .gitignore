@@ -3,6 +3,7 @@
 # omed
 .pglite
 .scratch
+test-reports
 
 # dependencies
 /node_modules

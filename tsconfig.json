@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@e2e/*": ["./e2e/*"],
       "@/*": ["./src/*"]
     },
     "exactOptionalPropertyTypes": false
@@ -29,7 +30,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "cucumber.js"
   ],
   "exclude": ["node_modules"]
 }

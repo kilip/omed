@@ -11,7 +11,7 @@ let testDB: OmedDatabase | null = null;
 export const getTestDB = async (): Promise<OmedDatabase> => {
   if (testDB) return testDB;
 
-  const client = new PGlite({ extensions: { vector }, dataDir: "./.pglite" });
+  const client = new PGlite({ extensions: { vector } });
   testDB = pgliteDrizzle({ client, relations }) as unknown as OmedDatabase;
 
   const result = await pushSchema(schema, testDB);

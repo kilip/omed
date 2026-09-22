@@ -14,8 +14,7 @@ export const users = betterAuthSchema.table("users", {
  role: text('role'),
  banned: boolean('banned').default(false),
  banReason: text('ban_reason'),
- banExpires: timestamp('ban_expires'),
- activeWorkspace: text('active_workspace')
+ banExpires: timestamp('ban_expires')
 					});
 
 export const sessions = betterAuthSchema.table("sessions", {
@@ -29,7 +28,8 @@ export const sessions = betterAuthSchema.table("sessions", {
  userId: uuid('user_id').notNull().references(()=> users.id, { onDelete: 'cascade' }),
  impersonatedBy: text('impersonated_by'),
  activeOrganizationId: text('active_organization_id'),
- activeTeamId: text('active_team_id')
+ activeTeamId: text('active_team_id'),
+ activeWorkspaceId: text('active_workspace_id').notNull()
 					}, (table) => [
   index("sessions_userId_idx").on(table.userId),
 ]);
@@ -69,7 +69,8 @@ export const organizations = betterAuthSchema.table("organizations", {
  slug: text('slug').notNull().unique(),
  logo: text('logo'),
  createdAt: timestamp('created_at').notNull(),
- metadata: text('metadata')
+ metadata: text('metadata'),
+ isPersonal: boolean('is_personal').default(false)
 					}, (table) => [
   uniqueIndex("organizations_slug_uidx").on(table.slug),
 ]);
@@ -80,7 +81,8 @@ export const teams = betterAuthSchema.table("teams", {
  memberCount: integer('member_count').default(0).notNull(),
  organizationId: uuid('organization_id').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
  createdAt: timestamp('created_at').notNull(),
- updatedAt: timestamp('updated_at').$onUpdate(() => /* @__PURE__ */ new Date())
+ updatedAt: timestamp('updated_at').$onUpdate(() => /* @__PURE__ */ new Date()),
+ isPersonal: boolean('is_personal').default(false)
 					}, (table) => [
   index("teams_organizationId_idx").on(table.organizationId),
 ]);

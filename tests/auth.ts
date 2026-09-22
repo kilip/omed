@@ -1,19 +1,27 @@
-import { auth, type User } from "@/auth";
-import { serverDB } from "@/database";
+import type { User } from "@/auth";
+import { type NewUser, serverDB } from "@/database";
+import { getTestDB } from "@/database/core/getTestDB";
+import { users } from "@/database/schema";
 
-export const authCtx = await auth.$context;
-export const authTest = authCtx.test;
+const db = await getTestDB();
 
 export async function ensureTestUser(): Promise<User> {
-  const user = authTest.createUser({
+  const user = {
     name: "Test User",
     email: "test@example.com",
     emailVerified: true,
-  });
+  } satisfies NewUser;
 
-  const row = await serverDB.query.users.findFirst({
+  const existing = await serverDB.query.users.findFirst({
     where: { email: user.email },
   });
-  if (row) return row as unknown as User;
-  return authTest.saveUser(user) as unknown as User;
+
+  if (existing) return existing as User;
+
+  const [row] = (await db
+    .insert(users)
+    .values(user)
+    .returning()) as unknown as User[];
+
+  return row;
 }

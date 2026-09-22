@@ -28,15 +28,39 @@ const baseOptions = {
   socialProviders,
   plugins: [
     admin(),
-    organization({ teams: { enabled: true } }),
+    organization({
+      teams: { enabled: true },
+      schema: {
+        organization: {
+          additionalFields: {
+            isPersonal: {
+              type: "boolean",
+              defaultValue: false,
+              input: true,
+              returned: true,
+            },
+          },
+        },
+        team: {
+          additionalFields: {
+            isPersonal: {
+              type: "boolean",
+              defaultValue: false,
+              input: true,
+              returned: true,
+            },
+          },
+        },
+      },
+    }),
     jwt(),
     testUtils(),
   ],
-  user: {
+  session: {
     additionalFields: {
-      activeWorkspace: {
+      activeWorkspaceId: {
         type: "string",
-        returned: true,
+        required: true,
       },
     },
   },
@@ -50,7 +74,23 @@ const baseOptions = {
       create: {
         async after(user) {
           const svc = new UserService(serverDB);
-          await svc.initUser(user as User);
+          await svc.initPersonalWorkspace(user as User);
+        },
+      },
+    },
+    session: {
+      create: {
+        async before(session) {
+          const svc = new UserService(serverDB);
+          const ws = await svc.findPersonalWorkspace(session.userId);
+
+          if (ws?.team) {
+            session.activeOrganizationId = ws.team.organizationId;
+            session.activeTeamId = ws.team.id;
+            session.activeWorkspaceId = ws.id;
+          }
+
+          return { data: { ...session } };
         },
       },
     },
