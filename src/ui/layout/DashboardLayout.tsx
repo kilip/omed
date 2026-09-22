@@ -13,10 +13,12 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
         collapsible
         collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
+        onMouseEnter={() => setCollapsed(false)} // Expand on hover
+        onMouseLeave={() => setCollapsed(collapsed)} // Collapse when mouse leaves
       >
         <Menu
           theme="dark"
-          defaultSelectedKeys={["home"]}
+          defaultSelectedKeys={["/home"]}
           mode="inline"
           items={menuItems}
         />
