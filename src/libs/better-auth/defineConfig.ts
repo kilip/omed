@@ -8,23 +8,30 @@ import { admin, jwt, organization, testUtils } from "better-auth/plugins";
 import type { User } from "@/auth";
 import { appEnv } from "@/config";
 import { schema, serverDB } from "@/database";
-import { getTestDB } from "@/database/core/getTestDB";
 import { UserService } from "@/service/user";
+import { initSocialProviders } from "./sso";
 
+const { socialProviders } = initSocialProviders();
 interface CustomBetterAuthOptions {
   plugins: BetterAuthPlugin[];
 }
 
-const db = appEnv.TESTING ? await getTestDB() : serverDB;
 const baseOptions = {
-  baseURL: appEnv.BASE_URL,
+  baseURL: appEnv.APP_URL,
   secret: appEnv.AUTH_SECRET,
-  database: drizzleAdapter(db, {
+  database: drizzleAdapter(serverDB, {
     provider: "pg",
     schemaName: "better-auth",
     schema,
+    usePlural: true,
   }),
-  plugins: [admin(), organization(), jwt(), testUtils()],
+  socialProviders,
+  plugins: [
+    admin(),
+    organization({ teams: { enabled: true } }),
+    jwt(),
+    testUtils(),
+  ],
   user: {
     additionalFields: {
       activeWorkspace: {
@@ -42,12 +49,14 @@ const baseOptions = {
     user: {
       create: {
         async after(user) {
-          const svc = new UserService(db);
+          const svc = new UserService(serverDB);
           await svc.initUser(user as User);
-          console.log(user);
         },
       },
     },
+  },
+  account: {
+    modelName: "userAccount",
   },
 } satisfies BetterAuthOptions;
 

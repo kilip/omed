@@ -10,7 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-orm/zod";
 import { v7 } from "uuid";
-import { organization, user } from "./better-auth";
+import { organizations, teams, users } from "./better-auth";
 
 export const finance = pgSchema("finance");
 export const accountTypeEnum = finance.enum("account_type", [
@@ -38,12 +38,12 @@ export const accounts = finance.table("accounts", {
   name: varchar("name", { length: 255 }).notNull(),
   type: accountTypeEnum("type").notNull(),
   parentId: uuid("parentId"), // self-reference, see relations below
-  tenantId: uuid("tenantId")
+  workspaceId: uuid("workspaceId")
     .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
+    .references(() => teams.id, { onDelete: "cascade" }),
   createdBy: uuid("createdBy")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -56,12 +56,12 @@ export const ledgerPeriods = finance.table("ledger_periods", {
   status: ledgerPeriodStatusEnum("status").notNull().default("open"),
   startDate: date("startDate").notNull(),
   endDate: date("endDate").notNull(),
-  tenantId: uuid("tenantId")
+  workspaceId: uuid("workspaceId")
     .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
+    .references(() => teams.id, { onDelete: "cascade" }),
   createdBy: uuid("createdBy")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => teams.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -73,12 +73,12 @@ export const entries = finance.table("entries", {
   periodId: uuid("period_id")
     .notNull()
     .references(() => ledgerPeriods.id, { onDelete: "cascade" }),
-  tenantId: uuid("tenantId")
+  workspaceId: uuid("workspaceId")
     .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
+    .references(() => teams.id, { onDelete: "cascade" }),
   createdBy: uuid("createdBy")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -96,17 +96,17 @@ export const postings = finance.table("postings", {
   creditAmount: decimal("credit_amount", { precision: 18, scale: 2 })
     .notNull()
     .default("0"),
-  tenantId: uuid("tenantId")
+  workspaceId: uuid("workspaceId")
     .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
+    .references(() => organizations.id, { onDelete: "cascade" }),
   createdBy: uuid("createdBy")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const financeRelations = defineRelationsPart(
-  { accounts, ledgerPeriods, entries, postings, user, organization },
+  { accounts, ledgerPeriods, entries, postings, users, teams },
   (r) => ({
     accounts: {
       parent: r.one.accounts({
@@ -115,13 +115,13 @@ export const financeRelations = defineRelationsPart(
       }),
       children: r.many.accounts(),
       postings: r.many.postings(),
-      creator: r.one.user({
+      creator: r.one.users({
         from: r.accounts.createdBy,
-        to: r.user.id,
+        to: r.users.id,
       }),
-      tenant: r.one.organization({
-        from: r.accounts.tenantId,
-        to: r.organization.id,
+      tenant: r.one.teams({
+        from: r.accounts.workspaceId,
+        to: r.teams.id,
       }),
     },
     ledgerPeriods: {

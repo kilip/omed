@@ -3,10 +3,23 @@ import { type AccountItem, accounts, type NewAccount } from "../schema";
 import type { OmedDatabase } from "../type";
 
 export class AccountModel {
-  constructor(readonly db: OmedDatabase) {}
+  constructor(
+    private readonly db: OmedDatabase,
+    private readonly userId: string,
+    private readonly workspaceId: string,
+  ) {}
 
-  async create(params: NewAccount): Promise<AccountItem> {
-    const [row] = await this.db.insert(accounts).values(params).returning();
+  async create(
+    params: Omit<NewAccount, "workspaceId" | "createdBy">,
+  ): Promise<AccountItem> {
+    const [row] = await this.db
+      .insert(accounts)
+      .values({
+        ...params,
+        createdBy: this.userId,
+        workspaceId: this.workspaceId,
+      })
+      .returning();
     return row;
   }
 
@@ -24,9 +37,9 @@ export class AccountModel {
     return this.db.query.accounts.findFirst({ where: { id } });
   }
 
-  async list(tenantId: string): Promise<AccountItem[]> {
+  async list(workspaceId: string): Promise<AccountItem[]> {
     return this.db.query.accounts.findMany({
-      where: { tenantId },
+      where: { workspaceId },
     });
   }
 }

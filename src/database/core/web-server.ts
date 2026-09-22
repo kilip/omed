@@ -8,11 +8,17 @@ import { appEnv } from "@/config";
 import { relations } from "../relations";
 import type { OmedDatabase } from "../type";
 
+declare global {
+  var globalDB: PGlite | undefined;
+}
+export const db =
+  globalThis.globalDB ?? new PGlite(appEnv.DATABASE_URL, { debug: 1 });
+
 export const getDBInstance = (): OmedDatabase => {
   const connectionString = appEnv.DATABASE_URL;
 
   if (appEnv.DATABASE_DRIVER === "pglite") {
-    const client = new PGlite(connectionString);
+    const client = db;
     return pgliteDrizzle({ client, relations }) as unknown as OmedDatabase;
   }
 

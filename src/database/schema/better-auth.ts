@@ -1,16 +1,16 @@
 import { defineRelationsPart, sql } from "drizzle-orm";
-import { pgSchema, text, timestamp, boolean, uuid, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgSchema, text, timestamp, boolean, integer, uuid, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const betterAuthSchema = pgSchema("better-auth");
 
-export const user = betterAuthSchema.table("user", {
+export const users = betterAuthSchema.table("users", {
 					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					name: text('name').notNull(),
  email: text('email').notNull().unique(),
  emailVerified: boolean('email_verified').default(false).notNull(),
  image: text('image'),
- createdAt: timestamp('created_at').notNull(),
- updatedAt: timestamp('updated_at').$onUpdate(() => new Date).notNull(),
+ createdAt: timestamp('created_at').defaultNow().notNull(),
+ updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => /* @__PURE__ */ new Date()).notNull(),
  role: text('role'),
  banned: boolean('banned').default(false),
  banReason: text('ban_reason'),
@@ -18,26 +18,27 @@ export const user = betterAuthSchema.table("user", {
  activeWorkspace: text('active_workspace')
 					});
 
-export const session = betterAuthSchema.table("session", {
+export const sessions = betterAuthSchema.table("sessions", {
 					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					expiresAt: timestamp('expires_at').notNull(),
  token: text('token').notNull().unique(),
- createdAt: timestamp('created_at').notNull(),
- updatedAt: timestamp('updated_at').$onUpdate(() => new Date).notNull(),
+ createdAt: timestamp('created_at').defaultNow().notNull(),
+ updatedAt: timestamp('updated_at').$onUpdate(() => /* @__PURE__ */ new Date()).notNull(),
  ipAddress: text('ip_address'),
  userAgent: text('user_agent'),
- userId: uuid('user_id').notNull().references(()=> user.id, { onDelete: 'cascade' }),
+ userId: uuid('user_id').notNull().references(()=> users.id, { onDelete: 'cascade' }),
  impersonatedBy: text('impersonated_by'),
- activeOrganizationId: text('active_organization_id')
+ activeOrganizationId: text('active_organization_id'),
+ activeTeamId: text('active_team_id')
 					}, (table) => [
-  index("session_userId_idx").on(table.userId),
+  index("sessions_userId_idx").on(table.userId),
 ]);
 
-export const account = betterAuthSchema.table("account", {
+export const userAccounts = betterAuthSchema.table("user_accounts", {
 					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					accountId: text('account_id').notNull(),
  providerId: text('provider_id').notNull(),
- userId: uuid('user_id').notNull().references(()=> user.id, { onDelete: 'cascade' }),
+ userId: uuid('user_id').notNull().references(()=> users.id, { onDelete: 'cascade' }),
  accessToken: text('access_token'),
  refreshToken: text('refresh_token'),
  idToken: text('id_token'),
@@ -45,24 +46,24 @@ export const account = betterAuthSchema.table("account", {
  refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
  scope: text('scope'),
  password: text('password'),
- createdAt: timestamp('created_at').notNull(),
- updatedAt: timestamp('updated_at').$onUpdate(() => new Date).notNull()
+ createdAt: timestamp('created_at').defaultNow().notNull(),
+ updatedAt: timestamp('updated_at').$onUpdate(() => /* @__PURE__ */ new Date()).notNull()
 					}, (table) => [
-  index("account_userId_idx").on(table.userId),
+  index("userAccounts_userId_idx").on(table.userId),
 ]);
 
-export const verification = betterAuthSchema.table("verification", {
+export const verifications = betterAuthSchema.table("verifications", {
 					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					identifier: text('identifier').notNull(),
  value: text('value').notNull(),
  expiresAt: timestamp('expires_at').notNull(),
- createdAt: timestamp('created_at').notNull(),
- updatedAt: timestamp('updated_at').$onUpdate(() => new Date).notNull()
+ createdAt: timestamp('created_at').defaultNow().notNull(),
+ updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => /* @__PURE__ */ new Date()).notNull()
 					}, (table) => [
-  index("verification_identifier_idx").on(table.identifier),
+  index("verifications_identifier_idx").on(table.identifier),
 ]);
 
-export const organization = betterAuthSchema.table("organization", {
+export const organizations = betterAuthSchema.table("organizations", {
 					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					name: text('name').notNull(),
  slug: text('slug').notNull().unique(),
@@ -70,35 +71,58 @@ export const organization = betterAuthSchema.table("organization", {
  createdAt: timestamp('created_at').notNull(),
  metadata: text('metadata')
 					}, (table) => [
-  uniqueIndex("organization_slug_uidx").on(table.slug),
+  uniqueIndex("organizations_slug_uidx").on(table.slug),
 ]);
 
-export const member = betterAuthSchema.table("member", {
+export const teams = betterAuthSchema.table("teams", {
 					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
-					organizationId: uuid('organization_id').notNull().references(()=> organization.id, { onDelete: 'cascade' }),
- userId: uuid('user_id').notNull().references(()=> user.id, { onDelete: 'cascade' }),
+					name: text('name').notNull(),
+ memberCount: integer('member_count').default(0).notNull(),
+ organizationId: uuid('organization_id').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
+ createdAt: timestamp('created_at').notNull(),
+ updatedAt: timestamp('updated_at').$onUpdate(() => /* @__PURE__ */ new Date())
+					}, (table) => [
+  index("teams_organizationId_idx").on(table.organizationId),
+]);
+
+export const teamMembers = betterAuthSchema.table("team_members", {
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
+					teamId: uuid('team_id').notNull().references(()=> teams.id, { onDelete: 'cascade' }),
+ userId: uuid('user_id').notNull().references(()=> users.id, { onDelete: 'cascade' }),
+ membershipKey: text('membership_key').unique(),
+ createdAt: timestamp('created_at')
+					}, (table) => [
+  index("teamMembers_teamId_idx").on(table.teamId),
+  index("teamMembers_userId_idx").on(table.userId),
+]);
+
+export const members = betterAuthSchema.table("members", {
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
+					organizationId: uuid('organization_id').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
+ userId: uuid('user_id').notNull().references(()=> users.id, { onDelete: 'cascade' }),
  role: text('role').default("member").notNull(),
  createdAt: timestamp('created_at').notNull()
 					}, (table) => [
-  index("member_organizationId_idx").on(table.organizationId),
-  index("member_userId_idx").on(table.userId),
+  index("members_organizationId_idx").on(table.organizationId),
+  index("members_userId_idx").on(table.userId),
 ]);
 
-export const invitation = betterAuthSchema.table("invitation", {
+export const invitations = betterAuthSchema.table("invitations", {
 					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
-					organizationId: uuid('organization_id').notNull().references(()=> organization.id, { onDelete: 'cascade' }),
+					organizationId: uuid('organization_id').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
  email: text('email').notNull(),
  role: text('role'),
+ teamId: text('team_id'),
  status: text('status').default("pending").notNull(),
  expiresAt: timestamp('expires_at').notNull(),
- createdAt: timestamp('created_at').notNull(),
- inviterId: uuid('inviter_id').notNull().references(()=> user.id, { onDelete: 'cascade' })
+ createdAt: timestamp('created_at').defaultNow().notNull(),
+ inviterId: uuid('inviter_id').notNull().references(()=> users.id, { onDelete: 'cascade' })
 					}, (table) => [
-  index("invitation_organizationId_idx").on(table.organizationId),
-  index("invitation_email_idx").on(table.email),
+  index("invitations_organizationId_idx").on(table.organizationId),
+  index("invitations_email_idx").on(table.email),
 ]);
 
-export const jwks = betterAuthSchema.table("jwks", {
+export const jwkss = betterAuthSchema.table("jwkss", {
 					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					publicKey: text('public_key').notNull(),
  privateKey: text('private_key').notNull(),
@@ -109,65 +133,93 @@ export const jwks = betterAuthSchema.table("jwks", {
 					});
 
 
-export const authRelations = defineRelationsPart({ user, session, account, verification, organization, member, invitation, jwks }, (r) => ({
-  user: {
-    sessions: r.many.session({
-      from: r.user.id,
-      to: r.session.userId,
+export const authRelations = defineRelationsPart({ users, sessions, userAccounts, verifications, organizations, teams, teamMembers, members, invitations, jwkss }, (r) => ({
+  users: {
+    sessions: r.many.sessions({
+      from: r.users.id,
+      to: r.sessions.userId,
     }),
-    accounts: r.many.account({
-      from: r.user.id,
-      to: r.account.userId,
+    userAccounts: r.many.userAccounts({
+      from: r.users.id,
+      to: r.userAccounts.userId,
     }),
-    members: r.many.member({
-      from: r.user.id,
-      to: r.member.userId,
+    teamMembers: r.many.teamMembers({
+      from: r.users.id,
+      to: r.teamMembers.userId,
     }),
-    invitations: r.many.invitation({
-      from: r.user.id,
-      to: r.invitation.inviterId,
+    members: r.many.members({
+      from: r.users.id,
+      to: r.members.userId,
+    }),
+    invitations: r.many.invitations({
+      from: r.users.id,
+      to: r.invitations.inviterId,
     })
   },
-  session: {
-    user: r.one.user({
-      from: r.session.userId,
-      to: r.user.id,
+  sessions: {
+    user: r.one.users({
+      from: r.sessions.userId,
+      to: r.users.id,
     })
   },
-  account: {
-    user: r.one.user({
-      from: r.account.userId,
-      to: r.user.id,
+  userAccounts: {
+    user: r.one.users({
+      from: r.userAccounts.userId,
+      to: r.users.id,
     })
   },
-  organization: {
-    members: r.many.member({
-      from: r.organization.id,
-      to: r.member.organizationId,
+  organizations: {
+    teams: r.many.teams({
+      from: r.organizations.id,
+      to: r.teams.organizationId,
     }),
-    invitations: r.many.invitation({
-      from: r.organization.id,
-      to: r.invitation.organizationId,
+    members: r.many.members({
+      from: r.organizations.id,
+      to: r.members.organizationId,
+    }),
+    invitations: r.many.invitations({
+      from: r.organizations.id,
+      to: r.invitations.organizationId,
     })
   },
-  member: {
-    organization: r.one.organization({
-      from: r.member.organizationId,
-      to: r.organization.id,
+  teams: {
+    organization: r.one.organizations({
+      from: r.teams.organizationId,
+      to: r.organizations.id,
     }),
-    user: r.one.user({
-      from: r.member.userId,
-      to: r.user.id,
+    teamMembers: r.many.teamMembers({
+      from: r.teams.id,
+      to: r.teamMembers.teamId,
     })
   },
-  invitation: {
-    organization: r.one.organization({
-      from: r.invitation.organizationId,
-      to: r.organization.id,
+  teamMembers: {
+    team: r.one.teams({
+      from: r.teamMembers.teamId,
+      to: r.teams.id,
     }),
-    user: r.one.user({
-      from: r.invitation.inviterId,
-      to: r.user.id,
+    user: r.one.users({
+      from: r.teamMembers.userId,
+      to: r.users.id,
+    })
+  },
+  members: {
+    organization: r.one.organizations({
+      from: r.members.organizationId,
+      to: r.organizations.id,
+    }),
+    user: r.one.users({
+      from: r.members.userId,
+      to: r.users.id,
+    })
+  },
+  invitations: {
+    organization: r.one.organizations({
+      from: r.invitations.organizationId,
+      to: r.organizations.id,
+    }),
+    user: r.one.users({
+      from: r.invitations.inviterId,
+      to: r.users.id,
     })
   }
 }));

@@ -1,14 +1,14 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { createInsertSchema } from "drizzle-orm/zod";
 import type { relations } from "./relations";
-import { organization, user } from "./schema";
+import { organizations, users } from "./schema";
 
 export type OmedDatabase = NodePgDatabase<typeof relations>;
 
-export const createUserSchema = createInsertSchema(user);
-export type NewUser = typeof user.$inferInsert;
-export type UserItem = typeof user.$inferSelect;
+export const createUserSchema = createInsertSchema(users);
+export type NewUser = typeof users.$inferInsert;
+export type UserItem = typeof users.$inferSelect;
 
-export const createOrganizationSchema = createInsertSchema(organization);
-export type NewOrganization = typeof organization.$inferInsert;
-export type OrganizationItem = typeof organization.$inferSelect;
+export const createOrganizationSchema = createInsertSchema(organizations);
+export type NewOrganization = typeof organizations.$inferInsert;
+export type OrganizationItem = typeof organizations.$inferSelect;

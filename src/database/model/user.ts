@@ -1,5 +1,5 @@
 import type { User } from "@/auth";
-import { organization, user as userSchema } from "../schema";
+import { organizations, teams, users } from "../schema";
 import type { OmedDatabase } from "../type";
 
 export class UserModel {
@@ -8,16 +8,24 @@ export class UserModel {
   async initUser(user: User) {
     const slug = `${user.name.toLowerCase().replace(" ", "-")}`;
     const [org] = await this.db
-      .insert(organization)
+      .insert(organizations)
       .values({
-        name: `${user.name} Workspace`,
+        name: `${user.name} Default Organization`,
         slug,
         createdAt: new Date(),
       })
       .returning();
-    user.activeWorkspace = org.id;
-    await this.db.update(userSchema).set(user);
-    console.log(user);
-    return org;
+
+    const [team] = await this.db
+      .insert(teams)
+      .values({
+        name: `${user.name} Default Workspace`,
+        organizationId: org.id,
+        createdAt: new Date(),
+      })
+      .returning();
+
+    user.activeWorkspace = team.id;
+    await this.db.update(users).set(user);
   }
 }
