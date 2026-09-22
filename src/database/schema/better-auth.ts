@@ -14,7 +14,8 @@ export const user = betterAuthSchema.table("user", {
  role: text('role'),
  banned: boolean('banned').default(false),
  banReason: text('ban_reason'),
- banExpires: timestamp('ban_expires')
+ banExpires: timestamp('ban_expires'),
+ activeWorkspace: text('active_workspace')
 					});
 
 export const session = betterAuthSchema.table("session", {

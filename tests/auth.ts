@@ -1,10 +1,10 @@
-import { auth, type Organization } from "@/auth";
+import { auth, type Organization, type User } from "@/auth";
 import { serverDB } from "@/database";
 
 export const authCtx = await auth.$context;
 export const authTest = authCtx.test;
 
-export async function ensureTestUser() {
+export async function ensureTestUser(): Promise<User> {
   const user = authTest.createUser({
     name: "Test User",
     email: "test@example.com",
@@ -14,8 +14,8 @@ export async function ensureTestUser() {
   const row = await serverDB.query.user.findFirst({
     where: { email: user.email },
   });
-  if (row) return row;
-  return authTest.saveUser(user);
+  if (row) return row as unknown as User;
+  return authTest.saveUser(user) as unknown as User;
 }
 
 export async function ensureTestOrg(): Promise<Organization> {

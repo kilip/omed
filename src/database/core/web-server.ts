@@ -4,8 +4,8 @@ import { drizzle as neonDrizzle } from "drizzle-orm/neon-serverless";
 import { drizzle as nodeDrizzle } from "drizzle-orm/node-postgres";
 import { drizzle as pgliteDrizzle } from "drizzle-orm/pglite";
 import { Pool as NodePool } from "pg";
-
 import { appEnv } from "@/config";
+import { relations } from "../relations";
 import type { OmedDatabase } from "../type";
 
 export const getDBInstance = (): OmedDatabase => {
@@ -13,12 +13,12 @@ export const getDBInstance = (): OmedDatabase => {
 
   if (appEnv.DATABASE_DRIVER === "pglite") {
     const client = new PGlite(connectionString);
-    return pgliteDrizzle({ client }) as unknown as OmedDatabase;
+    return pgliteDrizzle({ client, relations }) as unknown as OmedDatabase;
   }
 
   if (appEnv.DATABASE_DRIVER === "neon") {
     const client = new NeonPool({ connectionString });
-    return neonDrizzle({ client }) as unknown as OmedDatabase;
+    return neonDrizzle({ client, relations }) as unknown as OmedDatabase;
   }
 
   const client = new NodePool({ connectionString });
@@ -33,5 +33,5 @@ export const getDBInstance = (): OmedDatabase => {
     );
   });
 
-  return nodeDrizzle({ client }) as unknown as OmedDatabase;
+  return nodeDrizzle({ client, relations }) as unknown as OmedDatabase;
 };
