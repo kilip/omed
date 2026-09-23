@@ -1,5 +1,5 @@
 {
-  "$schema": "node_modules/@biomejs/biome/configuration_schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "root": true,
   "vcs": {
     "enabled": true,
@@ -11,12 +11,5 @@
     "indentWidth": 2,
     "lineEnding": "lf",
     "useEditorconfig": true
-  },
-  "linter": {
-    "rules": {
-      "correctness": {
-        "noUnusedVariables": "warn"
-      }
-    }
   }
 }

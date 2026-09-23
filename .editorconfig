@@ -7,3 +7,8 @@ indent_size = 2
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
+
+# Go specific formatting rules (Mandatory for gofmt)
+[{*.go,Makefile,go.mod,go.sum}]
+indent_style = tab
+indent_size = 4

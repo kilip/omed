@@ -1,16 +1,16 @@
-import { defineRelationsPart } from "drizzle-orm";
-import { pgSchema, text, timestamp, boolean, integer, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { defineRelationsPart, sql } from "drizzle-orm";
+import { pgSchema, text, timestamp, boolean, integer, uuid, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const authSchema = pgSchema("auth");
 
 export const users = authSchema.table("users", {
-					id: text('id').primaryKey(),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					name: text('name').notNull(),
  email: text('email').notNull().unique(),
  emailVerified: boolean('emailVerified').default(false).notNull(),
  image: text('image'),
- createdAt: timestamp('createdAt').defaultNow().notNull(),
- updatedAt: timestamp('updatedAt').defaultNow().$onUpdate(() => /* @__PURE__ */ new Date()).notNull(),
+ createdAt: timestamp('createdAt').notNull(),
+ updatedAt: timestamp('updatedAt').$onUpdate(() => new Date).notNull(),
  role: text('role'),
  banned: boolean('banned').default(false),
  banReason: text('banReason'),
@@ -18,14 +18,14 @@ export const users = authSchema.table("users", {
 					});
 
 export const sessions = authSchema.table("sessions", {
-					id: text('id').primaryKey(),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					expiresAt: timestamp('expiresAt').notNull(),
  token: text('token').notNull().unique(),
- createdAt: timestamp('createdAt').defaultNow().notNull(),
- updatedAt: timestamp('updatedAt').$onUpdate(() => /* @__PURE__ */ new Date()).notNull(),
+ createdAt: timestamp('createdAt').notNull(),
+ updatedAt: timestamp('updatedAt').$onUpdate(() => new Date).notNull(),
  ipAddress: text('ipAddress'),
  userAgent: text('userAgent'),
- userId: text('userId').notNull().references(()=> users.id, { onDelete: 'cascade' }),
+ userId: uuid('userId').notNull().references(()=> users.id, { onDelete: 'cascade' }),
  impersonatedBy: text('impersonatedBy'),
  activeOrganizationId: text('activeOrganizationId'),
  activeTeamId: text('activeTeamId')
@@ -34,10 +34,10 @@ export const sessions = authSchema.table("sessions", {
 ]);
 
 export const accounts = authSchema.table("accounts", {
-					id: text('id').primaryKey(),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					accountId: text('accountId').notNull(),
  providerId: text('providerId').notNull(),
- userId: text('userId').notNull().references(()=> users.id, { onDelete: 'cascade' }),
+ userId: uuid('userId').notNull().references(()=> users.id, { onDelete: 'cascade' }),
  accessToken: text('accessToken'),
  refreshToken: text('refreshToken'),
  idToken: text('idToken'),
@@ -45,49 +45,53 @@ export const accounts = authSchema.table("accounts", {
  refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
  scope: text('scope'),
  password: text('password'),
- createdAt: timestamp('createdAt').defaultNow().notNull(),
- updatedAt: timestamp('updatedAt').$onUpdate(() => /* @__PURE__ */ new Date()).notNull()
+ createdAt: timestamp('createdAt').notNull(),
+ updatedAt: timestamp('updatedAt').$onUpdate(() => new Date).notNull()
 					}, (table) => [
   index("accounts_userId_idx").on(table.userId),
 ]);
 
 export const verifications = authSchema.table("verifications", {
-					id: text('id').primaryKey(),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					identifier: text('identifier').notNull(),
  value: text('value').notNull(),
  expiresAt: timestamp('expiresAt').notNull(),
- createdAt: timestamp('createdAt').defaultNow().notNull(),
- updatedAt: timestamp('updatedAt').defaultNow().$onUpdate(() => /* @__PURE__ */ new Date()).notNull()
+ createdAt: timestamp('createdAt').notNull(),
+ updatedAt: timestamp('updatedAt').$onUpdate(() => new Date).notNull()
 					}, (table) => [
   index("verifications_identifier_idx").on(table.identifier),
 ]);
 
 export const organizations = authSchema.table("organizations", {
-					id: text('id').primaryKey(),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					name: text('name').notNull(),
  slug: text('slug').notNull().unique(),
  logo: text('logo'),
  createdAt: timestamp('createdAt').notNull(),
- metadata: text('metadata')
+ metadata: text('metadata'),
+ isPersonal: boolean('isPersonal').default(false)
 					}, (table) => [
   uniqueIndex("organizations_slug_uidx").on(table.slug),
+  index("organizations_isPersonal_idx").on(table.isPersonal),
 ]);
 
 export const teams = authSchema.table("teams", {
-					id: text('id').primaryKey(),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					name: text('name').notNull(),
  memberCount: integer('memberCount').default(0).notNull(),
- organizationId: text('organizationId').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
+ organizationId: uuid('organizationId').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
  createdAt: timestamp('createdAt').notNull(),
- updatedAt: timestamp('updatedAt').$onUpdate(() => /* @__PURE__ */ new Date())
+ updatedAt: timestamp('updatedAt').$onUpdate(() => new Date),
+ isPersonal: boolean('isPersonal').default(false)
 					}, (table) => [
   index("teams_organizationId_idx").on(table.organizationId),
+  index("teams_isPersonal_idx").on(table.isPersonal),
 ]);
 
 export const teamMembers = authSchema.table("teamMembers", {
-					id: text('id').primaryKey(),
-					teamId: text('teamId').notNull().references(()=> teams.id, { onDelete: 'cascade' }),
- userId: text('userId').notNull().references(()=> users.id, { onDelete: 'cascade' }),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
+					teamId: uuid('teamId').notNull().references(()=> teams.id, { onDelete: 'cascade' }),
+ userId: uuid('userId').notNull().references(()=> users.id, { onDelete: 'cascade' }),
  membershipKey: text('membershipKey').unique(),
  createdAt: timestamp('createdAt')
 					}, (table) => [
@@ -96,9 +100,9 @@ export const teamMembers = authSchema.table("teamMembers", {
 ]);
 
 export const members = authSchema.table("members", {
-					id: text('id').primaryKey(),
-					organizationId: text('organizationId').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
- userId: text('userId').notNull().references(()=> users.id, { onDelete: 'cascade' }),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
+					organizationId: uuid('organizationId').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
+ userId: uuid('userId').notNull().references(()=> users.id, { onDelete: 'cascade' }),
  role: text('role').default("member").notNull(),
  createdAt: timestamp('createdAt').notNull()
 					}, (table) => [
@@ -107,22 +111,22 @@ export const members = authSchema.table("members", {
 ]);
 
 export const invitations = authSchema.table("invitations", {
-					id: text('id').primaryKey(),
-					organizationId: text('organizationId').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
+					organizationId: uuid('organizationId').notNull().references(()=> organizations.id, { onDelete: 'cascade' }),
  email: text('email').notNull(),
  role: text('role'),
  teamId: text('teamId'),
  status: text('status').default("pending").notNull(),
  expiresAt: timestamp('expiresAt').notNull(),
- createdAt: timestamp('createdAt').defaultNow().notNull(),
- inviterId: text('inviterId').notNull().references(()=> users.id, { onDelete: 'cascade' })
+ createdAt: timestamp('createdAt').notNull(),
+ inviterId: uuid('inviterId').notNull().references(()=> users.id, { onDelete: 'cascade' })
 					}, (table) => [
   index("invitations_organizationId_idx").on(table.organizationId),
   index("invitations_email_idx").on(table.email),
 ]);
 
 export const jwkss = authSchema.table("jwkss", {
-					id: text('id').primaryKey(),
+					id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
 					publicKey: text('publicKey').notNull(),
  privateKey: text('privateKey').notNull(),
  createdAt: timestamp('createdAt').notNull(),

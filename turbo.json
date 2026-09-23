@@ -1,11 +1,15 @@
 {
   "$schema": "./node_modules/turbo/schema.json",
   "ui": "tui",
+  "globalDependencies": ["**/.env.*local", "**/.env"],
+  "futureFlags": {
+    "experimentalGoWorkspaces": true
+  },
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -13,7 +17,28 @@
     "check-types": {
       "dependsOn": ["^check-types"]
     },
+    "pre:dev": {
+      "cache": false,
+      "persistent": false
+    },
     "dev": {
+      "dependsOn": ["^pre:dev"],
+      "cache": false,
+      "persistent": true
+    },
+    "auth:schema": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:push": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
       "cache": false,
       "persistent": true
     }
