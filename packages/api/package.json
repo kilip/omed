@@ -30,6 +30,7 @@
     "@types/bun": "^1.4.2",
     "@types/node": "^26.6.2",
     "openapi-typescript": "^7.13.0",
+    "tsdown": "^0.23.0",
     "typescript": "6",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.1"

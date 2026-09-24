@@ -61,7 +61,18 @@ export const authDefaultOptions = {
     }),
     jwt({
       jwt: {
-        definePayload: ({ user, session }) => {
+        definePayload: async ({ user, session }) => {
+          let activeOrganizationRole = ["member"];
+
+          if (session?.activeOrganizationId) {
+            const membership = await userService.findMembership(
+              user.id,
+              session.ActiveOrganizationId,
+            );
+            if (membership) {
+              activeOrganizationRole = membership.role.split(" ");
+            }
+          }
           return {
             id: user.id,
             name: user.name,
@@ -70,6 +81,7 @@ export const authDefaultOptions = {
             sessionId: session.id,
             activeOrganizationId: session?.activeOrganizationId,
             activeTeamId: session?.activeTeamId,
+            activeOrganizationRole,
           };
         },
       },

@@ -7,6 +7,7 @@ const apiEnvConfig = () => {
       API_FINANCE_URL: z.string().optional().default("http://localhost:3001"),
     },
     runtimeEnv: process.env,
+    isServer: typeof window === "undefined" || process.env.NODE_ENV === "test",
   });
 };
 
