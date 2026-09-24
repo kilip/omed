@@ -1,11 +1,19 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
-import { admin, jwt, organization, testUtils } from "better-auth/plugins";
-import { authDB } from "./drizzle";
-import * as schema from "./drizzle/schema";
-import { authEnv } from "./env";
-import { UserService } from "./service";
-import type { User } from "./type";
+import {
+  admin,
+  bearer,
+  jwt,
+  organization,
+  testUtils,
+} from "better-auth/plugins";
+import { authDB } from "../drizzle";
+import * as schema from "../drizzle/schema";
+import { authEnv } from "../env";
+import { UserService } from "../service";
+import type { User } from "../type";
+import { ac as orgAc, roles as orgRoles } from "./orgPermissions";
+import { socialBearer } from "./plugins/socialBearer";
 
 const userService = new UserService(authDB);
 
@@ -20,16 +28,6 @@ export const authDefaultOptions = {
     schema,
     usePlural: true,
   }),
-  socialProviders: {
-    google: {
-      clientId: authEnv.AUTH_GOOGLE_ID,
-      clientSecret: authEnv.AUTH_GOOGLE_SECRET,
-    },
-    github: {
-      clientId: authEnv.AUTH_GITHUB_ID,
-      clientSecret: authEnv.AUTH_GITHUB_SECRET,
-    },
-  },
   plugins: [
     admin(),
     organization({
@@ -58,6 +56,8 @@ export const authDefaultOptions = {
           },
         },
       },
+      ac: orgAc,
+      roles: { ...orgRoles },
     }),
     jwt({
       jwt: {
@@ -67,14 +67,27 @@ export const authDefaultOptions = {
             name: user.name,
             role: user.role,
             email: user.email,
+            sessionId: session.id,
             activeOrganizationId: session?.activeOrganizationId,
             activeTeamId: session?.activeTeamId,
           };
         },
       },
     }),
+    bearer(),
+    socialBearer(),
     ...(process.env.NODE_ENV === "test" ? [testUtils()] : []),
   ],
+  socialProviders: {
+    google: {
+      clientId: authEnv.AUTH_GOOGLE_ID,
+      clientSecret: authEnv.AUTH_GOOGLE_SECRET,
+    },
+    github: {
+      clientId: authEnv.AUTH_GITHUB_ID,
+      clientSecret: authEnv.AUTH_GITHUB_SECRET,
+    },
+  },
   databaseHooks: {
     user: {
       create: {

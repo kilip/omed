@@ -1,0 +1,125 @@
+components:
+  schemas:
+    http.ErrorResponse:
+      properties:
+        detail:
+          example: field 'name' is required
+          type: string
+        errors:
+          additionalProperties:
+            type: string
+          description: field-level validation errors
+          type: object
+        instance:
+          example: /accounts
+          type: string
+        status:
+          example: 400
+          type: integer
+        title:
+          example: Validation Failed
+          type: string
+        trace_id:
+          example: a1b2c3d4
+          type: string
+        type:
+          example: https://omed.dev/errors/validation-failed
+          type: string
+      type: object
+    model.Account:
+      properties:
+        code:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        parentId:
+          type: string
+        type:
+          $ref: '#/components/schemas/model.AccountType'
+      type: object
+    model.AccountType:
+      enum:
+      - asset
+      - liability
+      - equity
+      - income
+      - expense
+      type: string
+      x-enum-varnames:
+      - AccountTypeAsset
+      - AccountTypeLiability
+      - AccountTypeEquity
+      - AccountTypeIncome
+      - AccountTypeExpense
+  securitySchemes:
+    BearerAuth:
+      in: header
+      name: Authorization
+      type: apiKey
+externalDocs:
+  description: ""
+  url: ""
+info:
+  description: Finance service for Omed
+  title: Omed Finance API
+  version: "1.0"
+openapi: 3.1.0
+paths:
+  /accounts:
+    post:
+      description: Create a new account based on authenticated user workspace
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.Account'
+              description: Account Payload
+              summary: account
+        description: Account Payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.Account'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http.ErrorResponse'
+          description: Invalid request payload
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http.ErrorResponse'
+          description: Missing or invalid authentication
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http.ErrorResponse'
+          description: Insufficient permission
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http.ErrorResponse'
+          description: Validation failed
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http.ErrorResponse'
+          description: Internal server error
+      security:
+      - BearerAuth: []
+      summary: Create Account
+      tags:
+      - accounts
+servers:
+- url: /

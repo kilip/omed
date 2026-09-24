@@ -12,7 +12,13 @@ export default function LoginForm() {
     await signIn.social({
       provider,
       fetchOptions: {
-        onSuccess: () => {
+        onSuccess: (ctx) => {
+          const url = new URL(window.location.href);
+          const authToken = url.searchParams.get("authToken");
+          console.log(authToken);
+          if (authToken) {
+            localStorage.setItem("bearer_token", encodeURIComponent(authToken));
+          }
           router.push("/");
         },
       },

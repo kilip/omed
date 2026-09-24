@@ -1,4 +1,4 @@
-import type { auth } from "./auth";
+import type { auth } from "./better-auth/auth";
 
 export type SessionData = typeof auth.$Infer.Session;
 export type Session = typeof auth.$Infer.Session.session;

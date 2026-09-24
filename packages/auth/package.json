@@ -33,8 +33,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "pre:dev": "tsdown",
-    "lib:dev": "tsdown --watch",
+    "dev": "tsdown --watch",
     "auth:schema": "bun x auth@latest generate --output ./src/drizzle/schema/better-auth.ts --yes",
     "db:push": "drizzle-kit push --force",
     "db:studio": "drizzle-kit studio",

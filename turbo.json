@@ -2,9 +2,6 @@
   "$schema": "./node_modules/turbo/schema.json",
   "ui": "tui",
   "globalDependencies": ["**/.env.*local", "**/.env"],
-  "futureFlags": {
-    "experimentalGoWorkspaces": true
-  },
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -17,12 +14,7 @@
     "check-types": {
       "dependsOn": ["^check-types"]
     },
-    "pre:dev": {
-      "cache": false,
-      "persistent": false
-    },
     "dev": {
-      "dependsOn": ["^pre:dev"],
       "cache": false,
       "persistent": true
     },
