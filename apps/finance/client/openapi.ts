@@ -123,7 +123,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_model.Envelope-internal_delivery_http_PingResponse"];
+                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_delivery_http_PingResponse"];
                     };
                 };
                 /** @description Internal server error */
@@ -132,7 +132,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
+                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"];
                     };
                 };
             };

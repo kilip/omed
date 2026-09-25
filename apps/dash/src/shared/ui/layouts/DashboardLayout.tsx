@@ -6,13 +6,23 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Dropdown, Layout, Menu, Space, theme } from "antd";
+import { signOut } from "@omed/auth/client";
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  Layout,
+  Menu,
+  type MenuProps,
+  Space,
+  theme,
+} from "antd";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { type PropsWithChildren, useState } from "react";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { Providers } from "@/shared/providers/Providers";
-import { dashboardMenuItems } from "./menu-items";
+import { dashboardMenuItems, findParentKey } from "./menu-items";
 
 const { Header, Sider, Content } = Layout;
 
@@ -27,8 +37,12 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     token: { colorBgContainer },
   } = theme.useToken();
   const { user } = useAuth();
+  const [openKeys, setOpenKeys] = useState<string[]>(() => {
+    const parent = findParentKey(pathname);
+    return parent ? [parent] : [];
+  });
 
-  const userMenu = {
+  const userMenu: MenuProps = {
     items: [
       { key: "profile", icon: <UserOutlined />, label: "Profile" },
       { type: "divider" as const },
@@ -39,6 +53,17 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
         label: "Log out",
       },
     ],
+    onClick: async (e) => {
+      if (e.key === "logout") {
+        await signOut({
+          fetchOptions: {
+            onSuccess() {
+              router.push("/login");
+            },
+          },
+        });
+      }
+    },
   };
 
   return (
@@ -77,12 +102,14 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
             height={28}
             priority
           />
-          {!collapsed && "Omed"}
+          {!collapsed && <div style={{ marginLeft: "8px" }}>Omed</div>}
         </div>
         <Menu
           theme="dark"
           mode="inline"
           selectedKeys={[pathname]}
+          openKeys={collapsed ? undefined : openKeys}
+          onOpenChange={(keys) => setOpenKeys(keys)}
           items={dashboardMenuItems}
           onClick={({ key }) => router.push(key)}
         />

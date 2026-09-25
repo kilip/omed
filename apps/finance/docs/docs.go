@@ -395,7 +395,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Envelope-internal_delivery_http_PingResponse"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_delivery_http_PingResponse"
                                 }
                             }
                         },
@@ -405,7 +405,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },

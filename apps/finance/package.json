@@ -21,7 +21,9 @@
   "scripts": {
     "dev": "air",
     "build": "bun build:finance && bun build:swag && bun build:openapi && bun build:client",
+    "build:windows": "bun build:finance:windows && bun build:swag && bun build:openapi && bun build:client",
     "build:finance": "go build -o tmp/main ./cmd/web/main.go",
+    "build:finance:windows": "go build -o tmp/main.exe ./cmd/web/main.go",
     "build:swag": "swag init --v3.1 -g ./cmd/web/main.go -o ./docs --parseDependencyLevel 3",
     "build:openapi": "bun x openapi-typescript ./docs/swagger.json -o ./client/openapi.ts",
     "build:client": "tsdown"

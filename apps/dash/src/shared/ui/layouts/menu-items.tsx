@@ -1,6 +1,11 @@
 import {
-  DashboardOutlined,
+  BarChartOutlined,
+  DollarCircleOutlined,
+  EditOutlined,
   FileTextOutlined,
+  GlobalOutlined,
+  HomeOutlined,
+  RedEnvelopeOutlined,
   SettingOutlined,
   TeamOutlined,
   WalletOutlined,
@@ -14,23 +19,35 @@ export type MenuItem = Required<MenuProps>["items"][number];
 export const dashboardMenuItems: MenuItem[] = [
   {
     key: "/home",
-    icon: <DashboardOutlined />,
-    label: "Dashboard",
+    icon: <HomeOutlined />,
+    label: "Home",
   },
   {
-    key: "/finance",
-    icon: <WalletOutlined />,
-    label: "Finance",
+    key: "blog",
+    icon: <GlobalOutlined />,
+    label: "Blog",
     children: [
-      { key: "/finance/transactions", label: "Transactions" },
-      { key: "/finance/invoices", label: "Invoices" },
-      { key: "/finance/reports", label: "Reports" },
+      { key: "/blog/articles", label: "Articles", icon: <EditOutlined /> },
+      { key: "/blog/settings", label: "Settings", icon: <SettingOutlined /> },
     ],
   },
   {
-    key: "/members",
-    icon: <TeamOutlined />,
-    label: "Members",
+    key: "finance",
+    icon: <WalletOutlined />,
+    label: "Finance",
+    children: [
+      {
+        key: "/finance/transactions",
+        label: "Transactions",
+        icon: <DollarCircleOutlined />,
+      },
+      {
+        key: "/finance/invoices",
+        label: "Invoices",
+        icon: <RedEnvelopeOutlined />,
+      },
+      { key: "/finance/reports", label: "Reports", icon: <BarChartOutlined /> },
+    ],
   },
   {
     key: "/documents",
@@ -43,3 +60,18 @@ export const dashboardMenuItems: MenuItem[] = [
     label: "Settings",
   },
 ];
+
+// Given the current pathname, find which top-level submenu key (if any)
+// contains it — used to auto-open the right submenu on hard refresh /
+// direct navigation, since antd Menu doesn't infer this itself.
+export function findParentKey(pathname: string): string | null {
+  for (const item of dashboardMenuItems) {
+    if (item && "children" in item && item.children) {
+      const match = item.children.some(
+        (child) => child && "key" in child && child.key === pathname,
+      );
+      if (match) return item.key as string;
+    }
+  }
+  return null;
+}
