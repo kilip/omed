@@ -20,15 +20,18 @@ func NewAccountRepository(db *ent.Client) *AccountRepository {
 
 func toAccountModel(e *ent.Account) *model.Account {
 	return &model.Account{
-		ID:       e.ID,
-		ParentID: e.ParentId,
-		Code:     e.Code,
-		Name:     e.Name,
-		Type:     model.AccountType(e.Type),
-		CreatedBy: e.CreatedBy,
-		CreatedAt: e.CreatedAt,
-		UpdatedBy: e.UpdatedBy,
-		UpdatedAt: e.UpdatedAt,
+		ID:            e.ID,
+		ParentID:      e.ParentId,
+		Code:          e.Code,
+		Name:          e.Name,
+		Type:          model.AccountType(e.Type),
+		DetailType:    model.AccountDetailType(e.DetailType),
+		NormalBalance: model.AccountNormalBalance(e.NormalBalance),
+		Currency:      e.Currency,
+		CreatedBy:     e.CreatedBy,
+		CreatedAt:     e.CreatedAt,
+		UpdatedBy:     e.UpdatedBy,
+		UpdatedAt:     e.UpdatedAt,
 	}
 }
 
@@ -36,7 +39,10 @@ func (r AccountRepository) Create(ctx context.Context, request *model.Account) (
 	q := r.client.Account.Create().
 		SetCode(request.Code).
 		SetName(request.Name).
-		SetType(account.Type(request.Type))
+		SetType(account.Type(request.Type)).
+		SetDetailType(account.DetailType(request.DetailType)).
+		SetNormalBalance(account.NormalBalance(request.NormalBalance)).
+		SetCurrency(request.Currency)
 
 	if request.ParentID != nil {
 		q.SetParentId(*request.ParentID)

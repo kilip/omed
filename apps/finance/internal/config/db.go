@@ -79,10 +79,12 @@ func ConfigureDBClient(client *ent.Client) {
 
 func GetDB(config Config) *ent.Client {
 	// Define the custom schema mapping
-    schemaConfig := ent.SchemaConfig{
-        // Replace "User" with the exact name of the Ent struct you annotated
-        // Account: "finance",
-    }
+	schemaConfig := ent.SchemaConfig{
+		// Replace "User" with the exact name of the Ent struct you annotated
+		// Account:   "finance",
+		// User:      "finance",
+		// Workspace: "finance",
+	}
 
 	client, err := ent.Open(dialect.Postgres, config.DB.URL, ent.AlternateSchema(schemaConfig))
 	if err != nil {

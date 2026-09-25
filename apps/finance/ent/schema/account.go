@@ -2,7 +2,9 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -14,7 +16,7 @@ type Account struct {
 
 func (Account) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		// entsql.Annotation{Schema: "finance"},
+		entsql.Annotation{Schema: "public"},
 	}
 }
 
@@ -34,10 +36,18 @@ func (Account) Fields() []ent.Field {
 		field.String("code").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.Enum("type").Values("asset", "liability", "equity", "income", "expense"),
+		field.Enum("detailType").Values("cash", "bank", "ewallet", "credit-card", "payable", "receivable"),
+		field.Enum("normalBalance").Values("debit", "credit"),
+		field.String("currency").NotEmpty(),
+		field.Bool("isPlaceholder").Default(false),
+		field.Bool("isSystem").Default(false),
+		field.Bool("isActive").Default(true),
 	}
 }
 
 // Edges of the Account.
 func (Account) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("parent", Account.Type).Unique(),
+	}
 }

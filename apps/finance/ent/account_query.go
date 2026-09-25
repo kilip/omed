@@ -15,15 +15,22 @@ import (
 	"github.com/kilip/omed/finance/ent/account"
 	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
+	"github.com/kilip/omed/finance/ent/user"
+	"github.com/kilip/omed/finance/ent/workspace"
 )
 
 // AccountQuery is the builder for querying Account entities.
 type AccountQuery struct {
 	config
-	ctx        *QueryContext
-	order      []account.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Account
+	ctx           *QueryContext
+	order         []account.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.Account
+	withWorkspace *WorkspaceQuery
+	withCreator   *UserQuery
+	withUpdater   *UserQuery
+	withParent    *AccountQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +65,106 @@ func (_q *AccountQuery) Unique(unique bool) *AccountQuery {
 func (_q *AccountQuery) Order(o ...account.OrderOption) *AccountQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryWorkspace chains the current query on the "workspace" edge.
+func (_q *AccountQuery) QueryWorkspace() *WorkspaceQuery {
+	query := (&WorkspaceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, account.WorkspaceTable, account.WorkspaceColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.Account
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreator chains the current query on the "creator" edge.
+func (_q *AccountQuery) QueryCreator() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, account.CreatorTable, account.CreatorColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUpdater chains the current query on the "updater" edge.
+func (_q *AccountQuery) QueryUpdater() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, account.UpdaterTable, account.UpdaterColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryParent chains the current query on the "parent" edge.
+func (_q *AccountQuery) QueryParent() *AccountQuery {
+	query := (&AccountClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, account.ParentTable, account.ParentColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.Account
+		step.Edge.Schema = schemaConfig.Account
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Account entity from the query.
@@ -247,15 +354,63 @@ func (_q *AccountQuery) Clone() *AccountQuery {
 		return nil
 	}
 	return &AccountQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]account.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Account{}, _q.predicates...),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]account.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.Account{}, _q.predicates...),
+		withWorkspace: _q.withWorkspace.Clone(),
+		withCreator:   _q.withCreator.Clone(),
+		withUpdater:   _q.withUpdater.Clone(),
+		withParent:    _q.withParent.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithWorkspace tells the query-builder to eager-load the nodes that are connected to
+// the "workspace" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithWorkspace(opts ...func(*WorkspaceQuery)) *AccountQuery {
+	query := (&WorkspaceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withWorkspace = query
+	return _q
+}
+
+// WithCreator tells the query-builder to eager-load the nodes that are connected to
+// the "creator" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithCreator(opts ...func(*UserQuery)) *AccountQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreator = query
+	return _q
+}
+
+// WithUpdater tells the query-builder to eager-load the nodes that are connected to
+// the "updater" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithUpdater(opts ...func(*UserQuery)) *AccountQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUpdater = query
+	return _q
+}
+
+// WithParent tells the query-builder to eager-load the nodes that are connected to
+// the "parent" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithParent(opts ...func(*AccountQuery)) *AccountQuery {
+	query := (&AccountClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withParent = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -334,15 +489,29 @@ func (_q *AccountQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Account, error) {
 	var (
-		nodes = []*Account{}
-		_spec = _q.querySpec()
+		nodes       = []*Account{}
+		withFKs     = _q.withFKs
+		_spec       = _q.querySpec()
+		loadedTypes = [4]bool{
+			_q.withWorkspace != nil,
+			_q.withCreator != nil,
+			_q.withUpdater != nil,
+			_q.withParent != nil,
+		}
 	)
+	if _q.withParent != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, account.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Account).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Account{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	_spec.Node.Schema = _q.schemaConfig.Account
@@ -356,7 +525,151 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withWorkspace; query != nil {
+		if err := _q.loadWorkspace(ctx, query, nodes, nil,
+			func(n *Account, e *Workspace) { n.Edges.Workspace = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreator; query != nil {
+		if err := _q.loadCreator(ctx, query, nodes, nil,
+			func(n *Account, e *User) { n.Edges.Creator = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUpdater; query != nil {
+		if err := _q.loadUpdater(ctx, query, nodes, nil,
+			func(n *Account, e *User) { n.Edges.Updater = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withParent; query != nil {
+		if err := _q.loadParent(ctx, query, nodes, nil,
+			func(n *Account, e *Account) { n.Edges.Parent = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *AccountQuery) loadWorkspace(ctx context.Context, query *WorkspaceQuery, nodes []*Account, init func(*Account), assign func(*Account, *Workspace)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Account)
+	for i := range nodes {
+		fk := nodes[i].WorkspaceId
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(workspace.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "workspaceId" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *AccountQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Account, init func(*Account), assign func(*Account, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Account)
+	for i := range nodes {
+		fk := nodes[i].CreatedBy
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "createdBy" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *AccountQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes []*Account, init func(*Account), assign func(*Account, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Account)
+	for i := range nodes {
+		fk := nodes[i].UpdatedBy
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "updatedBy" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *AccountQuery) loadParent(ctx context.Context, query *AccountQuery, nodes []*Account, init func(*Account), assign func(*Account, *Account)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Account)
+	for i := range nodes {
+		if nodes[i].account_parent == nil {
+			continue
+		}
+		fk := *nodes[i].account_parent
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(account.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "account_parent" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (_q *AccountQuery) sqlCount(ctx context.Context) (int, error) {
@@ -385,6 +698,15 @@ func (_q *AccountQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != account.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withWorkspace != nil {
+			_spec.Node.AddColumnOnce(account.FieldWorkspaceId)
+		}
+		if _q.withCreator != nil {
+			_spec.Node.AddColumnOnce(account.FieldCreatedBy)
+		}
+		if _q.withUpdater != nil {
+			_spec.Node.AddColumnOnce(account.FieldUpdatedBy)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

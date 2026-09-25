@@ -66,11 +66,20 @@ const docTemplate = `{
                     "createdBy": {
                         "type": "string"
                     },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "detailType": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.AccountDetailType"
+                    },
                     "id": {
                         "type": "string"
                     },
                     "name": {
                         "type": "string"
+                    },
+                    "normalBalance": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.AccountNormalBalance"
                     },
                     "parentId": {
                         "type": "string"
@@ -86,6 +95,47 @@ const docTemplate = `{
                     }
                 },
                 "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.AccountDetailType": {
+                "enum": [
+                    "cash",
+                    "bank",
+                    "ewallet",
+                    "credit-card",
+                    "payable",
+                    "receivable"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "AccountDetailTypeCash",
+                    "AccountDetailTypeBank",
+                    "AccountDetailTypeEwallet",
+                    "AccountDetailTypeCreditCard",
+                    "AccountDetailTypePayable",
+                    "AccountDetailTypeReceivable"
+                ]
+            },
+            "github_com_kilip_omed_finance_internal_model.AccountFilter": {
+                "properties": {
+                    "parentID": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.AccountType"
+                    }
+                },
+                "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.AccountNormalBalance": {
+                "enum": [
+                    "debit",
+                    "credit"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "AccountNormalBalanceDebit",
+                    "AccountNormalBalanceCredit"
+                ]
             },
             "github_com_kilip_omed_finance_internal_model.AccountType": {
                 "enum": [
@@ -114,6 +164,12 @@ const docTemplate = `{
                         "uniqueItems": false
                     },
                     "activeTeamId": {
+                        "type": "string"
+                    },
+                    "activeTeamName": {
+                        "type": "string"
+                    },
+                    "avatar": {
                         "type": "string"
                     },
                     "id": {
@@ -290,6 +346,92 @@ const docTemplate = `{
     },
     "paths": {
         "/accounts": {
+            "get": {
+                "description": "List available accounts",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.AccountFilter",
+                                "summary": "account",
+                                "description": "Account Filter"
+                            }
+                        }
+                    },
+                    "description": "Account Filter"
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_model_Account"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Invalid request payload"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Missing or invalid authentication"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Insufficient permission"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Validation failed"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List available accounts",
+                "tags": [
+                    "accounts"
+                ]
+            },
             "post": {
                 "description": "Create a new account based on authenticated user workspace",
                 "requestBody": {
@@ -320,7 +462,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -330,7 +472,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -340,7 +482,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -350,7 +492,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -360,7 +502,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -395,7 +537,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_delivery_http_PingResponse"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Envelope-internal_delivery_http_PingResponse"
                                 }
                             }
                         },
@@ -405,7 +547,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },

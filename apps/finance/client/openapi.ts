@@ -11,7 +11,80 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List available accounts
+         * @description List available accounts
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Account Filter */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_model.AccountFilter"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_model_Account"];
+                    };
+                };
+                /** @description Invalid request payload */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid authentication */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
+                    };
+                };
+                /** @description Insufficient permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
+                    };
+                };
+                /** @description Validation failed */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
+                    };
+                };
+                /** @description Internal server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
+                    };
+                };
+            };
+        };
         put?: never;
         /**
          * Create Account
@@ -46,7 +119,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"];
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
                     };
                 };
                 /** @description Missing or invalid authentication */
@@ -55,7 +128,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"];
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
                     };
                 };
                 /** @description Insufficient permission */
@@ -64,7 +137,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"];
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
                     };
                 };
                 /** @description Validation failed */
@@ -73,7 +146,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"];
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
                     };
                 };
                 /** @description Internal server error */
@@ -82,7 +155,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"];
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
                     };
                 };
             };
@@ -123,7 +196,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_delivery_http_PingResponse"];
+                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_model.Envelope-internal_delivery_http_PingResponse"];
                     };
                 };
                 /** @description Internal server error */
@@ -132,7 +205,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"];
+                        "application/json": components["schemas"]["internal_delivery_http.ErrorResponse"];
                     };
                 };
             };
@@ -175,18 +248,31 @@ export interface components {
             code?: string;
             createdAt?: string;
             createdBy?: string;
+            currency?: string;
+            detailType?: components["schemas"]["github_com_kilip_omed_finance_internal_model.AccountDetailType"];
             id?: string;
             name?: string;
+            normalBalance?: components["schemas"]["github_com_kilip_omed_finance_internal_model.AccountNormalBalance"];
             parentId?: string;
             type?: components["schemas"]["github_com_kilip_omed_finance_internal_model.AccountType"];
             updatedAt?: string;
             updatedBy?: string;
         };
         /** @enum {string} */
+        "github_com_kilip_omed_finance_internal_model.AccountDetailType": "cash" | "bank" | "ewallet" | "credit-card" | "payable" | "receivable";
+        "github_com_kilip_omed_finance_internal_model.AccountFilter": {
+            parentID?: string;
+            type?: components["schemas"]["github_com_kilip_omed_finance_internal_model.AccountType"];
+        };
+        /** @enum {string} */
+        "github_com_kilip_omed_finance_internal_model.AccountNormalBalance": "debit" | "credit";
+        /** @enum {string} */
         "github_com_kilip_omed_finance_internal_model.AccountType": "asset" | "liability" | "equity" | "income" | "expense";
         "github_com_kilip_omed_finance_internal_model.AuthenticatedUser": {
             activeOrganizationRole?: string[];
             activeTeamId?: string;
+            activeTeamName?: string;
+            avatar?: string;
             id?: string;
             name?: string;
             role?: string[];

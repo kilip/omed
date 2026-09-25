@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -33,8 +34,53 @@ const (
 	FieldName = "name"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
+	// FieldDetailType holds the string denoting the detailtype field in the database.
+	FieldDetailType = "detail_type"
+	// FieldNormalBalance holds the string denoting the normalbalance field in the database.
+	FieldNormalBalance = "normal_balance"
+	// FieldCurrency holds the string denoting the currency field in the database.
+	FieldCurrency = "currency"
+	// FieldIsPlaceholder holds the string denoting the isplaceholder field in the database.
+	FieldIsPlaceholder = "is_placeholder"
+	// FieldIsSystem holds the string denoting the issystem field in the database.
+	FieldIsSystem = "is_system"
+	// FieldIsActive holds the string denoting the isactive field in the database.
+	FieldIsActive = "is_active"
+	// EdgeWorkspace holds the string denoting the workspace edge name in mutations.
+	EdgeWorkspace = "workspace"
+	// EdgeCreator holds the string denoting the creator edge name in mutations.
+	EdgeCreator = "creator"
+	// EdgeUpdater holds the string denoting the updater edge name in mutations.
+	EdgeUpdater = "updater"
+	// EdgeParent holds the string denoting the parent edge name in mutations.
+	EdgeParent = "parent"
 	// Table holds the table name of the account in the database.
 	Table = "accounts"
+	// WorkspaceTable is the table that holds the workspace relation/edge.
+	WorkspaceTable = "accounts"
+	// WorkspaceInverseTable is the table name for the Workspace entity.
+	// It exists in this package in order to avoid circular dependency with the "workspace" package.
+	WorkspaceInverseTable = "workspaces"
+	// WorkspaceColumn is the table column denoting the workspace relation/edge.
+	WorkspaceColumn = "workspace_id"
+	// CreatorTable is the table that holds the creator relation/edge.
+	CreatorTable = "accounts"
+	// CreatorInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatorInverseTable = "users"
+	// CreatorColumn is the table column denoting the creator relation/edge.
+	CreatorColumn = "created_by"
+	// UpdaterTable is the table that holds the updater relation/edge.
+	UpdaterTable = "accounts"
+	// UpdaterInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UpdaterInverseTable = "users"
+	// UpdaterColumn is the table column denoting the updater relation/edge.
+	UpdaterColumn = "updated_by"
+	// ParentTable is the table that holds the parent relation/edge.
+	ParentTable = "accounts"
+	// ParentColumn is the table column denoting the parent relation/edge.
+	ParentColumn = "account_parent"
 )
 
 // Columns holds all SQL columns for account fields.
@@ -49,12 +95,29 @@ var Columns = []string{
 	FieldCode,
 	FieldName,
 	FieldType,
+	FieldDetailType,
+	FieldNormalBalance,
+	FieldCurrency,
+	FieldIsPlaceholder,
+	FieldIsSystem,
+	FieldIsActive,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "accounts"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"account_parent",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -72,6 +135,14 @@ var (
 	CodeValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	CurrencyValidator func(string) error
+	// DefaultIsPlaceholder holds the default value on creation for the "isPlaceholder" field.
+	DefaultIsPlaceholder bool
+	// DefaultIsSystem holds the default value on creation for the "isSystem" field.
+	DefaultIsSystem bool
+	// DefaultIsActive holds the default value on creation for the "isActive" field.
+	DefaultIsActive bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -99,6 +170,56 @@ func TypeValidator(_type Type) error {
 		return nil
 	default:
 		return fmt.Errorf("account: invalid enum value for type field: %q", _type)
+	}
+}
+
+// DetailType defines the type for the "detailType" enum field.
+type DetailType string
+
+// DetailType values.
+const (
+	DetailTypeCash       DetailType = "cash"
+	DetailTypeBank       DetailType = "bank"
+	DetailTypeEwallet    DetailType = "ewallet"
+	DetailTypeCreditCard DetailType = "credit-card"
+	DetailTypePayable    DetailType = "payable"
+	DetailTypeReceivable DetailType = "receivable"
+)
+
+func (dt DetailType) String() string {
+	return string(dt)
+}
+
+// DetailTypeValidator is a validator for the "detailType" field enum values. It is called by the builders before save.
+func DetailTypeValidator(dt DetailType) error {
+	switch dt {
+	case DetailTypeCash, DetailTypeBank, DetailTypeEwallet, DetailTypeCreditCard, DetailTypePayable, DetailTypeReceivable:
+		return nil
+	default:
+		return fmt.Errorf("account: invalid enum value for detailType field: %q", dt)
+	}
+}
+
+// NormalBalance defines the type for the "normalBalance" enum field.
+type NormalBalance string
+
+// NormalBalance values.
+const (
+	NormalBalanceDebit  NormalBalance = "debit"
+	NormalBalanceCredit NormalBalance = "credit"
+)
+
+func (nb NormalBalance) String() string {
+	return string(nb)
+}
+
+// NormalBalanceValidator is a validator for the "normalBalance" field enum values. It is called by the builders before save.
+func NormalBalanceValidator(nb NormalBalance) error {
+	switch nb {
+	case NormalBalanceDebit, NormalBalanceCredit:
+		return nil
+	default:
+		return fmt.Errorf("account: invalid enum value for normalBalance field: %q", nb)
 	}
 }
 
@@ -153,4 +274,90 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByDetailType orders the results by the detailType field.
+func ByDetailType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDetailType, opts...).ToFunc()
+}
+
+// ByNormalBalance orders the results by the normalBalance field.
+func ByNormalBalance(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNormalBalance, opts...).ToFunc()
+}
+
+// ByCurrency orders the results by the currency field.
+func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
+}
+
+// ByIsPlaceholder orders the results by the isPlaceholder field.
+func ByIsPlaceholder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsPlaceholder, opts...).ToFunc()
+}
+
+// ByIsSystem orders the results by the isSystem field.
+func ByIsSystem(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsSystem, opts...).ToFunc()
+}
+
+// ByIsActive orders the results by the isActive field.
+func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
+}
+
+// ByWorkspaceField orders the results by workspace field.
+func ByWorkspaceField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorkspaceStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCreatorField orders the results by creator field.
+func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByUpdaterField orders the results by updater field.
+func ByUpdaterField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpdaterStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByParentField orders the results by parent field.
+func ByParentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newParentStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newWorkspaceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorkspaceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, WorkspaceTable, WorkspaceColumn),
+	)
+}
+func newCreatorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, CreatorTable, CreatorColumn),
+	)
+}
+func newUpdaterStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpdaterInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, UpdaterTable, UpdaterColumn),
+	)
+}
+func newParentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, ParentTable, ParentColumn),
+	)
 }

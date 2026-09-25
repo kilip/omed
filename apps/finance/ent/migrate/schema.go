@@ -13,32 +13,98 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "workspace_id", Type: field.TypeUUID},
-		{Name: "created_by", Type: field.TypeUUID},
-		{Name: "updated_by", Type: field.TypeUUID},
 		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "code", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"asset", "liability", "equity", "income", "expense"}},
+		{Name: "detail_type", Type: field.TypeEnum, Enums: []string{"cash", "bank", "ewallet", "credit-card", "payable", "receivable"}},
+		{Name: "normal_balance", Type: field.TypeEnum, Enums: []string{"debit", "credit"}},
+		{Name: "currency", Type: field.TypeString},
+		{Name: "is_placeholder", Type: field.TypeBool, Default: false},
+		{Name: "is_system", Type: field.TypeBool, Default: false},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "workspace_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "updated_by", Type: field.TypeUUID},
+		{Name: "account_parent", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// AccountsTable holds the schema information for the "accounts" table.
 	AccountsTable = &schema.Table{
 		Name:       "accounts",
 		Columns:    AccountsColumns,
 		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "accounts_workspaces_workspace",
+				Columns:    []*schema.Column{AccountsColumns[13]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "accounts_users_creator",
+				Columns:    []*schema.Column{AccountsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "accounts_users_updater",
+				Columns:    []*schema.Column{AccountsColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "accounts_accounts_parent",
+				Columns:    []*schema.Column{AccountsColumns[16]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "account_workspace_id",
 				Unique:  false,
-				Columns: []*schema.Column{AccountsColumns[3]},
+				Columns: []*schema.Column{AccountsColumns[13]},
 			},
 		},
+	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "avatar", Type: field.TypeString, Nullable: true},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
+	// WorkspacesColumns holds the columns for the "workspaces" table.
+	WorkspacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+	}
+	// WorkspacesTable holds the schema information for the "workspaces" table.
+	WorkspacesTable = &schema.Table{
+		Name:       "workspaces",
+		Columns:    WorkspacesColumns,
+		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
+		UsersTable,
+		WorkspacesTable,
 	}
 )
 
 func init() {
+	AccountsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	AccountsTable.ForeignKeys[1].RefTable = UsersTable
+	AccountsTable.ForeignKeys[2].RefTable = UsersTable
+	AccountsTable.ForeignKeys[3].RefTable = AccountsTable
 }

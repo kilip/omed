@@ -10,11 +10,21 @@ import type { User } from "../type";
 export class UserService {
   constructor(private readonly db: AuthDatabase) {}
 
+  async findTeam(id: string) {
+    return await this.db.query.teams.findFirst({
+      where: {
+        id,
+      },
+    });
+  }
   async findMembership(userId: string, organizationId: string) {
     return await this.db.query.members.findFirst({
       where: {
         userId,
         organizationId,
+      },
+      with: {
+        organization: true,
       },
     });
   }

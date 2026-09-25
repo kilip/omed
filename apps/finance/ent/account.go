@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/account"
+	"github.com/kilip/omed/finance/ent/user"
+	"github.com/kilip/omed/finance/ent/workspace"
 )
 
 // Account is the model entity for the Account schema.
@@ -35,8 +37,83 @@ type Account struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Type holds the value of the "type" field.
-	Type         account.Type `json:"type,omitempty"`
-	selectValues sql.SelectValues
+	Type account.Type `json:"type,omitempty"`
+	// DetailType holds the value of the "detailType" field.
+	DetailType account.DetailType `json:"detailType,omitempty"`
+	// NormalBalance holds the value of the "normalBalance" field.
+	NormalBalance account.NormalBalance `json:"normalBalance,omitempty"`
+	// Currency holds the value of the "currency" field.
+	Currency string `json:"currency,omitempty"`
+	// IsPlaceholder holds the value of the "isPlaceholder" field.
+	IsPlaceholder bool `json:"isPlaceholder,omitempty"`
+	// IsSystem holds the value of the "isSystem" field.
+	IsSystem bool `json:"isSystem,omitempty"`
+	// IsActive holds the value of the "isActive" field.
+	IsActive bool `json:"isActive,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the AccountQuery when eager-loading is set.
+	Edges          AccountEdges `json:"edges"`
+	account_parent *uuid.UUID
+	selectValues   sql.SelectValues
+}
+
+// AccountEdges holds the relations/edges for other nodes in the graph.
+type AccountEdges struct {
+	// Workspace holds the value of the workspace edge.
+	Workspace *Workspace `json:"workspace,omitempty"`
+	// Creator holds the value of the creator edge.
+	Creator *User `json:"creator,omitempty"`
+	// Updater holds the value of the updater edge.
+	Updater *User `json:"updater,omitempty"`
+	// Parent holds the value of the parent edge.
+	Parent *Account `json:"parent,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// WorkspaceOrErr returns the Workspace value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) WorkspaceOrErr() (*Workspace, error) {
+	if e.Workspace != nil {
+		return e.Workspace, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: workspace.Label}
+	}
+	return nil, &NotLoadedError{edge: "workspace"}
+}
+
+// CreatorOrErr returns the Creator value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) CreatorOrErr() (*User, error) {
+	if e.Creator != nil {
+		return e.Creator, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "creator"}
+}
+
+// UpdaterOrErr returns the Updater value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) UpdaterOrErr() (*User, error) {
+	if e.Updater != nil {
+		return e.Updater, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "updater"}
+}
+
+// ParentOrErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) ParentOrErr() (*Account, error) {
+	if e.Parent != nil {
+		return e.Parent, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: account.Label}
+	}
+	return nil, &NotLoadedError{edge: "parent"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -46,12 +123,16 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case account.FieldParentId:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case account.FieldCode, account.FieldName, account.FieldType:
+		case account.FieldIsPlaceholder, account.FieldIsSystem, account.FieldIsActive:
+			values[i] = new(sql.NullBool)
+		case account.FieldCode, account.FieldName, account.FieldType, account.FieldDetailType, account.FieldNormalBalance, account.FieldCurrency:
 			values[i] = new(sql.NullString)
 		case account.FieldCreatedAt, account.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case account.FieldID, account.FieldWorkspaceId, account.FieldCreatedBy, account.FieldUpdatedBy:
 			values[i] = new(uuid.UUID)
+		case account.ForeignKeys[0]: // account_parent
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -128,6 +209,49 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Type = account.Type(value.String)
 			}
+		case account.FieldDetailType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field detailType", values[i])
+			} else if value.Valid {
+				_m.DetailType = account.DetailType(value.String)
+			}
+		case account.FieldNormalBalance:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field normalBalance", values[i])
+			} else if value.Valid {
+				_m.NormalBalance = account.NormalBalance(value.String)
+			}
+		case account.FieldCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field currency", values[i])
+			} else if value.Valid {
+				_m.Currency = value.String
+			}
+		case account.FieldIsPlaceholder:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isPlaceholder", values[i])
+			} else if value.Valid {
+				_m.IsPlaceholder = value.Bool
+			}
+		case account.FieldIsSystem:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isSystem", values[i])
+			} else if value.Valid {
+				_m.IsSystem = value.Bool
+			}
+		case account.FieldIsActive:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isActive", values[i])
+			} else if value.Valid {
+				_m.IsActive = value.Bool
+			}
+		case account.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field account_parent", values[i])
+			} else if value.Valid {
+				_m.account_parent = new(uuid.UUID)
+				*_m.account_parent = *value.S.(*uuid.UUID)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -139,6 +263,26 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Account) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryWorkspace queries the "workspace" edge of the Account entity.
+func (_m *Account) QueryWorkspace() *WorkspaceQuery {
+	return NewAccountClient(_m.config).QueryWorkspace(_m)
+}
+
+// QueryCreator queries the "creator" edge of the Account entity.
+func (_m *Account) QueryCreator() *UserQuery {
+	return NewAccountClient(_m.config).QueryCreator(_m)
+}
+
+// QueryUpdater queries the "updater" edge of the Account entity.
+func (_m *Account) QueryUpdater() *UserQuery {
+	return NewAccountClient(_m.config).QueryUpdater(_m)
+}
+
+// QueryParent queries the "parent" edge of the Account entity.
+func (_m *Account) QueryParent() *AccountQuery {
+	return NewAccountClient(_m.config).QueryParent(_m)
 }
 
 // Update returns a builder for updating this Account.
@@ -192,6 +336,24 @@ func (_m *Account) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Type))
+	builder.WriteString(", ")
+	builder.WriteString("detailType=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DetailType))
+	builder.WriteString(", ")
+	builder.WriteString("normalBalance=")
+	builder.WriteString(fmt.Sprintf("%v", _m.NormalBalance))
+	builder.WriteString(", ")
+	builder.WriteString("currency=")
+	builder.WriteString(_m.Currency)
+	builder.WriteString(", ")
+	builder.WriteString("isPlaceholder=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsPlaceholder))
+	builder.WriteString(", ")
+	builder.WriteString("isSystem=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsSystem))
+	builder.WriteString(", ")
+	builder.WriteString("isActive=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))
 	builder.WriteByte(')')
 	return builder.String()
 }

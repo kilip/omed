@@ -1,3 +1,7 @@
+"use client";
+import { useAuth } from "@/shared/providers/AuthProvider";
+
 export default function Status() {
-  return <h1>Status</h1>;
+  const { token } = useAuth();
+  return <div>{token}</div>;
 }

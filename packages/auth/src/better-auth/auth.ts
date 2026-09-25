@@ -65,6 +65,15 @@ export const authDefaultOptions = {
         expirationTime: "7 day",
         definePayload: async ({ user, session }) => {
           let activeOrganizationRole = ["member"];
+          let activeOrganizationName = "Undefined";
+          let activeTeamName = "undefined";
+
+          if (session?.activeTeamId) {
+            const team = await userService.findTeam(session.activeTeamId);
+            if (team) {
+              activeTeamName = team?.name;
+            }
+          }
 
           if (session?.activeOrganizationId) {
             const membership = await userService.findMembership(
@@ -74,6 +83,9 @@ export const authDefaultOptions = {
             if (membership) {
               activeOrganizationRole = membership.role.split(" ");
             }
+            if (membership?.organization) {
+              activeOrganizationName = membership?.organization?.name;
+            }
           }
           return {
             id: user.id,
@@ -82,7 +94,9 @@ export const authDefaultOptions = {
             email: user.email,
             sessionId: session.id,
             activeOrganizationId: session?.activeOrganizationId,
+            activeOrganizationName,
             activeTeamId: session?.activeTeamId,
+            activeTeamName,
             activeOrganizationRole,
           };
         },

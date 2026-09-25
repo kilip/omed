@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"entgo.io/ent/schema/mixin"
@@ -53,13 +54,26 @@ func (WorkspaceMixin) Indexes() []ent.Index {
 	}
 }
 
+func (WorkspaceMixin) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("workspace", Workspace.Type).Required().Unique().Field("workspaceId"),
+	}
+}
+
 type AuditMixin struct {
 	mixin.Schema
 }
 
 func (AuditMixin) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("createdBy", uuid.UUID{}).Immutable(),
+		field.UUID("createdBy", uuid.UUID{}),
 		field.UUID("updatedBy", uuid.UUID{}),
+	}
+}
+
+func (AuditMixin) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("creator", User.Type).Required().Unique().Field("createdBy"),
+		edge.To("updater", User.Type).Required().Unique().Field("updatedBy"),
 	}
 }

@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
+	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
 )
 
@@ -93,6 +95,26 @@ func Code(v string) predicate.Account {
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldName, v))
+}
+
+// Currency applies equality check predicate on the "currency" field. It's identical to CurrencyEQ.
+func Currency(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldCurrency, v))
+}
+
+// IsPlaceholder applies equality check predicate on the "isPlaceholder" field. It's identical to IsPlaceholderEQ.
+func IsPlaceholder(v bool) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldIsPlaceholder, v))
+}
+
+// IsSystem applies equality check predicate on the "isSystem" field. It's identical to IsSystemEQ.
+func IsSystem(v bool) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldIsSystem, v))
+}
+
+// IsActive applies equality check predicate on the "isActive" field. It's identical to IsActiveEQ.
+func IsActive(v bool) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldIsActive, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "createdAt" field.
@@ -195,26 +217,6 @@ func WorkspaceIdNotIn(vs ...uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldNotIn(FieldWorkspaceId, vs...))
 }
 
-// WorkspaceIdGT applies the GT predicate on the "workspaceId" field.
-func WorkspaceIdGT(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldGT(FieldWorkspaceId, v))
-}
-
-// WorkspaceIdGTE applies the GTE predicate on the "workspaceId" field.
-func WorkspaceIdGTE(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldGTE(FieldWorkspaceId, v))
-}
-
-// WorkspaceIdLT applies the LT predicate on the "workspaceId" field.
-func WorkspaceIdLT(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldLT(FieldWorkspaceId, v))
-}
-
-// WorkspaceIdLTE applies the LTE predicate on the "workspaceId" field.
-func WorkspaceIdLTE(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldLTE(FieldWorkspaceId, v))
-}
-
 // CreatedByEQ applies the EQ predicate on the "createdBy" field.
 func CreatedByEQ(v uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldCreatedBy, v))
@@ -235,26 +237,6 @@ func CreatedByNotIn(vs ...uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldNotIn(FieldCreatedBy, vs...))
 }
 
-// CreatedByGT applies the GT predicate on the "createdBy" field.
-func CreatedByGT(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldGT(FieldCreatedBy, v))
-}
-
-// CreatedByGTE applies the GTE predicate on the "createdBy" field.
-func CreatedByGTE(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldGTE(FieldCreatedBy, v))
-}
-
-// CreatedByLT applies the LT predicate on the "createdBy" field.
-func CreatedByLT(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldLT(FieldCreatedBy, v))
-}
-
-// CreatedByLTE applies the LTE predicate on the "createdBy" field.
-func CreatedByLTE(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldLTE(FieldCreatedBy, v))
-}
-
 // UpdatedByEQ applies the EQ predicate on the "updatedBy" field.
 func UpdatedByEQ(v uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldUpdatedBy, v))
@@ -273,26 +255,6 @@ func UpdatedByIn(vs ...uuid.UUID) predicate.Account {
 // UpdatedByNotIn applies the NotIn predicate on the "updatedBy" field.
 func UpdatedByNotIn(vs ...uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldNotIn(FieldUpdatedBy, vs...))
-}
-
-// UpdatedByGT applies the GT predicate on the "updatedBy" field.
-func UpdatedByGT(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldGT(FieldUpdatedBy, v))
-}
-
-// UpdatedByGTE applies the GTE predicate on the "updatedBy" field.
-func UpdatedByGTE(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldGTE(FieldUpdatedBy, v))
-}
-
-// UpdatedByLT applies the LT predicate on the "updatedBy" field.
-func UpdatedByLT(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldLT(FieldUpdatedBy, v))
-}
-
-// UpdatedByLTE applies the LTE predicate on the "updatedBy" field.
-func UpdatedByLTE(v uuid.UUID) predicate.Account {
-	return predicate.Account(sql.FieldLTE(FieldUpdatedBy, v))
 }
 
 // ParentIdEQ applies the EQ predicate on the "parentId" field.
@@ -493,6 +455,257 @@ func TypeIn(vs ...Type) predicate.Account {
 // TypeNotIn applies the NotIn predicate on the "type" field.
 func TypeNotIn(vs ...Type) predicate.Account {
 	return predicate.Account(sql.FieldNotIn(FieldType, vs...))
+}
+
+// DetailTypeEQ applies the EQ predicate on the "detailType" field.
+func DetailTypeEQ(v DetailType) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDetailType, v))
+}
+
+// DetailTypeNEQ applies the NEQ predicate on the "detailType" field.
+func DetailTypeNEQ(v DetailType) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldDetailType, v))
+}
+
+// DetailTypeIn applies the In predicate on the "detailType" field.
+func DetailTypeIn(vs ...DetailType) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldDetailType, vs...))
+}
+
+// DetailTypeNotIn applies the NotIn predicate on the "detailType" field.
+func DetailTypeNotIn(vs ...DetailType) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldDetailType, vs...))
+}
+
+// NormalBalanceEQ applies the EQ predicate on the "normalBalance" field.
+func NormalBalanceEQ(v NormalBalance) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldNormalBalance, v))
+}
+
+// NormalBalanceNEQ applies the NEQ predicate on the "normalBalance" field.
+func NormalBalanceNEQ(v NormalBalance) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldNormalBalance, v))
+}
+
+// NormalBalanceIn applies the In predicate on the "normalBalance" field.
+func NormalBalanceIn(vs ...NormalBalance) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldNormalBalance, vs...))
+}
+
+// NormalBalanceNotIn applies the NotIn predicate on the "normalBalance" field.
+func NormalBalanceNotIn(vs ...NormalBalance) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldNormalBalance, vs...))
+}
+
+// CurrencyEQ applies the EQ predicate on the "currency" field.
+func CurrencyEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldCurrency, v))
+}
+
+// CurrencyNEQ applies the NEQ predicate on the "currency" field.
+func CurrencyNEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldCurrency, v))
+}
+
+// CurrencyIn applies the In predicate on the "currency" field.
+func CurrencyIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldCurrency, vs...))
+}
+
+// CurrencyNotIn applies the NotIn predicate on the "currency" field.
+func CurrencyNotIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldCurrency, vs...))
+}
+
+// CurrencyGT applies the GT predicate on the "currency" field.
+func CurrencyGT(v string) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldCurrency, v))
+}
+
+// CurrencyGTE applies the GTE predicate on the "currency" field.
+func CurrencyGTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldCurrency, v))
+}
+
+// CurrencyLT applies the LT predicate on the "currency" field.
+func CurrencyLT(v string) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldCurrency, v))
+}
+
+// CurrencyLTE applies the LTE predicate on the "currency" field.
+func CurrencyLTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldCurrency, v))
+}
+
+// CurrencyContains applies the Contains predicate on the "currency" field.
+func CurrencyContains(v string) predicate.Account {
+	return predicate.Account(sql.FieldContains(FieldCurrency, v))
+}
+
+// CurrencyHasPrefix applies the HasPrefix predicate on the "currency" field.
+func CurrencyHasPrefix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasPrefix(FieldCurrency, v))
+}
+
+// CurrencyHasSuffix applies the HasSuffix predicate on the "currency" field.
+func CurrencyHasSuffix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasSuffix(FieldCurrency, v))
+}
+
+// CurrencyEqualFold applies the EqualFold predicate on the "currency" field.
+func CurrencyEqualFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldEqualFold(FieldCurrency, v))
+}
+
+// CurrencyContainsFold applies the ContainsFold predicate on the "currency" field.
+func CurrencyContainsFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldContainsFold(FieldCurrency, v))
+}
+
+// IsPlaceholderEQ applies the EQ predicate on the "isPlaceholder" field.
+func IsPlaceholderEQ(v bool) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldIsPlaceholder, v))
+}
+
+// IsPlaceholderNEQ applies the NEQ predicate on the "isPlaceholder" field.
+func IsPlaceholderNEQ(v bool) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldIsPlaceholder, v))
+}
+
+// IsSystemEQ applies the EQ predicate on the "isSystem" field.
+func IsSystemEQ(v bool) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldIsSystem, v))
+}
+
+// IsSystemNEQ applies the NEQ predicate on the "isSystem" field.
+func IsSystemNEQ(v bool) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldIsSystem, v))
+}
+
+// IsActiveEQ applies the EQ predicate on the "isActive" field.
+func IsActiveEQ(v bool) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldIsActive, v))
+}
+
+// IsActiveNEQ applies the NEQ predicate on the "isActive" field.
+func IsActiveNEQ(v bool) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldIsActive, v))
+}
+
+// HasWorkspace applies the HasEdge predicate on the "workspace" edge.
+func HasWorkspace() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, WorkspaceTable, WorkspaceColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkspaceWith applies the HasEdge predicate on the "workspace" edge with a given conditions (other predicates).
+func HasWorkspaceWith(preds ...predicate.Workspace) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newWorkspaceStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreator applies the HasEdge predicate on the "creator" edge.
+func HasCreator() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CreatorTable, CreatorColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatorWith applies the HasEdge predicate on the "creator" edge with a given conditions (other predicates).
+func HasCreatorWith(preds ...predicate.User) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newCreatorStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUpdater applies the HasEdge predicate on the "updater" edge.
+func HasUpdater() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, UpdaterTable, UpdaterColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUpdaterWith applies the HasEdge predicate on the "updater" edge with a given conditions (other predicates).
+func HasUpdaterWith(preds ...predicate.User) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newUpdaterStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasParent applies the HasEdge predicate on the "parent" edge.
+func HasParent() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, ParentTable, ParentColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Account
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasParentWith applies the HasEdge predicate on the "parent" edge with a given conditions (other predicates).
+func HasParentWith(preds ...predicate.Account) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newParentStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Account
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

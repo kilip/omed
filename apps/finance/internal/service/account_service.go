@@ -30,3 +30,8 @@ func (s AccountService) Create(ctx context.Context, payload model.Account) (*mod
 
 	return created, nil
 }
+
+func (s AccountService) List(ctx context.Context, filter model.AccountFilter) ([]*model.Account, error) {
+	accounts, err := s.repository.List(ctx, filter)
+	return accounts, err
+}
