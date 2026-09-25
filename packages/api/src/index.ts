@@ -1,16 +1,20 @@
 import createClient, { type Middleware } from "openapi-fetch";
-import { apiEnv } from "./env";
 import type { paths as financePaths } from "./schema/finance";
 
-export const createApiClient = (accessToken: string) => {
+interface ApiClientOptions {
+  accessToken: string;
+  financeUrl: string;
+}
+
+export const createApiClient = (options: ApiClientOptions) => {
   const authMiddleware: Middleware = {
     async onRequest({ request }) {
-      request.headers.set("Authorization", `Bearer ${accessToken}`);
+      request.headers.set("Authorization", `Bearer ${options.accessToken}`);
     },
   };
   return {
     finance: createClient<financePaths>({
-      baseUrl: "http://localhost:3001",
+      baseUrl: options.financeUrl,
     }).use(authMiddleware),
   };
 };

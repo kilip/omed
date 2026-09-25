@@ -78,8 +78,13 @@ func ConfigureDBClient(client *ent.Client) {
 }
 
 func GetDB(config Config) *ent.Client {
+	// Define the custom schema mapping
+    schemaConfig := ent.SchemaConfig{
+        // Replace "User" with the exact name of the Ent struct you annotated
+        // Account: "finance",
+    }
 
-	client, err := ent.Open(dialect.Postgres, config.DB.URL)
+	client, err := ent.Open(dialect.Postgres, config.DB.URL, ent.AlternateSchema(schemaConfig))
 	if err != nil {
 		log.Fatalf("Error while connecting to database: %v", err)
 	}

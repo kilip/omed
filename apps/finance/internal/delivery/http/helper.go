@@ -1,7 +1,6 @@
 package http
 
 import (
-	"log"
 	"time"
 
 	"github.com/casbin/casbin/v2"
@@ -21,11 +20,11 @@ func RequirePermission(enforcer *casbin.Enforcer, obj authz.Resource, act authz.
 	return func(c fiber.Ctx) error {
 		user := fiber.Locals[*model.AuthenticatedUser](c, "user")
 
-		for _, role := range user.Roles {
+		for _, role := range user.WorkspaceRoles {
 			if ok, _ := enforcer.Enforce(role, user.WorkspaceID, string(obj), string(act)); ok {
 				return c.Next()
 			}
-			log.Printf("sub=%v dom=%v obj=%v act=%v", role, user.WorkspaceID, obj, act)
+
 		}
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
 	}

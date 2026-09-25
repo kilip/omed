@@ -60,7 +60,9 @@ export const authDefaultOptions = {
       roles: { ...orgRoles },
     }),
     jwt({
+      sessionCookieCache: true,
       jwt: {
+        expirationTime: "7 day",
         definePayload: async ({ user, session }) => {
           let activeOrganizationRole = ["member"];
 
@@ -76,7 +78,7 @@ export const authDefaultOptions = {
           return {
             id: user.id,
             name: user.name,
-            role: user.role,
+            role: user.role.split(" "),
             email: user.email,
             sessionId: session.id,
             activeOrganizationId: session?.activeOrganizationId,
@@ -139,6 +141,11 @@ export const authDefaultOptions = {
   advanced: {
     database: {
       generateId: "uuid",
+    },
+  },
+  session: {
+    cookieCache: {
+      strategy: "jwt",
     },
   },
 } satisfies BetterAuthOptions;

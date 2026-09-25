@@ -64,7 +64,6 @@ type (
 // newConfig creates a new config for the client.
 func newConfig(opts ...Option) config {
 	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
-	cfg.schemaConfig = DefaultSchemaConfig
 	cfg.options(opts...)
 	return cfg
 }
@@ -343,14 +342,6 @@ type (
 	inters struct {
 		Account []ent.Interceptor
 	}
-)
-
-var (
-	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
-	DefaultSchemaConfig = SchemaConfig{
-		Account: tableSchemas[0],
-	}
-	tableSchemas = [...]string{"finance"}
 )
 
 // SchemaConfig represents alternative schema names for all tables

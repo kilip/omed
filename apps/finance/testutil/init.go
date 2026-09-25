@@ -28,7 +28,7 @@ func loadEnvForTest() {
 
 	// Get the directory of this file, then navigate up to the project root
 	// Adjust "../" depending on how deep this file is nested from the root
-	basepath := filepath.Join(filepath.Dir(b), "../.env")
+	basepath := filepath.Join(filepath.Dir(b), "../.env.test")
 
 	_ = godotenv.Load(basepath)
 }

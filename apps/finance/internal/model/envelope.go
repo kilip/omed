@@ -20,7 +20,7 @@ type ErrorInfo struct {
 }
 
 type Meta struct {
-    RequestID string  `json:"request_id"`
+    RequestID string  `json:"requestId"`
     Timestamp string  `json:"timestamp"`
     Cursor    *Cursor `json:"cursor,omitempty"`
 }

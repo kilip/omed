@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	entgo.io/ent v0.14.6
-	github.com/MicahParks/keyfunc/v2 v2.1.0
+	github.com/MicahParks/keyfunc/v3 v3.8.2
 	github.com/casbin/casbin/v2 v2.135.0
 	github.com/gofiber/contrib/v3/jwt v1.2.4
 	github.com/gofiber/fiber/v3 v3.5.0
@@ -22,6 +22,8 @@ require (
 require (
 	ariga.io/atlas v0.36.2-0.20250730182955-2c6300d0a3e1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/MicahParks/jwkset v0.11.3 // indirect
+	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
@@ -57,6 +59,7 @@ require (
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

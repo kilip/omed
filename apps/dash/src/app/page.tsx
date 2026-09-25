@@ -1,1 +1,5 @@
-export { default, metadata } from "@/feature/home/HomePage";
+import { redirect } from "next/navigation";
+
+export default function RootPage() {
+  redirect("/home");
+}

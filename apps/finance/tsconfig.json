@@ -1,0 +1,5 @@
+{
+  "extends": "@omed/tsconfig/base.json",
+  "compilerOptions": {},
+  "include": ["./client"]
+}

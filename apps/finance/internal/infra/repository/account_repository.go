@@ -25,6 +25,10 @@ func toAccountModel(e *ent.Account) *model.Account {
 		Code:     e.Code,
 		Name:     e.Name,
 		Type:     model.AccountType(e.Type),
+		CreatedBy: e.CreatedBy,
+		CreatedAt: e.CreatedAt,
+		UpdatedBy: e.UpdatedBy,
+		UpdatedAt: e.UpdatedAt,
 	}
 }
 

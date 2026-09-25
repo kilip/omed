@@ -1,11 +1,10 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"log"
-	"time"
 
-	"github.com/MicahParks/keyfunc/v2"
 	"github.com/casbin/casbin/v2"
 	jwtware "github.com/gofiber/contrib/v3/jwt"
 	"github.com/gofiber/fiber/v3"
@@ -18,7 +17,6 @@ import (
 func InjectUser(c fiber.Ctx) error {
 	token := jwtware.FromContext(c)
 	claims := token.Claims.(jwt.MapClaims)
-
 	b, err := json.Marshal(claims)
 	if err != nil {
 		return fiber.ErrUnauthorized
@@ -26,7 +24,7 @@ func InjectUser(c fiber.Ctx) error {
 
 	var user model.AuthenticatedUser
 	if err := json.Unmarshal(b, &user); err != nil {
-		return fiber.ErrUnauthorized
+		return fiber.ErrInternalServerError
 	}
 
 	c.Locals("user", &user)
@@ -50,17 +48,34 @@ func CasbinMiddleware(enforcer *casbin.Enforcer) fiber.Handler {
 	}
 }
 
-func configureAuth(cfg BootstrapConfig) {
-	jwks, err := keyfunc.Get(cfg.Config.App.JWKSUrl, keyfunc.Options{
-		RefreshInterval:   time.Hour,
-		RefreshUnknownKID: true,
-	})
-	if err != nil {
-		//log.Fatalf("Failed to create JWKS from URL: %v", err)
+func ReadinessGate(manager *JWKSManager) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		if !manager.Ready() {
+			return c.Status(fiber.StatusServiceUnavailable).
+				JSON(fiber.Map{"error": "auth not ready"})
+		}
+		return c.Next()
 	}
+}
 
+func ReadyzHandler(manager *JWKSManager) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		if !manager.Ready() {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"status": "not_ready"})
+		}
+		return c.JSON(fiber.Map{"status": "ready"})
+	}
+}
+
+func configureAuth(cfg BootstrapConfig) {
+	manager := NewJWKSManager(cfg.Config.App.JWKSUrl)
+	manager.Start(context.Background())
+
+	cfg.Fiber.Get("/readyz", ReadyzHandler(manager)) // daftar SEBELUM gate, biar selalu accessible
+
+	cfg.Fiber.Use(ReadinessGate(manager))
 	cfg.Fiber.Use(jwtware.New(jwtware.Config{
-		KeyFunc:   jwks.Keyfunc,
+		KeyFunc:   manager.Keyfunc(),
 		Extractor: extractors.FromAuthHeader("Bearer"),
 	}))
 	cfg.Fiber.Use(InjectUser)

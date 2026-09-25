@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"name": "dash",
+			"path": "apps/dash"
+		},
+		{
+			"name": "finance",
+			"path": "apps/finance"
+		},
+		{
+			"name": "auth",
+			"path": "packages/auth"
+		},
+		{
+			"name": "tsconfig",
+			"path": "packages/tsconfig"
+		}
+	],
+	"settings": {}
+}

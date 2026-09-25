@@ -1,6 +1,8 @@
-p,admin, *, accounts, read
-p,admin, *, accounts, write
-p,member, *, accounts, read
-p,finance,*,accounts,write
-p,finance,*,accounts,read
-p,superadmin, *, *, *
+p, admin, *, accounts, read
+p, admin, *, accounts, write
+p, member, *, accounts, read
+p, finance,*,accounts,write
+p, finance,*,accounts,read
+p, superadmin, *, *, *
+p, owner, *, accounts, read
+p, owner, *, accounts, write

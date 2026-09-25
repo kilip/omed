@@ -5,7 +5,10 @@ import (
 	stdhttp "net/http"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/kilip/omed/finance/internal/delivery/http"
+	"github.com/kilip/omed/finance/internal/util"
 )
 
 func GetFiber(config Config, logger *slog.Logger) *fiber.App {
@@ -14,6 +17,17 @@ func GetFiber(config Config, logger *slog.Logger) *fiber.App {
 		ErrorHandler: NewErrorHandler(logger),
 	})
 
+	fiber.Use(requestid.New(requestid.Config{
+		Header:    "X-Request-ID",           // "X-Request-ID"
+		Generator: util.GenerateID().String, // atau uuid.NewString kalau pakai google/uuid
+	}))
+
+	fiber.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"https://*.itstoni.com", "http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Orign", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true,
+	}))
 	return fiber
 }
 

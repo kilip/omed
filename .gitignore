@@ -2,7 +2,6 @@
 
 # omed
 tmp
-*.code-workspace
 
 # Dependencies
 node_modules

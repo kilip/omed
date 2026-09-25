@@ -8,7 +8,7 @@ const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
     "components": {
         "schemas": {
-            "http.ErrorResponse": {
+            "github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse": {
                 "properties": {
                     "detail": {
                         "example": "field 'name' is required",
@@ -44,9 +44,26 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
-            "model.Account": {
+            "github_com_kilip_omed_finance_internal_delivery_http.PingResponse": {
+                "properties": {
+                    "databaseStatus": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.AuthenticatedUser"
+                    }
+                },
+                "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.Account": {
                 "properties": {
                     "code": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "createdBy": {
                         "type": "string"
                     },
                     "id": {
@@ -59,12 +76,18 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "type": {
-                        "$ref": "#/components/schemas/model.AccountType"
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.AccountType"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    },
+                    "updatedBy": {
+                        "type": "string"
                     }
                 },
                 "type": "object"
             },
-            "model.AccountType": {
+            "github_com_kilip_omed_finance_internal_model.AccountType": {
                 "enum": [
                     "asset",
                     "liability",
@@ -80,6 +103,172 @@ const docTemplate = `{
                     "AccountTypeIncome",
                     "AccountTypeExpense"
                 ]
+            },
+            "github_com_kilip_omed_finance_internal_model.AuthenticatedUser": {
+                "properties": {
+                    "activeOrganizationRole": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "activeTeamId": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.Cursor": {
+                "properties": {
+                    "has_more": {
+                        "type": "boolean"
+                    },
+                    "next": {
+                        "type": "string"
+                    },
+                    "prev": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_delivery_http_PingResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.PingResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.ErrorInfo"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Meta"
+                    },
+                    "success": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_model_Account": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Account"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.ErrorInfo"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Meta"
+                    },
+                    "success": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.Envelope-internal_delivery_http_PingResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/internal_delivery_http.PingResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.ErrorInfo"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Meta"
+                    },
+                    "success": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.ErrorInfo": {
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "details": {},
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "github_com_kilip_omed_finance_internal_model.Meta": {
+                "properties": {
+                    "cursor": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Cursor"
+                    },
+                    "requestId": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "internal_delivery_http.ErrorResponse": {
+                "properties": {
+                    "detail": {
+                        "example": "field 'name' is required",
+                        "type": "string"
+                    },
+                    "errors": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "field-level validation errors",
+                        "type": "object"
+                    },
+                    "instance": {
+                        "example": "/accounts",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": 400,
+                        "type": "integer"
+                    },
+                    "title": {
+                        "example": "Validation Failed",
+                        "type": "string"
+                    },
+                    "trace_id": {
+                        "example": "a1b2c3d4",
+                        "type": "string"
+                    },
+                    "type": {
+                        "example": "https://omed.dev/errors/validation-failed",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "internal_delivery_http.PingResponse": {
+                "properties": {
+                    "databaseStatus": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.AuthenticatedUser"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -107,7 +296,7 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/model.Account",
+                                "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Account",
                                 "summary": "account",
                                 "description": "Account Payload"
                             }
@@ -121,7 +310,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/model.Account"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Envelope-github_com_kilip_omed_finance_internal_model_Account"
                                 }
                             }
                         },
@@ -131,7 +320,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/http.ErrorResponse"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -141,7 +330,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/http.ErrorResponse"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -151,7 +340,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/http.ErrorResponse"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -161,7 +350,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/http.ErrorResponse"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -171,7 +360,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/http.ErrorResponse"
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_delivery_http.ErrorResponse"
                                 }
                             }
                         },
@@ -186,6 +375,51 @@ const docTemplate = `{
                 "summary": "Create Account",
                 "tags": [
                     "accounts"
+                ]
+            }
+        },
+        "/ping": {
+            "get": {
+                "description": "Check finance health",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/github_com_kilip_omed_finance_internal_model.Envelope-internal_delivery_http_PingResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/internal_delivery_http.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Ping",
+                "tags": [
+                    "health"
                 ]
             }
         }

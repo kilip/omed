@@ -17,6 +17,7 @@ func TestCreate(t *testing.T) {
 		"name":         "Test User",
 		"activeTeamId": util.GenerateID().String(),
 		"role":         []string{"finance", "user"},
+		"activeOrganizationRole": []string{"owner"},
 	})
 
 	request := &model.Account{
@@ -32,10 +33,10 @@ func TestCreate(t *testing.T) {
 		Body:   request,
 	})
 
-	var json model.Account
+	var json model.Envelope[model.Account]
 
 	testutil.AssertStatus(t, resp, fiber.StatusCreated)
 	testutil.DecodeJSON(t, resp, &json)
 
-	assert.Equal(t, request.Name, json.Name)
+	assert.Equal(t, request.Name, json.Data.Name)
 }

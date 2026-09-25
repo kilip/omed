@@ -21,9 +21,11 @@ type BootstrapConfig struct {
 
 func initProtected(cfg BootstrapConfig) {
 	configureAuth(cfg)
+
 	accountRepository := repository.NewAccountRepository(cfg.DB)
 	accountService := service.NewAccountService(cfg.DB, cfg.Logger, accountRepository)
 
+	http.NewHealthController(cfg.Fiber, cfg.Config.DB.URL)
 	http.NewAccountController(cfg.Fiber, accountService, cfg.Enforcer, cfg.Logger)
 }
 

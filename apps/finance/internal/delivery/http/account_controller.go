@@ -35,7 +35,7 @@ func (ctl AccountController) initRoutes(app *fiber.App, enforcer *casbin.Enforce
 // @Accept			json
 // @Produce		json
 // @Param			account	body		model.Account	true	"Account Payload"
-// @Success		201		{object}	model.Account
+// @Success		201		{object}	model.Envelope[model.Account]
 // @Failure		400		{object}	http.ErrorResponse	"Invalid request payload"
 // @Failure		401		{object}	http.ErrorResponse	"Missing or invalid authentication"
 // @Failure		403		{object}	http.ErrorResponse	"Insufficient permission"
@@ -55,5 +55,4 @@ func (ctl AccountController) create(c fiber.Ctx) error {
 		return err
 	}
 	return Success(c, fiber.StatusCreated, created)
-	//return c.Status(fiber.StatusCreated).JSON(created)
 }

@@ -1,6 +1,39 @@
 {
   "name": "@omed/finance",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "dev-source": "./src/index.ts",
+      "default": "./dist/index.mjs"
+    }
+  },
   "scripts": {
-    "dev": "air"
+    "dev": "air",
+    "build": "bun build:finance && bun build:swag && bun build:openapi && bun build:client",
+    "build:finance": "go build -o tmp/main ./cmd/web/main.go",
+    "build:swag": "swag init --v3.1 -g ./cmd/web/main.go -o ./docs --parseDependencyLevel 3",
+    "build:openapi": "bun x openapi-typescript ./docs/swagger.json -o ./client/openapi.ts",
+    "build:client": "tsdown"
+  },
+  "devDependencies": {
+    "@omed/tsconfig": "*",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.2",
+    "openapi-typescript": "^7.13.0",
+    "tsdown": "^0.23.0"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
   }
 }
