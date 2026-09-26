@@ -7,37 +7,30 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// User holds the schema definition for the User entity.
-type User struct {
+// Workspace holds the schema definition for the Workspace entity.
+type Workspace struct {
 	ent.Schema
 }
 
-func (User) Annotations() []schema.Annotation {
+func (Workspace) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Annotation{
 			Schema: "finance",
-			Table:  "user",
+			Table:  "workspace",
 		},
 		entsql.WithComments(true),
 	}
 }
 
-func (User) Mixin() []ent.Mixin {
+func (Workspace) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		IDV7Mixin{},
 	}
 }
 
-// Fields of the User.
-func (User) Fields() []ent.Field {
+func (Workspace) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").NotEmpty(),
-		field.String("avatar").Optional(),
 		field.Time("syncedAt"),
 	}
-}
-
-// Edges of the User.
-func (User) Edges() []ent.Edge {
-	return nil
 }

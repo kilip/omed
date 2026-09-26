@@ -11,7 +11,7 @@ import (
 
 type Config struct {
 	Port        int    `env:"PORT,default=9001"`
-	DatabaseUrl string `env:"DATABASE_URL"`
+	DatabaseUrl string `env:"DATABASE_URL,required"`
 	JWKSUrl     string `env:"JWKS_URL,default=http://localhost:1234/jwks"`
 }
 

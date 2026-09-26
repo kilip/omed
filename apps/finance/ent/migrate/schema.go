@@ -11,17 +11,45 @@ import (
 var (
 	// AccountColumns holds the columns for the "account" table.
 	AccountColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "updated_by", Type: field.TypeUUID},
+		{Name: "workspace_id", Type: field.TypeUUID},
 	}
 	// AccountTable holds the schema information for the "account" table.
 	AccountTable = &schema.Table{
 		Name:       "account",
 		Columns:    AccountColumns,
 		PrimaryKey: []*schema.Column{AccountColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "account_user_creator",
+				Columns:    []*schema.Column{AccountColumns[3]},
+				RefColumns: []*schema.Column{UserColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "account_user_updater",
+				Columns:    []*schema.Column{AccountColumns[4]},
+				RefColumns: []*schema.Column{UserColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "account_workspace_workspace",
+				Columns:    []*schema.Column{AccountColumns[5]},
+				RefColumns: []*schema.Column{WorkspaceColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// UserColumns holds the columns for the "user" table.
 	UserColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "avatar", Type: field.TypeString, Nullable: true},
+		{Name: "synced_at", Type: field.TypeTime},
 	}
 	// UserTable holds the schema information for the "user" table.
 	UserTable = &schema.Table{
@@ -29,18 +57,37 @@ var (
 		Columns:    UserColumns,
 		PrimaryKey: []*schema.Column{UserColumns[0]},
 	}
+	// WorkspaceColumns holds the columns for the "workspace" table.
+	WorkspaceColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "synced_at", Type: field.TypeTime},
+	}
+	// WorkspaceTable holds the schema information for the "workspace" table.
+	WorkspaceTable = &schema.Table{
+		Name:       "workspace",
+		Columns:    WorkspaceColumns,
+		PrimaryKey: []*schema.Column{WorkspaceColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountTable,
 		UserTable,
+		WorkspaceTable,
 	}
 )
 
 func init() {
+	AccountTable.ForeignKeys[0].RefTable = UserTable
+	AccountTable.ForeignKeys[1].RefTable = UserTable
+	AccountTable.ForeignKeys[2].RefTable = WorkspaceTable
 	AccountTable.Annotation = &entsql.Annotation{
 		Table: "account",
 	}
 	UserTable.Annotation = &entsql.Annotation{
 		Table: "user",
+	}
+	WorkspaceTable.Annotation = &entsql.Annotation{
+		Table: "workspace",
 	}
 }

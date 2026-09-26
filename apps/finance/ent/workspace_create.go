@@ -11,69 +11,55 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/kilip/omed/finance/ent/user"
+	"github.com/kilip/omed/finance/ent/workspace"
 )
 
-// UserCreate is the builder for creating a User entity.
-type UserCreate struct {
+// WorkspaceCreate is the builder for creating a Workspace entity.
+type WorkspaceCreate struct {
 	config
-	mutation *UserMutation
+	mutation *WorkspaceMutation
 	hooks    []Hook
 }
 
 // SetName sets the "name" field.
-func (_c *UserCreate) SetName(v string) *UserCreate {
+func (_c *WorkspaceCreate) SetName(v string) *WorkspaceCreate {
 	_c.mutation.SetName(v)
 	return _c
 }
 
-// SetAvatar sets the "avatar" field.
-func (_c *UserCreate) SetAvatar(v string) *UserCreate {
-	_c.mutation.SetAvatar(v)
-	return _c
-}
-
-// SetNillableAvatar sets the "avatar" field if the given value is not nil.
-func (_c *UserCreate) SetNillableAvatar(v *string) *UserCreate {
-	if v != nil {
-		_c.SetAvatar(*v)
-	}
-	return _c
-}
-
 // SetSyncedAt sets the "syncedAt" field.
-func (_c *UserCreate) SetSyncedAt(v time.Time) *UserCreate {
+func (_c *WorkspaceCreate) SetSyncedAt(v time.Time) *WorkspaceCreate {
 	_c.mutation.SetSyncedAt(v)
 	return _c
 }
 
 // SetID sets the "id" field.
-func (_c *UserCreate) SetID(v uuid.UUID) *UserCreate {
+func (_c *WorkspaceCreate) SetID(v uuid.UUID) *WorkspaceCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
 
 // SetNillableID sets the "id" field if the given value is not nil.
-func (_c *UserCreate) SetNillableID(v *uuid.UUID) *UserCreate {
+func (_c *WorkspaceCreate) SetNillableID(v *uuid.UUID) *WorkspaceCreate {
 	if v != nil {
 		_c.SetID(*v)
 	}
 	return _c
 }
 
-// Mutation returns the UserMutation object of the builder.
-func (_c *UserCreate) Mutation() *UserMutation {
+// Mutation returns the WorkspaceMutation object of the builder.
+func (_c *WorkspaceCreate) Mutation() *WorkspaceMutation {
 	return _c.mutation
 }
 
-// Save creates the User in the database.
-func (_c *UserCreate) Save(ctx context.Context) (*User, error) {
+// Save creates the Workspace in the database.
+func (_c *WorkspaceCreate) Save(ctx context.Context) (*Workspace, error) {
 	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *UserCreate) SaveX(ctx context.Context) *User {
+func (_c *WorkspaceCreate) SaveX(ctx context.Context) *Workspace {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -82,43 +68,43 @@ func (_c *UserCreate) SaveX(ctx context.Context) *User {
 }
 
 // Exec executes the query.
-func (_c *UserCreate) Exec(ctx context.Context) error {
+func (_c *WorkspaceCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *UserCreate) ExecX(ctx context.Context) {
+func (_c *WorkspaceCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *UserCreate) defaults() {
+func (_c *WorkspaceCreate) defaults() {
 	if _, ok := _c.mutation.ID(); !ok {
-		v := user.DefaultID()
+		v := workspace.DefaultID()
 		_c.mutation.SetID(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *UserCreate) check() error {
+func (_c *WorkspaceCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "User.name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Workspace.name"`)}
 	}
 	if v, ok := _c.mutation.Name(); ok {
-		if err := user.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
+		if err := workspace.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Workspace.name": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.SyncedAt(); !ok {
-		return &ValidationError{Name: "syncedAt", err: errors.New(`ent: missing required field "User.syncedAt"`)}
+		return &ValidationError{Name: "syncedAt", err: errors.New(`ent: missing required field "Workspace.syncedAt"`)}
 	}
 	return nil
 }
 
-func (_c *UserCreate) sqlSave(ctx context.Context) (*User, error) {
+func (_c *WorkspaceCreate) sqlSave(ctx context.Context) (*Workspace, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -141,52 +127,48 @@ func (_c *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 	return _node, nil
 }
 
-func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
+func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 	var (
-		_node = &User{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
+		_node = &Workspace{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(workspace.Table, sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID))
 	)
-	_spec.Schema = _c.schemaConfig.User
+	_spec.Schema = _c.schemaConfig.Workspace
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
 	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
+		_spec.SetField(workspace.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := _c.mutation.Avatar(); ok {
-		_spec.SetField(user.FieldAvatar, field.TypeString, value)
-		_node.Avatar = value
-	}
 	if value, ok := _c.mutation.SyncedAt(); ok {
-		_spec.SetField(user.FieldSyncedAt, field.TypeTime, value)
+		_spec.SetField(workspace.FieldSyncedAt, field.TypeTime, value)
 		_node.SyncedAt = value
 	}
 	return _node, _spec
 }
 
-// UserCreateBulk is the builder for creating many User entities in bulk.
-type UserCreateBulk struct {
+// WorkspaceCreateBulk is the builder for creating many Workspace entities in bulk.
+type WorkspaceCreateBulk struct {
 	config
 	err      error
-	builders []*UserCreate
+	builders []*WorkspaceCreate
 }
 
-// Save creates the User entities in the database.
-func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
+// Save creates the Workspace entities in the database.
+func (_c *WorkspaceCreateBulk) Save(ctx context.Context) ([]*Workspace, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*User, len(_c.builders))
+	nodes := make([]*Workspace, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*UserMutation)
+				mutation, ok := m.(*WorkspaceMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -229,7 +211,7 @@ func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *UserCreateBulk) SaveX(ctx context.Context) []*User {
+func (_c *WorkspaceCreateBulk) SaveX(ctx context.Context) []*Workspace {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -238,13 +220,13 @@ func (_c *UserCreateBulk) SaveX(ctx context.Context) []*User {
 }
 
 // Exec executes the query.
-func (_c *UserCreateBulk) Exec(ctx context.Context) error {
+func (_c *WorkspaceCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *UserCreateBulk) ExecX(ctx context.Context) {
+func (_c *WorkspaceCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}

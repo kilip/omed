@@ -3,7 +3,11 @@
 package account
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 const (
@@ -11,13 +15,55 @@ const (
 	Label = "account"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedBy holds the string denoting the createdby field in the database.
+	FieldCreatedBy = "created_by"
+	// FieldCreatedAt holds the string denoting the createdat field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedBy holds the string denoting the updatedby field in the database.
+	FieldUpdatedBy = "updated_by"
+	// FieldUpdatedAt holds the string denoting the updatedat field in the database.
+	FieldUpdatedAt = "updated_at"
+	// FieldWorkspaceId holds the string denoting the workspaceid field in the database.
+	FieldWorkspaceId = "workspace_id"
+	// EdgeCreator holds the string denoting the creator edge name in mutations.
+	EdgeCreator = "creator"
+	// EdgeUpdater holds the string denoting the updater edge name in mutations.
+	EdgeUpdater = "updater"
+	// EdgeWorkspace holds the string denoting the workspace edge name in mutations.
+	EdgeWorkspace = "workspace"
 	// Table holds the table name of the account in the database.
 	Table = "account"
+	// CreatorTable is the table that holds the creator relation/edge.
+	CreatorTable = "account"
+	// CreatorInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatorInverseTable = "user"
+	// CreatorColumn is the table column denoting the creator relation/edge.
+	CreatorColumn = "created_by"
+	// UpdaterTable is the table that holds the updater relation/edge.
+	UpdaterTable = "account"
+	// UpdaterInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UpdaterInverseTable = "user"
+	// UpdaterColumn is the table column denoting the updater relation/edge.
+	UpdaterColumn = "updated_by"
+	// WorkspaceTable is the table that holds the workspace relation/edge.
+	WorkspaceTable = "account"
+	// WorkspaceInverseTable is the table name for the Workspace entity.
+	// It exists in this package in order to avoid circular dependency with the "workspace" package.
+	WorkspaceInverseTable = "workspace"
+	// WorkspaceColumn is the table column denoting the workspace relation/edge.
+	WorkspaceColumn = "workspace_id"
 )
 
 // Columns holds all SQL columns for account fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedBy,
+	FieldCreatedAt,
+	FieldUpdatedBy,
+	FieldUpdatedAt,
+	FieldWorkspaceId,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -30,10 +76,88 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultCreatedAt holds the default value on creation for the "createdAt" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updatedAt" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updatedAt" field.
+	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
+)
+
 // OrderOption defines the ordering options for the Account queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedBy orders the results by the createdBy field.
+func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the createdAt field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedBy orders the results by the updatedBy field.
+func ByUpdatedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedBy, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updatedAt field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByWorkspaceId orders the results by the workspaceId field.
+func ByWorkspaceId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorkspaceId, opts...).ToFunc()
+}
+
+// ByCreatorField orders the results by creator field.
+func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByUpdaterField orders the results by updater field.
+func ByUpdaterField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpdaterStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByWorkspaceField orders the results by workspace field.
+func ByWorkspaceField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorkspaceStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newCreatorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, CreatorTable, CreatorColumn),
+	)
+}
+func newUpdaterStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpdaterInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, UpdaterTable, UpdaterColumn),
+	)
+}
+func newWorkspaceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorkspaceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, WorkspaceTable, WorkspaceColumn),
+	)
 }

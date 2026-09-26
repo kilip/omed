@@ -1,6 +1,10 @@
 package model
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type UserRole string
 
@@ -19,11 +23,13 @@ const (
 )
 
 type AuthenticatedUser struct {
-	ID            uuid.UUID       `json:"id"`
-	Name          string          `json:"name"`
-	Avatar        string          `json:"avatar"`
-	Role          []UserRole      `json:"role"`
-	WorkspaceID   uuid.UUID       `json:"activeTeamId"`
-	WorkspaceName string          `json:"activeTeamName"`
-	WorkspaceRole []WorkspaceRole `json:"activeOrganizationRole"`
+	ID                 uuid.UUID       `json:"id"`
+	Name               string          `json:"name"`
+	Avatar             string          `json:"avatar,omitempty"`
+	Role               []UserRole      `json:"role"`
+	UpdatedAt          time.Time       `json:"updatedAt"`
+	WorkspaceID        uuid.UUID       `json:"activeTeamId"`
+	WorkspaceName      string          `json:"activeTeamName"`
+	WorkspaceRole      []WorkspaceRole `json:"activeOrganizationRole"`
+	WorkspaceUpdatedAt time.Time       `json:"workspaceUpdatedAt"`
 }

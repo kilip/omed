@@ -6,13 +6,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/account"
 	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
+	"github.com/kilip/omed/finance/ent/user"
+	"github.com/kilip/omed/finance/ent/workspace"
 )
 
 // AccountUpdate is the builder for updating Account entities.
@@ -28,13 +32,113 @@ func (_u *AccountUpdate) Where(ps ...predicate.Account) *AccountUpdate {
 	return _u
 }
 
+// SetCreatedBy sets the "createdBy" field.
+func (_u *AccountUpdate) SetCreatedBy(v uuid.UUID) *AccountUpdate {
+	_u.mutation.SetCreatedBy(v)
+	return _u
+}
+
+// SetNillableCreatedBy sets the "createdBy" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableCreatedBy(v *uuid.UUID) *AccountUpdate {
+	if v != nil {
+		_u.SetCreatedBy(*v)
+	}
+	return _u
+}
+
+// SetUpdatedBy sets the "updatedBy" field.
+func (_u *AccountUpdate) SetUpdatedBy(v uuid.UUID) *AccountUpdate {
+	_u.mutation.SetUpdatedBy(v)
+	return _u
+}
+
+// SetNillableUpdatedBy sets the "updatedBy" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableUpdatedBy(v *uuid.UUID) *AccountUpdate {
+	if v != nil {
+		_u.SetUpdatedBy(*v)
+	}
+	return _u
+}
+
+// SetUpdatedAt sets the "updatedAt" field.
+func (_u *AccountUpdate) SetUpdatedAt(v time.Time) *AccountUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetWorkspaceId sets the "workspaceId" field.
+func (_u *AccountUpdate) SetWorkspaceId(v uuid.UUID) *AccountUpdate {
+	_u.mutation.SetWorkspaceId(v)
+	return _u
+}
+
+// SetNillableWorkspaceId sets the "workspaceId" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableWorkspaceId(v *uuid.UUID) *AccountUpdate {
+	if v != nil {
+		_u.SetWorkspaceId(*v)
+	}
+	return _u
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (_u *AccountUpdate) SetCreatorID(id uuid.UUID) *AccountUpdate {
+	_u.mutation.SetCreatorID(id)
+	return _u
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (_u *AccountUpdate) SetCreator(v *User) *AccountUpdate {
+	return _u.SetCreatorID(v.ID)
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by ID.
+func (_u *AccountUpdate) SetUpdaterID(id uuid.UUID) *AccountUpdate {
+	_u.mutation.SetUpdaterID(id)
+	return _u
+}
+
+// SetUpdater sets the "updater" edge to the User entity.
+func (_u *AccountUpdate) SetUpdater(v *User) *AccountUpdate {
+	return _u.SetUpdaterID(v.ID)
+}
+
+// SetWorkspaceID sets the "workspace" edge to the Workspace entity by ID.
+func (_u *AccountUpdate) SetWorkspaceID(id uuid.UUID) *AccountUpdate {
+	_u.mutation.SetWorkspaceID(id)
+	return _u
+}
+
+// SetWorkspace sets the "workspace" edge to the Workspace entity.
+func (_u *AccountUpdate) SetWorkspace(v *Workspace) *AccountUpdate {
+	return _u.SetWorkspaceID(v.ID)
+}
+
 // Mutation returns the AccountMutation object of the builder.
 func (_u *AccountUpdate) Mutation() *AccountMutation {
 	return _u.mutation
 }
 
+// ClearCreator clears the "creator" edge to the User entity.
+func (_u *AccountUpdate) ClearCreator() *AccountUpdate {
+	_u.mutation.ClearCreator()
+	return _u
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (_u *AccountUpdate) ClearUpdater() *AccountUpdate {
+	_u.mutation.ClearUpdater()
+	return _u
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (_u *AccountUpdate) ClearWorkspace() *AccountUpdate {
+	_u.mutation.ClearWorkspace()
+	return _u
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *AccountUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -60,14 +164,135 @@ func (_u *AccountUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_u *AccountUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := account.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (_u *AccountUpdate) check() error {
+	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.creator"`)
+	}
+	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.updater"`)
+	}
+	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
+	}
+	return nil
+}
+
 func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(account.Table, account.Columns, sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt))
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(account.Table, account.Columns, sqlgraph.NewFieldSpec(account.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(account.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.CreatorTable,
+			Columns: []string{account.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.CreatorTable,
+			Columns: []string{account.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UpdaterCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.UpdaterTable,
+			Columns: []string{account.UpdaterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UpdaterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.UpdaterTable,
+			Columns: []string{account.UpdaterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.WorkspaceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.WorkspaceTable,
+			Columns: []string{account.WorkspaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorkspaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.WorkspaceTable,
+			Columns: []string{account.WorkspaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = _u.schemaConfig.Account
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
@@ -91,9 +316,108 @@ type AccountUpdateOne struct {
 	mutation *AccountMutation
 }
 
+// SetCreatedBy sets the "createdBy" field.
+func (_u *AccountUpdateOne) SetCreatedBy(v uuid.UUID) *AccountUpdateOne {
+	_u.mutation.SetCreatedBy(v)
+	return _u
+}
+
+// SetNillableCreatedBy sets the "createdBy" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableCreatedBy(v *uuid.UUID) *AccountUpdateOne {
+	if v != nil {
+		_u.SetCreatedBy(*v)
+	}
+	return _u
+}
+
+// SetUpdatedBy sets the "updatedBy" field.
+func (_u *AccountUpdateOne) SetUpdatedBy(v uuid.UUID) *AccountUpdateOne {
+	_u.mutation.SetUpdatedBy(v)
+	return _u
+}
+
+// SetNillableUpdatedBy sets the "updatedBy" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableUpdatedBy(v *uuid.UUID) *AccountUpdateOne {
+	if v != nil {
+		_u.SetUpdatedBy(*v)
+	}
+	return _u
+}
+
+// SetUpdatedAt sets the "updatedAt" field.
+func (_u *AccountUpdateOne) SetUpdatedAt(v time.Time) *AccountUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetWorkspaceId sets the "workspaceId" field.
+func (_u *AccountUpdateOne) SetWorkspaceId(v uuid.UUID) *AccountUpdateOne {
+	_u.mutation.SetWorkspaceId(v)
+	return _u
+}
+
+// SetNillableWorkspaceId sets the "workspaceId" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableWorkspaceId(v *uuid.UUID) *AccountUpdateOne {
+	if v != nil {
+		_u.SetWorkspaceId(*v)
+	}
+	return _u
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (_u *AccountUpdateOne) SetCreatorID(id uuid.UUID) *AccountUpdateOne {
+	_u.mutation.SetCreatorID(id)
+	return _u
+}
+
+// SetCreator sets the "creator" edge to the User entity.
+func (_u *AccountUpdateOne) SetCreator(v *User) *AccountUpdateOne {
+	return _u.SetCreatorID(v.ID)
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by ID.
+func (_u *AccountUpdateOne) SetUpdaterID(id uuid.UUID) *AccountUpdateOne {
+	_u.mutation.SetUpdaterID(id)
+	return _u
+}
+
+// SetUpdater sets the "updater" edge to the User entity.
+func (_u *AccountUpdateOne) SetUpdater(v *User) *AccountUpdateOne {
+	return _u.SetUpdaterID(v.ID)
+}
+
+// SetWorkspaceID sets the "workspace" edge to the Workspace entity by ID.
+func (_u *AccountUpdateOne) SetWorkspaceID(id uuid.UUID) *AccountUpdateOne {
+	_u.mutation.SetWorkspaceID(id)
+	return _u
+}
+
+// SetWorkspace sets the "workspace" edge to the Workspace entity.
+func (_u *AccountUpdateOne) SetWorkspace(v *Workspace) *AccountUpdateOne {
+	return _u.SetWorkspaceID(v.ID)
+}
+
 // Mutation returns the AccountMutation object of the builder.
 func (_u *AccountUpdateOne) Mutation() *AccountMutation {
 	return _u.mutation
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (_u *AccountUpdateOne) ClearCreator() *AccountUpdateOne {
+	_u.mutation.ClearCreator()
+	return _u
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (_u *AccountUpdateOne) ClearUpdater() *AccountUpdateOne {
+	_u.mutation.ClearUpdater()
+	return _u
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (_u *AccountUpdateOne) ClearWorkspace() *AccountUpdateOne {
+	_u.mutation.ClearWorkspace()
+	return _u
 }
 
 // Where appends a list predicates to the AccountUpdate builder.
@@ -111,6 +435,7 @@ func (_u *AccountUpdateOne) Select(field string, fields ...string) *AccountUpdat
 
 // Save executes the query and returns the updated Account entity.
 func (_u *AccountUpdateOne) Save(ctx context.Context) (*Account, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -136,8 +461,33 @@ func (_u *AccountUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_u *AccountUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := account.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (_u *AccountUpdateOne) check() error {
+	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.creator"`)
+	}
+	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.updater"`)
+	}
+	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
+	}
+	return nil
+}
+
 func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err error) {
-	_spec := sqlgraph.NewUpdateSpec(account.Table, account.Columns, sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt))
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(account.Table, account.Columns, sqlgraph.NewFieldSpec(account.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Account.id" for update`)}
@@ -161,6 +511,102 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(account.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.CreatorTable,
+			Columns: []string{account.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.CreatorTable,
+			Columns: []string{account.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UpdaterCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.UpdaterTable,
+			Columns: []string{account.UpdaterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UpdaterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.UpdaterTable,
+			Columns: []string{account.UpdaterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.WorkspaceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.WorkspaceTable,
+			Columns: []string{account.WorkspaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorkspaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.WorkspaceTable,
+			Columns: []string{account.WorkspaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = _u.schemaConfig.Account
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)

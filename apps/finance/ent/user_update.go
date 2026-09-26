@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,54 @@ type UserUpdate struct {
 // Where appends a list predicates to the UserUpdate builder.
 func (_u *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetName sets the "name" field.
+func (_u *UserUpdate) SetName(v string) *UserUpdate {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableName(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetAvatar sets the "avatar" field.
+func (_u *UserUpdate) SetAvatar(v string) *UserUpdate {
+	_u.mutation.SetAvatar(v)
+	return _u
+}
+
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableAvatar(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetAvatar(*v)
+	}
+	return _u
+}
+
+// ClearAvatar clears the value of the "avatar" field.
+func (_u *UserUpdate) ClearAvatar() *UserUpdate {
+	_u.mutation.ClearAvatar()
+	return _u
+}
+
+// SetSyncedAt sets the "syncedAt" field.
+func (_u *UserUpdate) SetSyncedAt(v time.Time) *UserUpdate {
+	_u.mutation.SetSyncedAt(v)
+	return _u
+}
+
+// SetNillableSyncedAt sets the "syncedAt" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableSyncedAt(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetSyncedAt(*v)
+	}
 	return _u
 }
 
@@ -60,14 +109,39 @@ func (_u *UserUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *UserUpdate) check() error {
+	if v, ok := _u.mutation.Name(); ok {
+		if err := user.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Avatar(); ok {
+		_spec.SetField(user.FieldAvatar, field.TypeString, value)
+	}
+	if _u.mutation.AvatarCleared() {
+		_spec.ClearField(user.FieldAvatar, field.TypeString)
+	}
+	if value, ok := _u.mutation.SyncedAt(); ok {
+		_spec.SetField(user.FieldSyncedAt, field.TypeTime, value)
 	}
 	_spec.Node.Schema = _u.schemaConfig.User
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
@@ -89,6 +163,54 @@ type UserUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UserMutation
+}
+
+// SetName sets the "name" field.
+func (_u *UserUpdateOne) SetName(v string) *UserUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableName(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetAvatar sets the "avatar" field.
+func (_u *UserUpdateOne) SetAvatar(v string) *UserUpdateOne {
+	_u.mutation.SetAvatar(v)
+	return _u
+}
+
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableAvatar(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetAvatar(*v)
+	}
+	return _u
+}
+
+// ClearAvatar clears the value of the "avatar" field.
+func (_u *UserUpdateOne) ClearAvatar() *UserUpdateOne {
+	_u.mutation.ClearAvatar()
+	return _u
+}
+
+// SetSyncedAt sets the "syncedAt" field.
+func (_u *UserUpdateOne) SetSyncedAt(v time.Time) *UserUpdateOne {
+	_u.mutation.SetSyncedAt(v)
+	return _u
+}
+
+// SetNillableSyncedAt sets the "syncedAt" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableSyncedAt(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetSyncedAt(*v)
+	}
+	return _u
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -136,8 +258,21 @@ func (_u *UserUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *UserUpdateOne) check() error {
+	if v, ok := _u.mutation.Name(); ok {
+		if err := user.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -161,6 +296,18 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Avatar(); ok {
+		_spec.SetField(user.FieldAvatar, field.TypeString, value)
+	}
+	if _u.mutation.AvatarCleared() {
+		_spec.ClearField(user.FieldAvatar, field.TypeString)
+	}
+	if value, ok := _u.mutation.SyncedAt(); ok {
+		_spec.SetField(user.FieldSyncedAt, field.TypeTime, value)
 	}
 	_spec.Node.Schema = _u.schemaConfig.User
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)

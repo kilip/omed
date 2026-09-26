@@ -8,31 +8,31 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/kilip/omed/finance/ent/account"
 	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
+	"github.com/kilip/omed/finance/ent/workspace"
 )
 
-// AccountDelete is the builder for deleting a Account entity.
-type AccountDelete struct {
+// WorkspaceDelete is the builder for deleting a Workspace entity.
+type WorkspaceDelete struct {
 	config
 	hooks    []Hook
-	mutation *AccountMutation
+	mutation *WorkspaceMutation
 }
 
-// Where appends a list predicates to the AccountDelete builder.
-func (_d *AccountDelete) Where(ps ...predicate.Account) *AccountDelete {
+// Where appends a list predicates to the WorkspaceDelete builder.
+func (_d *WorkspaceDelete) Where(ps ...predicate.Workspace) *WorkspaceDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *AccountDelete) Exec(ctx context.Context) (int, error) {
+func (_d *WorkspaceDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *AccountDelete) ExecX(ctx context.Context) int {
+func (_d *WorkspaceDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -40,9 +40,9 @@ func (_d *AccountDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *AccountDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(account.Table, sqlgraph.NewFieldSpec(account.FieldID, field.TypeUUID))
-	_spec.Node.Schema = _d.schemaConfig.Account
+func (_d *WorkspaceDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(workspace.Table, sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID))
+	_spec.Node.Schema = _d.schemaConfig.Workspace
 	ctx = internal.NewSchemaConfigContext(ctx, _d.schemaConfig)
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -59,32 +59,32 @@ func (_d *AccountDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// AccountDeleteOne is the builder for deleting a single Account entity.
-type AccountDeleteOne struct {
-	_d *AccountDelete
+// WorkspaceDeleteOne is the builder for deleting a single Workspace entity.
+type WorkspaceDeleteOne struct {
+	_d *WorkspaceDelete
 }
 
-// Where appends a list predicates to the AccountDelete builder.
-func (_d *AccountDeleteOne) Where(ps ...predicate.Account) *AccountDeleteOne {
+// Where appends a list predicates to the WorkspaceDelete builder.
+func (_d *WorkspaceDeleteOne) Where(ps ...predicate.Workspace) *WorkspaceDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *AccountDeleteOne) Exec(ctx context.Context) error {
+func (_d *WorkspaceDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{account.Label}
+		return &NotFoundError{workspace.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *AccountDeleteOne) ExecX(ctx context.Context) {
+func (_d *WorkspaceDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

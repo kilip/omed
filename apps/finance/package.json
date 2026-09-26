@@ -1,0 +1,7 @@
+{
+  "name": "@omed/finance",
+  "scripts": {
+    "install": "go mod tidy",
+    "dev": "air"
+  }
+}

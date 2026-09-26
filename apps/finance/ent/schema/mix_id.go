@@ -14,6 +14,6 @@ type IDV7Mixin struct {
 
 func (IDV7Mixin) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Immutable().Default(shared.GenerateID),
+		field.UUID("id", uuid.UUID{}).Default(shared.GenerateID).Immutable(),
 	}
 }

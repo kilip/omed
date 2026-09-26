@@ -10,17 +10,22 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/extractors"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"github.com/kilip/omed/finance/ent"
 	"github.com/kilip/omed/finance/internal/http"
+	"github.com/kilip/omed/finance/internal/http/controller"
 	"github.com/kilip/omed/finance/internal/http/middleware"
+	"github.com/kilip/omed/finance/internal/repository"
+	"github.com/kilip/omed/finance/internal/service"
 	slogfiber "github.com/samber/slog-fiber"
 )
 
 var ErrValueNotFound = errors.New("value not found")
 
 type State struct {
-	Fiber  *fiber.App
-	Config Config
-	Logger *slog.Logger
+	Fiber     *fiber.App
+	Config    Config
+	Logger    *slog.Logger
+	EntClient *ent.Client
 }
 
 func initAuthenticatedEndpoint(state State) {
@@ -42,12 +47,11 @@ func initAuthenticatedEndpoint(state State) {
 
 	state.Fiber.Use(middleware.UserInjector)
 
-	state.Fiber.Get("/ping", func(c fiber.Ctx) error {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"hello": "world",
-			"user":  http.GetUser(c),
-		})
-	})
+	userRepository := repository.NewUserRepository(state.EntClient, state.Logger)
+	userService := service.NewUserService(userRepository)
+	state.Fiber.Use(middleware.AuthSync(userService))
+
+	controller.NewUserController(state.Fiber)
 }
 
 func Bootstrap(state State) {

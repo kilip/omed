@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"context"
 	"encoding/json"
-	"log/slog"
 
 	jwtware "github.com/gofiber/contrib/v3/jwt"
 	"github.com/gofiber/fiber/v3"
@@ -23,7 +23,21 @@ func UserInjector(c fiber.Ctx) error {
 	if err := json.Unmarshal(b, &user); err != nil {
 		return fiber.ErrInternalServerError
 	}
-	slog.Info("user authenticated", "user", user)
 	c.Locals(http.AUTHENTICATED_USER_KEY, user)
 	return c.Next()
+}
+
+type UserService interface {
+	Ensure(context.Context, model.AuthenticatedUser) error
+}
+
+func AuthSync(service UserService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		auth := http.GetUser(c)
+		err := service.Ensure(c, auth)
+		if err != nil {
+			return err
+		}
+		return c.Next()
+	}
 }

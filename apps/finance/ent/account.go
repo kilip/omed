@@ -5,18 +5,81 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/account"
+	"github.com/kilip/omed/finance/ent/user"
+	"github.com/kilip/omed/finance/ent/workspace"
 )
 
 // Account is the model entity for the Account schema.
 type Account struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// CreatedBy holds the value of the "createdBy" field.
+	CreatedBy uuid.UUID `json:"createdBy,omitempty"`
+	// CreatedAt holds the value of the "createdAt" field.
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	// UpdatedBy holds the value of the "updatedBy" field.
+	UpdatedBy uuid.UUID `json:"updatedBy,omitempty"`
+	// UpdatedAt holds the value of the "updatedAt" field.
+	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+	// WorkspaceId holds the value of the "workspaceId" field.
+	WorkspaceId uuid.UUID `json:"workspaceId,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the AccountQuery when eager-loading is set.
+	Edges        AccountEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// AccountEdges holds the relations/edges for other nodes in the graph.
+type AccountEdges struct {
+	// Creator holds the value of the creator edge.
+	Creator *User `json:"creator,omitempty"`
+	// Updater holds the value of the updater edge.
+	Updater *User `json:"updater,omitempty"`
+	// Workspace holds the value of the workspace edge.
+	Workspace *Workspace `json:"workspace,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// CreatorOrErr returns the Creator value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) CreatorOrErr() (*User, error) {
+	if e.Creator != nil {
+		return e.Creator, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "creator"}
+}
+
+// UpdaterOrErr returns the Updater value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) UpdaterOrErr() (*User, error) {
+	if e.Updater != nil {
+		return e.Updater, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "updater"}
+}
+
+// WorkspaceOrErr returns the Workspace value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) WorkspaceOrErr() (*Workspace, error) {
+	if e.Workspace != nil {
+		return e.Workspace, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: workspace.Label}
+	}
+	return nil, &NotLoadedError{edge: "workspace"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -24,8 +87,10 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case account.FieldID:
-			values[i] = new(sql.NullInt64)
+		case account.FieldCreatedAt, account.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
+		case account.FieldID, account.FieldCreatedBy, account.FieldUpdatedBy, account.FieldWorkspaceId:
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -42,11 +107,41 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case account.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				_m.ID = *value
 			}
-			_m.ID = int(value.Int64)
+		case account.FieldCreatedBy:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field createdBy", values[i])
+			} else if value != nil {
+				_m.CreatedBy = *value
+			}
+		case account.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field createdAt", values[i])
+			} else if value.Valid {
+				_m.CreatedAt = value.Time
+			}
+		case account.FieldUpdatedBy:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field updatedBy", values[i])
+			} else if value != nil {
+				_m.UpdatedBy = *value
+			}
+		case account.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updatedAt", values[i])
+			} else if value.Valid {
+				_m.UpdatedAt = value.Time
+			}
+		case account.FieldWorkspaceId:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field workspaceId", values[i])
+			} else if value != nil {
+				_m.WorkspaceId = *value
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -58,6 +153,21 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Account) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryCreator queries the "creator" edge of the Account entity.
+func (_m *Account) QueryCreator() *UserQuery {
+	return NewAccountClient(_m.config).QueryCreator(_m)
+}
+
+// QueryUpdater queries the "updater" edge of the Account entity.
+func (_m *Account) QueryUpdater() *UserQuery {
+	return NewAccountClient(_m.config).QueryUpdater(_m)
+}
+
+// QueryWorkspace queries the "workspace" edge of the Account entity.
+func (_m *Account) QueryWorkspace() *WorkspaceQuery {
+	return NewAccountClient(_m.config).QueryWorkspace(_m)
 }
 
 // Update returns a builder for updating this Account.
@@ -82,7 +192,21 @@ func (_m *Account) Unwrap() *Account {
 func (_m *Account) String() string {
 	var builder strings.Builder
 	builder.WriteString("Account(")
-	builder.WriteString(fmt.Sprintf("id=%v", _m.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("createdBy=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CreatedBy))
+	builder.WriteString(", ")
+	builder.WriteString("createdAt=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updatedBy=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UpdatedBy))
+	builder.WriteString(", ")
+	builder.WriteString("updatedAt=")
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("workspaceId=")
+	builder.WriteString(fmt.Sprintf("%v", _m.WorkspaceId))
 	builder.WriteByte(')')
 	return builder.String()
 }

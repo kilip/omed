@@ -5,13 +5,18 @@ root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
 
+[build.windows]
+  bin = "./tmp/api"
+  cmd = "go build -o ./tmp/api.exe ./cmd/api"
+  entrypoint = "./tmp/api.exe"
+
 [build]
   args_bin = []
-  bin = "./tmp/main"
+  bin = "./tmp/api"
   cmd = "go build -o ./tmp/api ./cmd/api"
   delay = 1000
   entrypoint = ["./tmp/api"]
-  exclude_dir = ["assets", "tmp", "vendor", "testdata", "dist"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "dist", "node_modules"]
   exclude_file = []
   exclude_regex = ["_test.go"]
   exclude_unchanged = false

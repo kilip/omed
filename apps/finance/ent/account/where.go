@@ -3,53 +3,310 @@
 package account
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
+	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Account {
+func ID(id uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Account {
+func IDEQ(id uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Account {
+func IDNEQ(id uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Account {
+func IDIn(ids ...uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Account {
+func IDNotIn(ids ...uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Account {
+func IDGT(id uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Account {
+func IDGTE(id uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Account {
+func IDLT(id uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Account {
+func IDLTE(id uuid.UUID) predicate.Account {
 	return predicate.Account(sql.FieldLTE(FieldID, id))
+}
+
+// CreatedBy applies equality check predicate on the "createdBy" field. It's identical to CreatedByEQ.
+func CreatedBy(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldCreatedBy, v))
+}
+
+// CreatedAt applies equality check predicate on the "createdAt" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// UpdatedBy applies equality check predicate on the "updatedBy" field. It's identical to UpdatedByEQ.
+func UpdatedBy(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldUpdatedBy, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updatedAt" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// WorkspaceId applies equality check predicate on the "workspaceId" field. It's identical to WorkspaceIdEQ.
+func WorkspaceId(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldWorkspaceId, v))
+}
+
+// CreatedByEQ applies the EQ predicate on the "createdBy" field.
+func CreatedByEQ(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldCreatedBy, v))
+}
+
+// CreatedByNEQ applies the NEQ predicate on the "createdBy" field.
+func CreatedByNEQ(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldCreatedBy, v))
+}
+
+// CreatedByIn applies the In predicate on the "createdBy" field.
+func CreatedByIn(vs ...uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldCreatedBy, vs...))
+}
+
+// CreatedByNotIn applies the NotIn predicate on the "createdBy" field.
+func CreatedByNotIn(vs ...uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldCreatedBy, vs...))
+}
+
+// CreatedAtEQ applies the EQ predicate on the "createdAt" field.
+func CreatedAtEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "createdAt" field.
+func CreatedAtNEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "createdAt" field.
+func CreatedAtIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "createdAt" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "createdAt" field.
+func CreatedAtGT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "createdAt" field.
+func CreatedAtGTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "createdAt" field.
+func CreatedAtLT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "createdAt" field.
+func CreatedAtLTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// UpdatedByEQ applies the EQ predicate on the "updatedBy" field.
+func UpdatedByEQ(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldUpdatedBy, v))
+}
+
+// UpdatedByNEQ applies the NEQ predicate on the "updatedBy" field.
+func UpdatedByNEQ(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldUpdatedBy, v))
+}
+
+// UpdatedByIn applies the In predicate on the "updatedBy" field.
+func UpdatedByIn(vs ...uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldUpdatedBy, vs...))
+}
+
+// UpdatedByNotIn applies the NotIn predicate on the "updatedBy" field.
+func UpdatedByNotIn(vs ...uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldUpdatedBy, vs...))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updatedAt" field.
+func UpdatedAtEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updatedAt" field.
+func UpdatedAtNEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updatedAt" field.
+func UpdatedAtIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updatedAt" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updatedAt" field.
+func UpdatedAtGT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updatedAt" field.
+func UpdatedAtGTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updatedAt" field.
+func UpdatedAtLT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updatedAt" field.
+func UpdatedAtLTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// WorkspaceIdEQ applies the EQ predicate on the "workspaceId" field.
+func WorkspaceIdEQ(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldWorkspaceId, v))
+}
+
+// WorkspaceIdNEQ applies the NEQ predicate on the "workspaceId" field.
+func WorkspaceIdNEQ(v uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldWorkspaceId, v))
+}
+
+// WorkspaceIdIn applies the In predicate on the "workspaceId" field.
+func WorkspaceIdIn(vs ...uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldWorkspaceId, vs...))
+}
+
+// WorkspaceIdNotIn applies the NotIn predicate on the "workspaceId" field.
+func WorkspaceIdNotIn(vs ...uuid.UUID) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldWorkspaceId, vs...))
+}
+
+// HasCreator applies the HasEdge predicate on the "creator" edge.
+func HasCreator() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CreatorTable, CreatorColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatorWith applies the HasEdge predicate on the "creator" edge with a given conditions (other predicates).
+func HasCreatorWith(preds ...predicate.User) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newCreatorStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUpdater applies the HasEdge predicate on the "updater" edge.
+func HasUpdater() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, UpdaterTable, UpdaterColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUpdaterWith applies the HasEdge predicate on the "updater" edge with a given conditions (other predicates).
+func HasUpdaterWith(preds ...predicate.User) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newUpdaterStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasWorkspace applies the HasEdge predicate on the "workspace" edge.
+func HasWorkspace() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, WorkspaceTable, WorkspaceColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkspaceWith applies the HasEdge predicate on the "workspace" edge with a given conditions (other predicates).
+func HasWorkspaceWith(preds ...predicate.Workspace) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newWorkspaceStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

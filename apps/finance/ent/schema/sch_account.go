@@ -21,10 +21,11 @@ func (Account) Annotations() []schema.Annotation {
 	}
 }
 
-func (Account) Mixins() []ent.Mixin {
+func (Account) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		IDV7Mixin{},
 		AuditMixins{},
+		WorkspaceMixin{},
 	}
 }
 

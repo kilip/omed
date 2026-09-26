@@ -10,33 +10,31 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/kilip/omed/finance/ent/user"
+	"github.com/kilip/omed/finance/ent/workspace"
 )
 
-// User is the model entity for the User schema.
-type User struct {
+// Workspace is the model entity for the Workspace schema.
+type Workspace struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Avatar holds the value of the "avatar" field.
-	Avatar string `json:"avatar,omitempty"`
 	// SyncedAt holds the value of the "syncedAt" field.
 	SyncedAt     time.Time `json:"syncedAt,omitempty"`
 	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*User) scanValues(columns []string) ([]any, error) {
+func (*Workspace) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldName, user.FieldAvatar:
+		case workspace.FieldName:
 			values[i] = new(sql.NullString)
-		case user.FieldSyncedAt:
+		case workspace.FieldSyncedAt:
 			values[i] = new(sql.NullTime)
-		case user.FieldID:
+		case workspace.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -46,32 +44,26 @@ func (*User) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the User fields.
-func (_m *User) assignValues(columns []string, values []any) error {
+// to the Workspace fields.
+func (_m *Workspace) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID:
+		case workspace.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				_m.ID = *value
 			}
-		case user.FieldName:
+		case workspace.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
 			}
-		case user.FieldAvatar:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field avatar", values[i])
-			} else if value.Valid {
-				_m.Avatar = value.String
-			}
-		case user.FieldSyncedAt:
+		case workspace.FieldSyncedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field syncedAt", values[i])
 			} else if value.Valid {
@@ -84,40 +76,37 @@ func (_m *User) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the User.
+// Value returns the ent.Value that was dynamically selected and assigned to the Workspace.
 // This includes values selected through modifiers, order, etc.
-func (_m *User) Value(name string) (ent.Value, error) {
+func (_m *Workspace) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// Update returns a builder for updating this User.
-// Note that you need to call User.Unwrap() before calling this method if this User
+// Update returns a builder for updating this Workspace.
+// Note that you need to call Workspace.Unwrap() before calling this method if this Workspace
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *User) Update() *UserUpdateOne {
-	return NewUserClient(_m.config).UpdateOne(_m)
+func (_m *Workspace) Update() *WorkspaceUpdateOne {
+	return NewWorkspaceClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the User entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the Workspace entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *User) Unwrap() *User {
+func (_m *Workspace) Unwrap() *Workspace {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: User is not a transactional entity")
+		panic("ent: Workspace is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *User) String() string {
+func (_m *Workspace) String() string {
 	var builder strings.Builder
-	builder.WriteString("User(")
+	builder.WriteString("Workspace(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
-	builder.WriteString(", ")
-	builder.WriteString("avatar=")
-	builder.WriteString(_m.Avatar)
 	builder.WriteString(", ")
 	builder.WriteString("syncedAt=")
 	builder.WriteString(_m.SyncedAt.Format(time.ANSIC))
@@ -125,5 +114,5 @@ func (_m *User) String() string {
 	return builder.String()
 }
 
-// Users is a parsable slice of User.
-type Users []*User
+// Workspaces is a parsable slice of Workspace.
+type Workspaces []*Workspace

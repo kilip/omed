@@ -12,11 +12,13 @@ func main() {
 	cfg := config.GetConfig()
 	logger := config.GetLogger(cfg)
 	api := config.GetFiber(cfg, logger)
+	entClient := config.GetEntClient(cfg)
 
 	state := config.State{
-		Fiber:  api,
-		Logger: logger,
-		Config: cfg,
+		Fiber:     api,
+		Logger:    logger,
+		Config:    cfg,
+		EntClient: entClient,
 	}
 
 	config.Bootstrap(state)
