@@ -1,0 +1,12 @@
+{
+  "extends": "@omed/tsconfig/base.json",
+  "compilerOptions": {
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "outDir": "${configDir}/node_modules/.cache/ts/test-out",
+    "tsBuildInfoFile": "${configDir}/node_modules/.cache/ts/test-tsbuildinfo",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["./test", "./src", "./package.json"]
+}

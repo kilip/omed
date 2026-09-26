@@ -1,0 +1,43 @@
+{
+  "name": "@omed/api",
+  "version": "0.0.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "dev-source": "./src/index.ts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest",
+    "gen:finance": "bun x openapi-typescript ../../apps/finance/docs/swagger.yaml -o ./src/schema/finance.d.ts"
+  },
+  "devDependencies": {
+    "@omed/tsconfig": "*",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.2",
+    "openapi-typescript": "^7.13.0",
+    "tsdown": "^0.23.0",
+    "typescript": "6",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.0.1"
+  },
+  "dependencies": {
+    "@t3-oss/env-core": "^0.13.11",
+    "openapi-fetch": "^0.17.0",
+    "zod": "^4.6.5"
+  }
+}

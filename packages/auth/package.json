@@ -1,0 +1,70 @@
+{
+  "name": "@omed/auth",
+  "version": "0.0.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "dev-source": "./src/index.ts",
+      "default": "./dist/index.mjs"
+    },
+    "./client": {
+      "types": "./dist/client.d.mts",
+      "dev-source": "./src/client.ts",
+      "default": "./dist/client.mjs"
+    }
+  },
+  "peerDependencies": {
+    "better-auth": "^1.7.5",
+    "@better-auth/drizzle-adapter": "1.7.5",
+    "drizzle-orm": "^1.0.0-rc.4",
+    "pg": "*",
+    "@neondatabase/serverless": "*"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "auth:schema": "bun x auth@latest generate --output ./src/drizzle/schema/better-auth.ts --yes",
+    "db:push": "drizzle-kit push --force",
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@omed/tsconfig": "*",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.2",
+    "@types/pg": "^8.23.1",
+    "dotenv": "^18.0.3",
+    "drizzle-kit": "^1.0.0-rc.4",
+    "tsdown": "^0.23.0",
+    "typescript": "6",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.0.1"
+  },
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.7.5",
+    "@elysia/cors": "^1.4.2",
+    "@elysia/openapi": "^1.4.16",
+    "@neondatabase/serverless": "^1.1.0",
+    "@t3-oss/env-core": "^0.13.11",
+    "better-auth": "^1.7.5",
+    "drizzle-orm": "^1.0.0-rc.4",
+    "elysia": "^1.4.30",
+    "elysia-healthcheck": "^1.0.0",
+    "nanoid": "^6.0.1",
+    "pg": "^8.23.0",
+    "uuid": "^14.0.2",
+    "zod": "^4.6.5"
+  }
+}
