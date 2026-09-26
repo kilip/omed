@@ -1,24 +1,24 @@
 use axum::{
-  Router,
-  routing::{get}
+  Json, Router, routing::get
 };
+use serde::{Deserialize, Serialize};
 
-use std::sync::Arc;
-
-#[derive(Deserialize, Serialize)]
-pub struct User {
-    database: bool,
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Status {
+  database: bool,
+  database_error: String,
 }
 
-
+#[derive(Debug)]
 pub struct HealthController{}
 
 impl HealthController{
-  pub fn router() -> Router{
-    Router::New().route("/ping", get())
+
+  pub fn routes() -> Router {
+    Router::new().route("/ping", get(Self::ping))
   }
 
-  async fn ping() {
-
+  async fn ping() -> Json<Status> {
+    Json(Status { database: false, database_error: String::new() })
   }
 }
