@@ -1,9 +1,9 @@
-import { auth } from "@omed/better-auth";
+import { auth, authEnv } from "@omed/better-auth";
 
 let _schema: ReturnType<typeof auth.api.generateOpenAPISchema>;
 const getSchema = async () => (_schema ??= auth.api.generateOpenAPISchema());
 export const OpenAPI = {
-  getPaths: (prefix = "/auth") =>
+  getPaths: (prefix = authEnv.AUTH_BASE_PATH) =>
     getSchema().then(({ paths }) => {
       const reference: typeof paths = Object.create(null);
       for (const path of Object.keys(paths)) {
