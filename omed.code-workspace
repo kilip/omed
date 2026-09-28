@@ -1,0 +1,12 @@
+{
+  "folders": [
+    {
+      "name": "auth",
+      "path": "apps/auth"
+    },
+    {
+      "name": "better-auth",
+      "path": "packages/better-auth"
+    }
+  ]
+}

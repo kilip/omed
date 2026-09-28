@@ -1,0 +1,21 @@
+{
+  "name": "@omed/auth",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/dev.ts"
+  },
+  "devDependencies": {
+    "@omed/better-auth": "*",
+    "@omed/tsconfig": "*",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.3",
+    "typescript": "^6"
+  },
+  "dependencies": {
+    "@better-auth/telemetry": "^1.7.6",
+    "@elysia/cors": "^1.4.2",
+    "@elysia/openapi": "^1.4.16",
+    "better-auth": "^1.7.6",
+    "elysia": "^1.4.30"
+  }
+}
