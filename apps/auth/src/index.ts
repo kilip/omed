@@ -42,7 +42,7 @@ export const app = new Elysia({
   )
   .use(betterAuth)
   .get("/", () => `Hello World ${authEnv.AUTH_BASE_URL}`)
-  .get("/hello", () => "Hello World")
+  .get("/hello", () => "Hello World Lagi")
   .compile();
 
 export default app;
