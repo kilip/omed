@@ -3,7 +3,7 @@ import type { BaseOptions } from "./auth.options";
 export type ActiveTeam = {
   id: string;
   organizationId: string;
-  isPersonal?: boolean;
+  personal: boolean;
 };
 export type User = Auth<BaseOptions>["$Infer"]["Session"]["user"];
 export type Session = Auth<BaseOptions>["$Infer"]["Session"]["session"];

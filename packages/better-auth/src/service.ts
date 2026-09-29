@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { Auth, DBAdapter, InternalAdapter } from "better-auth";
+import type { Organization } from "better-auth/plugins";
 import type { AuthType, BaseOptions } from "./auth.options";
 import type { ActiveTeam, Session, User } from "./type";
 
@@ -31,15 +32,29 @@ export class AuthService {
   ) {}
 
   async createPersonalWorkspace(u: unknown) {
-    const user = u as unknown as User;
+    const user = u as User;
     const org = await this.createOrg(user);
-    const team = await this.db.findOne<{ id: string }>({
+    const team = await this.db.create({
       model: "team",
-      where: [{ field: "organizationId", value: org.id }],
+      data: {
+        organizationId: org.id,
+        name: "Personal Workspace",
+        createdAt: new Date(),
+        personal: true,
+      },
+    });
+    await this.db.create({
+      model: "teamMember",
+      data: {
+        teamId: team.id,
+        organizationId: org.id,
+        userId: user.id,
+        createdAt: new Date(),
+      },
     });
     if (!team) throw new Error("Default team not created");
+
     await this.internalDb.updateUser(user.id, { activeWorkspace: team.id });
-    return { org, teamId: team.id };
   }
 
   async findActiveTeam(userId: string): Promise<ActiveTeam | null> {
@@ -54,27 +69,24 @@ export class AuthService {
 
     // 1. last team, kalau masih member
     const user = await this.internalDb.findUserById(userId);
-    const lastTeamId = (user as { lastTeamId?: string } | null)?.lastTeamId;
-    if (lastTeamId && (await isMember(lastTeamId))) {
-      const team = await this.db.findOne<{
-        id: string;
-        organizationId: string;
-      }>({
+    const activeWorkspace = (user as { activeWorkspace?: string } | null)
+      ?.activeWorkspace;
+
+    if (activeWorkspace && (await isMember(activeWorkspace))) {
+      const team = await this.db.findOne<ActiveTeam>({
         model: "team",
-        where: [{ field: "id", value: lastTeamId }],
+        where: [{ field: "id", value: activeWorkspace }],
       });
+      console.log(team);
       if (team) return team;
     }
 
     // 2. fallback: personal team
-    const personal = await this.db.findOne<{
-      id: string;
-      organizationId: string;
-    }>({
+    const personal = await this.db.findOne<ActiveTeam>({
       model: "team",
       where: [{ field: "personal", value: true }],
-      join: undefined,
     });
+
     return personal && (await isMember(personal.id)) ? personal : null;
   }
 
@@ -93,6 +105,7 @@ export class AuthService {
             name: `${user.name}'s Organization`,
             slug: createSlug(user.name, "org"),
             userId: user.id,
+            personal: true,
           },
         });
       } catch (e) {

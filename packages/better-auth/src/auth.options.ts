@@ -10,6 +10,7 @@ import {
 import { authEnv } from "../src/config";
 import { authDB } from "../src/drizzle";
 import * as schema from "../src/drizzle/schema";
+import type { Session } from "./type";
 
 export const betterAuthOptions = {
   baseURL: authEnv.AUTH_BASE_URL,
@@ -31,33 +32,29 @@ export const betterAuthOptions = {
     organization({
       teams: {
         enabled: true,
-        customCreateDefaultTeam: async (org: Record<string, unknown>) => ({
-          organizationId: org.id,
-          name: org.isPersonal ? "Personal Workspace" : `${org.name} Workspace`,
-          personal: org.isPersonal,
-          createdAt: new Date(),
-        }),
+        defaultTeam: {
+          enabled: false,
+        },
       },
       schema: {
         team: {
           additionalFields: {
-            isPersonal: {
+            personal: {
               fieldName: "personal",
               type: "boolean",
               defaultValue: false,
               returned: true,
-              input: false,
+              input: true,
             },
           },
         },
         organization: {
           additionalFields: {
-            isPersonal: {
-              fieldName: "personal",
+            personal: {
               type: "boolean",
               defaultValue: false,
               returned: true,
-              input: false,
+              input: true,
             },
           },
         },
@@ -70,6 +67,7 @@ export const betterAuthOptions = {
             id: session.user.id,
             name: session.user.name,
             avatar: session.user?.image,
+            activeWorkspace: session.user.activeWorkspace,
           };
         },
       },
@@ -102,13 +100,12 @@ export const betterAuthOptions = {
       onBoarded: {
         type: "boolean",
         defaultValue: false,
-        fieldName: "on_boarded",
         returned: true,
       },
       activeWorkspace: {
         type: "string",
-        input: false,
-        fieldName: "active_workspace",
+        input: true,
+        returned: true,
       },
     },
   },

@@ -14,13 +14,13 @@ export const auth = betterAuth({
       create: {
         async after(u) {
           const service = await getService();
-          service.createPersonalWorkspace(u);
+          await service.createPersonalWorkspace(u);
         },
       },
     },
     session: {
       create: {
-        async before(session) {
+        async before(session, ctx) {
           const service = await getService();
           const team = await service.findActiveTeam(session.userId);
           if (!team) return { data: session };
