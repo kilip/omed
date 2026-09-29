@@ -36,7 +36,7 @@ func (Account) Fields() []ent.Field {
 		field.Enum("type").Values("asset", "liability", "equity", "revenue", "expense"),
 		field.String("currency").MaxLen(3),
 		field.Enum("status").Values("active", "archived").Default("active"),
-		field.UUID("parentId", uuid.UUID{}).Optional().Nillable().StructTag("parentId"),
+		field.UUID("parentId", uuid.UUID{}).Optional().Nillable(),
 	}
 }
 

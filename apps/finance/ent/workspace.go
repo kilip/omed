@@ -21,7 +21,7 @@ type Workspace struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// SyncedAt holds the value of the "synced_at" field.
-	SyncedAt     time.Time `json:"synced_at,omitempty" json:"syncedAt`
+	SyncedAt     time.Time `json:"syncedAt"`
 	selectValues sql.SelectValues
 }
 

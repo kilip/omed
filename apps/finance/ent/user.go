@@ -23,7 +23,7 @@ type User struct {
 	// Avatar holds the value of the "avatar" field.
 	Avatar *string `json:"avatar,omitempty"`
 	// SyncedAt holds the value of the "synced_at" field.
-	SyncedAt     time.Time `json:"synced_at,omitempty" json:"syncedAt`
+	SyncedAt     time.Time `json:"syncedAt"`
 	selectValues sql.SelectValues
 }
 

@@ -31,7 +31,7 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").NotEmpty(),
 		field.String("avatar").Nillable(),
-		field.Time("synced_at").Default(time.Now).StructTag(`json:"syncedAt`),
+		field.Time("synced_at").Default(time.Now).StructTag(`json:"syncedAt"`),
 	}
 }
 

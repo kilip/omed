@@ -11,7 +11,12 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib" // Registers the "pgx" driver
 	"github.com/kilip/omed/finance/ent"
+	"github.com/kilip/omed/finance/ent/account"
+	"github.com/kilip/omed/finance/ent/entry"
+	"github.com/kilip/omed/finance/ent/exchangerate"
 	"github.com/kilip/omed/finance/ent/hook"
+	"github.com/kilip/omed/finance/ent/ledgerperiod"
+	"github.com/kilip/omed/finance/ent/posting"
 	"github.com/kilip/omed/finance/internal/shared"
 )
 
@@ -19,10 +24,19 @@ func WorkspaceInterceptor() ent.Interceptor {
 	return ent.InterceptFunc(func(next ent.Querier) ent.Querier {
 		return ent.QuerierFunc(func(ctx context.Context, q ent.Query) (ent.Value, error) {
 			user := shared.UserFromContext(ctx)
-			if f, ok := q.(interface {
-				WhereP(...func(*entsql.Selector))
-			}); ok {
-				f.WhereP(entsql.FieldEQ("workspace_id", user.WorkspaceID))
+			if user.WorkspaceID != uuid.Nil {
+				switch query := q.(type) {
+				case *ent.AccountQuery:
+					query.Where(account.WorkspaceIDEQ(user.WorkspaceID))
+				case *ent.EntryQuery:
+					query.Where(entry.WorkspaceIDEQ(user.WorkspaceID))
+				case *ent.ExchangeRateQuery:
+					query.Where(exchangerate.WorkspaceIDEQ(user.WorkspaceID))
+				case *ent.LedgerPeriodQuery:
+					query.Where(ledgerperiod.WorkspaceIDEQ(user.WorkspaceID))
+				case *ent.PostingQuery:
+					query.Where(posting.WorkspaceIDEQ(user.WorkspaceID))
+				}
 			}
 			return next.Query(ctx, q)
 		})
@@ -35,8 +49,8 @@ func WorkspaceHook() ent.Hook {
 			user := shared.UserFromContext(ctx)
 			switch m.Op() {
 			case ent.OpCreate:
-				if setter, ok := m.(interface{ SetWorkspaceId(uuid.UUID) }); ok {
-					setter.SetWorkspaceId(user.WorkspaceID)
+				if setter, ok := m.(interface{ SetWorkspaceID(uuid.UUID) }); ok {
+					setter.SetWorkspaceID(user.WorkspaceID)
 				}
 				if setter, ok := m.(interface{ SetCreatedBy(uuid.UUID) }); ok {
 					setter.SetCreatedBy(user.ID)
