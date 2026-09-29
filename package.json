@@ -13,13 +13,17 @@
     "format": "biome format --write",
     "check-types": "turbo run check-types",
     "test": "turbo run test --ui=tui",
+    "e2e": "turbo run test:e2e",
+    "test:e2e": "turbo run test:e2e",
     "auth:schema": "turbo run auth:schema",
     "db:push": "turbo run db:push",
     "db:studio": "turbo run db:studio",
-    "api:finance": "openapi-typescript ./apps/finance/docs/swag/swagger.json -o ./packages/api/src/specs/finance.ts"
+    "api:finance": "openapi-typescript ./apps/finance/docs/swag/swagger.json -o ./packages/api/src/specs/finance.ts",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
+    "husky": "^9.1.7",
     "openapi-typescript": "^7.13.0",
     "turbo": "^2.11.4",
     "typescript": "^6"

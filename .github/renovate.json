@@ -1,0 +1,111 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":separateMultipleMajorReleases",
+    ":combinePatchMinorReleases"
+  ],
+  "labels": ["dependencies"],
+  "timezone": "UTC",
+  "rebaseWhen": "auto",
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 2,
+  "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 4am on monday"]
+  },
+  "packageRules": [
+    {
+      "description": "Disable updates for internal monorepo packages",
+      "matchPackageNames": ["/^@omed\\//"],
+      "enabled": false
+    },
+    {
+      "description": "Group GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "addLabels": ["github-actions"],
+      "commitMessageTopic": "action {{depName}}"
+    },
+    {
+      "description": "Group Dockerfile updates",
+      "matchManagers": ["dockerfile"],
+      "groupName": "Docker",
+      "addLabels": ["docker"]
+    },
+    {
+      "description": "Add Go label to go.mod updates",
+      "matchManagers": ["gomod"],
+      "addLabels": ["go"]
+    },
+    {
+      "description": "Add JavaScript/TypeScript label to npm/bun updates",
+      "matchManagers": ["npm"],
+      "addLabels": ["javascript"]
+    },
+    {
+      "description": "Group React ecosystem minor and patch updates",
+      "matchPackageNames": ["/^react/", "/^@types\\/react/"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "React ecosystem"
+    },
+    {
+      "description": "Group Ant Design packages",
+      "matchPackageNames": ["/^antd/", "/^@ant-design\\//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Ant Design"
+    },
+    {
+      "description": "Group Better Auth packages",
+      "matchPackageNames": ["/^better-auth/", "/^@better-auth\\//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Better Auth"
+    },
+    {
+      "description": "Group Elysia packages",
+      "matchPackageNames": ["/^elysia/", "/^@elysia\\//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Elysia ecosystem"
+    },
+    {
+      "description": "Group Drizzle packages",
+      "matchPackageNames": ["/^drizzle-orm/", "/^drizzle-kit/"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Drizzle"
+    },
+    {
+      "description": "Group Go Fiber ecosystem",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": ["/^github\\.com\\/gofiber\\//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Go Fiber ecosystem"
+    },
+    {
+      "description": "Group golang.org/x packages",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": ["/^golang\\.org\\/x\\//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "golang.org/x"
+    },
+    {
+      "description": "Group Biome tooling",
+      "matchPackageNames": ["/^@biomejs\\//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Biome"
+    },
+    {
+      "description": "Group Vitest testing tools",
+      "matchPackageNames": ["/^vitest/"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Vitest"
+    },
+    {
+      "description": "Group TypeScript type definitions",
+      "matchPackageNames": ["/^@types\\//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "TypeScript types"
+    }
+  ]
+}

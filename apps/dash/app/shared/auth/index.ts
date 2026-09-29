@@ -9,7 +9,7 @@ import {
 import { createAuthClient } from "better-auth/react";
 import { appEnv } from "~/env";
 
-export const { signOut, signIn, getSession, token } = createAuthClient({
+export const authClient = createAuthClient({
   baseURL: appEnv.VITE_AUTH_URL,
   basePath: "",
   plugins: [
@@ -20,6 +20,8 @@ export const { signOut, signIn, getSession, token } = createAuthClient({
   ],
 });
 
-export type User = typeof auth.$Infer.Session.user;
-export type Session = typeof auth.$Infer.Session.session;
+export const { signOut, signIn, getSession, token } = authClient;
+
+export type User = typeof authClient.$Infer.Session.user;
+export type Session = typeof authClient.$Infer.Session.session;
 export * from "./cache";

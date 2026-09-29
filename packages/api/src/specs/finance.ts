@@ -4,590 +4,601 @@
  */
 
 export interface paths {
-    "/accounts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Account
-         * @description Create a new account based on authenticated user workspace
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Account Payload */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["model.CreateAccountRequest"];
-                };
-            };
-            responses: {
-                /** @description Created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
-                    };
-                };
-                /** @description Invalid request payload */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Missing or invalid authentication */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Insufficient permission */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Validation failed */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/accounts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/accounts/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Create Account
+     * @description Create a new account based on authenticated user workspace
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description Account Payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.CreateAccountRequest"];
         };
-        get?: never;
-        put?: never;
-        /**
-         * Search
-         * @description Search Account
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description Account Payload */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["model.SearchAccountRequest"];
-                };
-            };
-            responses: {
-                /** @description Created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.WebResponse-array_model_AccountResponse"];
-                    };
-                };
-                /** @description Invalid request payload */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Missing or invalid authentication */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Insufficient permission */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Validation failed */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-            };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Invalid request payload */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Missing or invalid authentication */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Insufficient permission */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Validation failed */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+      };
     };
-    "/accounts/seed/{profile}/{lang}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Account
-         * @description Create a new account based on authenticated user workspace
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Seed Language */
-                    in: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-            responses: {
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Invalid request payload */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Missing or invalid authentication */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Insufficient permission */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Validation failed */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/accounts/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/accounts/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Search
+     * @description Search Account
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description Account Payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SearchAccountRequest"];
         };
-        /**
-         * Get Account By ID
-         * @description Create a new account based on authenticated user workspace
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Account ID */
-                    in: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
-                    };
-                };
-                /** @description Invalid request payload */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Missing or invalid authentication */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Insufficient permission */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Validation failed */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-            };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.WebResponse-array_model_AccountResponse"];
+          };
         };
-        put?: never;
-        /**
-         * Update
-         * @description Update account with new definition
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Account ID */
-                    in: string;
-                };
-                cookie?: never;
-            };
-            /** @description Account Payload */
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["model.UpdateAccountRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
-                    };
-                };
-                /** @description Invalid request payload */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Missing or invalid authentication */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Insufficient permission */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Validation failed */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-            };
+        /** @description Invalid request payload */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
         };
-        /**
-         * Delete
-         * @description Delete an account
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Account ID */
-                    in: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Invalid request payload */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Missing or invalid authentication */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Insufficient permission */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Validation failed */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["model.ErrorResponse"];
-                    };
-                };
-            };
+        /** @description Missing or invalid authentication */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
         };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Insufficient permission */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Validation failed */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+      };
     };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/accounts/seed/{profile}/{lang}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create Account
+     * @description Create a new account based on authenticated user workspace
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Seed Language */
+          in: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      responses: {
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Invalid request payload */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Missing or invalid authentication */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Insufficient permission */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Validation failed */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/accounts/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Account By ID
+     * @description Create a new account based on authenticated user workspace
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Account ID */
+          in: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
+          };
+        };
+        /** @description Invalid request payload */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Missing or invalid authentication */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Insufficient permission */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Validation failed */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    /**
+     * Update
+     * @description Update account with new definition
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Account ID */
+          in: string;
+        };
+        cookie?: never;
+      };
+      /** @description Account Payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.UpdateAccountRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
+          };
+        };
+        /** @description Invalid request payload */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Missing or invalid authentication */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Insufficient permission */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Validation failed */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+      };
+    };
+    /**
+     * Delete
+     * @description Delete an account
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Account ID */
+          in: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Invalid request payload */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Missing or invalid authentication */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Insufficient permission */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Validation failed */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        "model.AccountFilter": {
-            field: components["schemas"]["model.AccountFilterField"];
-            op: components["schemas"]["model.FilterOp"];
-            value: unknown;
-        };
-        /** @enum {string} */
-        "model.AccountFilterField": "code" | "name" | "type" | "status" | "parent_id" | "currency";
-        "model.AccountResponse": {
-            accountStatus?: components["schemas"]["model.AccountStatus"];
-            code?: string;
-            createdAt?: string;
-            createdBy?: string;
-            createdByName?: string;
-            currency?: string;
-            description?: string;
-            id?: string;
-            name?: string;
-            parentId?: string;
-            type?: components["schemas"]["model.AccountType"];
-            updatedAt?: string;
-            updatedBy?: string;
-            updatedByName?: string;
-            workspaceId?: string;
-        };
-        "model.AccountSort": {
-            dir: components["schemas"]["model.SortDirection"];
-            field: components["schemas"]["model.AccountFilterField"];
-        };
-        /** @enum {string} */
-        "model.AccountStatus": "active" | "archived";
-        /** @enum {string} */
-        "model.AccountType": "asset" | "liability" | "equity" | "revenue" | "expense";
-        "model.CreateAccountRequest": {
-            accountStatus?: components["schemas"]["model.AccountStatus"];
-            code?: string;
-            currency?: string;
-            description?: string;
-            name?: string;
-            parentId?: string;
-            type?: components["schemas"]["model.AccountType"];
-        };
-        "model.ErrorResponse": {
-            meta?: components["schemas"]["model.Meta"];
-            string?: unknown;
-        };
-        /** @enum {string} */
-        "model.FilterOp": "eq" | "contains" | "in" | "gte" | "lte";
-        "model.Meta": {
-            omitempty?: string;
-            requestId?: string;
-            timestamp?: string;
-        };
-        "model.SearchAccountRequest": {
-            cursor?: string;
-            filters?: components["schemas"]["model.AccountFilter"][];
-            limit?: number;
-            sort?: components["schemas"]["model.AccountSort"][];
-        };
-        /** @enum {string} */
-        "model.SortDirection": "asc" | "desc";
-        "model.UpdateAccountRequest": {
-            accountStatus?: components["schemas"]["model.AccountStatus"];
-            code?: string;
-            currency?: string;
-            description?: string;
-            name?: string;
-            parentId?: string;
-            type?: components["schemas"]["model.AccountType"];
-        };
-        "model.WebResponse-array_model_AccountResponse": {
-            data?: components["schemas"]["model.AccountResponse"][];
-            meta?: components["schemas"]["model.Meta"];
-        };
-        "model.WebResponse-model_AccountResponse": {
-            data?: components["schemas"]["model.AccountResponse"];
-            meta?: components["schemas"]["model.Meta"];
-        };
+  schemas: {
+    "model.AccountFilter": {
+      field: components["schemas"]["model.AccountFilterField"];
+      op: components["schemas"]["model.FilterOp"];
+      value: unknown;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /** @enum {string} */
+    "model.AccountFilterField":
+      | "code"
+      | "name"
+      | "type"
+      | "status"
+      | "parent_id"
+      | "currency";
+    "model.AccountResponse": {
+      accountStatus?: components["schemas"]["model.AccountStatus"];
+      code?: string;
+      createdAt?: string;
+      createdBy?: string;
+      createdByName?: string;
+      currency?: string;
+      description?: string;
+      id?: string;
+      name?: string;
+      parentId?: string;
+      type?: components["schemas"]["model.AccountType"];
+      updatedAt?: string;
+      updatedBy?: string;
+      updatedByName?: string;
+      workspaceId?: string;
+    };
+    "model.AccountSort": {
+      dir: components["schemas"]["model.SortDirection"];
+      field: components["schemas"]["model.AccountFilterField"];
+    };
+    /** @enum {string} */
+    "model.AccountStatus": "active" | "archived";
+    /** @enum {string} */
+    "model.AccountType":
+      | "asset"
+      | "liability"
+      | "equity"
+      | "revenue"
+      | "expense";
+    "model.CreateAccountRequest": {
+      accountStatus?: components["schemas"]["model.AccountStatus"];
+      code?: string;
+      currency?: string;
+      description?: string;
+      name?: string;
+      parentId?: string;
+      type?: components["schemas"]["model.AccountType"];
+    };
+    "model.ErrorResponse": {
+      meta?: components["schemas"]["model.Meta"];
+      string?: unknown;
+    };
+    /** @enum {string} */
+    "model.FilterOp": "eq" | "contains" | "in" | "gte" | "lte";
+    "model.Meta": {
+      omitempty?: string;
+      requestId?: string;
+      timestamp?: string;
+    };
+    "model.SearchAccountRequest": {
+      cursor?: string;
+      filters?: components["schemas"]["model.AccountFilter"][];
+      limit?: number;
+      sort?: components["schemas"]["model.AccountSort"][];
+    };
+    /** @enum {string} */
+    "model.SortDirection": "asc" | "desc";
+    "model.UpdateAccountRequest": {
+      accountStatus?: components["schemas"]["model.AccountStatus"];
+      code?: string;
+      currency?: string;
+      description?: string;
+      name?: string;
+      parentId?: string;
+      type?: components["schemas"]["model.AccountType"];
+    };
+    "model.WebResponse-array_model_AccountResponse": {
+      data?: components["schemas"]["model.AccountResponse"][];
+      meta?: components["schemas"]["model.Meta"];
+    };
+    "model.WebResponse-model_AccountResponse": {
+      data?: components["schemas"]["model.AccountResponse"];
+      meta?: components["schemas"]["model.Meta"];
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

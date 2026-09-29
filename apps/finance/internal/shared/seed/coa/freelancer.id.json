@@ -1,39 +1,169 @@
 [
   { "code": "1000", "name": "Aset", "type": "asset", "parentCode": null },
-  { "code": "1100", "name": "Kas & Bank", "type": "asset", "parentCode": "1000" },
+  {
+    "code": "1100",
+    "name": "Kas & Bank",
+    "type": "asset",
+    "parentCode": "1000"
+  },
   { "code": "1200", "name": "E-wallet", "type": "asset", "parentCode": "1000" },
-  { "code": "1300", "name": "Investasi", "type": "asset", "parentCode": "1000" },
+  {
+    "code": "1300",
+    "name": "Investasi",
+    "type": "asset",
+    "parentCode": "1000"
+  },
   { "code": "1310", "name": "Saham", "type": "asset", "parentCode": "1300" },
-  { "code": "1320", "name": "Reksadana", "type": "asset", "parentCode": "1300" },
+  {
+    "code": "1320",
+    "name": "Reksadana",
+    "type": "asset",
+    "parentCode": "1300"
+  },
   { "code": "1330", "name": "Crypto", "type": "asset", "parentCode": "1300" },
   { "code": "1400", "name": "Piutang", "type": "asset", "parentCode": "1000" },
-  { "code": "1500", "name": "Aset Tetap", "type": "asset", "parentCode": "1000" },
+  {
+    "code": "1500",
+    "name": "Aset Tetap",
+    "type": "asset",
+    "parentCode": "1000"
+  },
 
-  { "code": "2000", "name": "Kewajiban", "type": "liability", "parentCode": null },
-  { "code": "2100", "name": "Kartu Kredit", "type": "liability", "parentCode": "2000" },
-  { "code": "2200", "name": "Utang", "type": "liability", "parentCode": "2000" },
-  { "code": "2300", "name": "Utang Jangka Panjang", "type": "liability", "parentCode": "2000" },
+  {
+    "code": "2000",
+    "name": "Kewajiban",
+    "type": "liability",
+    "parentCode": null
+  },
+  {
+    "code": "2100",
+    "name": "Kartu Kredit",
+    "type": "liability",
+    "parentCode": "2000"
+  },
+  {
+    "code": "2200",
+    "name": "Utang",
+    "type": "liability",
+    "parentCode": "2000"
+  },
+  {
+    "code": "2300",
+    "name": "Utang Jangka Panjang",
+    "type": "liability",
+    "parentCode": "2000"
+  },
 
   { "code": "3000", "name": "Ekuitas", "type": "equity", "parentCode": null },
-  { "code": "3100", "name": "Saldo Awal", "type": "equity", "parentCode": "3000" },
-  { "code": "3200", "name": "Laba Ditahan", "type": "equity", "parentCode": "3000" },
+  {
+    "code": "3100",
+    "name": "Saldo Awal",
+    "type": "equity",
+    "parentCode": "3000"
+  },
+  {
+    "code": "3200",
+    "name": "Laba Ditahan",
+    "type": "equity",
+    "parentCode": "3000"
+  },
 
-  { "code": "4000", "name": "Pendapatan", "type": "revenue", "parentCode": null },
-  { "code": "4100", "name": "Gaji/Income Tetap", "type": "revenue", "parentCode": "4000" },
-  { "code": "4200", "name": "Freelance/Project Income", "type": "revenue", "parentCode": "4000" },
-  { "code": "4300", "name": "Pendapatan Investasi", "type": "revenue", "parentCode": "4000" },
-  { "code": "4900", "name": "Pendapatan Lain-lain", "type": "revenue", "parentCode": "4000" },
+  {
+    "code": "4000",
+    "name": "Pendapatan",
+    "type": "revenue",
+    "parentCode": null
+  },
+  {
+    "code": "4100",
+    "name": "Gaji/Income Tetap",
+    "type": "revenue",
+    "parentCode": "4000"
+  },
+  {
+    "code": "4200",
+    "name": "Freelance/Project Income",
+    "type": "revenue",
+    "parentCode": "4000"
+  },
+  {
+    "code": "4300",
+    "name": "Pendapatan Investasi",
+    "type": "revenue",
+    "parentCode": "4000"
+  },
+  {
+    "code": "4900",
+    "name": "Pendapatan Lain-lain",
+    "type": "revenue",
+    "parentCode": "4000"
+  },
 
   { "code": "5000", "name": "Beban", "type": "expense", "parentCode": null },
-  { "code": "5100", "name": "Kebutuhan Pokok", "type": "expense", "parentCode": "5000" },
-  { "code": "5200", "name": "Housing", "type": "expense", "parentCode": "5000" },
-  { "code": "5300", "name": "Transportasi", "type": "expense", "parentCode": "5000" },
-  { "code": "5310", "name": "Bensin/BBM", "type": "expense", "parentCode": "5300" },
-  { "code": "5320", "name": "Parkir & Tol", "type": "expense", "parentCode": "5300" },
-  { "code": "5330", "name": "Ojek Online", "type": "expense", "parentCode": "5300" },
-  { "code": "5340", "name": "Servis & Maintenance Kendaraan", "type": "expense", "parentCode": "5300" },
-  { "code": "5350", "name": "Angkutan Umum", "type": "expense", "parentCode": "5300" },
-  { "code": "5400", "name": "Lifestyle", "type": "expense", "parentCode": "5000" },
-  { "code": "5500", "name": "Kesehatan", "type": "expense", "parentCode": "5000" },
-  { "code": "5900", "name": "Beban Lain-lain", "type": "expense", "parentCode": "5000" }
+  {
+    "code": "5100",
+    "name": "Kebutuhan Pokok",
+    "type": "expense",
+    "parentCode": "5000"
+  },
+  {
+    "code": "5200",
+    "name": "Housing",
+    "type": "expense",
+    "parentCode": "5000"
+  },
+  {
+    "code": "5300",
+    "name": "Transportasi",
+    "type": "expense",
+    "parentCode": "5000"
+  },
+  {
+    "code": "5310",
+    "name": "Bensin/BBM",
+    "type": "expense",
+    "parentCode": "5300"
+  },
+  {
+    "code": "5320",
+    "name": "Parkir & Tol",
+    "type": "expense",
+    "parentCode": "5300"
+  },
+  {
+    "code": "5330",
+    "name": "Ojek Online",
+    "type": "expense",
+    "parentCode": "5300"
+  },
+  {
+    "code": "5340",
+    "name": "Servis & Maintenance Kendaraan",
+    "type": "expense",
+    "parentCode": "5300"
+  },
+  {
+    "code": "5350",
+    "name": "Angkutan Umum",
+    "type": "expense",
+    "parentCode": "5300"
+  },
+  {
+    "code": "5400",
+    "name": "Lifestyle",
+    "type": "expense",
+    "parentCode": "5000"
+  },
+  {
+    "code": "5500",
+    "name": "Kesehatan",
+    "type": "expense",
+    "parentCode": "5000"
+  },
+  {
+    "code": "5900",
+    "name": "Beban Lain-lain",
+    "type": "expense",
+    "parentCode": "5000"
+  }
 ]

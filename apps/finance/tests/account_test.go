@@ -5,9 +5,11 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kilip/omed/finance/internal/http/controller"
@@ -42,11 +44,17 @@ type AccountTestSuite struct {
 func (s *AccountTestSuite) SetupSuite() {
 	state := testutil.GetState()
 
-	// ASUMSI: sesuaikan nama constructor dengan implementasi yang sudah ada.
+	entryRepo := repository.NewEntryRepository(state.EntClient, state.Log)
 	repo := repository.NewAccountRepository(state.EntClient, state.Log)
-	svc := service.NewAccountService(repo, state.Log)
-
+	svc := service.NewAccountService(repo, entryRepo, state.Log)
 	controller.NewAccountController(svc).Register(state.Api)
+
+	lpRepo := repository.NewLedgerPeriodRepository(state.EntClient, state.Log)
+	lpSvc := service.NewLedgerPeriodService(lpRepo, state.Log)
+	controller.NewLedgerPeriodController(lpSvc).Register(state.Api)
+
+	entrySvc := service.NewEntryService(entryRepo, lpRepo, repo, state.Log)
+	controller.NewEntryController(entrySvc).Register(state.Api)
 }
 
 // ---------------------------------------------------------------- helpers
@@ -425,7 +433,75 @@ func (s *AccountTestSuite) TestSeed() {
 		s.Equal(parent.ID, *child.ParentID, "ParentID child 1100 harus menunjuk ke ID parent 1000")
 	})
 
+	s.Run("cannot seed when accounts > 0 and force is false", func() {
+		// Workspace ini sudah memiliki akun dari subtest sebelumnya
+		s.Request("/accounts/seed", fiber.MethodPost, model.SeedAccountRequest{
+			Profile: "freelancer",
+			Lang:    "en",
+			Force:   false,
+		})
+		s.AssertStatus(fiber.StatusUnprocessableEntity)
+	})
+
+	s.Run("cannot seed when entries > 0 even with force true", func() {
+		// Dapatkan akun aktif dari workspace
+		s.Request("/accounts", fiber.MethodGet, nil)
+		s.OK()
+		accs := s.PagedResponse().Data
+		s.Require().True(len(accs) >= 2)
+
+		now := time.Now().Truncate(24 * time.Hour)
+		// Buat periode aktif
+		s.Request("/ledger-periods", fiber.MethodPost, model.CreateLedgerPeriodRequest{
+			StartDate: now.AddDate(0, -1, 0),
+			EndDate:   now.AddDate(0, 1, 0),
+		})
+		s.Created()
+
+		// Buat entri jurnal
+		s.Request("/entries", fiber.MethodPost, model.CreateEntryRequest{
+			EntryDate:   now,
+			Description: "Test entry for seed block",
+			Postings: []model.CreatePostingRequest{
+				{AccountID: accs[0].ID, Currency: "IDR", DebitAmount: decimal.NewFromInt(1000), CreditAmount: decimal.Zero},
+				{AccountID: accs[1].ID, Currency: "IDR", DebitAmount: decimal.Zero, CreditAmount: decimal.NewFromInt(1000)},
+			},
+		})
+		s.Created()
+
+		// Coba force seed -> harus ditolak karena ada entri jurnal
+		s.Request("/accounts/seed", fiber.MethodPost, model.SeedAccountRequest{
+			Profile: "freelancer",
+			Lang:    "en",
+			Force:   true,
+		})
+		s.AssertStatus(fiber.StatusUnprocessableEntity)
+	})
+
+	s.Run("success force seed when accounts > 0 and entries == 0", func() {
+		// Workspace baru
+		s.User.WorkspaceID = shared.GenerateID()
+		s.User.WorkspaceName = "Fresh Seed Workspace"
+
+		// Buat akun manual
+		s.create(newAccountReq(model.AccountTypeAsset))
+
+		// Force seed
+		s.Request("/accounts/seed", fiber.MethodPost, model.SeedAccountRequest{
+			Profile: "freelancer",
+			Lang:    "en",
+			Force:   true,
+		})
+		s.Created()
+
+		s.Request("/accounts", fiber.MethodGet, nil)
+		s.OK()
+		allAccounts := s.PagedResponse().Data
+		s.NotEmpty(allAccounts)
+	})
+
 	s.Run("invalid profile or lang", func() {
+		s.User.WorkspaceID = shared.GenerateID()
 		s.Request("/accounts/seed", fiber.MethodPost, model.SeedAccountRequest{
 			Profile: "nonexistent",
 			Lang:    "en",

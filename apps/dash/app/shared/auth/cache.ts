@@ -20,7 +20,9 @@ export const clearAuthCache = () => (cache = null);
 
 let refreshPromise: Promise<string> | null = null;
 
-export async function getValidAuthToken(currentToken?: string): Promise<string> {
+export async function getValidAuthToken(
+  currentToken?: string,
+): Promise<string> {
   if (currentToken && isFresh(currentToken)) {
     return currentToken;
   }

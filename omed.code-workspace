@@ -1,24 +1,24 @@
 {
-	"folders": [
-		{
-			"name": "auth",
-			"path": "apps/auth"
-		},
-		{
-			"name": "finance",
-			"path": "apps/finance"
-		},
-		{
-			"name": "dash",
-			"path": "apps/dash"
-		},
-		{
-			"name": "better-auth",
-			"path": "packages/better-auth"
-		},
-		{
-			"path": "packages/api"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "name": "auth",
+      "path": "apps/auth"
+    },
+    {
+      "name": "finance",
+      "path": "apps/finance"
+    },
+    {
+      "name": "dash",
+      "path": "apps/dash"
+    },
+    {
+      "name": "better-auth",
+      "path": "packages/better-auth"
+    },
+    {
+      "path": "packages/api"
+    }
+  ],
+  "settings": {}
 }

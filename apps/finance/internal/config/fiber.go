@@ -63,6 +63,10 @@ func mapError(err error) (int, model.ErrorBody) {
 		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "SAME_CURRENCY_NOT_ALLOWED", Message: "from_currency and to_currency cannot be equal"}
 	case errors.Is(err, shared.ErrInvalidExchangeRate):
 		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "INVALID_EXCHANGE_RATE", Message: "exchange rate must be greater than zero"}
+	case errors.Is(err, shared.ErrAccountsNotEmpty):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "ACCOUNTS_NOT_EMPTY", Message: "cannot seed accounts when accounts already exist"}
+	case errors.Is(err, shared.ErrEntriesNotEmpty):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "ENTRIES_NOT_EMPTY", Message: "cannot seed accounts when journal entries exist"}
 	case errors.As(err, &ve):
 		fields := make([]model.FieldError, 0, len(ve))
 		for _, f := range ve {

@@ -42,11 +42,10 @@ import {
   Typography,
 } from "antd";
 import { type PropsWithChildren, useState } from "react";
-import { DashboardLayout } from "~/shared/ui/DashboardLayout";
 
 const { Title, Text, Paragraph } = Typography;
 
-export const meta = [{ title: "UI Showcase" }];
+export const meta = () => [{ title: "UI Showcase" }];
 
 interface Row_ {
   key: string;

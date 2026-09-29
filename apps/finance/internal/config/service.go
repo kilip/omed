@@ -8,7 +8,8 @@ import (
 
 func bootControllers(state State) {
 	accountR := repository.NewAccountRepository(state.EntClient, state.Log)
-	accountS := service.NewAccountService(accountR, state.Log)
+	entryR := repository.NewEntryRepository(state.EntClient, state.Log)
+	accountS := service.NewAccountService(accountR, entryR, state.Log)
 	accCtl := controller.NewAccountController(accountS)
 	accCtl.Register(state.Api.Group("/"))
 
@@ -17,7 +18,6 @@ func bootControllers(state State) {
 	lpCtl := controller.NewLedgerPeriodController(ledgerPeriodS)
 	lpCtl.Register(state.Api.Group("/"))
 
-	entryR := repository.NewEntryRepository(state.EntClient, state.Log)
 	entryS := service.NewEntryService(entryR, ledgerPeriodR, accountR, state.Log)
 	entryCtl := controller.NewEntryController(entryS)
 	entryCtl.Register(state.Api.Group("/"))

@@ -16,5 +16,7 @@ var (
 	ErrInactiveAccount         = errors.New("INACTIVE_ACCOUNT")
 	ErrSameCurrencyNotAllowed  = errors.New("SAME_CURRENCY_NOT_ALLOWED")
 	ErrInvalidExchangeRate     = errors.New("INVALID_EXCHANGE_RATE")
+	ErrAccountsNotEmpty        = errors.New("ACCOUNTS_NOT_EMPTY")
+	ErrEntriesNotEmpty         = errors.New("ENTRIES_NOT_EMPTY")
 )
 

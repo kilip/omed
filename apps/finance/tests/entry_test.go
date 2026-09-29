@@ -40,15 +40,15 @@ type EntryTestSuite struct {
 func (s *EntryTestSuite) SetupSuite() {
 	state := testutil.GetState()
 
+	entryRepo := repository.NewEntryRepository(state.EntClient, state.Log)
 	accRepo := repository.NewAccountRepository(state.EntClient, state.Log)
-	accSvc := service.NewAccountService(accRepo, state.Log)
+	accSvc := service.NewAccountService(accRepo, entryRepo, state.Log)
 	controller.NewAccountController(accSvc).Register(state.Api)
 
 	lpRepo := repository.NewLedgerPeriodRepository(state.EntClient, state.Log)
 	lpSvc := service.NewLedgerPeriodService(lpRepo, state.Log)
 	controller.NewLedgerPeriodController(lpSvc).Register(state.Api)
 
-	entryRepo := repository.NewEntryRepository(state.EntClient, state.Log)
 	entrySvc := service.NewEntryService(entryRepo, lpRepo, accRepo, state.Log)
 	controller.NewEntryController(entrySvc).Register(state.Api)
 }

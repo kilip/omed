@@ -150,6 +150,10 @@ func (r AccountRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
+func (r AccountRepository) Count(ctx context.Context) (int, error) {
+	return r.cl.Account.Query().Count(ctx)
+}
+
 func (r AccountRepository) Seed(ctx context.Context, req model.SeedAccountRequest) ([]model.Account, error) {
 	seedAccounts, err := seed_coa.Load(req.Profile, req.Lang)
 	if err != nil {
@@ -165,6 +169,12 @@ func (r AccountRepository) Seed(ctx context.Context, req model.SeedAccountReques
 	codeToIDMap := make(map[string]uuid.UUID)
 
 	err = WithTx(ctx, r.cl, func(tx *ent.Tx) error {
+		if req.Force {
+			if _, err := tx.Account.Delete().Exec(ctx); err != nil {
+				return err
+			}
+		}
+
 		for _, sa := range seedAccounts {
 			builder := tx.Account.Create().
 				SetCode(sa.Code).

@@ -63,6 +63,7 @@ type SeedAccountRequest struct {
 	Profile  string `json:"profile" validate:"required"`
 	Lang     string `json:"lang" validate:"required"`
 	Currency string `json:"currency" validate:"omitempty,len=3,uppercase" example:"IDR"`
+	Force    bool   `json:"force"`
 }
 
 type ListAccountRequest struct {

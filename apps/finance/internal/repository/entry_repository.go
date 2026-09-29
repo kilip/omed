@@ -224,3 +224,7 @@ func (r EntryRepository) Create(ctx context.Context, periodID uuid.UUID, req mod
 	}
 	return toEntry(createdEntry), nil
 }
+
+func (r EntryRepository) Count(ctx context.Context) (int, error) {
+	return r.cl.Entry.Query().Count(ctx)
+}

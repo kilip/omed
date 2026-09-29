@@ -6,7 +6,9 @@
     "build": "react-router build",
     "dev": "react-router dev --port 3001 --host",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "test:e2e": "NODE_OPTIONS='--import tsx' cucumber-js --config e2e/cucumber.json",
+    "test:e2e:report": "NODE_OPTIONS='--import tsx' cucumber-js --config e2e/cucumber.json --format html:e2e-report.html"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.4",
@@ -25,12 +27,15 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^13.2.1",
     "@react-router/dev": "^8.4.0",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^22",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
+    "playwright": "^1.63.0",
     "tailwindcss": "^4.2.2",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vite": "^8.0.3"
   }
