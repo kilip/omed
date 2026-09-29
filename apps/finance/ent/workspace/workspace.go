@@ -3,6 +3,8 @@
 package workspace
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -12,13 +14,19 @@ const (
 	Label = "workspace"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldSyncedAt holds the string denoting the synced_at field in the database.
+	FieldSyncedAt = "synced_at"
 	// Table holds the table name of the workspace in the database.
-	Table = "workspaces"
+	Table = "workspace"
 )
 
 // Columns holds all SQL columns for workspace fields.
 var Columns = []string{
 	FieldID,
+	FieldName,
+	FieldSyncedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -32,6 +40,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
+	// DefaultSyncedAt holds the default value on creation for the "synced_at" field.
+	DefaultSyncedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -42,4 +54,14 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// BySyncedAt orders the results by the synced_at field.
+func BySyncedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSyncedAt, opts...).ToFunc()
 }

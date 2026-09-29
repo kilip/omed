@@ -19,7 +19,7 @@ func GenerateID() uuid.UUID {
 	return id
 }
 
-func ToValue[T any](source any, target T) error {
+func ToValue[T any](source any, target *T) error {
 
 	jsonData, err := json.Marshal(source)
 	if err != nil {

@@ -4,10 +4,13 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/account"
 )
 
@@ -18,6 +21,178 @@ type AccountCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedBy sets the "createdBy" field.
+func (_c *AccountCreate) SetCreatedBy(v uuid.UUID) *AccountCreate {
+	_c.mutation.SetCreatedBy(v)
+	return _c
+}
+
+// SetCreatedByName sets the "createdByName" field.
+func (_c *AccountCreate) SetCreatedByName(v string) *AccountCreate {
+	_c.mutation.SetCreatedByName(v)
+	return _c
+}
+
+// SetCreatedAt sets the "createdAt" field.
+func (_c *AccountCreate) SetCreatedAt(v time.Time) *AccountCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
+}
+
+// SetNillableCreatedAt sets the "createdAt" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableCreatedAt(v *time.Time) *AccountCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
+// SetUpdatedBy sets the "updatedBy" field.
+func (_c *AccountCreate) SetUpdatedBy(v uuid.UUID) *AccountCreate {
+	_c.mutation.SetUpdatedBy(v)
+	return _c
+}
+
+// SetUpdatedByName sets the "updatedByName" field.
+func (_c *AccountCreate) SetUpdatedByName(v string) *AccountCreate {
+	_c.mutation.SetUpdatedByName(v)
+	return _c
+}
+
+// SetUpdatedAt sets the "updatedAt" field.
+func (_c *AccountCreate) SetUpdatedAt(v time.Time) *AccountCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updatedAt" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableUpdatedAt(v *time.Time) *AccountCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (_c *AccountCreate) SetWorkspaceID(v uuid.UUID) *AccountCreate {
+	_c.mutation.SetWorkspaceID(v)
+	return _c
+}
+
+// SetCode sets the "code" field.
+func (_c *AccountCreate) SetCode(v string) *AccountCreate {
+	_c.mutation.SetCode(v)
+	return _c
+}
+
+// SetName sets the "name" field.
+func (_c *AccountCreate) SetName(v string) *AccountCreate {
+	_c.mutation.SetName(v)
+	return _c
+}
+
+// SetDescription sets the "description" field.
+func (_c *AccountCreate) SetDescription(v string) *AccountCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableDescription(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetDescription(*v)
+	}
+	return _c
+}
+
+// SetType sets the "type" field.
+func (_c *AccountCreate) SetType(v account.Type) *AccountCreate {
+	_c.mutation.SetType(v)
+	return _c
+}
+
+// SetCurrency sets the "currency" field.
+func (_c *AccountCreate) SetCurrency(v string) *AccountCreate {
+	_c.mutation.SetCurrency(v)
+	return _c
+}
+
+// SetStatus sets the "status" field.
+func (_c *AccountCreate) SetStatus(v account.Status) *AccountCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableStatus(v *account.Status) *AccountCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
+	return _c
+}
+
+// SetParentId sets the "parentId" field.
+func (_c *AccountCreate) SetParentId(v uuid.UUID) *AccountCreate {
+	_c.mutation.SetParentId(v)
+	return _c
+}
+
+// SetNillableParentId sets the "parentId" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableParentId(v *uuid.UUID) *AccountCreate {
+	if v != nil {
+		_c.SetParentId(*v)
+	}
+	return _c
+}
+
+// SetID sets the "id" field.
+func (_c *AccountCreate) SetID(v uuid.UUID) *AccountCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableID(v *uuid.UUID) *AccountCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
+	return _c
+}
+
+// SetParentID sets the "parent" edge to the Account entity by ID.
+func (_c *AccountCreate) SetParentID(id uuid.UUID) *AccountCreate {
+	_c.mutation.SetParentID(id)
+	return _c
+}
+
+// SetNillableParentID sets the "parent" edge to the Account entity by ID if the given value is not nil.
+func (_c *AccountCreate) SetNillableParentID(id *uuid.UUID) *AccountCreate {
+	if id != nil {
+		_c = _c.SetParentID(*id)
+	}
+	return _c
+}
+
+// SetParent sets the "parent" edge to the Account entity.
+func (_c *AccountCreate) SetParent(v *Account) *AccountCreate {
+	return _c.SetParentID(v.ID)
+}
+
+// AddChildIDs adds the "children" edge to the Account entity by IDs.
+func (_c *AccountCreate) AddChildIDs(ids ...uuid.UUID) *AccountCreate {
+	_c.mutation.AddChildIDs(ids...)
+	return _c
+}
+
+// AddChildren adds the "children" edges to the Account entity.
+func (_c *AccountCreate) AddChildren(v ...*Account) *AccountCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddChildIDs(ids...)
+}
+
 // Mutation returns the AccountMutation object of the builder.
 func (_c *AccountCreate) Mutation() *AccountMutation {
 	return _c.mutation
@@ -25,6 +200,7 @@ func (_c *AccountCreate) Mutation() *AccountMutation {
 
 // Save creates the Account in the database.
 func (_c *AccountCreate) Save(ctx context.Context) (*Account, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -50,8 +226,89 @@ func (_c *AccountCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *AccountCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := account.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := account.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := account.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
+	if _, ok := _c.mutation.ID(); !ok {
+		v := account.DefaultID()
+		_c.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *AccountCreate) check() error {
+	if _, ok := _c.mutation.CreatedBy(); !ok {
+		return &ValidationError{Name: "createdBy", err: errors.New(`ent: missing required field "Account.createdBy"`)}
+	}
+	if _, ok := _c.mutation.CreatedByName(); !ok {
+		return &ValidationError{Name: "createdByName", err: errors.New(`ent: missing required field "Account.createdByName"`)}
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "createdAt", err: errors.New(`ent: missing required field "Account.createdAt"`)}
+	}
+	if _, ok := _c.mutation.UpdatedBy(); !ok {
+		return &ValidationError{Name: "updatedBy", err: errors.New(`ent: missing required field "Account.updatedBy"`)}
+	}
+	if _, ok := _c.mutation.UpdatedByName(); !ok {
+		return &ValidationError{Name: "updatedByName", err: errors.New(`ent: missing required field "Account.updatedByName"`)}
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updatedAt", err: errors.New(`ent: missing required field "Account.updatedAt"`)}
+	}
+	if _, ok := _c.mutation.WorkspaceID(); !ok {
+		return &ValidationError{Name: "workspace_id", err: errors.New(`ent: missing required field "Account.workspace_id"`)}
+	}
+	if _, ok := _c.mutation.Code(); !ok {
+		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "Account.code"`)}
+	}
+	if v, ok := _c.mutation.Code(); ok {
+		if err := account.CodeValidator(v); err != nil {
+			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Account.code": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Account.name"`)}
+	}
+	if v, ok := _c.mutation.Name(); ok {
+		if err := account.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Account.name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Account.type"`)}
+	}
+	if v, ok := _c.mutation.GetType(); ok {
+		if err := account.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Account.type": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Currency(); !ok {
+		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "Account.currency"`)}
+	}
+	if v, ok := _c.mutation.Currency(); ok {
+		if err := account.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Account.currency": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Account.status"`)}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := account.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Account.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -66,8 +323,13 @@ func (_c *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -76,8 +338,100 @@ func (_c *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
 func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Account{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(account.Table, sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(account.Table, sqlgraph.NewFieldSpec(account.FieldID, field.TypeUUID))
 	)
+	_spec.Schema = _c.schemaConfig.Account
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
+	if value, ok := _c.mutation.CreatedBy(); ok {
+		_spec.SetField(account.FieldCreatedBy, field.TypeUUID, value)
+		_node.CreatedBy = value
+	}
+	if value, ok := _c.mutation.CreatedByName(); ok {
+		_spec.SetField(account.FieldCreatedByName, field.TypeString, value)
+		_node.CreatedByName = value
+	}
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(account.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.UpdatedBy(); ok {
+		_spec.SetField(account.FieldUpdatedBy, field.TypeUUID, value)
+		_node.UpdatedBy = value
+	}
+	if value, ok := _c.mutation.UpdatedByName(); ok {
+		_spec.SetField(account.FieldUpdatedByName, field.TypeString, value)
+		_node.UpdatedByName = value
+	}
+	if value, ok := _c.mutation.UpdatedAt(); ok {
+		_spec.SetField(account.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.WorkspaceID(); ok {
+		_spec.SetField(account.FieldWorkspaceID, field.TypeUUID, value)
+		_node.WorkspaceID = value
+	}
+	if value, ok := _c.mutation.Code(); ok {
+		_spec.SetField(account.FieldCode, field.TypeString, value)
+		_node.Code = value
+	}
+	if value, ok := _c.mutation.Name(); ok {
+		_spec.SetField(account.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(account.FieldDescription, field.TypeString, value)
+		_node.Description = &value
+	}
+	if value, ok := _c.mutation.GetType(); ok {
+		_spec.SetField(account.FieldType, field.TypeEnum, value)
+		_node.Type = value
+	}
+	if value, ok := _c.mutation.Currency(); ok {
+		_spec.SetField(account.FieldCurrency, field.TypeString, value)
+		_node.Currency = value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(account.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
+	}
+	if nodes := _c.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   account.ParentTable,
+			Columns: []string{account.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ParentId = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ChildrenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ChildrenTable,
+			Columns: []string{account.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -99,6 +453,7 @@ func (_c *AccountCreateBulk) Save(ctx context.Context) ([]*Account, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*AccountMutation)
 				if !ok {
@@ -125,10 +480,6 @@ func (_c *AccountCreateBulk) Save(ctx context.Context) ([]*Account, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

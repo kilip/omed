@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -14,9 +15,13 @@ import (
 
 // Workspace is the model entity for the Workspace schema.
 type Workspace struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           uuid.UUID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// SyncedAt holds the value of the "synced_at" field.
+	SyncedAt     time.Time `json:"synced_at,omitempty" json:"syncedAt`
 	selectValues sql.SelectValues
 }
 
@@ -25,6 +30,10 @@ func (*Workspace) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case workspace.FieldName:
+			values[i] = new(sql.NullString)
+		case workspace.FieldSyncedAt:
+			values[i] = new(sql.NullTime)
 		case workspace.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
@@ -47,6 +56,18 @@ func (_m *Workspace) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				_m.ID = *value
+			}
+		case workspace.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				_m.Name = value.String
+			}
+		case workspace.FieldSyncedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field synced_at", values[i])
+			} else if value.Valid {
+				_m.SyncedAt = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -83,7 +104,12 @@ func (_m *Workspace) Unwrap() *Workspace {
 func (_m *Workspace) String() string {
 	var builder strings.Builder
 	builder.WriteString("Workspace(")
-	builder.WriteString(fmt.Sprintf("id=%v", _m.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("name=")
+	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("synced_at=")
+	builder.WriteString(_m.SyncedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

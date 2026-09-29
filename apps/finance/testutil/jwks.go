@@ -90,6 +90,8 @@ func SignToken(t *testing.T, extraClaims jwt.MapClaims) string {
 	claims := jwt.MapClaims{
 		"exp": time.Now().Add(time.Hour).Unix(),
 		"iat": time.Now().Unix(),
+		"iss": state.Config.AuthBaseUrl,
+		"aud": state.Config.AuthBaseUrl,
 	}
 	for k, v := range extraClaims {
 		claims[k] = v

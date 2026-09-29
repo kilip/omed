@@ -34,7 +34,7 @@ func (r WorkspaceRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.
 	}
 
 	var snapshot model.WorkspaceSnapshot
-	if err = shared.ToValue(user, snapshot); err != nil {
+	if err = shared.ToValue(user, &snapshot); err != nil {
 		return nil, err
 	}
 

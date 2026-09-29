@@ -3,6 +3,8 @@
 package user
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -19,7 +21,7 @@ const (
 	// FieldSyncedAt holds the string denoting the synced_at field in the database.
 	FieldSyncedAt = "synced_at"
 	// Table holds the table name of the user in the database.
-	Table = "users"
+	Table = "user"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -43,6 +45,8 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DefaultSyncedAt holds the default value on creation for the "synced_at" field.
+	DefaultSyncedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

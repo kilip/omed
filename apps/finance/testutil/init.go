@@ -44,7 +44,7 @@ func init() {
 	logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
-	api = config.GetFiber()
+	api = config.GetFiber(logger)
 	entClient = createTestDB()
 
 	state = config.State{

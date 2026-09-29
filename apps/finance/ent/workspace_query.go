@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
 	"github.com/kilip/omed/finance/ent/workspace"
 )
@@ -259,6 +260,18 @@ func (_q *WorkspaceQuery) Clone() *WorkspaceQuery {
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		Name string `json:"name,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Workspace.Query().
+//		GroupBy(workspace.FieldName).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (_q *WorkspaceQuery) GroupBy(field string, fields ...string) *WorkspaceGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &WorkspaceGroupBy{build: _q}
@@ -270,6 +283,16 @@ func (_q *WorkspaceQuery) GroupBy(field string, fields ...string) *WorkspaceGrou
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		Name string `json:"name,omitempty"`
+//	}
+//
+//	client.Workspace.Query().
+//		Select(workspace.FieldName).
+//		Scan(ctx, &v)
 func (_q *WorkspaceQuery) Select(fields ...string) *WorkspaceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
 	sbuild := &WorkspaceSelect{WorkspaceQuery: _q}
@@ -322,6 +345,8 @@ func (_q *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
+	_spec.Node.Schema = _q.schemaConfig.Workspace
+	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -336,6 +361,8 @@ func (_q *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 
 func (_q *WorkspaceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
+	_spec.Node.Schema = _q.schemaConfig.Workspace
+	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
 		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
@@ -398,6 +425,9 @@ func (_q *WorkspaceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
+	t1.Schema(_q.schemaConfig.Workspace)
+	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
+	selector.WithContext(ctx)
 	for _, p := range _q.predicates {
 		p(selector)
 	}

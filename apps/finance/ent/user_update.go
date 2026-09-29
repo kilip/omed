@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
 	"github.com/kilip/omed/finance/ent/user"
 )
@@ -133,6 +134,8 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.SyncedAt(); ok {
 		_spec.SetField(user.FieldSyncedAt, field.TypeTime, value)
 	}
+	_spec.Node.Schema = _u.schemaConfig.User
+	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -288,6 +291,8 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.SyncedAt(); ok {
 		_spec.SetField(user.FieldSyncedAt, field.TypeTime, value)
 	}
+	_spec.Node.Schema = _u.schemaConfig.User
+	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	_node = &User{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

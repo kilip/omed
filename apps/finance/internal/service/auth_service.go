@@ -63,9 +63,9 @@ func (s AuthService) checkUserSnapshot(ctx context.Context, auth shared.Authenti
 }
 
 func (s AuthService) checkWorkspaceSnapshot(ctx context.Context, auth shared.AuthenticatedUser) error {
-	var snapshot model.WorkspaceSnapshot
-	if err := shared.ToValue(auth, &snapshot); err != nil {
-		return err
+	snapshot := model.WorkspaceSnapshot{
+		ID:   auth.WorkspaceID,
+		Name: auth.WorkspaceName,
 	}
 
 	ws, err := s.works.GetByID(ctx, auth.WorkspaceID)

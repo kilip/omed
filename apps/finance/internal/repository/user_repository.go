@@ -34,7 +34,7 @@ func (r UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.UserS
 	}
 
 	var snapshot model.UserSnapshot
-	if err = shared.ToValue(user, snapshot); err != nil {
+	if err = shared.ToValue(user, &snapshot); err != nil {
 		return nil, err
 	}
 

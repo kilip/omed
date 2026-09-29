@@ -3,51 +3,98 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
 
 var (
-	// AccountsColumns holds the columns for the "accounts" table.
-	AccountsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+	// AccountColumns holds the columns for the "account" table.
+	AccountColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "created_by_name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_by", Type: field.TypeUUID},
+		{Name: "updated_by_name", Type: field.TypeString},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "workspace_id", Type: field.TypeUUID},
+		{Name: "code", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"asset", "liability", "equity", "revenue", "expense"}},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "archived"}, Default: "active"},
+		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
 	}
-	// AccountsTable holds the schema information for the "accounts" table.
-	AccountsTable = &schema.Table{
-		Name:       "accounts",
-		Columns:    AccountsColumns,
-		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+	// AccountTable holds the schema information for the "account" table.
+	AccountTable = &schema.Table{
+		Name:       "account",
+		Columns:    AccountColumns,
+		PrimaryKey: []*schema.Column{AccountColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "account_account_children",
+				Columns:    []*schema.Column{AccountColumns[14]},
+				RefColumns: []*schema.Column{AccountColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "account_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{AccountColumns[7]},
+			},
+			{
+				Name:    "account_workspace_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{AccountColumns[7], AccountColumns[8]},
+			},
+		},
 	}
-	// UsersColumns holds the columns for the "users" table.
-	UsersColumns = []*schema.Column{
+	// UserColumns holds the columns for the "user" table.
+	UserColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString},
 		{Name: "avatar", Type: field.TypeString},
 		{Name: "synced_at", Type: field.TypeTime},
 	}
-	// UsersTable holds the schema information for the "users" table.
-	UsersTable = &schema.Table{
-		Name:       "users",
-		Columns:    UsersColumns,
-		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	// UserTable holds the schema information for the "user" table.
+	UserTable = &schema.Table{
+		Name:       "user",
+		Columns:    UserColumns,
+		PrimaryKey: []*schema.Column{UserColumns[0]},
 	}
-	// WorkspacesColumns holds the columns for the "workspaces" table.
-	WorkspacesColumns = []*schema.Column{
+	// WorkspaceColumns holds the columns for the "workspace" table.
+	WorkspaceColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "synced_at", Type: field.TypeTime},
 	}
-	// WorkspacesTable holds the schema information for the "workspaces" table.
-	WorkspacesTable = &schema.Table{
-		Name:       "workspaces",
-		Columns:    WorkspacesColumns,
-		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
+	// WorkspaceTable holds the schema information for the "workspace" table.
+	WorkspaceTable = &schema.Table{
+		Name:       "workspace",
+		Columns:    WorkspaceColumns,
+		PrimaryKey: []*schema.Column{WorkspaceColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		AccountsTable,
-		UsersTable,
-		WorkspacesTable,
+		AccountTable,
+		UserTable,
+		WorkspaceTable,
 	}
 )
 
 func init() {
+	AccountTable.ForeignKeys[0].RefTable = AccountTable
+	AccountTable.Annotation = &entsql.Annotation{
+		Table: "account",
+	}
+	UserTable.Annotation = &entsql.Annotation{
+		Table: "user",
+	}
+	WorkspaceTable.Annotation = &entsql.Annotation{
+		Table: "workspace",
+	}
 }

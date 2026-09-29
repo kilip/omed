@@ -62,12 +62,12 @@ export const betterAuthOptions = {
     }),
     jwt({
       jwt: {
-        definePayload(session) {
+        definePayload({ user, session }) {
           const sx = session as unknown as Record<string, unknown>;
           return {
-            id: session.user.id,
-            name: session.user.name,
-            avatar: session.user?.image,
+            id: user.id,
+            name: user.name,
+            avatar: user.image,
             activeWorkspaceId: sx.activeWorkspaceId,
             activeWorkspaceName: sx.activeWorkspaceName,
             activeWorkspaceRoles: sx.activeWorkspaceRoles,

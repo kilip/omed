@@ -15,9 +15,12 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/finance/ent/account"
 	"github.com/kilip/omed/finance/ent/user"
 	"github.com/kilip/omed/finance/ent/workspace"
+
+	"github.com/kilip/omed/finance/ent/internal"
 )
 
 // Client is the client that holds all ent builders.
@@ -60,6 +63,8 @@ type (
 		hooks *hooks
 		// interceptors to execute on queries.
 		inters *inters
+		// schemaConfig contains alternative names for all tables.
+		schemaConfig SchemaConfig
 	}
 	// Option function to configure the client.
 	Option func(*config)
@@ -68,6 +73,7 @@ type (
 // newConfig creates a new config for the client.
 func newConfig(opts ...Option) config {
 	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
+	cfg.schemaConfig = DefaultSchemaConfig
 	cfg.options(opts...)
 	return cfg
 }
@@ -278,7 +284,7 @@ func (c *AccountClient) UpdateOne(_m *Account) *AccountUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *AccountClient) UpdateOneID(id int) *AccountUpdateOne {
+func (c *AccountClient) UpdateOneID(id uuid.UUID) *AccountUpdateOne {
 	mutation := newAccountMutation(c.config, OpUpdateOne, withAccountID(id))
 	return &AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -295,7 +301,7 @@ func (c *AccountClient) DeleteOne(_m *Account) *AccountDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AccountClient) DeleteOneID(id int) *AccountDeleteOne {
+func (c *AccountClient) DeleteOneID(id uuid.UUID) *AccountDeleteOne {
 	builder := c.Delete().Where(account.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -312,17 +318,55 @@ func (c *AccountClient) Query() *AccountQuery {
 }
 
 // Get returns a Account entity by its id.
-func (c *AccountClient) Get(ctx context.Context, id int) (*Account, error) {
+func (c *AccountClient) Get(ctx context.Context, id uuid.UUID) (*Account, error) {
 	return c.Query().Where(account.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *AccountClient) GetX(ctx context.Context, id int) *Account {
+func (c *AccountClient) GetX(ctx context.Context, id uuid.UUID) *Account {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryParent queries the parent edge of a Account.
+func (c *AccountClient) QueryParent(_m *Account) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, account.ParentTable, account.ParentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Account
+		step.Edge.Schema = schemaConfig.Account
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChildren queries the children edge of a Account.
+func (c *AccountClient) QueryChildren(_m *Account) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.ChildrenTable, account.ChildrenColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Account
+		step.Edge.Schema = schemaConfig.Account
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -625,3 +669,25 @@ type (
 		Account, User, Workspace []ent.Interceptor
 	}
 )
+
+var (
+	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
+	DefaultSchemaConfig = SchemaConfig{
+		Account:   tableSchemas[0],
+		User:      tableSchemas[0],
+		Workspace: tableSchemas[0],
+	}
+	tableSchemas = [...]string{"finance"}
+)
+
+// SchemaConfig represents alternative schema names for all tables
+// that can be passed at runtime.
+type SchemaConfig = internal.SchemaConfig
+
+// AlternateSchemas allows alternate schema names to be
+// passed into ent operations.
+func AlternateSchema(schemaConfig SchemaConfig) Option {
+	return func(c *config) {
+		c.schemaConfig = schemaConfig
+	}
+}

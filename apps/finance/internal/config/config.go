@@ -10,6 +10,7 @@ import (
 )
 
 type Config struct {
+	AuthBaseUrl string `env:"AUTH_BASE_URL,default=http://localhost:9001"`
 	Port        int    `env:"PORT,default=9002"`
 	DatabaseUrl string `env:"DATABASE_URL,required"`
 	JWKSUrl     string `env:"JWKS_URL,default=http://localhost:9001/jwks"`

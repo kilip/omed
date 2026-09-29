@@ -39,7 +39,7 @@ func GetID(c fiber.Ctx) (*uuid.UUID, error) {
 	return &id, nil
 }
 
-func buildMeta(c fiber.Ctx, cursor string) model.Meta {
+func NewMeta(c fiber.Ctx, cursor string) model.Meta {
 	return model.Meta{
 		RequestID: requestid.FromContext(c),
 		Timestamp: time.Now(),
@@ -50,14 +50,14 @@ func buildMeta(c fiber.Ctx, cursor string) model.Meta {
 func Success[T any](c fiber.Ctx, status int, data T) error {
 	return c.Status(status).JSON(model.WebResponse[T]{
 		Data: data,
-		Meta: buildMeta(c, ""),
+		Meta: NewMeta(c, ""),
 	})
 }
 
 func WithCursor[T any](c fiber.Ctx, data T, cursor string) error {
 	return c.Status(fiber.StatusOK).JSON(model.WebResponse[T]{
 		Data: data,
-		Meta: buildMeta(c, cursor),
+		Meta: NewMeta(c, cursor),
 	})
 }
 
@@ -67,11 +67,4 @@ func OK[T any](c fiber.Ctx, data T) error {
 
 func Created[T any](c fiber.Ctx, data T) error {
 	return Success(c, fiber.StatusCreated, data)
-}
-
-func BadRequest(c fiber.Ctx, err error) error {
-	return c.Status(fiber.StatusBadRequest).JSON(model.ErrorResponse{
-		Errors: err,
-		Meta:   buildMeta(c, "nil"),
-	})
 }

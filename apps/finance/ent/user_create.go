@@ -39,6 +39,14 @@ func (_c *UserCreate) SetSyncedAt(v time.Time) *UserCreate {
 	return _c
 }
 
+// SetNillableSyncedAt sets the "synced_at" field if the given value is not nil.
+func (_c *UserCreate) SetNillableSyncedAt(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetSyncedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserCreate) SetID(v uuid.UUID) *UserCreate {
 	_c.mutation.SetID(v)
@@ -88,6 +96,10 @@ func (_c *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *UserCreate) defaults() {
+	if _, ok := _c.mutation.SyncedAt(); !ok {
+		v := user.DefaultSyncedAt()
+		_c.mutation.SetSyncedAt(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := user.DefaultID()
 		_c.mutation.SetID(v)
@@ -141,6 +153,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_node = &User{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	)
+	_spec.Schema = _c.schemaConfig.User
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -151,7 +164,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
-		_node.Avatar = value
+		_node.Avatar = &value
 	}
 	if value, ok := _c.mutation.SyncedAt(); ok {
 		_spec.SetField(user.FieldSyncedAt, field.TypeTime, value)

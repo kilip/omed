@@ -4,7 +4,9 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -17,6 +19,26 @@ type WorkspaceCreate struct {
 	config
 	mutation *WorkspaceMutation
 	hooks    []Hook
+}
+
+// SetName sets the "name" field.
+func (_c *WorkspaceCreate) SetName(v string) *WorkspaceCreate {
+	_c.mutation.SetName(v)
+	return _c
+}
+
+// SetSyncedAt sets the "synced_at" field.
+func (_c *WorkspaceCreate) SetSyncedAt(v time.Time) *WorkspaceCreate {
+	_c.mutation.SetSyncedAt(v)
+	return _c
+}
+
+// SetNillableSyncedAt sets the "synced_at" field if the given value is not nil.
+func (_c *WorkspaceCreate) SetNillableSyncedAt(v *time.Time) *WorkspaceCreate {
+	if v != nil {
+		_c.SetSyncedAt(*v)
+	}
+	return _c
 }
 
 // SetID sets the "id" field.
@@ -68,6 +90,10 @@ func (_c *WorkspaceCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *WorkspaceCreate) defaults() {
+	if _, ok := _c.mutation.SyncedAt(); !ok {
+		v := workspace.DefaultSyncedAt()
+		_c.mutation.SetSyncedAt(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := workspace.DefaultID()
 		_c.mutation.SetID(v)
@@ -76,6 +102,17 @@ func (_c *WorkspaceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *WorkspaceCreate) check() error {
+	if _, ok := _c.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Workspace.name"`)}
+	}
+	if v, ok := _c.mutation.Name(); ok {
+		if err := workspace.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Workspace.name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SyncedAt(); !ok {
+		return &ValidationError{Name: "synced_at", err: errors.New(`ent: missing required field "Workspace.synced_at"`)}
+	}
 	return nil
 }
 
@@ -107,9 +144,18 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 		_node = &Workspace{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(workspace.Table, sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID))
 	)
+	_spec.Schema = _c.schemaConfig.Workspace
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := _c.mutation.Name(); ok {
+		_spec.SetField(workspace.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := _c.mutation.SyncedAt(); ok {
+		_spec.SetField(workspace.FieldSyncedAt, field.TypeTime, value)
+		_node.SyncedAt = value
 	}
 	return _node, _spec
 }

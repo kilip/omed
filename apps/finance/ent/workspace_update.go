@@ -6,10 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
 	"github.com/kilip/omed/finance/ent/workspace"
 )
@@ -24,6 +26,34 @@ type WorkspaceUpdate struct {
 // Where appends a list predicates to the WorkspaceUpdate builder.
 func (_u *WorkspaceUpdate) Where(ps ...predicate.Workspace) *WorkspaceUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetName sets the "name" field.
+func (_u *WorkspaceUpdate) SetName(v string) *WorkspaceUpdate {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *WorkspaceUpdate) SetNillableName(v *string) *WorkspaceUpdate {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetSyncedAt sets the "synced_at" field.
+func (_u *WorkspaceUpdate) SetSyncedAt(v time.Time) *WorkspaceUpdate {
+	_u.mutation.SetSyncedAt(v)
+	return _u
+}
+
+// SetNillableSyncedAt sets the "synced_at" field if the given value is not nil.
+func (_u *WorkspaceUpdate) SetNillableSyncedAt(v *time.Time) *WorkspaceUpdate {
+	if v != nil {
+		_u.SetSyncedAt(*v)
+	}
 	return _u
 }
 
@@ -59,7 +89,20 @@ func (_u *WorkspaceUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *WorkspaceUpdate) check() error {
+	if v, ok := _u.mutation.Name(); ok {
+		if err := workspace.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Workspace.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *WorkspaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(workspace.Table, workspace.Columns, sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -68,6 +111,14 @@ func (_u *WorkspaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(workspace.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SyncedAt(); ok {
+		_spec.SetField(workspace.FieldSyncedAt, field.TypeTime, value)
+	}
+	_spec.Node.Schema = _u.schemaConfig.Workspace
+	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{workspace.Label}
@@ -86,6 +137,34 @@ type WorkspaceUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *WorkspaceMutation
+}
+
+// SetName sets the "name" field.
+func (_u *WorkspaceUpdateOne) SetName(v string) *WorkspaceUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *WorkspaceUpdateOne) SetNillableName(v *string) *WorkspaceUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetSyncedAt sets the "synced_at" field.
+func (_u *WorkspaceUpdateOne) SetSyncedAt(v time.Time) *WorkspaceUpdateOne {
+	_u.mutation.SetSyncedAt(v)
+	return _u
+}
+
+// SetNillableSyncedAt sets the "synced_at" field if the given value is not nil.
+func (_u *WorkspaceUpdateOne) SetNillableSyncedAt(v *time.Time) *WorkspaceUpdateOne {
+	if v != nil {
+		_u.SetSyncedAt(*v)
+	}
+	return _u
 }
 
 // Mutation returns the WorkspaceMutation object of the builder.
@@ -133,7 +212,20 @@ func (_u *WorkspaceUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *WorkspaceUpdateOne) check() error {
+	if v, ok := _u.mutation.Name(); ok {
+		if err := workspace.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Workspace.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(workspace.Table, workspace.Columns, sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
@@ -159,6 +251,14 @@ func (_u *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, er
 			}
 		}
 	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(workspace.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SyncedAt(); ok {
+		_spec.SetField(workspace.FieldSyncedAt, field.TypeTime, value)
+	}
+	_spec.Node.Schema = _u.schemaConfig.Workspace
+	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	_node = &Workspace{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

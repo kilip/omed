@@ -41,11 +41,11 @@ func (s *ApiTestSuite[T]) Request(path string, method string, requestBody any) {
 	s.T().Helper()
 
 	token := SignToken(s.T(), jwt.MapClaims{
-		"id":                      s.User.ID,
-		"name":                    s.User.Name,
-		"activeTeamID":            s.User.WorkspaceID,
-		"activeTeamName":          s.User.WorkspaceName,
-		"activeOrganizationRoles": s.User.WorkspaceRoles,
+		"id":                   s.User.ID,
+		"name":                 s.User.Name,
+		"activeWorkspaceId":    s.User.WorkspaceID,
+		"activeWorkspaceName":  s.User.WorkspaceName,
+		"activeWorkspaceRoles": s.User.WorkspaceRoles,
 	})
 
 	var body io.Reader

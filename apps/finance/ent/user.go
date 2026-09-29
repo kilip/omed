@@ -21,9 +21,9 @@ type User struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Avatar holds the value of the "avatar" field.
-	Avatar string `json:"avatar,omitempty"`
+	Avatar *string `json:"avatar,omitempty"`
 	// SyncedAt holds the value of the "synced_at" field.
-	SyncedAt     time.Time `json:"synced_at,omitempty"`
+	SyncedAt     time.Time `json:"synced_at,omitempty" json:"syncedAt`
 	selectValues sql.SelectValues
 }
 
@@ -69,7 +69,8 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field avatar", values[i])
 			} else if value.Valid {
-				_m.Avatar = value.String
+				_m.Avatar = new(string)
+				*_m.Avatar = value.String
 			}
 		case user.FieldSyncedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -116,8 +117,10 @@ func (_m *User) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
-	builder.WriteString("avatar=")
-	builder.WriteString(_m.Avatar)
+	if v := _m.Avatar; v != nil {
+		builder.WriteString("avatar=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("synced_at=")
 	builder.WriteString(_m.SyncedAt.Format(time.ANSIC))

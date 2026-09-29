@@ -1,0 +1,6 @@
+{
+  "name": "@omed/finance",
+  "scripts": {
+    "dev": "air"
+  }
+}

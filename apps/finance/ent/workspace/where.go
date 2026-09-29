@@ -3,6 +3,8 @@
 package workspace
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/predicate"
@@ -51,6 +53,121 @@ func IDLT(id uuid.UUID) predicate.Workspace {
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id uuid.UUID) predicate.Workspace {
 	return predicate.Workspace(sql.FieldLTE(FieldID, id))
+}
+
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldName, v))
+}
+
+// SyncedAt applies equality check predicate on the "synced_at" field. It's identical to SyncedAtEQ.
+func SyncedAt(v time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldSyncedAt, v))
+}
+
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldName, v))
+}
+
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.Workspace {
+	return predicate.Workspace(sql.FieldContainsFold(FieldName, v))
+}
+
+// SyncedAtEQ applies the EQ predicate on the "synced_at" field.
+func SyncedAtEQ(v time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldSyncedAt, v))
+}
+
+// SyncedAtNEQ applies the NEQ predicate on the "synced_at" field.
+func SyncedAtNEQ(v time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNEQ(FieldSyncedAt, v))
+}
+
+// SyncedAtIn applies the In predicate on the "synced_at" field.
+func SyncedAtIn(vs ...time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldIn(FieldSyncedAt, vs...))
+}
+
+// SyncedAtNotIn applies the NotIn predicate on the "synced_at" field.
+func SyncedAtNotIn(vs ...time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNotIn(FieldSyncedAt, vs...))
+}
+
+// SyncedAtGT applies the GT predicate on the "synced_at" field.
+func SyncedAtGT(v time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldGT(FieldSyncedAt, v))
+}
+
+// SyncedAtGTE applies the GTE predicate on the "synced_at" field.
+func SyncedAtGTE(v time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldGTE(FieldSyncedAt, v))
+}
+
+// SyncedAtLT applies the LT predicate on the "synced_at" field.
+func SyncedAtLT(v time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldLT(FieldSyncedAt, v))
+}
+
+// SyncedAtLTE applies the LTE predicate on the "synced_at" field.
+func SyncedAtLTE(v time.Time) predicate.Workspace {
+	return predicate.Workspace(sql.FieldLTE(FieldSyncedAt, v))
 }
 
 // And groups predicates with the AND operator between them.

@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/kilip/omed/finance/ent/internal"
 	"github.com/kilip/omed/finance/ent/predicate"
 	"github.com/kilip/omed/finance/ent/workspace"
 )
@@ -41,6 +42,8 @@ func (_d *WorkspaceDelete) ExecX(ctx context.Context) int {
 
 func (_d *WorkspaceDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(workspace.Table, sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID))
+	_spec.Node.Schema = _d.schemaConfig.Workspace
+	ctx = internal.NewSchemaConfigContext(ctx, _d.schemaConfig)
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
