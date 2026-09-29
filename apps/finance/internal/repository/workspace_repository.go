@@ -24,7 +24,7 @@ func NewWorkspaceRepository(client *ent.Client, log *slog.Logger) WorkspaceRepos
 }
 
 func (r WorkspaceRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.WorkspaceSnapshot, error) {
-	user, err := r.client.Workspace.Get(ctx, id)
+	workspace, err := r.client.Workspace.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, errors.Join(shared.ErrItemNotFound, err)
@@ -34,7 +34,7 @@ func (r WorkspaceRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.
 	}
 
 	var snapshot model.WorkspaceSnapshot
-	if err = shared.ToValue(user, &snapshot); err != nil {
+	if err = shared.ToValue(workspace, &snapshot); err != nil {
 		return nil, err
 	}
 
@@ -43,7 +43,7 @@ func (r WorkspaceRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.
 
 func (r WorkspaceRepository) Create(ctx context.Context, snapshot model.WorkspaceSnapshot) error {
 	return WithTx(ctx, r.client, func(tx *ent.Tx) error {
-		_, err := tx.User.Create().
+		_, err := tx.Workspace.Create().
 			SetID(snapshot.ID).
 			SetName(snapshot.Name).
 			SetSyncedAt(snapshot.SyncedAt).
@@ -55,7 +55,7 @@ func (r WorkspaceRepository) Create(ctx context.Context, snapshot model.Workspac
 
 func (r WorkspaceRepository) Update(ctx context.Context, snapshot model.WorkspaceSnapshot) error {
 	return WithTx(ctx, r.client, func(tx *ent.Tx) error {
-		_, err := tx.User.Create().
+		_, err := tx.Workspace.Create().
 			SetID(snapshot.ID).
 			SetName(snapshot.Name).
 			SetSyncedAt(snapshot.SyncedAt).
