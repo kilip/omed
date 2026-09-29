@@ -53,10 +53,6 @@ func configureMiddleware(state State) error {
 	return nil
 }
 
-func Bootstrap(state State) {
-	configureMiddleware(state)
-}
-
 func WaitForJWKS(state State) {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -86,4 +82,9 @@ func checkJWKS(ctx context.Context, url string, log *slog.Logger) error {
 		case <-time.After(wait):
 		}
 	}
+}
+
+func Bootstrap(state State) {
+	configureMiddleware(state)
+	bootControllers(state)
 }
