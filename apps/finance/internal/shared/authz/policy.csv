@@ -4,8 +4,14 @@ p,admin,*,accounts,read
 p,admin,*,accounts,write
 p,admin,*,ledger_periods,read
 p,admin,*,ledger_periods,write
+p,admin,*,entries,read
+p,admin,*,entries,write
+p,admin,*,exchange_rates,read
+p,admin,*,exchange_rates,write
 p,member,*,accounts,read
 p,member,*,ledger_periods,read
+p,member,*,entries,read
+p,member,*,exchange_rates,read
 p,member,*,users,read
 p,member,*,users,write
 p,user,*,users,read

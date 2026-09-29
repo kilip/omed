@@ -17,7 +17,7 @@ import (
 
 type ApiTestSuite[T any] struct {
 	suite.Suite
-	httpResponse *http.Response
+	HttpResponse *http.Response
 	User         *shared.AuthenticatedUser
 }
 
@@ -61,31 +61,44 @@ func (s *ApiTestSuite[T]) Request(path string, method string, requestBody any) {
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	var err error
-	s.httpResponse = nil
-	s.httpResponse, err = api.Test(req)
+	s.HttpResponse = nil
+	s.HttpResponse, err = api.Test(req)
 	require.NoError(s.T(), err)
 }
 
 func (s *ApiTestSuite[T]) GetResponse() model.WebResponse[T] {
 	var env model.WebResponse[T]
 	s.T().Helper()
-	defer s.httpResponse.Body.Close()
-	require.NoError(s.T(), json.NewDecoder(s.httpResponse.Body).Decode(&env))
+	defer s.HttpResponse.Body.Close()
+	require.NoError(s.T(), json.NewDecoder(s.HttpResponse.Body).Decode(&env))
 	return env
 }
 
 func (s *ApiTestSuite[T]) PagedResponse() model.WebResponse[[]T] {
 	var env model.WebResponse[[]T]
 	s.T().Helper()
-	defer s.httpResponse.Body.Close()
-	require.NoError(s.T(), json.NewDecoder(s.httpResponse.Body).Decode(&env))
+	defer s.HttpResponse.Body.Close()
+	require.NoError(s.T(), json.NewDecoder(s.HttpResponse.Body).Decode(&env))
 	return env
+}
+
+func DecodeOther[R any](s interface{ GetHttpResponse() *http.Response }) model.WebResponse[R] {
+	var env model.WebResponse[R]
+	resp := s.GetHttpResponse()
+	defer resp.Body.Close()
+	json.NewDecoder(resp.Body).Decode(&env)
+	return env
+}
+
+func (s *ApiTestSuite[T]) GetHttpResponse() *http.Response {
+	return s.HttpResponse
 }
 
 func (s *ApiTestSuite[T]) AssertStatus(code int) {
 	s.T().Helper()
-	s.Equal(code, s.httpResponse.StatusCode)
+	s.Equal(code, s.HttpResponse.StatusCode)
 }
+
 
 func (s *ApiTestSuite[T]) OK() {
 	s.T().Helper()

@@ -16,4 +16,10 @@ func bootControllers(state State) {
 	ledgerPeriodS := service.NewLedgerPeriodService(ledgerPeriodR, state.Log)
 	lpCtl := controller.NewLedgerPeriodController(ledgerPeriodS)
 	lpCtl.Register(state.Api.Group("/"))
+
+	entryR := repository.NewEntryRepository(state.EntClient, state.Log)
+	entryS := service.NewEntryService(entryR, ledgerPeriodR, accountR, state.Log)
+	entryCtl := controller.NewEntryController(entryS)
+	entryCtl.Register(state.Api.Group("/"))
 }
+

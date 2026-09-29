@@ -51,6 +51,18 @@ func mapError(err error) (int, model.ErrorBody) {
 		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "PERIOD_OVERLAP", Message: "period dates overlap with existing period"}
 	case errors.Is(err, shared.ErrInvalidStatusTransition):
 		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "INVALID_STATUS_TRANSITION", Message: "invalid status transition"}
+	case errors.Is(err, shared.ErrUnbalancedEntry):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "UNBALANCED_ENTRY", Message: "entry total debit must equal total credit"}
+	case errors.Is(err, shared.ErrMinPostingsCount):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "MIN_POSTINGS_COUNT", Message: "entry must have at least 2 posting lines"}
+	case errors.Is(err, shared.ErrPeriodClosed):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "PERIOD_CLOSED", Message: "entry date must fall within an open ledger period"}
+	case errors.Is(err, shared.ErrInactiveAccount):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "INACTIVE_ACCOUNT", Message: "cannot post to inactive account"}
+	case errors.Is(err, shared.ErrSameCurrencyNotAllowed):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "SAME_CURRENCY_NOT_ALLOWED", Message: "from_currency and to_currency cannot be equal"}
+	case errors.Is(err, shared.ErrInvalidExchangeRate):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "INVALID_EXCHANGE_RATE", Message: "exchange rate must be greater than zero"}
 	case errors.As(err, &ve):
 		fields := make([]model.FieldError, 0, len(ve))
 		for _, f := range ve {

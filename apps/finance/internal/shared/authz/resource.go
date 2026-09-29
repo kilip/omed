@@ -8,6 +8,8 @@ const (
 	ResourceWorkspaces    Resource = "workspaces"
 	ResourceUsers         Resource = "users"
 	ResourceLedgerPeriods Resource = "ledger_periods"
+	ResourceEntries       Resource = "entries"
+	ResourceExchangeRates Resource = "exchange_rates"
 )
 
 const (
