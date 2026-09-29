@@ -1,5 +1,1 @@
-import HomePage from "~/feature/home/HomePage";
-
-export default function HomeRoute() {
-  return <HomePage />;
-}
+export { default, meta } from "~/features/home/HomePage";

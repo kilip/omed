@@ -1,4 +1,4 @@
-import { UnderConstruction } from "~/shared/common/Underconstruction";
+import { UnderConstruction } from "~/shared/ui/Underconstruction";
 
 export function meta() {
   return [{ title: "Settings" }];

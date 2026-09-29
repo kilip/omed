@@ -21,3 +21,5 @@ export const { signOut, signIn, getSession, token } = createAuthClient({
 });
 
 export type User = typeof auth.$Infer.Session.user;
+export type Session = typeof auth.$Infer.Session.session;
+export * from "./cache";

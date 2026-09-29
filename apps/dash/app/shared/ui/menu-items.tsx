@@ -1,5 +1,7 @@
 import {
+  AccountBookOutlined,
   BarChartOutlined,
+  BookOutlined,
   DollarCircleOutlined,
   EditOutlined,
   FileTextOutlined,
@@ -27,7 +29,7 @@ export const dashboardMenuItems: MenuItem[] = [
     label: "Blog",
     children: [
       { key: "/blog/articles", label: "Articles", icon: <EditOutlined /> },
-      { key: "/blog/settings", label: "Settings", icon: <SettingOutlined /> },
+      { key: "/blog/pages", label: "Pages", icon: <BookOutlined /> },
     ],
   },
   {
@@ -35,6 +37,11 @@ export const dashboardMenuItems: MenuItem[] = [
     icon: <WalletOutlined />,
     label: "Finance",
     children: [
+      {
+        key: "/finance/accounts",
+        label: "Accounts",
+        icon: <AccountBookOutlined />,
+      },
       {
         key: "/finance/transactions",
         label: "Transactions",
@@ -47,11 +54,6 @@ export const dashboardMenuItems: MenuItem[] = [
       },
       { key: "/finance/reports", label: "Reports", icon: <BarChartOutlined /> },
     ],
-  },
-  {
-    key: "/documents",
-    icon: <FileTextOutlined />,
-    label: "Documents",
   },
   {
     key: "/settings",

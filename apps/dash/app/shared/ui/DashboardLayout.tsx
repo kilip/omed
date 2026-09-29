@@ -15,9 +15,9 @@ import {
   theme,
 } from "antd";
 import { type PropsWithChildren, useState } from "react";
-import { useLocation, useNavigate, useOutletContext } from "react-router";
-import type { AppContext } from "~/context";
-import { signOut, type User } from "~/shared/auth";
+import { useLocation, useNavigate } from "react-router";
+import { clearAuthCache, signOut } from "../auth";
+import { useAuth } from "../providers/AuthProvider";
 import { dashboardMenuItems, findParentKey } from "./menu-items";
 
 const { Header, Sider, Content } = Layout;
@@ -25,10 +25,7 @@ const { Header, Sider, Content } = Layout;
 const SIDER_WIDTH = 240;
 const SIDER_WIDTH_COLLAPSED = 80;
 
-export function DashboardLayout({
-  children,
-  user,
-}: { user: User } & PropsWithChildren) {
+export function DashboardLayout({ children }: PropsWithChildren) {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,6 +36,7 @@ export function DashboardLayout({
     const parent = findParentKey(location.pathname);
     return parent ? [parent] : [];
   });
+  const { user } = useAuth();
 
   const userMenu: MenuProps = {
     items: [
@@ -56,6 +54,7 @@ export function DashboardLayout({
         await signOut({
           fetchOptions: {
             onSuccess() {
+              clearAuthCache();
               navigate("/login", { replace: true });
             },
           },
