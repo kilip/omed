@@ -45,6 +45,12 @@ func mapError(err error) (int, model.ErrorBody) {
 		return fiber.StatusNotFound, model.ErrorBody{Code: "NOT_FOUND", Message: "resource not found"}
 	case errors.Is(err, shared.ErrInvalidID):
 		return fiber.StatusBadRequest, model.ErrorBody{Code: "INVALID_ID", Message: "invalid id format"}
+	case errors.Is(err, shared.ErrInvalidDateRange):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "INVALID_DATE_RANGE", Message: "end_date must be after start_date"}
+	case errors.Is(err, shared.ErrPeriodOverlap):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "PERIOD_OVERLAP", Message: "period dates overlap with existing period"}
+	case errors.Is(err, shared.ErrInvalidStatusTransition):
+		return fiber.StatusUnprocessableEntity, model.ErrorBody{Code: "INVALID_STATUS_TRANSITION", Message: "invalid status transition"}
 	case errors.As(err, &ve):
 		fields := make([]model.FieldError, 0, len(ve))
 		for _, f := range ve {
