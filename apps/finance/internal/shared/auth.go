@@ -26,9 +26,9 @@ type AuthenticatedUser struct {
 	ID             uuid.UUID       `json:"id"`
 	Name           string          `json:"name"`
 	Avatar         string          `json:"avatar,omitempty"`
-	WorkspaceID    uuid.UUID       `json:"activeTeamId"`
-	WorkspaceName  string          `json:"activeTeamName"`
-	WorkspaceRoles []WorkspaceRole `json:"activeOrganizationRoles"`
+	WorkspaceID    uuid.UUID       `json:"activeWorkspaceId"`
+	WorkspaceName  string          `json:"activeWorkspaceName"`
+	WorkspaceRoles []WorkspaceRole `json:"activeWorkspaceRoles"`
 }
 
 const AUTH_USER_CONTEXT_KEY = "user"

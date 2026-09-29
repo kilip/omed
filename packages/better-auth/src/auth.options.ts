@@ -63,11 +63,14 @@ export const betterAuthOptions = {
     jwt({
       jwt: {
         definePayload(session) {
+          const sx = session as unknown as Record<string, unknown>;
           return {
             id: session.user.id,
             name: session.user.name,
             avatar: session.user?.image,
-            activeWorkspace: session.user.activeWorkspace,
+            activeWorkspaceId: sx.activeWorkspaceId,
+            activeWorkspaceName: sx.activeWorkspaceName,
+            activeWorkspaceRoles: sx.activeWorkspaceRoles,
           };
         },
       },
@@ -109,32 +112,13 @@ export const betterAuthOptions = {
       },
     },
   },
-  /*
-  databaseHooks: {
-    user: {
-      create: {
-        async after(u) {
-          service.createPersonalWorkspace(u);
-        },
-      },
-    },
-    session: {
-      create: {
-        async before(session) {
-          const team = await service.findActiveTeam(session.userId);
-          if (!team) return { data: session };
-          return {
-            data: {
-              ...session,
-              activeTeamId: team.id,
-              activeOrganizationId: team.organizationId,
-            },
-          };
-        },
-      },
+  session: {
+    additionalFields: {
+      activeWorkspaceId: { type: "string", required: false, input: false },
+      activeWorkspaceName: { type: "string", required: false, input: false },
+      activeWorkspaceRoles: { type: "string[]", required: false, input: false },
     },
   },
-  */
 } satisfies BetterAuthOptions;
 
 export type BaseOptions = typeof betterAuthOptions;

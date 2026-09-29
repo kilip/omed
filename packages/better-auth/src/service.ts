@@ -1,8 +1,7 @@
 import { randomBytes } from "node:crypto";
-import type { Auth, DBAdapter, InternalAdapter } from "better-auth";
-import type { Organization } from "better-auth/plugins";
+import type { DBAdapter, InternalAdapter } from "better-auth";
 import type { AuthType, BaseOptions } from "./auth.options";
-import type { ActiveTeam, Session, User } from "./type";
+import type { ActiveTeam, ActiveWorkspace, Session, User } from "./type";
 
 const suffix = () => randomBytes(3).toString("hex"); // 6 char
 
@@ -57,39 +56,6 @@ export class AuthService {
     await this.internalDb.updateUser(user.id, { activeWorkspace: team.id });
   }
 
-  async findActiveTeam(userId: string): Promise<ActiveTeam | null> {
-    const isMember = (teamId: string) =>
-      this.db.findOne({
-        model: "teamMember",
-        where: [
-          { field: "teamId", value: teamId },
-          { field: "userId", value: userId },
-        ],
-      });
-
-    // 1. last team, kalau masih member
-    const user = await this.internalDb.findUserById(userId);
-    const activeWorkspace = (user as { activeWorkspace?: string } | null)
-      ?.activeWorkspace;
-
-    if (activeWorkspace && (await isMember(activeWorkspace))) {
-      const team = await this.db.findOne<ActiveTeam>({
-        model: "team",
-        where: [{ field: "id", value: activeWorkspace }],
-      });
-      console.log(team);
-      if (team) return team;
-    }
-
-    // 2. fallback: personal team
-    const personal = await this.db.findOne<ActiveTeam>({
-      model: "team",
-      where: [{ field: "personal", value: true }],
-    });
-
-    return personal && (await isMember(personal.id)) ? personal : null;
-  }
-
   async initSessionData(s: unknown) {
     const session = s as unknown as Session;
     return {
@@ -112,5 +78,69 @@ export class AuthService {
         if (i >= tries - 1 || !isSlugTaken(e)) throw e;
       }
     }
+  }
+
+  async findActiveTeam(userId: string): Promise<ActiveWorkspace | null> {
+    const team = await this.findTeam(userId);
+    if (!team) return null;
+
+    const member = await this.db.findOne<{ role: string }>({
+      model: "member",
+      where: [
+        { field: "organizationId", value: team.organizationId },
+        { field: "userId", value: userId },
+      ],
+    });
+    if (!member) return null;
+
+    return {
+      ...team,
+      activeWorkspaceId: team.id,
+      activeWorkspaceName: team.name,
+      activeWorkspaceRoles: member.role.split(/[\s,]+/).filter(Boolean),
+    };
+  }
+
+  private async findTeam(userId: string): Promise<ActiveTeam | null> {
+    // 1. last active team, kalau masih member
+    const user = await this.internalDb.findUserById(userId);
+    const activeWorkspace = (user as { activeWorkspace?: string } | null)
+      ?.activeWorkspace;
+
+    if (activeWorkspace) {
+      const membership = await this.db.findOne({
+        model: "teamMember",
+        where: [
+          { field: "teamId", value: activeWorkspace },
+          { field: "userId", value: userId },
+        ],
+      });
+      if (membership) {
+        const team = await this.db.findOne<ActiveTeam>({
+          model: "team",
+          where: [{ field: "id", value: activeWorkspace }],
+        });
+        if (team) return team;
+      }
+    }
+
+    // 2. fallback: personal team milik user ini
+    const memberships = await this.db.findMany<{ teamId: string }>({
+      model: "teamMember",
+      where: [{ field: "userId", value: userId }],
+    });
+    if (memberships.length === 0) return null;
+
+    return this.db.findOne<ActiveTeam>({
+      model: "team",
+      where: [
+        {
+          field: "id",
+          operator: "in",
+          value: memberships.map((m) => m.teamId),
+        },
+        { field: "personal", value: true },
+      ],
+    });
   }
 }

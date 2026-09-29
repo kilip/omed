@@ -20,7 +20,7 @@ export const auth = betterAuth({
     },
     session: {
       create: {
-        async before(session, ctx) {
+        async before(session) {
           const service = await getService();
           const team = await service.findActiveTeam(session.userId);
           if (!team) return { data: session };
@@ -29,6 +29,9 @@ export const auth = betterAuth({
               ...session,
               activeTeamId: team.id,
               activeOrganizationId: team.organizationId,
+              activeWorkspaceId: team.activeWorkspaceId,
+              activeWorkspaceName: team.activeWorkspaceName,
+              activeWorkspaceRoles: team.activeWorkspaceRoles,
             },
           };
         },
