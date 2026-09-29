@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/kilip/omed/finance/ent"
+	"github.com/kilip/omed/finance/internal/config"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -18,6 +19,6 @@ func createTestDB() *ent.Client {
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed to creating schema resources: %v", err)
 	}
-
+	config.ConfigureDBClient(client)
 	return client
 }

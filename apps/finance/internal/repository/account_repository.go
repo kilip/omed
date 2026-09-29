@@ -71,9 +71,9 @@ func (r AccountRepository) Create(ctx context.Context, req model.CreateAccountRe
 		created, err = tx.Account.Create().
 			SetCode(req.Code).
 			SetName(req.Name).
-			SetDescription(*req.Description).
+			SetNillableDescription(req.Description).
 			SetCurrency(req.Currency).
-			SetParentID(*req.ParentID).
+			SetNillableParentID(req.ParentID).
 			SetType(account.Type(req.Type)).
 			Save(ctx)
 
