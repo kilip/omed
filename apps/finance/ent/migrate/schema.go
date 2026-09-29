@@ -53,6 +53,140 @@ var (
 			},
 		},
 	}
+	// EntryColumns holds the columns for the "entry" table.
+	EntryColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "created_by_name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_by", Type: field.TypeUUID},
+		{Name: "updated_by_name", Type: field.TypeString},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "workspace_id", Type: field.TypeUUID},
+		{Name: "entry_date", Type: field.TypeTime},
+		{Name: "entry_type", Type: field.TypeEnum, Enums: []string{"normal", "opening_balance", "adjustment", "closing", "fx_adjustment"}, Default: "normal"},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "reference", Type: field.TypeString, Nullable: true},
+		{Name: "ledger_period_id", Type: field.TypeUUID},
+	}
+	// EntryTable holds the schema information for the "entry" table.
+	EntryTable = &schema.Table{
+		Name:       "entry",
+		Columns:    EntryColumns,
+		PrimaryKey: []*schema.Column{EntryColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entry_ledger_period_entries",
+				Columns:    []*schema.Column{EntryColumns[12]},
+				RefColumns: []*schema.Column{LedgerPeriodColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entry_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntryColumns[7]},
+			},
+		},
+	}
+	// ExchangeRateColumns holds the columns for the "exchange_rate" table.
+	ExchangeRateColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "workspace_id", Type: field.TypeUUID},
+		{Name: "from_currency", Type: field.TypeString, Size: 3},
+		{Name: "to_currency", Type: field.TypeString, Size: 3},
+		{Name: "rate", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "numeric(20,8)", "sqlite3": "numeric"}},
+		{Name: "rate_date", Type: field.TypeTime},
+		{Name: "source", Type: field.TypeString, Nullable: true},
+	}
+	// ExchangeRateTable holds the schema information for the "exchange_rate" table.
+	ExchangeRateTable = &schema.Table{
+		Name:       "exchange_rate",
+		Columns:    ExchangeRateColumns,
+		PrimaryKey: []*schema.Column{ExchangeRateColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "exchangerate_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRateColumns[1]},
+			},
+			{
+				Name:    "exchangerate_workspace_id_from_currency_to_currency_rate_date",
+				Unique:  true,
+				Columns: []*schema.Column{ExchangeRateColumns[1], ExchangeRateColumns[2], ExchangeRateColumns[3], ExchangeRateColumns[5]},
+			},
+		},
+	}
+	// LedgerPeriodColumns holds the columns for the "ledger_period" table.
+	LedgerPeriodColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "created_by_name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_by", Type: field.TypeUUID},
+		{Name: "updated_by_name", Type: field.TypeString},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "workspace_id", Type: field.TypeUUID},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"open", "closed", "locked"}, Default: "open"},
+	}
+	// LedgerPeriodTable holds the schema information for the "ledger_period" table.
+	LedgerPeriodTable = &schema.Table{
+		Name:       "ledger_period",
+		Columns:    LedgerPeriodColumns,
+		PrimaryKey: []*schema.Column{LedgerPeriodColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "ledgerperiod_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{LedgerPeriodColumns[7]},
+			},
+		},
+	}
+	// PostingColumns holds the columns for the "posting" table.
+	PostingColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "workspace_id", Type: field.TypeUUID},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "debit_amount", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "numeric(20,8)", "sqlite3": "numeric"}},
+		{Name: "credit_amount", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "numeric(20,8)", "sqlite3": "numeric"}},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "base_debit_amount", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "numeric(20,8)", "sqlite3": "numeric"}},
+		{Name: "base_credit_amount", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "numeric(20,8)", "sqlite3": "numeric"}},
+		{Name: "exchange_rate", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "numeric(20,8)", "sqlite3": "numeric"}},
+		{Name: "memo", Type: field.TypeString, Nullable: true},
+		{Name: "entry_id", Type: field.TypeUUID},
+		{Name: "account_id", Type: field.TypeUUID},
+	}
+	// PostingTable holds the schema information for the "posting" table.
+	PostingTable = &schema.Table{
+		Name:       "posting",
+		Columns:    PostingColumns,
+		PrimaryKey: []*schema.Column{PostingColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "posting_entry_postings",
+				Columns:    []*schema.Column{PostingColumns[10]},
+				RefColumns: []*schema.Column{EntryColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "posting_account_account",
+				Columns:    []*schema.Column{PostingColumns[11]},
+				RefColumns: []*schema.Column{AccountColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "posting_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{PostingColumns[1]},
+			},
+		},
+	}
 	// UserColumns holds the columns for the "user" table.
 	UserColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -81,6 +215,10 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountTable,
+		EntryTable,
+		ExchangeRateTable,
+		LedgerPeriodTable,
+		PostingTable,
 		UserTable,
 		WorkspaceTable,
 	}
@@ -90,6 +228,25 @@ func init() {
 	AccountTable.ForeignKeys[0].RefTable = AccountTable
 	AccountTable.Annotation = &entsql.Annotation{
 		Table: "account",
+	}
+	EntryTable.ForeignKeys[0].RefTable = LedgerPeriodTable
+	EntryTable.Annotation = &entsql.Annotation{
+		Table: "entry",
+	}
+	ExchangeRateTable.Annotation = &entsql.Annotation{
+		Table: "exchange_rate",
+	}
+	LedgerPeriodTable.Annotation = &entsql.Annotation{
+		Table: "ledger_period",
+	}
+	PostingTable.ForeignKeys[0].RefTable = EntryTable
+	PostingTable.ForeignKeys[1].RefTable = AccountTable
+	PostingTable.Annotation = &entsql.Annotation{
+		Table: "posting",
+	}
+	PostingTable.Annotation.Checks = map[string]string{
+		"amounts_non_negative":      "debit_amount >= 0 AND credit_amount >= 0",
+		"debit_or_credit_exclusive": "debit_amount = 0 OR credit_amount = 0",
 	}
 	UserTable.Annotation = &entsql.Annotation{
 		Table: "user",

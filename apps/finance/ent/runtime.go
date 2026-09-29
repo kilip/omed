@@ -7,9 +7,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/account"
+	"github.com/kilip/omed/finance/ent/entry"
+	"github.com/kilip/omed/finance/ent/exchangerate"
+	"github.com/kilip/omed/finance/ent/ledgerperiod"
+	"github.com/kilip/omed/finance/ent/posting"
 	"github.com/kilip/omed/finance/ent/schema"
 	"github.com/kilip/omed/finance/ent/user"
 	"github.com/kilip/omed/finance/ent/workspace"
+	"github.com/shopspring/decimal"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -49,6 +54,106 @@ func init() {
 	accountDescID := accountMixinFields0[0].Descriptor()
 	// account.DefaultID holds the default value on creation for the id field.
 	account.DefaultID = accountDescID.Default.(func() uuid.UUID)
+	entryMixin := schema.Entry{}.Mixin()
+	entryMixinFields0 := entryMixin[0].Fields()
+	_ = entryMixinFields0
+	entryMixinFields1 := entryMixin[1].Fields()
+	_ = entryMixinFields1
+	entryFields := schema.Entry{}.Fields()
+	_ = entryFields
+	// entryDescCreatedAt is the schema descriptor for createdAt field.
+	entryDescCreatedAt := entryMixinFields1[2].Descriptor()
+	// entry.DefaultCreatedAt holds the default value on creation for the createdAt field.
+	entry.DefaultCreatedAt = entryDescCreatedAt.Default.(func() time.Time)
+	// entryDescUpdatedAt is the schema descriptor for updatedAt field.
+	entryDescUpdatedAt := entryMixinFields1[5].Descriptor()
+	// entry.DefaultUpdatedAt holds the default value on creation for the updatedAt field.
+	entry.DefaultUpdatedAt = entryDescUpdatedAt.Default.(func() time.Time)
+	// entry.UpdateDefaultUpdatedAt holds the default value on update for the updatedAt field.
+	entry.UpdateDefaultUpdatedAt = entryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// entryDescID is the schema descriptor for id field.
+	entryDescID := entryMixinFields0[0].Descriptor()
+	// entry.DefaultID holds the default value on creation for the id field.
+	entry.DefaultID = entryDescID.Default.(func() uuid.UUID)
+	exchangerateMixin := schema.ExchangeRate{}.Mixin()
+	exchangerateMixinFields0 := exchangerateMixin[0].Fields()
+	_ = exchangerateMixinFields0
+	exchangerateFields := schema.ExchangeRate{}.Fields()
+	_ = exchangerateFields
+	// exchangerateDescFromCurrency is the schema descriptor for fromCurrency field.
+	exchangerateDescFromCurrency := exchangerateFields[0].Descriptor()
+	// exchangerate.FromCurrencyValidator is a validator for the "fromCurrency" field. It is called by the builders before save.
+	exchangerate.FromCurrencyValidator = exchangerateDescFromCurrency.Validators[0].(func(string) error)
+	// exchangerateDescToCurrency is the schema descriptor for toCurrency field.
+	exchangerateDescToCurrency := exchangerateFields[1].Descriptor()
+	// exchangerate.ToCurrencyValidator is a validator for the "toCurrency" field. It is called by the builders before save.
+	exchangerate.ToCurrencyValidator = exchangerateDescToCurrency.Validators[0].(func(string) error)
+	// exchangerateDescRate is the schema descriptor for rate field.
+	exchangerateDescRate := exchangerateFields[2].Descriptor()
+	// exchangerate.DefaultRate holds the default value on creation for the rate field.
+	exchangerate.DefaultRate = exchangerateDescRate.Default.(decimal.Decimal)
+	// exchangerateDescID is the schema descriptor for id field.
+	exchangerateDescID := exchangerateMixinFields0[0].Descriptor()
+	// exchangerate.DefaultID holds the default value on creation for the id field.
+	exchangerate.DefaultID = exchangerateDescID.Default.(func() uuid.UUID)
+	ledgerperiodMixin := schema.LedgerPeriod{}.Mixin()
+	ledgerperiodMixinFields0 := ledgerperiodMixin[0].Fields()
+	_ = ledgerperiodMixinFields0
+	ledgerperiodMixinFields1 := ledgerperiodMixin[1].Fields()
+	_ = ledgerperiodMixinFields1
+	ledgerperiodFields := schema.LedgerPeriod{}.Fields()
+	_ = ledgerperiodFields
+	// ledgerperiodDescCreatedAt is the schema descriptor for createdAt field.
+	ledgerperiodDescCreatedAt := ledgerperiodMixinFields1[2].Descriptor()
+	// ledgerperiod.DefaultCreatedAt holds the default value on creation for the createdAt field.
+	ledgerperiod.DefaultCreatedAt = ledgerperiodDescCreatedAt.Default.(func() time.Time)
+	// ledgerperiodDescUpdatedAt is the schema descriptor for updatedAt field.
+	ledgerperiodDescUpdatedAt := ledgerperiodMixinFields1[5].Descriptor()
+	// ledgerperiod.DefaultUpdatedAt holds the default value on creation for the updatedAt field.
+	ledgerperiod.DefaultUpdatedAt = ledgerperiodDescUpdatedAt.Default.(func() time.Time)
+	// ledgerperiod.UpdateDefaultUpdatedAt holds the default value on update for the updatedAt field.
+	ledgerperiod.UpdateDefaultUpdatedAt = ledgerperiodDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ledgerperiodDescID is the schema descriptor for id field.
+	ledgerperiodDescID := ledgerperiodMixinFields0[0].Descriptor()
+	// ledgerperiod.DefaultID holds the default value on creation for the id field.
+	ledgerperiod.DefaultID = ledgerperiodDescID.Default.(func() uuid.UUID)
+	postingMixin := schema.Posting{}.Mixin()
+	postingMixinFields0 := postingMixin[0].Fields()
+	_ = postingMixinFields0
+	postingFields := schema.Posting{}.Fields()
+	_ = postingFields
+	// postingDescCurrency is the schema descriptor for currency field.
+	postingDescCurrency := postingFields[2].Descriptor()
+	// posting.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	posting.CurrencyValidator = postingDescCurrency.Validators[0].(func(string) error)
+	// postingDescDebitAmount is the schema descriptor for debitAmount field.
+	postingDescDebitAmount := postingFields[3].Descriptor()
+	// posting.DefaultDebitAmount holds the default value on creation for the debitAmount field.
+	posting.DefaultDebitAmount = postingDescDebitAmount.Default.(decimal.Decimal)
+	// postingDescCreditAmount is the schema descriptor for creditAmount field.
+	postingDescCreditAmount := postingFields[4].Descriptor()
+	// posting.DefaultCreditAmount holds the default value on creation for the creditAmount field.
+	posting.DefaultCreditAmount = postingDescCreditAmount.Default.(decimal.Decimal)
+	// postingDescBaseCurrency is the schema descriptor for base_currency field.
+	postingDescBaseCurrency := postingFields[5].Descriptor()
+	// posting.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	posting.BaseCurrencyValidator = postingDescBaseCurrency.Validators[0].(func(string) error)
+	// postingDescBaseDebitAmount is the schema descriptor for baseDebitAmount field.
+	postingDescBaseDebitAmount := postingFields[6].Descriptor()
+	// posting.DefaultBaseDebitAmount holds the default value on creation for the baseDebitAmount field.
+	posting.DefaultBaseDebitAmount = postingDescBaseDebitAmount.Default.(decimal.Decimal)
+	// postingDescBaseCreditAmount is the schema descriptor for baseCreditAmount field.
+	postingDescBaseCreditAmount := postingFields[7].Descriptor()
+	// posting.DefaultBaseCreditAmount holds the default value on creation for the baseCreditAmount field.
+	posting.DefaultBaseCreditAmount = postingDescBaseCreditAmount.Default.(decimal.Decimal)
+	// postingDescExchangeRate is the schema descriptor for exchangeRate field.
+	postingDescExchangeRate := postingFields[8].Descriptor()
+	// posting.DefaultExchangeRate holds the default value on creation for the exchangeRate field.
+	posting.DefaultExchangeRate = postingDescExchangeRate.Default.(decimal.Decimal)
+	// postingDescID is the schema descriptor for id field.
+	postingDescID := postingMixinFields0[0].Descriptor()
+	// posting.DefaultID holds the default value on creation for the id field.
+	posting.DefaultID = postingDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

@@ -14,6 +14,14 @@ type Tx struct {
 	config
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
+	// Entry is the client for interacting with the Entry builders.
+	Entry *EntryClient
+	// ExchangeRate is the client for interacting with the ExchangeRate builders.
+	ExchangeRate *ExchangeRateClient
+	// LedgerPeriod is the client for interacting with the LedgerPeriod builders.
+	LedgerPeriod *LedgerPeriodClient
+	// Posting is the client for interacting with the Posting builders.
+	Posting *PostingClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Workspace is the client for interacting with the Workspace builders.
@@ -150,6 +158,10 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
+	tx.Entry = NewEntryClient(tx.config)
+	tx.ExchangeRate = NewExchangeRateClient(tx.config)
+	tx.LedgerPeriod = NewLedgerPeriodClient(tx.config)
+	tx.Posting = NewPostingClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.Workspace = NewWorkspaceClient(tx.config)
 }

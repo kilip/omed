@@ -17,6 +17,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/finance/ent/account"
+	"github.com/kilip/omed/finance/ent/entry"
+	"github.com/kilip/omed/finance/ent/exchangerate"
+	"github.com/kilip/omed/finance/ent/ledgerperiod"
+	"github.com/kilip/omed/finance/ent/posting"
 	"github.com/kilip/omed/finance/ent/user"
 	"github.com/kilip/omed/finance/ent/workspace"
 
@@ -30,6 +34,14 @@ type Client struct {
 	Schema *migrate.Schema
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
+	// Entry is the client for interacting with the Entry builders.
+	Entry *EntryClient
+	// ExchangeRate is the client for interacting with the ExchangeRate builders.
+	ExchangeRate *ExchangeRateClient
+	// LedgerPeriod is the client for interacting with the LedgerPeriod builders.
+	LedgerPeriod *LedgerPeriodClient
+	// Posting is the client for interacting with the Posting builders.
+	Posting *PostingClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Workspace is the client for interacting with the Workspace builders.
@@ -46,6 +58,10 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Account = NewAccountClient(c.config)
+	c.Entry = NewEntryClient(c.config)
+	c.ExchangeRate = NewExchangeRateClient(c.config)
+	c.LedgerPeriod = NewLedgerPeriodClient(c.config)
+	c.Posting = NewPostingClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.Workspace = NewWorkspaceClient(c.config)
 }
@@ -141,11 +157,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		Account:   NewAccountClient(cfg),
-		User:      NewUserClient(cfg),
-		Workspace: NewWorkspaceClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Account:      NewAccountClient(cfg),
+		Entry:        NewEntryClient(cfg),
+		ExchangeRate: NewExchangeRateClient(cfg),
+		LedgerPeriod: NewLedgerPeriodClient(cfg),
+		Posting:      NewPostingClient(cfg),
+		User:         NewUserClient(cfg),
+		Workspace:    NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -163,11 +183,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		Account:   NewAccountClient(cfg),
-		User:      NewUserClient(cfg),
-		Workspace: NewWorkspaceClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Account:      NewAccountClient(cfg),
+		Entry:        NewEntryClient(cfg),
+		ExchangeRate: NewExchangeRateClient(cfg),
+		LedgerPeriod: NewLedgerPeriodClient(cfg),
+		Posting:      NewPostingClient(cfg),
+		User:         NewUserClient(cfg),
+		Workspace:    NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -196,17 +220,23 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Account.Use(hooks...)
-	c.User.Use(hooks...)
-	c.Workspace.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Account, c.Entry, c.ExchangeRate, c.LedgerPeriod, c.Posting, c.User,
+		c.Workspace,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Account.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
-	c.Workspace.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Account, c.Entry, c.ExchangeRate, c.LedgerPeriod, c.Posting, c.User,
+		c.Workspace,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -214,6 +244,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AccountMutation:
 		return c.Account.mutate(ctx, m)
+	case *EntryMutation:
+		return c.Entry.mutate(ctx, m)
+	case *ExchangeRateMutation:
+		return c.ExchangeRate.mutate(ctx, m)
+	case *LedgerPeriodMutation:
+		return c.LedgerPeriod.mutate(ctx, m)
+	case *PostingMutation:
+		return c.Posting.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *WorkspaceMutation:
@@ -391,6 +429,633 @@ func (c *AccountClient) mutate(ctx context.Context, m *AccountMutation) (Value, 
 		return (&AccountDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Account mutation op: %q", m.Op())
+	}
+}
+
+// EntryClient is a client for the Entry schema.
+type EntryClient struct {
+	config
+}
+
+// NewEntryClient returns a client for the Entry from the given config.
+func NewEntryClient(c config) *EntryClient {
+	return &EntryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `entry.Hooks(f(g(h())))`.
+func (c *EntryClient) Use(hooks ...Hook) {
+	c.hooks.Entry = append(c.hooks.Entry, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `entry.Intercept(f(g(h())))`.
+func (c *EntryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Entry = append(c.inters.Entry, interceptors...)
+}
+
+// Create returns a builder for creating a Entry entity.
+func (c *EntryClient) Create() *EntryCreate {
+	mutation := newEntryMutation(c.config, OpCreate)
+	return &EntryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Entry entities.
+func (c *EntryClient) CreateBulk(builders ...*EntryCreate) *EntryCreateBulk {
+	return &EntryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EntryClient) MapCreateBulk(slice any, setFunc func(*EntryCreate, int)) *EntryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EntryCreateBulk{err: fmt.Errorf("calling to EntryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EntryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EntryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Entry.
+func (c *EntryClient) Update() *EntryUpdate {
+	mutation := newEntryMutation(c.config, OpUpdate)
+	return &EntryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EntryClient) UpdateOne(_m *Entry) *EntryUpdateOne {
+	mutation := newEntryMutation(c.config, OpUpdateOne, withEntry(_m))
+	return &EntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EntryClient) UpdateOneID(id uuid.UUID) *EntryUpdateOne {
+	mutation := newEntryMutation(c.config, OpUpdateOne, withEntryID(id))
+	return &EntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Entry.
+func (c *EntryClient) Delete() *EntryDelete {
+	mutation := newEntryMutation(c.config, OpDelete)
+	return &EntryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EntryClient) DeleteOne(_m *Entry) *EntryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EntryClient) DeleteOneID(id uuid.UUID) *EntryDeleteOne {
+	builder := c.Delete().Where(entry.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EntryDeleteOne{builder}
+}
+
+// Query returns a query builder for Entry.
+func (c *EntryClient) Query() *EntryQuery {
+	return &EntryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEntry},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Entry entity by its id.
+func (c *EntryClient) Get(ctx context.Context, id uuid.UUID) (*Entry, error) {
+	return c.Query().Where(entry.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EntryClient) GetX(ctx context.Context, id uuid.UUID) *Entry {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPostings queries the postings edge of a Entry.
+func (c *EntryClient) QueryPostings(_m *Entry) *PostingQuery {
+	query := (&PostingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entry.Table, entry.FieldID, id),
+			sqlgraph.To(posting.Table, posting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entry.PostingsTable, entry.PostingsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Posting
+		step.Edge.Schema = schemaConfig.Posting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLedgerPeriod queries the ledger_period edge of a Entry.
+func (c *EntryClient) QueryLedgerPeriod(_m *Entry) *LedgerPeriodQuery {
+	query := (&LedgerPeriodClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entry.Table, entry.FieldID, id),
+			sqlgraph.To(ledgerperiod.Table, ledgerperiod.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entry.LedgerPeriodTable, entry.LedgerPeriodColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.LedgerPeriod
+		step.Edge.Schema = schemaConfig.Entry
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EntryClient) Hooks() []Hook {
+	return c.hooks.Entry
+}
+
+// Interceptors returns the client interceptors.
+func (c *EntryClient) Interceptors() []Interceptor {
+	return c.inters.Entry
+}
+
+func (c *EntryClient) mutate(ctx context.Context, m *EntryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EntryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EntryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EntryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Entry mutation op: %q", m.Op())
+	}
+}
+
+// ExchangeRateClient is a client for the ExchangeRate schema.
+type ExchangeRateClient struct {
+	config
+}
+
+// NewExchangeRateClient returns a client for the ExchangeRate from the given config.
+func NewExchangeRateClient(c config) *ExchangeRateClient {
+	return &ExchangeRateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `exchangerate.Hooks(f(g(h())))`.
+func (c *ExchangeRateClient) Use(hooks ...Hook) {
+	c.hooks.ExchangeRate = append(c.hooks.ExchangeRate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `exchangerate.Intercept(f(g(h())))`.
+func (c *ExchangeRateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ExchangeRate = append(c.inters.ExchangeRate, interceptors...)
+}
+
+// Create returns a builder for creating a ExchangeRate entity.
+func (c *ExchangeRateClient) Create() *ExchangeRateCreate {
+	mutation := newExchangeRateMutation(c.config, OpCreate)
+	return &ExchangeRateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ExchangeRate entities.
+func (c *ExchangeRateClient) CreateBulk(builders ...*ExchangeRateCreate) *ExchangeRateCreateBulk {
+	return &ExchangeRateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ExchangeRateClient) MapCreateBulk(slice any, setFunc func(*ExchangeRateCreate, int)) *ExchangeRateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ExchangeRateCreateBulk{err: fmt.Errorf("calling to ExchangeRateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ExchangeRateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ExchangeRateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ExchangeRate.
+func (c *ExchangeRateClient) Update() *ExchangeRateUpdate {
+	mutation := newExchangeRateMutation(c.config, OpUpdate)
+	return &ExchangeRateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ExchangeRateClient) UpdateOne(_m *ExchangeRate) *ExchangeRateUpdateOne {
+	mutation := newExchangeRateMutation(c.config, OpUpdateOne, withExchangeRate(_m))
+	return &ExchangeRateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ExchangeRateClient) UpdateOneID(id uuid.UUID) *ExchangeRateUpdateOne {
+	mutation := newExchangeRateMutation(c.config, OpUpdateOne, withExchangeRateID(id))
+	return &ExchangeRateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ExchangeRate.
+func (c *ExchangeRateClient) Delete() *ExchangeRateDelete {
+	mutation := newExchangeRateMutation(c.config, OpDelete)
+	return &ExchangeRateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ExchangeRateClient) DeleteOne(_m *ExchangeRate) *ExchangeRateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ExchangeRateClient) DeleteOneID(id uuid.UUID) *ExchangeRateDeleteOne {
+	builder := c.Delete().Where(exchangerate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ExchangeRateDeleteOne{builder}
+}
+
+// Query returns a query builder for ExchangeRate.
+func (c *ExchangeRateClient) Query() *ExchangeRateQuery {
+	return &ExchangeRateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeExchangeRate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ExchangeRate entity by its id.
+func (c *ExchangeRateClient) Get(ctx context.Context, id uuid.UUID) (*ExchangeRate, error) {
+	return c.Query().Where(exchangerate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ExchangeRateClient) GetX(ctx context.Context, id uuid.UUID) *ExchangeRate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ExchangeRateClient) Hooks() []Hook {
+	return c.hooks.ExchangeRate
+}
+
+// Interceptors returns the client interceptors.
+func (c *ExchangeRateClient) Interceptors() []Interceptor {
+	return c.inters.ExchangeRate
+}
+
+func (c *ExchangeRateClient) mutate(ctx context.Context, m *ExchangeRateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExchangeRateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExchangeRateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExchangeRateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExchangeRateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ExchangeRate mutation op: %q", m.Op())
+	}
+}
+
+// LedgerPeriodClient is a client for the LedgerPeriod schema.
+type LedgerPeriodClient struct {
+	config
+}
+
+// NewLedgerPeriodClient returns a client for the LedgerPeriod from the given config.
+func NewLedgerPeriodClient(c config) *LedgerPeriodClient {
+	return &LedgerPeriodClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ledgerperiod.Hooks(f(g(h())))`.
+func (c *LedgerPeriodClient) Use(hooks ...Hook) {
+	c.hooks.LedgerPeriod = append(c.hooks.LedgerPeriod, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ledgerperiod.Intercept(f(g(h())))`.
+func (c *LedgerPeriodClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LedgerPeriod = append(c.inters.LedgerPeriod, interceptors...)
+}
+
+// Create returns a builder for creating a LedgerPeriod entity.
+func (c *LedgerPeriodClient) Create() *LedgerPeriodCreate {
+	mutation := newLedgerPeriodMutation(c.config, OpCreate)
+	return &LedgerPeriodCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LedgerPeriod entities.
+func (c *LedgerPeriodClient) CreateBulk(builders ...*LedgerPeriodCreate) *LedgerPeriodCreateBulk {
+	return &LedgerPeriodCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LedgerPeriodClient) MapCreateBulk(slice any, setFunc func(*LedgerPeriodCreate, int)) *LedgerPeriodCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LedgerPeriodCreateBulk{err: fmt.Errorf("calling to LedgerPeriodClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LedgerPeriodCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LedgerPeriodCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LedgerPeriod.
+func (c *LedgerPeriodClient) Update() *LedgerPeriodUpdate {
+	mutation := newLedgerPeriodMutation(c.config, OpUpdate)
+	return &LedgerPeriodUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LedgerPeriodClient) UpdateOne(_m *LedgerPeriod) *LedgerPeriodUpdateOne {
+	mutation := newLedgerPeriodMutation(c.config, OpUpdateOne, withLedgerPeriod(_m))
+	return &LedgerPeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LedgerPeriodClient) UpdateOneID(id uuid.UUID) *LedgerPeriodUpdateOne {
+	mutation := newLedgerPeriodMutation(c.config, OpUpdateOne, withLedgerPeriodID(id))
+	return &LedgerPeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LedgerPeriod.
+func (c *LedgerPeriodClient) Delete() *LedgerPeriodDelete {
+	mutation := newLedgerPeriodMutation(c.config, OpDelete)
+	return &LedgerPeriodDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LedgerPeriodClient) DeleteOne(_m *LedgerPeriod) *LedgerPeriodDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LedgerPeriodClient) DeleteOneID(id uuid.UUID) *LedgerPeriodDeleteOne {
+	builder := c.Delete().Where(ledgerperiod.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LedgerPeriodDeleteOne{builder}
+}
+
+// Query returns a query builder for LedgerPeriod.
+func (c *LedgerPeriodClient) Query() *LedgerPeriodQuery {
+	return &LedgerPeriodQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLedgerPeriod},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LedgerPeriod entity by its id.
+func (c *LedgerPeriodClient) Get(ctx context.Context, id uuid.UUID) (*LedgerPeriod, error) {
+	return c.Query().Where(ledgerperiod.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LedgerPeriodClient) GetX(ctx context.Context, id uuid.UUID) *LedgerPeriod {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryEntries queries the entries edge of a LedgerPeriod.
+func (c *LedgerPeriodClient) QueryEntries(_m *LedgerPeriod) *EntryQuery {
+	query := (&EntryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ledgerperiod.Table, ledgerperiod.FieldID, id),
+			sqlgraph.To(entry.Table, entry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ledgerperiod.EntriesTable, ledgerperiod.EntriesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Entry
+		step.Edge.Schema = schemaConfig.Entry
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LedgerPeriodClient) Hooks() []Hook {
+	return c.hooks.LedgerPeriod
+}
+
+// Interceptors returns the client interceptors.
+func (c *LedgerPeriodClient) Interceptors() []Interceptor {
+	return c.inters.LedgerPeriod
+}
+
+func (c *LedgerPeriodClient) mutate(ctx context.Context, m *LedgerPeriodMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LedgerPeriodCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LedgerPeriodUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LedgerPeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LedgerPeriodDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LedgerPeriod mutation op: %q", m.Op())
+	}
+}
+
+// PostingClient is a client for the Posting schema.
+type PostingClient struct {
+	config
+}
+
+// NewPostingClient returns a client for the Posting from the given config.
+func NewPostingClient(c config) *PostingClient {
+	return &PostingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `posting.Hooks(f(g(h())))`.
+func (c *PostingClient) Use(hooks ...Hook) {
+	c.hooks.Posting = append(c.hooks.Posting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `posting.Intercept(f(g(h())))`.
+func (c *PostingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Posting = append(c.inters.Posting, interceptors...)
+}
+
+// Create returns a builder for creating a Posting entity.
+func (c *PostingClient) Create() *PostingCreate {
+	mutation := newPostingMutation(c.config, OpCreate)
+	return &PostingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Posting entities.
+func (c *PostingClient) CreateBulk(builders ...*PostingCreate) *PostingCreateBulk {
+	return &PostingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PostingClient) MapCreateBulk(slice any, setFunc func(*PostingCreate, int)) *PostingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PostingCreateBulk{err: fmt.Errorf("calling to PostingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PostingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PostingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Posting.
+func (c *PostingClient) Update() *PostingUpdate {
+	mutation := newPostingMutation(c.config, OpUpdate)
+	return &PostingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PostingClient) UpdateOne(_m *Posting) *PostingUpdateOne {
+	mutation := newPostingMutation(c.config, OpUpdateOne, withPosting(_m))
+	return &PostingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PostingClient) UpdateOneID(id uuid.UUID) *PostingUpdateOne {
+	mutation := newPostingMutation(c.config, OpUpdateOne, withPostingID(id))
+	return &PostingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Posting.
+func (c *PostingClient) Delete() *PostingDelete {
+	mutation := newPostingMutation(c.config, OpDelete)
+	return &PostingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PostingClient) DeleteOne(_m *Posting) *PostingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PostingClient) DeleteOneID(id uuid.UUID) *PostingDeleteOne {
+	builder := c.Delete().Where(posting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PostingDeleteOne{builder}
+}
+
+// Query returns a query builder for Posting.
+func (c *PostingClient) Query() *PostingQuery {
+	return &PostingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePosting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Posting entity by its id.
+func (c *PostingClient) Get(ctx context.Context, id uuid.UUID) (*Posting, error) {
+	return c.Query().Where(posting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PostingClient) GetX(ctx context.Context, id uuid.UUID) *Posting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryEntry queries the entry edge of a Posting.
+func (c *PostingClient) QueryEntry(_m *Posting) *EntryQuery {
+	query := (&EntryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(posting.Table, posting.FieldID, id),
+			sqlgraph.To(entry.Table, entry.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, posting.EntryTable, posting.EntryColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Entry
+		step.Edge.Schema = schemaConfig.Posting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAccount queries the account edge of a Posting.
+func (c *PostingClient) QueryAccount(_m *Posting) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(posting.Table, posting.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, posting.AccountTable, posting.AccountColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Account
+		step.Edge.Schema = schemaConfig.Posting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PostingClient) Hooks() []Hook {
+	return c.hooks.Posting
+}
+
+// Interceptors returns the client interceptors.
+func (c *PostingClient) Interceptors() []Interceptor {
+	return c.inters.Posting
+}
+
+func (c *PostingClient) mutate(ctx context.Context, m *PostingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PostingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PostingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PostingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PostingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Posting mutation op: %q", m.Op())
 	}
 }
 
@@ -663,19 +1328,24 @@ func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, User, Workspace []ent.Hook
+		Account, Entry, ExchangeRate, LedgerPeriod, Posting, User, Workspace []ent.Hook
 	}
 	inters struct {
-		Account, User, Workspace []ent.Interceptor
+		Account, Entry, ExchangeRate, LedgerPeriod, Posting, User,
+		Workspace []ent.Interceptor
 	}
 )
 
 var (
 	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
 	DefaultSchemaConfig = SchemaConfig{
-		Account:   tableSchemas[0],
-		User:      tableSchemas[0],
-		Workspace: tableSchemas[0],
+		Account:      tableSchemas[0],
+		Entry:        tableSchemas[0],
+		ExchangeRate: tableSchemas[0],
+		LedgerPeriod: tableSchemas[0],
+		Posting:      tableSchemas[0],
+		User:         tableSchemas[0],
+		Workspace:    tableSchemas[0],
 	}
 	tableSchemas = [...]string{"finance"}
 )

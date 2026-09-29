@@ -9,6 +9,18 @@ import (
 // Account is the predicate function for account builders.
 type Account func(*sql.Selector)
 
+// Entry is the predicate function for entry builders.
+type Entry func(*sql.Selector)
+
+// ExchangeRate is the predicate function for exchangerate builders.
+type ExchangeRate func(*sql.Selector)
+
+// LedgerPeriod is the predicate function for ledgerperiod builders.
+type LedgerPeriod func(*sql.Selector)
+
+// Posting is the predicate function for posting builders.
+type Posting func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 

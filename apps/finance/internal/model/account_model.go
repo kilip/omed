@@ -30,9 +30,9 @@ type Account struct {
 	Code          string        `json:"code"`
 	Name          string        `json:"name"`
 	Description   *string       `json:"description,omitempty"`
-	Type          AccountType   `json:"type"`
+	Type          AccountType   `json:"type" enums:"asset,liability,equity,revenue,expense"`
 	Currency      string        `json:"currency"`
-	Status        AccountStatus `json:"status"`
+	Status        AccountStatus `json:"status" enums:"active,archived"`
 	ParentID      *uuid.UUID    `json:"parentId,omitempty"`
 	CreatedBy     uuid.UUID     `json:"createdBy"`
 	CreatedByName string        `json:"createdByName"`
@@ -43,23 +43,23 @@ type Account struct {
 }
 
 type CreateAccountRequest struct {
-	Code        string      `json:"code"`
-	Name        string      `json:"name"`
-	Description *string     `json:"description,omitempty"`
-	Type        AccountType `json:"type"`
-	Currency    string      `json:"currency"`
+	Code        string      `json:"code" validate:"required,max=32"`
+	Name        string      `json:"name" validate:"required,max=255"`
+	Description *string     `json:"description,omitempty" validate:"omitempty,max=1000"`
+	Type        AccountType `json:"type" validate:"required,oneof=asset liability equity revenue expense" enums:"asset,liability,equity,revenue,expense"`
+	Currency    string      `json:"currency" validate:"required,len=3,uppercase" example:"IDR"`
 	ParentID    *uuid.UUID  `json:"parentId,omitempty"`
 }
 
 // UpdateAccountRequest: code, type & currency sengaja tidak bisa diubah.
 type UpdateAccountRequest struct {
-	Name        *string        `json:"name,omitempty"`
-	Description *string        `json:"description,omitempty"`
-	Status      *AccountStatus `json:"status,omitempty"`
+	Name        *string        `json:"name,omitempty" validate:"omitempty,min=1,max=255"`
+	Description *string        `json:"description,omitempty" validate:"omitempty,max=1000"`
+	Status      *AccountStatus `json:"status,omitempty" validate:"omitempty,oneof=active archived" enums:"active,archived"`
 	ParentID    *uuid.UUID     `json:"parentId,omitempty"`
 }
 
 type ListAccountRequest struct {
-	Type   AccountType   `query:"type"`
-	Status AccountStatus `query:"status"`
+	Type   AccountType   `query:"type" validate:"omitempty,oneof=asset liability equity revenue expense"`
+	Status AccountStatus `query:"status" validate:"omitempty,oneof=active archived"`
 }

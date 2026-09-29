@@ -46,6 +46,7 @@ func init() {
 	}))
 	api = config.GetFiber(logger)
 	entClient = createTestDB()
+	config.ConfigureDBClient(entClient)
 
 	state = config.State{
 		Config:    cfg,
