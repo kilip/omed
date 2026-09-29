@@ -79,6 +79,49 @@ components:
       - name
       - type
       type: object
+    model.CreateEntryRequest:
+      properties:
+        description:
+          maxLength: 1000
+          type: string
+        entryDate:
+          type: string
+        entryType:
+          $ref: '#/components/schemas/model.EntryType'
+        postings:
+          items:
+            $ref: '#/components/schemas/model.CreatePostingRequest'
+          minItems: 2
+          type: array
+          uniqueItems: false
+        reference:
+          maxLength: 255
+          type: string
+      required:
+      - entryDate
+      - postings
+      type: object
+    model.CreateExchangeRateRequest:
+      properties:
+        fromCurrency:
+          example: USD
+          type: string
+        rate:
+          type: number
+        rateDate:
+          type: string
+        source:
+          maxLength: 255
+          type: string
+        toCurrency:
+          example: IDR
+          type: string
+      required:
+      - fromCurrency
+      - rate
+      - rateDate
+      - toCurrency
+      type: object
     model.CreateLedgerPeriodRequest:
       properties:
         endDate:
@@ -91,6 +134,72 @@ components:
       - endDate
       - startDate
       type: object
+    model.CreatePostingRequest:
+      properties:
+        accountId:
+          type: string
+        creditAmount:
+          type: number
+        currency:
+          example: IDR
+          type: string
+        debitAmount:
+          type: number
+        memo:
+          maxLength: 1000
+          type: string
+      required:
+      - accountId
+      - currency
+      type: object
+    model.Entry:
+      properties:
+        createdAt:
+          type: string
+        createdBy:
+          type: string
+        createdByName:
+          type: string
+        description:
+          type: string
+        entryDate:
+          type: string
+        entryType:
+          $ref: '#/components/schemas/model.EntryType'
+        id:
+          type: string
+        ledgerPeriodId:
+          type: string
+        postings:
+          items:
+            $ref: '#/components/schemas/model.Posting'
+          type: array
+          uniqueItems: false
+        reference:
+          type: string
+        updatedAt:
+          type: string
+        updatedBy:
+          type: string
+        updatedByName:
+          type: string
+        workspaceId:
+          type: string
+      type: object
+    model.EntryType:
+      enum:
+      - normal
+      - opening_balance
+      - adjustment
+      - closing
+      - fx_adjustment
+      type: string
+      x-enum-varnames:
+      - EntryTypeNormal
+      - EntryTypeOpeningBalance
+      - EntryTypeAdjustment
+      - EntryTypeClosing
+      - EntryTypeFXAdjustment
     model.ErrorBody:
       properties:
         code:
@@ -109,6 +218,23 @@ components:
           $ref: '#/components/schemas/model.ErrorBody'
         meta:
           $ref: '#/components/schemas/model.Meta'
+      type: object
+    model.ExchangeRate:
+      properties:
+        fromCurrency:
+          type: string
+        id:
+          type: string
+        rate:
+          type: number
+        rateDate:
+          type: string
+        source:
+          type: string
+        toCurrency:
+          type: string
+        workspaceId:
+          type: string
       type: object
     model.FieldError:
       properties:
@@ -161,6 +287,37 @@ components:
         timestamp:
           type: string
       type: object
+    model.Posting:
+      properties:
+        accountCode:
+          type: string
+        accountId:
+          type: string
+        accountName:
+          type: string
+        baseCreditAmount:
+          type: number
+        baseCurrency:
+          type: string
+        baseDebitAmount:
+          type: number
+        creditAmount:
+          type: number
+        currency:
+          type: string
+        debitAmount:
+          type: number
+        entryId:
+          type: string
+        exchangeRate:
+          type: number
+        id:
+          type: string
+        memo:
+          type: string
+        workspaceId:
+          type: string
+      type: object
     model.UpdateAccountRequest:
       properties:
         description:
@@ -175,6 +332,14 @@ components:
         status:
           $ref: '#/components/schemas/model.AccountStatus'
       type: object
+    model.UpdateExchangeRateRequest:
+      properties:
+        rate:
+          type: number
+        source:
+          maxLength: 255
+          type: string
+      type: object
     model.UpdateLedgerPeriodRequest:
       properties:
         status:
@@ -187,6 +352,26 @@ components:
         data:
           items:
             $ref: '#/components/schemas/model.Account'
+          type: array
+          uniqueItems: false
+        meta:
+          $ref: '#/components/schemas/model.Meta'
+      type: object
+    model.WebResponse-array_model_Entry:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/model.Entry'
+          type: array
+          uniqueItems: false
+        meta:
+          $ref: '#/components/schemas/model.Meta'
+      type: object
+    model.WebResponse-array_model_ExchangeRate:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/model.ExchangeRate'
           type: array
           uniqueItems: false
         meta:
@@ -209,6 +394,20 @@ components:
         meta:
           $ref: '#/components/schemas/model.Meta'
       type: object
+    model.WebResponse-model_Entry:
+      properties:
+        data:
+          $ref: '#/components/schemas/model.Entry'
+        meta:
+          $ref: '#/components/schemas/model.Meta'
+      type: object
+    model.WebResponse-model_ExchangeRate:
+      properties:
+        data:
+          $ref: '#/components/schemas/model.ExchangeRate'
+        meta:
+          $ref: '#/components/schemas/model.Meta'
+      type: object
     model.WebResponse-model_LedgerPeriod:
       properties:
         data:
@@ -216,12 +415,18 @@ components:
         meta:
           $ref: '#/components/schemas/model.Meta'
       type: object
+  securitySchemes:
+    BearerAuth:
+      in: header
+      name: Authorization
+      type: apiKey
 externalDocs:
   description: ""
   url: ""
 info:
-  title: ""
-  version: ""
+  description: API Server for Finance Service Application
+  title: Finance Service API
+  version: "1.0"
 openapi: 3.1.0
 paths:
   /accounts:
@@ -512,6 +717,477 @@ paths:
       summary: Update account
       tags:
       - accounts
+  /entries:
+    get:
+      description: Return journal entries with pagination and filters.
+      parameters:
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: Number of items per page
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: Filter by start date
+        in: query
+        name: start_date
+        schema:
+          type: string
+      - description: Filter by end date
+        in: query
+        name: end_date
+        schema:
+          type: string
+      - description: Filter by entry type
+        in: query
+        name: entry_type
+        schema:
+          enum:
+          - normal
+          - opening_balance
+          - adjustment
+          - closing
+          - fx_adjustment
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.WebResponse-array_model_Entry'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Forbidden
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: List journal entries
+      tags:
+      - entries
+    post:
+      description: Create a new double-entry journal entry with postings.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.CreateEntryRequest'
+              description: Journal entry payload
+              summary: request
+        description: Journal entry payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.WebResponse-model_Entry'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Forbidden
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Create journal entry
+      tags:
+      - entries
+  /entries/{id}:
+    get:
+      description: Get a single journal entry by ID.
+      parameters:
+      - description: Entry ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.WebResponse-model_Entry'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Get journal entry
+      tags:
+      - entries
+  /exchange-rates:
+    get:
+      description: Return exchange rates with optional filtering.
+      parameters:
+      - description: Filter by base currency
+        in: query
+        name: from_currency
+        schema:
+          type: string
+      - description: Filter by target currency
+        in: query
+        name: to_currency
+        schema:
+          type: string
+      - description: Filter by effective date
+        in: query
+        name: rate_date
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.WebResponse-array_model_ExchangeRate'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Forbidden
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: List exchange rates
+      tags:
+      - exchange-rates
+    post:
+      description: Create a new currency exchange rate.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.CreateExchangeRateRequest'
+              description: Exchange rate payload
+              summary: request
+        description: Exchange rate payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.WebResponse-model_ExchangeRate'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Forbidden
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Create exchange rate
+      tags:
+      - exchange-rates
+  /exchange-rates/{id}:
+    delete:
+      description: Delete an exchange rate entry by ID.
+      parameters:
+      - description: Exchange Rate ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Not Found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Delete exchange rate
+      tags:
+      - exchange-rates
+    get:
+      description: Get a single exchange rate entry by ID.
+      parameters:
+      - description: Exchange Rate ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.WebResponse-model_ExchangeRate'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Get exchange rate
+      tags:
+      - exchange-rates
+    put:
+      description: Update rate or source of an exchange rate entry.
+      parameters:
+      - description: Exchange Rate ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.UpdateExchangeRateRequest'
+              description: Exchange rate payload
+              summary: request
+        description: Exchange rate payload
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.WebResponse-model_ExchangeRate'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Not Found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/model.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Update exchange rate
+      tags:
+      - exchange-rates
   /ledger-periods:
     get:
       description: Return all ledger periods in the active workspace.
@@ -800,3 +1476,5 @@ paths:
       summary: Update ledger period status
       tags:
       - ledger-periods
+servers:
+- url: fin.itstoni.com/
