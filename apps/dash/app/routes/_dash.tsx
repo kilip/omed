@@ -43,9 +43,14 @@ export async function clientLoader({ context }: Route.ClientLoaderArgs) {
 }
 export default function MainLayout({ loaderData }: Route.ComponentProps) {
   return (
-    <AuthProvider user={loaderData.user} session={loaderData.session}>
+    <AuthProvider
+      user={loaderData.user}
+      session={loaderData.session}
+      token={loaderData.token}
+      loading={loaderData.loading}
+    >
       <DashboardLayout>
-        <Outlet />
+        <Outlet context={loaderData} />
       </DashboardLayout>
     </AuthProvider>
   );

@@ -2,6 +2,8 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  MoonOutlined,
+  SunOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import {
@@ -18,6 +20,7 @@ import { type PropsWithChildren, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { clearAuthCache, signOut } from "../auth";
 import { useAuth } from "../providers/AuthProvider";
+import { useThemeMode } from "../providers/TeamProvider";
 import { dashboardMenuItems, findParentKey } from "./menu-items";
 
 const { Header, Sider, Content } = Layout;
@@ -37,6 +40,7 @@ export function DashboardLayout({ children }: PropsWithChildren) {
     return parent ? [parent] : [];
   });
   const { user } = useAuth();
+  const { mode, toggle } = useThemeMode();
 
   const userMenu: MenuProps = {
     items: [
@@ -66,6 +70,7 @@ export function DashboardLayout({ children }: PropsWithChildren) {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
+        className="glass"
         collapsible
         collapsed={collapsed}
         trigger={null}
@@ -73,10 +78,12 @@ export function DashboardLayout({ children }: PropsWithChildren) {
         collapsedWidth={SIDER_WIDTH_COLLAPSED}
         style={{
           position: "fixed",
-          insetInlineStart: 0,
-          top: 0,
-          bottom: 0,
+          insetInlineStart: 12,
+          top: 12,
+          bottom: 12,
           zIndex: 100,
+          borderRadius: 20,
+          overflow: "hidden",
         }}
       >
         <div
@@ -96,7 +103,7 @@ export function DashboardLayout({ children }: PropsWithChildren) {
           {!collapsed && <div style={{ marginLeft: "8px" }}>Omed</div>}
         </div>
         <Menu
-          theme="dark"
+          theme={mode}
           mode="inline"
           selectedKeys={[location.pathname]}
           openKeys={collapsed ? undefined : openKeys}
@@ -108,21 +115,23 @@ export function DashboardLayout({ children }: PropsWithChildren) {
 
       <Layout
         style={{
-          marginInlineStart: collapsed ? SIDER_WIDTH_COLLAPSED : SIDER_WIDTH,
+          marginInlineStart:
+            (collapsed ? SIDER_WIDTH_COLLAPSED : SIDER_WIDTH) + 24,
           transition: "margin-inline-start 0.2s",
         }}
       >
         <Header
+          className="glass"
           style={{
             position: "sticky",
-            top: 0,
+            top: 12,
             zIndex: 99,
+            margin: "12px 12px 0 0",
             padding: "0 16px",
-            background: colorBgContainer,
+            borderRadius: 16,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            borderBottom: "1px solid rgba(5, 5, 5, 0.06)",
           }}
         >
           <Button
@@ -130,22 +139,26 @@ export function DashboardLayout({ children }: PropsWithChildren) {
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed((v) => !v)}
           />
-
-          <Dropdown menu={userMenu} placement="bottomRight">
-            <Space style={{ cursor: "pointer" }}>
-              <Avatar size="small" icon={<UserOutlined />} />
-              <span>{user?.name}</span>
-            </Space>
-          </Dropdown>
+          <Space size="middle">
+            <Button
+              type="text"
+              shape="circle"
+              icon={mode === "dark" ? <SunOutlined /> : <MoonOutlined />}
+              onClick={toggle}
+            />
+            <Dropdown menu={userMenu} placement="bottomRight">
+              {/* sama */}
+            </Dropdown>
+          </Space>
         </Header>
 
-        <Content style={{ margin: 16 }}>
+        <Content style={{ margin: "12px 12px 12px 0" }}>
           <div
+            className="glass"
             style={{
               padding: 24,
-              minHeight: "calc(100vh - 56px - 32px)",
-              background: colorBgContainer,
-              borderRadius: 8,
+              minHeight: "calc(100vh - 56px - 48px)",
+              borderRadius: 20,
             }}
           >
             {children}

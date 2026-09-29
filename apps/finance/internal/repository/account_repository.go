@@ -10,6 +10,7 @@ import (
 	"github.com/kilip/omed/finance/ent/account"
 	"github.com/kilip/omed/finance/internal/model"
 	"github.com/kilip/omed/finance/internal/shared"
+	seed_coa "github.com/kilip/omed/finance/internal/shared/seed/coa"
 )
 
 type AccountRepository struct {
@@ -147,4 +148,50 @@ func (r AccountRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	return nil
+}
+
+func (r AccountRepository) Seed(ctx context.Context, req model.SeedAccountRequest) ([]model.Account, error) {
+	seedAccounts, err := seed_coa.Load(req.Profile, req.Lang)
+	if err != nil {
+		return nil, err
+	}
+
+	currency := req.Currency
+	if currency == "" {
+		currency = "IDR"
+	}
+
+	createdAccounts := make([]model.Account, 0, len(seedAccounts))
+	codeToIDMap := make(map[string]uuid.UUID)
+
+	err = WithTx(ctx, r.cl, func(tx *ent.Tx) error {
+		for _, sa := range seedAccounts {
+			builder := tx.Account.Create().
+				SetCode(sa.Code).
+				SetName(sa.Name).
+				SetType(account.Type(sa.Type)).
+				SetCurrency(currency)
+
+			if sa.ParentCode != nil && *sa.ParentCode != "" {
+				if parentID, exists := codeToIDMap[*sa.ParentCode]; exists {
+					builder.SetParentID(parentID)
+				}
+			}
+
+			acc, err := builder.Save(ctx)
+			if err != nil {
+				return err
+			}
+
+			codeToIDMap[acc.Code] = acc.ID
+			createdAccounts = append(createdAccounts, *toAccount(acc))
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return createdAccounts, nil
 }

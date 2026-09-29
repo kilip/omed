@@ -15,6 +15,9 @@
 		{
 			"name": "better-auth",
 			"path": "packages/better-auth"
+		},
+		{
+			"path": "packages/api"
 		}
 	],
 	"settings": {}

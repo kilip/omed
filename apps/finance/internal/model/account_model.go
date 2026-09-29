@@ -59,6 +59,12 @@ type UpdateAccountRequest struct {
 	ParentID    *uuid.UUID     `json:"parentId,omitempty"`
 }
 
+type SeedAccountRequest struct {
+	Profile  string `json:"profile" validate:"required"`
+	Lang     string `json:"lang" validate:"required"`
+	Currency string `json:"currency" validate:"omitempty,len=3,uppercase" example:"IDR"`
+}
+
 type ListAccountRequest struct {
 	Type   AccountType   `query:"type" validate:"omitempty,oneof=asset liability equity revenue expense"`
 	Status AccountStatus `query:"status" validate:"omitempty,oneof=active archived"`

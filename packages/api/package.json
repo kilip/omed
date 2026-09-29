@@ -1,0 +1,43 @@
+{
+  "name": "@omed/api",
+  "description": "Omed API Client",
+  "version": "0.0.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "dev-source": "./src/index.ts",
+      "default": "./dist/index.mjs"
+    },
+    "./finance": {
+      "types": "./dist/finance.d.mts",
+      "dev-source": "./src/finance.ts",
+      "default": "./dist/finance.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@omed/tsconfig": "*",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.2",
+    "tsdown": "^0.23.0",
+    "typescript": "6",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.0.1"
+  },
+  "dependencies": {}
+}

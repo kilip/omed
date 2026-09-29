@@ -16,6 +16,7 @@ type AccountService interface {
 	Create(ctx context.Context, req model.CreateAccountRequest) (*model.Account, error)
 	Update(ctx context.Context, id uuid.UUID, req model.UpdateAccountRequest) (*model.Account, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	Seed(ctx context.Context, req model.SeedAccountRequest) ([]model.Account, error)
 }
 
 type AccountController struct {
@@ -32,6 +33,7 @@ func (h *AccountController) Register(r fiber.Router) {
 	write := http.RequirePermission(authz.ResourceAccounts, authz.ActionWrite)
 
 	g.Get("/", read, h.List)
+	g.Post("/seed", write, h.Seed)
 	g.Get("/:id", read, h.Get)
 	g.Post("/", write, h.Create)
 	g.Put("/:id", write, h.Update)
@@ -186,3 +188,33 @@ func (h *AccountController) Delete(c fiber.Ctx) error {
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+// Seed godoc
+//
+//	@Summary		Seed accounts
+//	@Description	Seed chart of accounts using preset profile and language.
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		model.SeedAccountRequest	true	"Seed request payload"
+//	@Success		201		{object}	model.WebResponse[[]model.Account]
+//	@Failure		400		{object}	model.ErrorResponse
+//	@Failure		401		{object}	model.ErrorResponse
+//	@Failure		403		{object}	model.ErrorResponse
+//	@Failure		422		{object}	model.ErrorResponse
+//	@Failure		500		{object}	model.ErrorResponse
+//	@Router			/accounts/seed [post]
+func (h *AccountController) Seed(c fiber.Ctx) error {
+	var req model.SeedAccountRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+
+	accounts, err := h.svc.Seed(c, req)
+	if err != nil {
+		return err
+	}
+	return http.Created(c, accounts)
+}
+

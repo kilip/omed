@@ -388,6 +388,52 @@ func (s *AccountTestSuite) TestWorkspaceIsolation() {
 	s.Equal(wsA, got.WorkspaceID)
 }
 
+// ---------------------------------------------------------------- seed
+
+func (s *AccountTestSuite) TestSeed() {
+	s.Run("success seed freelancer en", func() {
+		s.Request("/accounts/seed", fiber.MethodPost, model.SeedAccountRequest{
+			Profile: "freelancer",
+			Lang:    "en",
+		})
+		s.Created()
+
+		data := s.PagedResponse().Data
+		s.NotEmpty(data)
+
+		// Verifikasi akun hirarki terbentuk di database
+		s.Request("/accounts", fiber.MethodGet, nil)
+		s.OK()
+		allAccounts := s.PagedResponse().Data
+		s.NotEmpty(allAccounts)
+
+		// Pastikan ada akun 1000 (parent) dan 1100 (child) dengan parentID yang valid
+		var parent, child *model.Account
+		for i := range allAccounts {
+			acc := &allAccounts[i]
+			if acc.Code == "1000" {
+				parent = acc
+			}
+			if acc.Code == "1100" {
+				child = acc
+			}
+		}
+
+		s.Require().NotNil(parent, "Account parent 1000 harus terbuat")
+		s.Require().NotNil(child, "Account child 1100 harus terbuat")
+		s.Require().NotNil(child.ParentID, "ParentID child 1100 harus terisi")
+		s.Equal(parent.ID, *child.ParentID, "ParentID child 1100 harus menunjuk ke ID parent 1000")
+	})
+
+	s.Run("invalid profile or lang", func() {
+		s.Request("/accounts/seed", fiber.MethodPost, model.SeedAccountRequest{
+			Profile: "nonexistent",
+			Lang:    "en",
+		})
+		s.AssertStatus(fiber.StatusInternalServerError)
+	})
+}
+
 func TestAccountSuite(t *testing.T) {
 	suite.Run(t, new(AccountTestSuite))
 }

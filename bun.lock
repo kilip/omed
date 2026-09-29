@@ -36,6 +36,7 @@
       "name": "@omed/dash",
       "dependencies": {
         "@ant-design/icons": "^6.3.4",
+        "@omed/api": "*",
         "@omed/better-auth": "*",
         "@react-router/node": "^8.4.0",
         "@react-router/serve": "^8.4.0",
@@ -58,6 +59,22 @@
         "tailwindcss": "^4.2.2",
         "typescript": "^5.9.3",
         "vite": "^8.0.3",
+      },
+    },
+    "apps/finance": {
+      "name": "@omed/finance",
+    },
+    "packages/api": {
+      "name": "@omed/api",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@omed/tsconfig": "*",
+        "@types/bun": "^1.4.2",
+        "@types/node": "^26.6.2",
+        "tsdown": "^0.23.0",
+        "typescript": "6",
+        "vite-tsconfig-paths": "^6.1.1",
+        "vitest": "^5.0.1",
       },
     },
     "packages/better-auth": {
@@ -262,11 +279,15 @@
 
     "@noble/hashes": ["@noble/hashes@2.4.0", "", {}, "sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA=="],
 
+    "@omed/api": ["@omed/api@workspace:packages/api"],
+
     "@omed/auth": ["@omed/auth@workspace:apps/auth"],
 
     "@omed/better-auth": ["@omed/better-auth@workspace:packages/better-auth"],
 
     "@omed/dash": ["@omed/dash@workspace:apps/dash"],
+
+    "@omed/finance": ["@omed/finance@workspace:apps/finance"],
 
     "@omed/tsconfig": ["@omed/tsconfig@workspace:packages/tsconfig"],
 

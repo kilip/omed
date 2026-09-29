@@ -469,6 +469,15 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.SeedAccountRequest": {
+                "properties": {
+                    "currency": {
+                        "example": "IDR",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.UpdateAccountRequest": {
                 "properties": {
                     "description": {
@@ -822,6 +831,116 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Create account",
+                "tags": [
+                    "accounts"
+                ]
+            }
+        },
+        "/accounts/seed/{profile}/{lang}": {
+            "post": {
+                "description": "Seed chart of accounts using preset profile and language.",
+                "parameters": [
+                    {
+                        "description": "Profile name",
+                        "example": "freelancer",
+                        "in": "path",
+                        "name": "profile",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Language code",
+                        "example": "en",
+                        "in": "path",
+                        "name": "lang",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SeedAccountRequest",
+                                "summary": "request",
+                                "description": "Seed request optional payload"
+                            }
+                        }
+                    },
+                    "description": "Seed request optional payload"
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-array_model_Account"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Seed accounts",
                 "tags": [
                     "accounts"
                 ]
@@ -2351,12 +2470,7 @@ const docTemplate = `{
             }
         }
     },
-    "openapi": "3.1.0",
-    "servers": [
-        {
-            "url": "fin.itstoni.com/"
-        }
-    ]
+    "openapi": "3.1.0"
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

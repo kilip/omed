@@ -1,6 +1,6 @@
 import { UnderConstruction } from "~/shared/ui/Underconstruction";
 
-export const meta = [
+export const meta = () => [
   {
     title: "Blog Pages",
   },

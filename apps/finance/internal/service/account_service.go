@@ -14,6 +14,7 @@ type AccountRepository interface {
 	Create(ctx context.Context, req model.CreateAccountRequest) (*model.Account, error)
 	Update(ctx context.Context, id uuid.UUID, req model.UpdateAccountRequest) (*model.Account, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	Seed(ctx context.Context, req model.SeedAccountRequest) ([]model.Account, error)
 }
 
 type AccountService struct {
@@ -45,4 +46,8 @@ func (s AccountService) Update(ctx context.Context, id uuid.UUID, req model.Upda
 
 func (s AccountService) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.accounts.Delete(ctx, id)
+}
+
+func (s AccountService) Seed(ctx context.Context, req model.SeedAccountRequest) ([]model.Account, error) {
+	return s.accounts.Seed(ctx, req)
 }
