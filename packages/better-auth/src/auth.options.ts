@@ -1,0 +1,144 @@
+import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
+import type { Auth, BetterAuthOptions } from "better-auth";
+import {
+  admin,
+  jwt,
+  openAPI,
+  organization,
+  testUtils,
+} from "better-auth/plugins";
+import { authEnv } from "../src/config";
+import { authDB } from "../src/drizzle";
+import * as schema from "../src/drizzle/schema";
+
+export const betterAuthOptions = {
+  baseURL: authEnv.AUTH_BASE_URL,
+  secret: authEnv.AUTH_SECRET,
+  basePath: authEnv.AUTH_BASE_PATH,
+  trustedOrigins: authEnv.AUTH_TRUSTED_ORIGINS,
+  database: drizzleAdapter(authDB, {
+    provider: "pg",
+    schemaName: "auth",
+    schema,
+  }),
+  advanced: {
+    database: {
+      generateId: "uuid",
+    },
+  },
+  plugins: [
+    admin(),
+    organization({
+      teams: {
+        enabled: true,
+        customCreateDefaultTeam: async (org: Record<string, unknown>) => ({
+          organizationId: org.id,
+          name: org.isPersonal ? "Personal Workspace" : `${org.name} Workspace`,
+          personal: org.isPersonal,
+          createdAt: new Date(),
+        }),
+      },
+      schema: {
+        team: {
+          additionalFields: {
+            isPersonal: {
+              fieldName: "personal",
+              type: "boolean",
+              defaultValue: false,
+              returned: true,
+              input: false,
+            },
+          },
+        },
+        organization: {
+          additionalFields: {
+            isPersonal: {
+              fieldName: "personal",
+              type: "boolean",
+              defaultValue: false,
+              returned: true,
+              input: false,
+            },
+          },
+        },
+      },
+    }),
+    jwt({
+      jwt: {
+        definePayload(session) {
+          return {
+            id: session.user.id,
+            name: session.user.name,
+            avatar: session.user?.image,
+          };
+        },
+      },
+    }),
+    openAPI(),
+    ...(authEnv.DEVELOPMENT ? [testUtils()] : []),
+  ],
+  socialProviders: {
+    ...(authEnv.AUTH_GOOGLE_ID && authEnv.AUTH_GOOGLE_SECRET
+      ? {
+          google: {
+            clientId: authEnv.AUTH_GOOGLE_ID,
+            clientSecret: authEnv.AUTH_GOOGLE_SECRET,
+            scope: ["email", "profile", "openid"],
+          },
+        }
+      : {}),
+    ...(authEnv.AUTH_GITHUB_ID && authEnv.AUTH_GITHUB_SECRET
+      ? {
+          github: {
+            clientId: authEnv.AUTH_GITHUB_ID,
+            clientSecret: authEnv.AUTH_GITHUB_SECRET,
+            scope: ["email", "profile", "openid"],
+          },
+        }
+      : {}),
+  },
+  user: {
+    additionalFields: {
+      onBoarded: {
+        type: "boolean",
+        defaultValue: false,
+        fieldName: "on_boarded",
+        returned: true,
+      },
+      activeWorkspace: {
+        type: "string",
+        input: false,
+        fieldName: "active_workspace",
+      },
+    },
+  },
+  /*
+  databaseHooks: {
+    user: {
+      create: {
+        async after(u) {
+          service.createPersonalWorkspace(u);
+        },
+      },
+    },
+    session: {
+      create: {
+        async before(session) {
+          const team = await service.findActiveTeam(session.userId);
+          if (!team) return { data: session };
+          return {
+            data: {
+              ...session,
+              activeTeamId: team.id,
+              activeOrganizationId: team.organizationId,
+            },
+          };
+        },
+      },
+    },
+  },
+  */
+} satisfies BetterAuthOptions;
+
+export type BaseOptions = typeof betterAuthOptions;
+export type AuthType = Auth<BaseOptions>;

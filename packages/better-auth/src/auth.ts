@@ -1,52 +1,38 @@
-import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { betterAuth } from "better-auth";
-import { admin, jwt, openAPI, organization } from "better-auth/plugins";
-import { authEnv } from "../src/config";
-import { authDB } from "../src/drizzle";
-import * as schema from "../src/drizzle/schema";
+import { type AuthType, betterAuthOptions } from "./auth.options";
+import { AuthService } from "./service";
+
+async function getService() {
+  const { adapter, internalAdapter } = await auth.$context;
+  return new AuthService(adapter, internalAdapter, auth.api);
+}
 
 export const auth = betterAuth({
-  baseURL: authEnv.AUTH_BASE_URL,
-  secret: authEnv.AUTH_SECRET,
-  basePath: authEnv.AUTH_BASE_PATH,
-  trustedOrigins: [
-    ...(authEnv.DEVELOPMENT
-      ? [
-          // dashboard:
-          "http://localhost:3001",
-          // finance api
-          "http://localhost:9002",
-        ]
-      : []),
-    "https://auth.itstoni.com",
-    "https://auth.doyolabs.workers.dev",
-  ],
-  database: drizzleAdapter(authDB, {
-    provider: "pg",
-    schemaName: "auth",
-    schema,
-  }),
-  plugins: [
-    admin(),
-    organization({ teams: { enabled: true } }),
-    jwt({
-      jwt: {
-        definePayload(session) {
+  ...betterAuthOptions,
+  databaseHooks: {
+    user: {
+      create: {
+        async after(u) {
+          const service = await getService();
+          service.createPersonalWorkspace(u);
+        },
+      },
+    },
+    session: {
+      create: {
+        async before(session) {
+          const service = await getService();
+          const team = await service.findActiveTeam(session.userId);
+          if (!team) return { data: session };
           return {
-            id: session.user.id,
-            name: session.user.name,
-            avatar: session.user?.image,
+            data: {
+              ...session,
+              activeTeamId: team.id,
+              activeOrganizationId: team.organizationId,
+            },
           };
         },
       },
-    }),
-    openAPI(),
-  ],
-  socialProviders: {
-    google: {
-      clientId: authEnv.AUTH_GOOGLE_ID,
-      clientSecret: authEnv.AUTH_GOOGLE_SECRET,
-      scope: ["email", "profile", "openid"],
     },
   },
-});
+}) as unknown as AuthType;

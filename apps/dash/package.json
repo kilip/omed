@@ -6,7 +6,10 @@
     "build": "react-router build",
     "dev": "react-router dev --port 3001 --host",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "auth:schema": "bun x auth@latest generate --output ./src/drizzle/schema/better-auth.ts --yes",
+    "db:push": "drizzle-kit push --force",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.4",

@@ -6,12 +6,19 @@ export const authEnvConfig = () => {
     server: {
       DEVELOPMENT: z.boolean().default(process.env.NODE_ENV !== "production"),
       AUTH_BASE_URL: z.string().default("http://localhost:9001"),
-      AUTH_BASE_PATH: z.string().default("/auth"),
-      AUTH_SECRET: z.string().default("0vK4SBoPHS2Rq0i9zfFwRmpqWH6XAvf7"),
-      AUTH_DB_DRIVER: z.enum(["node", "neon"]).default("neon"),
-      AUTH_DB_URL: z.string().default("database-url"),
-      AUTH_GOOGLE_ID: z.string(),
-      AUTH_GOOGLE_SECRET: z.string(),
+      AUTH_TRUSTED_ORIGINS: z
+        .string()
+        .transform((v) => v.split(/[\s,]+/).filter(Boolean))
+        .pipe(z.array(z.url()))
+        .default(["http://localhost:3001"]),
+      AUTH_BASE_PATH: z.string(),
+      AUTH_SECRET: z.string(),
+      AUTH_DB_DRIVER: z.enum(["node", "neon"]),
+      AUTH_DB_URL: z.string(),
+      AUTH_GOOGLE_ID: z.string().optional(),
+      AUTH_GOOGLE_SECRET: z.string().optional(),
+      AUTH_GITHUB_ID: z.string().optional(),
+      AUTH_GITHUB_SECRET: z.string().optional(),
     },
     runtimeEnv: process.env,
   });
