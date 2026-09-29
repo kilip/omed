@@ -1,12 +1,17 @@
 {
-  "folders": [
-    {
-      "name": "auth",
-      "path": "apps/auth"
-    },
-    {
-      "name": "better-auth",
-      "path": "packages/better-auth"
-    }
-  ]
+	"folders": [
+		{
+			"name": "dash",
+			"path": "apps/dash"
+		},
+		{
+			"name": "finance",
+			"path": "apps/finance"
+		},
+		{
+			"name": "better-auth",
+			"path": "packages/better-auth"
+		}
+	],
+	"settings": {}
 }

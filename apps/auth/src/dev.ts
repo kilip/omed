@@ -1,3 +1,3 @@
-import { app } from ".";
+import { server } from "./server";
 
-app.listen("9001");
+server.listen("9001");

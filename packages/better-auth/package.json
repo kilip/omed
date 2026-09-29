@@ -17,11 +17,6 @@
       "types": "./dist/index.d.mts",
       "dev-source": "./src/index.ts",
       "default": "./dist/index.mjs"
-    },
-    "./client": {
-      "types": "./dist/client.d.mts",
-      "dev-source": "./src/client.ts",
-      "default": "./dist/client.mjs"
     }
   },
   "scripts": {

@@ -1,4 +1,4 @@
 {
   "extends": "@omed/tsconfig/base.json",
-  "include": ["./src"]
+  "include": ["./src", "node_modules/auth.ts"]
 }

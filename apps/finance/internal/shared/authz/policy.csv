@@ -1,0 +1,8 @@
+p,superadmin,*,*,*
+p,owner,*,*,*
+p,admin,*,accounts,read
+p,admin,*,accounts,write
+p,member,*,accounts,read
+p,member,*,users,read
+p,member,*,users,write
+p,user,*,users,read

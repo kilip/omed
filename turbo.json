@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/turbo/schema.json",
   "ui": "tui",
-  "globalEnv": ["AUTH_*", "BETTER_AUTH_*"],
+  "globalEnv": ["AUTH_*", "BETTER_AUTH_*", "VITE_*"],
   "globalDependencies": ["**/.env.*local", "**/.env"],
   "tasks": {
     "build": {
