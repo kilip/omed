@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/sethvargo/go-envconfig"
+	"github.com/sethvargo/go-envconfig/v2"
 )
 
 type Config struct {
