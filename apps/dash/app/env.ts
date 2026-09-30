@@ -14,6 +14,7 @@ export const appEnvConfig = () => {
      */
     client: {
       VITE_AUTH_URL: z.string().default("http://localhost:9001"),
+      VITE_PUBLIC_URL: z.string().default("http://localhost:3001"),
     },
 
     /*
