@@ -13,9 +13,9 @@ import * as schema from "../src/drizzle/schema";
 import type { Session } from "./type";
 
 export const betterAuthOptions = {
-  baseURL: authEnv.AUTH_BASE_URL,
+  baseURL: authEnv.AUTH_URL,
   secret: authEnv.AUTH_SECRET,
-  basePath: authEnv.AUTH_BASE_PATH,
+  basePath: authEnv.AUTH_PATH,
   trustedOrigins: authEnv.AUTH_TRUSTED_ORIGINS,
   database: drizzleAdapter(authDB, {
     provider: "pg",
