@@ -12,6 +12,7 @@ const config: UserConfig = {
         "auth",
         "dash",
         "finance",
+        "fin",
         "blog",
         // packages
         "better-auth",
