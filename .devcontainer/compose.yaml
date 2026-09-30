@@ -14,22 +14,25 @@ services:
     environment:
       TZ: Asia/Makassar
       # --- auth (apps/auth) ---
-      AUTH_BASE_URL: http://localhost:9001
-      AUTH_TRUSTED_ORIGINS: http://localhost:3001
+      AUTH_URL: http://localhost:9001
+      AUTH_TRUSTED_ORIGINS: http://localhost:3001 http://localhost:9002 http://localhost:9003
       AUTH_SECRET: dev-only-secret-change-me-please-32chars
       AUTH_DB_DRIVER: node
       AUTH_DB_URL: postgres://omed:omed@db:5432/omed
+      AUTH_JWKS_URL: http://localhost:9001/jwks
+
       # --- finance (apps/finance) ---
-      DATABASE_URL: postgres://omed:omed@db:5432/omed?sslmode=disable
-      JWKS_URL: http://localhost:9001/jwks
-      PORT: "9002"
+      FIN_DB_URL: postgres://omed:omed@db:5432/omed
+      FIN_PORT: "9002"
+
       # --- blog (apps/blog) ---
-      BLOG_DATABASE_URL: postgres://omed:omed@db:5432/omed?options=-c%20search_path%3Dblog
-      # --- dash (apps/dash) ---
-      VITE_AUTH_URL: http://localhost:9001
-    depends_on:
-      db:
-        condition: service_healthy
+      BLOG_DATABASE_URL: postgres://omed:omed@db:5432/omed
+
+      # -- dashboard (apps/dash) ---
+      VITE_PUBLIC_URL: http://localhost:3001
+    #depends_on:
+    #  db:
+    #    condition: service_healthy
 
   db:
     image: postgres:18-alpine
@@ -46,14 +49,6 @@ services:
       interval: 3s
       timeout: 3s
       retries: 20
-
-  adminer:
-    image: adminer:latest
-    restart: unless-stopped
-    environment:
-      ADMINER_DEFAULT_SERVER: db
-    depends_on:
-      - db
 
 volumes:
   pgdata:
