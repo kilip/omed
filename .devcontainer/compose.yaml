@@ -29,6 +29,7 @@ services:
       BLOG_DATABASE_URL: postgres://omed:omed@db:5432/omed
 
       # -- dashboard (apps/dash) ---
+      VITE_AUTH_URL: http://localhost:9001
       VITE_PUBLIC_URL: http://localhost:3001
     #depends_on:
     #  db:
