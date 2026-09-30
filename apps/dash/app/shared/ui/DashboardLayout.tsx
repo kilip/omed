@@ -14,7 +14,6 @@ import {
   Menu,
   type MenuProps,
   Space,
-  theme,
 } from "antd";
 import { type PropsWithChildren, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
@@ -25,16 +24,13 @@ import { dashboardMenuItems, findParentKey } from "./menu-items";
 
 const { Header, Sider, Content } = Layout;
 
-const SIDER_WIDTH = 240;
-const SIDER_WIDTH_COLLAPSED = 80;
+const SIDER_WIDTH = 248;
+const SIDER_WIDTH_COLLAPSED = 64;
 
 export function DashboardLayout({ children }: PropsWithChildren) {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
   const [openKeys, setOpenKeys] = useState<string[]>(() => {
     const parent = findParentKey(location.pathname);
     return parent ? [parent] : [];
@@ -70,7 +66,7 @@ export function DashboardLayout({ children }: PropsWithChildren) {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
-        className="glass"
+        className="app-sider"
         collapsible
         collapsed={collapsed}
         trigger={null}
@@ -78,12 +74,11 @@ export function DashboardLayout({ children }: PropsWithChildren) {
         collapsedWidth={SIDER_WIDTH_COLLAPSED}
         style={{
           position: "fixed",
-          insetInlineStart: 12,
-          top: 12,
-          bottom: 12,
+          insetInlineStart: 0,
+          top: 0,
+          bottom: 0,
           zIndex: 100,
-          borderRadius: 20,
-          overflow: "hidden",
+          overflow: "auto",
         }}
       >
         <div
@@ -93,42 +88,39 @@ export function DashboardLayout({ children }: PropsWithChildren) {
             alignItems: "center",
             justifyContent: collapsed ? "center" : "flex-start",
             paddingInline: collapsed ? 0 : 20,
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 18,
-            letterSpacing: 0.5,
+            gap: 10,
+            fontWeight: 600,
+            fontSize: 16,
+            color: "var(--text)",
           }}
         >
-          <img src="/omed-mark.svg" alt="Omed" width={28} height={28} />
-          {!collapsed && <div style={{ marginLeft: "8px" }}>Omed</div>}
+          <img src="/omed-mark.svg" alt="Omed" width={24} height={24} />
+          {!collapsed && <span>Omed</span>}
         </div>
         <Menu
-          theme={mode}
           mode="inline"
           selectedKeys={[location.pathname]}
           openKeys={collapsed ? undefined : openKeys}
           onOpenChange={(keys) => setOpenKeys(keys)}
           items={dashboardMenuItems}
           onClick={({ key }) => navigate(key)}
+          style={{ background: "transparent", borderInlineEnd: 0 }}
         />
       </Sider>
 
       <Layout
         style={{
-          marginInlineStart:
-            (collapsed ? SIDER_WIDTH_COLLAPSED : SIDER_WIDTH) + 24,
+          marginInlineStart: collapsed ? SIDER_WIDTH_COLLAPSED : SIDER_WIDTH,
           transition: "margin-inline-start 0.2s",
+          background: "transparent",
         }}
       >
         <Header
-          className="glass"
+          className="app-header"
           style={{
             position: "sticky",
-            top: 12,
+            top: 0,
             zIndex: 99,
-            margin: "12px 12px 0 0",
-            padding: "0 16px",
-            borderRadius: 16,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -136,33 +128,36 @@ export function DashboardLayout({ children }: PropsWithChildren) {
         >
           <Button
             type="text"
+            aria-label="Toggle sidebar"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed((v) => !v)}
           />
-          <Space size="middle">
+          <Space size="small">
             <Button
               type="text"
               shape="circle"
+              aria-label="Toggle theme"
               icon={mode === "dark" ? <SunOutlined /> : <MoonOutlined />}
               onClick={toggle}
             />
-            <Dropdown menu={userMenu} placement="bottomRight">
-              {/* sama */}
+            <Dropdown
+              menu={userMenu}
+              placement="bottomRight"
+              trigger={["click"]}
+            >
+              <Avatar
+                size={32}
+                src={user.image ?? undefined}
+                style={{ cursor: "pointer" }}
+              >
+                {user.name?.[0]?.toUpperCase()}
+              </Avatar>
             </Dropdown>
           </Space>
         </Header>
 
-        <Content style={{ margin: "12px 12px 12px 0" }}>
-          <div
-            className="glass"
-            style={{
-              padding: 24,
-              minHeight: "calc(100vh - 56px - 48px)",
-              borderRadius: 20,
-            }}
-          >
-            {children}
-          </div>
+        <Content>
+          <div className="app-content">{children}</div>
         </Content>
       </Layout>
     </Layout>
