@@ -5,7 +5,8 @@
     "dev": "bun --watch src/dev.ts",
     "auth:schema": "bun x auth@latest generate --config ../../packages/better-auth/src/auth.ts --output ../../packages/better-auth/src/drizzle/schema/better-auth.ts --yes",
     "db:push": "drizzle-kit push --force",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@omed/better-auth": "*",

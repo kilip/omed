@@ -7,6 +7,7 @@
     "dev": "react-router dev --port 3001 --host",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
+    "check-types": "react-router typegen && tsc",
     "test:e2e": "NODE_OPTIONS='--import tsx' cucumber-js --config e2e/cucumber.json",
     "test:e2e:report": "NODE_OPTIONS='--import tsx' cucumber-js --config e2e/cucumber.json --format html:e2e-report.html"
   },
