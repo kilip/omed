@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun install
+      - run: bun install --frozen-lockfile
       - run: bun run build
       - name: Build & Deploy Worker
         uses: cloudflare/wrangler-action@v4
@@ -21,3 +21,15 @@ jobs:
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           workingDirectory: apps/auth
           packageManager: bun
+          secrets: |
+            AUTH_DB_DRIVER
+            AUTH_DB_URL
+            AUTH_GOOGLE_ID
+            AUTH_GOOGLE_SECRET
+            AUTH_SECRET
+        env:
+          AUTH_DB_DRIVER: ${{ secrets.AUTH_DB_DRIVER}}
+          AUTH_DB_URL: ${{ secrets.AUTH_DB_URL }}
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}

@@ -11,10 +11,10 @@ export const authEnvConfig = () => {
         .transform((v) => v.split(/[\s,]+/).filter(Boolean))
         .pipe(z.array(z.url()))
         .default(["http://localhost:3001"]),
-      AUTH_BASE_PATH: z.string(),
+      AUTH_BASE_PATH: z.string().default(""),
       AUTH_SECRET: z.string(),
       AUTH_DB_DRIVER: z.enum(["node", "neon"]),
-      AUTH_DB_URL: z.string(),
+      AUTH_DB_URL: z.string("postgres://omed:omed@localhost/omed"),
       AUTH_GOOGLE_ID: z.string().optional(),
       AUTH_GOOGLE_SECRET: z.string().optional(),
       AUTH_GITHUB_ID: z.string().optional(),
