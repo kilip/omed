@@ -1,0 +1,11 @@
+{
+  "default": {
+    "paths": ["e2e/features/**/*.feature"],
+    "import": ["tsx", "e2e/support/**/*.ts", "e2e/steps/**/*.ts"],
+    "format": ["summary", "progress-bar", "html:test-reports/e2e-report.html"],
+    "formatOptions": {
+      "snippetInterface": "async-await"
+    },
+    "publishQuiet": true
+  }
+}

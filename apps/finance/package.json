@@ -1,0 +1,7 @@
+{
+  "name": "@omed/finance",
+  "scripts": {
+    "dev": "air",
+    "openapi:gen": "swag init --v3.1 -o ./docs/swag --parseDependency --parseInternal"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "omed",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo watch dev --ui=tui",
+    "lint": "turbo run lint",
+    "format": "biome format --write",
+    "check-types": "turbo run check-types",
+    "test": "turbo run test --ui=tui",
+    "e2e": "turbo run test:e2e",
+    "test:e2e": "turbo run test:e2e",
+    "auth:schema": "turbo run auth:schema",
+    "db:push": "turbo run db:push",
+    "db:studio": "turbo run db:studio",
+    "api:finance": "openapi-typescript ./apps/finance/docs/swag/swagger.json -o ./packages/api/src/specs/finance.ts",
+    "prepare": "husky",
+    "commitlint": "commitlint"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@commitlint/cli": "^19",
+    "@commitlint/config-conventional": "^19",
+    "husky": "^9.1.7",
+    "openapi-typescript": "^7.13.0",
+    "turbo": "^2.11.4",
+    "typescript": "^6"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "bun",
+      "version": "1.4.2"
+    }
+  },
+  "dependencies": {
+    "@react-router/fs-routes": "^8.4.0"
+  }
+}
