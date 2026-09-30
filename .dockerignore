@@ -1,0 +1,12 @@
+**/.git
+**/node_modules
+**/.turbo
+**/.react-router
+**/dist
+**/build
+**/.next
+**/.cache
+**/test-reports
+**/coverage
+**/.env*
+!**/.env.example

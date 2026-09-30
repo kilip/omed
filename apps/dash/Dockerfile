@@ -14,8 +14,7 @@ RUN bun install --frozen-lockfile
 # Build workspace packages first, then dash
 ARG VITE_AUTH_URL
 ARG VITE_PUBLIC_URL
-RUN bun run --cwd packages/tsconfig build 2>/dev/null || true && \
-    bun run --cwd packages/api build && \
+RUN bun run --cwd packages/api build && \
     bun run --cwd packages/better-auth build && \
     bun run --cwd apps/dash build
 
