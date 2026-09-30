@@ -138,6 +138,27 @@ jobs:
       - name: Install Playwright Chromium & System Dependencies
         run: bunx playwright install --with-deps chromium
 
+      - name: Push Auth DB Schema
+        run: bun run db:push
+
+      - name: Build Packages
+        run: bun run build
+
+      - name: Start Dev Servers
+        run: |
+          bun run --cwd apps/auth dev &
+          bun run --cwd apps/dash dev &
+          for i in {1..30}; do
+            if curl -s -f http://localhost:9001/hello > /dev/null && curl -s -f http://localhost:3001 > /dev/null; then
+              echo "Dev servers are ready!"
+              exit 0
+            fi
+            echo "Waiting for servers to start ($i/30)..."
+            sleep 1
+          done
+          echo "Dev servers failed to start in time!"
+          exit 1
+
       - name: Run E2E Tests
         working-directory: apps/dash
         run: bun run test:e2e
