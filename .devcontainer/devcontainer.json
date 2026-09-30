@@ -7,13 +7,18 @@
   "shutdownAction": "stopCompose",
   "hostRequirements": { "cpus": 4, "memory": "8gb", "storage": "32gb" },
   "forwardPorts": [3001, 9001, 9002, 9003, 5432, 8080],
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4.1.2": {
+      "version": "latest",
+      "moby": true
+    }
+  },
   "portsAttributes": {
     "3001": { "label": "dash (react-router)", "onAutoForward": "openBrowser" },
     "9001": { "label": "auth (elysia + better-auth)" },
     "9002": { "label": "finance (go/fiber)" },
     "9003": { "label": "blog (rust/axum)" },
     "5432": { "label": "postgres", "onAutoForward": "silent" },
-    "8080": { "label": "adminer", "onAutoForward": "silent" }
   },
   "postCreateCommand": "bash .devcontainer/setup.sh",
   "customizations": {
