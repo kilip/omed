@@ -26,6 +26,6 @@ func main() {
 	config.Bootstrap(state)
 
 	log.Fatal(api.Listen(fmt.Sprintf(":%d", cfg.Port), fiber.ListenConfig{
-		EnablePrefork: true,
+		EnablePrefork: false,
 	}))
 }

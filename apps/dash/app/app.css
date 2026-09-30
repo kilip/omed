@@ -1,46 +1,89 @@
 @import "tailwindcss";
 
 :root {
-  --bg-base: #eef0ff;
-  --bg-a: #c7d2fe;
-  --bg-b: #fbcfe8;
-  --bg-c: #a5f3fc;
-  --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.7);
-  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
-  --text: #1b1f3b;
+  --bg: #fbfaf7;
+  --bg-side: #f4f2ed;
+  --surface: #ffffff;
+  --border: #e4e0d6;
+  --border-soft: #eeebe3;
+  --text: #2b2a27;
+  --muted: #77736a;
+  --accent: #3f5ea8;
+  --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+}
+
+:root[data-theme="dark"] {
+  --bg: #1b1a18;
+  --bg-side: #161513;
+  --surface: #232220;
+  --border: #37352f;
+  --border-soft: #2c2a26;
+  --text: #ece9e2;
+  --muted: #9a958a;
+  --accent: #8fa8e8;
+}
+
+html {
+  color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg-base: #0b1020;
-  --bg-a: #312e81;
-  --bg-b: #581c87;
-  --bg-c: #0c4a6e;
-  --glass-bg: rgba(20, 24, 45, 0.5);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-  --text: #e8eaff;
+  color-scheme: dark;
 }
 
 body {
   min-height: 100vh;
+  margin: 0;
   color: var(--text);
-  background:
-    radial-gradient(at 12% 8%, var(--bg-a) 0, transparent 50%),
-    radial-gradient(at 88% 18%, var(--bg-b) 0, transparent 50%),
-    radial-gradient(at 50% 95%, var(--bg-c) 0, transparent 55%), var(--bg-base);
-  background-attachment: fixed;
-  transition: background 0.3s;
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
-.glass,
-.ant-card,
-.ant-dropdown-menu,
-.ant-popover-inner,
-.ant-modal-content,
-.ant-drawer-content {
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+/* Judul pakai serif, isi tetap sans */
+h1,
+h2,
+h3,
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* Layout shell */
+.app-sider {
+  background: var(--bg-side) !important;
+  border-inline-end: 1px solid var(--border-soft);
+}
+.app-header {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-block-end: 1px solid var(--border-soft);
+}
+.app-content {
+  max-width: 1040px;
+  margin-inline: auto;
+  padding: 48px 32px 96px;
+}
+
+/* Card: flat, garis tipis, tanpa shadow */
+.ant-card {
+  border: 1px solid var(--border-soft);
+  box-shadow: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

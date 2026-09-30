@@ -5,6 +5,11 @@ root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
 
+[build.windows]
+  bin = "./tmp/api.exe"
+  cmd = "go build -o ./tmp/api.exe ./cmd/api"
+  entrypoint = ["./tmp/api.exe"]
+
 [build]
   args_bin = []
   bin = "./tmp/api"
