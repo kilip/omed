@@ -4,10 +4,9 @@ export default defineConfig({
   deps: {
     neverBundle: [
       "drizzle-kit",
+      /^drizzle-kit\//,
       "@electric-sql/pglite",
       "drizzle-orm/pglite",
-      "@tursodatabase/database",
-      "@libsql/client",
     ],
   },
   dts: { build: true, incremental: true },
