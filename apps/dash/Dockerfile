@@ -1,22 +1,33 @@
-FROM node:24-alpine AS development-dependencies-env
-COPY . /app
-WORKDIR /app
-RUN npm ci
+# ---- Install & Build (monorepo context) ----
+FROM oven/bun:1 AS builder
 
-FROM node:24-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
 WORKDIR /app
-RUN npm ci --omit=dev
 
-FROM node:24-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
-RUN npm run build
+# Copy root workspace files for dependency resolution
+COPY package.json bun.lock turbo.json ./
+COPY packages/ ./packages/
+COPY apps/dash/ ./apps/dash/
 
-FROM node:24-alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
-WORKDIR /app
-CMD ["npm", "run", "start"]
+# Install all dependencies (workspace-aware)
+RUN bun install --frozen-lockfile
+
+# Build workspace packages first, then dash
+ARG VITE_AUTH_URL
+ARG VITE_PUBLIC_URL
+RUN bun run --cwd packages/tsconfig build 2>/dev/null || true && \
+    bun run --cwd packages/api build && \
+    bun run --cwd packages/better-auth build && \
+    bun run --cwd apps/dash build
+
+# ---- Runtime: serve static SPA with nginx ----
+FROM nginx:1-alpine
+
+# Remove default config
+RUN rm /etc/nginx/conf.d/default.conf
+
+COPY apps/dash/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/apps/dash/build/client /usr/share/nginx/html
+
+EXPOSE 3001
+
+CMD ["nginx", "-g", "daemon off;"]
