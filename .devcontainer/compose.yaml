@@ -1,0 +1,62 @@
+name: omed-dev
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sleep infinity
+    volumes:
+      - ..:/workspaces/omed:cached
+      - go-mod-cache:/home/vscode/go/pkg
+      - cargo-registry:/home/vscode/.cargo/registry
+      - bun-cache:/home/vscode/.bun/install/cache
+    environment:
+      TZ: Asia/Makassar
+      # --- auth (apps/auth) ---
+      AUTH_BASE_URL: http://localhost:9001
+      AUTH_TRUSTED_ORIGINS: http://localhost:3001
+      AUTH_SECRET: dev-only-secret-change-me-please-32chars
+      AUTH_DB_DRIVER: node
+      AUTH_DB_URL: postgres://omed:omed@db:5432/omed
+      # --- finance (apps/finance) ---
+      DATABASE_URL: postgres://omed:omed@db:5432/omed?sslmode=disable
+      JWKS_URL: http://localhost:9001/jwks
+      PORT: "9002"
+      # --- blog (apps/blog) ---
+      BLOG_DATABASE_URL: postgres://omed:omed@db:5432/omed?options=-c%20search_path%3Dblog
+      # --- dash (apps/dash) ---
+      VITE_AUTH_URL: http://localhost:9001
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: omed
+      POSTGRES_PASSWORD: omed
+      POSTGRES_DB: omed
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omed -d omed"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
+  go-mod-cache:
+  cargo-registry:
+  bun-cache:
