@@ -1,0 +1,46 @@
+{
+  "name": "omed",
+  "dockerComposeFile": "compose.yaml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/omed",
+  "remoteUser": "vscode",
+  "shutdownAction": "stopCompose",
+  "hostRequirements": { "cpus": 4, "memory": "8gb", "storage": "32gb" },
+  "forwardPorts": [3001, 9001, 9002, 9003, 5432, 8080],
+  "portsAttributes": {
+    "3001": { "label": "dash (react-router)", "onAutoForward": "openBrowser" },
+    "9001": { "label": "auth (elysia + better-auth)" },
+    "9002": { "label": "finance (go/fiber)" },
+    "9003": { "label": "blog (rust/axum)" },
+    "5432": { "label": "postgres", "onAutoForward": "silent" },
+    "8080": { "label": "adminer", "onAutoForward": "silent" }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "biomejs.biome",
+        "oven.bun-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-playwright.playwright",
+        "redhat.vscode-yaml",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "go.toolsManagement.autoUpdate": false,
+        "go.lintTool": "staticcheck",
+        "rust-analyzer.check.command": "clippy",
+        "editor.formatOnSave": true,
+        "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[go]": { "editor.defaultFormatter": "golang.go" },
+        "[rust]": { "editor.defaultFormatter": "rust-lang.rust-analyzer" }
+      }
+    }
+  }
+}
