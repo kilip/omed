@@ -135,11 +135,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build Packages
-        run: bun run build
 
       - name: Install Playwright Chromium & System Dependencies
         run: bunx playwright install --with-deps chromium
+
+      - name: Build Packages
+        run: bun run build
 
       - name: Push Auth DB Schema
         run: bun run db:push
