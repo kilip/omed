@@ -17,10 +17,7 @@ export const OpenAPI = {
     for (const [path, pathItem] of Object.entries(paths)) {
       if (!pathItem) continue;
       const key = prefix + path;
-      const clonedItem = { ...pathItem } as Record<
-        string,
-        { tags?: string[] }
-      >;
+      const clonedItem = { ...pathItem } as Record<string, { tags?: string[] }>;
       for (const operation of Object.values(clonedItem)) {
         if (operation && typeof operation === "object") {
           operation.tags = ["Better Auth"];
