@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.25-bookworm AS golang
+FROM golang:1.27-bookworm AS golang
 
 FROM mcr.microsoft.com/devcontainers/base:bookworm
 
