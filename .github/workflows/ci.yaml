@@ -18,6 +18,22 @@ jobs:
     name: Finance
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: finance
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/finance?sslmode=disable
     defaults:
       run:
         working-directory: apps/finance
@@ -85,6 +101,25 @@ jobs:
     name: E2E
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: auth
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      AUTH_DB_URL: postgresql://postgres:password@localhost:5432/auth?sslmode=disable
+      AUTH_SECRET: dev-secret-key-12345678901234567890
+      AUTH_BASE_PATH: ""
+      AUTH_DB_DRIVER: node
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
