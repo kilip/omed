@@ -18,7 +18,7 @@
     "9001": { "label": "auth (elysia + better-auth)" },
     "9002": { "label": "finance (go/fiber)" },
     "9003": { "label": "blog (rust/axum)" },
-    "5432": { "label": "postgres", "onAutoForward": "silent" },
+    "5432": { "label": "postgres", "onAutoForward": "silent" }
   },
   "postCreateCommand": "bash .devcontainer/setup.sh",
   "customizations": {
