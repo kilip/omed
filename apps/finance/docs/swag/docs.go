@@ -474,8 +474,21 @@ const docTemplate = `{
                     "currency": {
                         "example": "IDR",
                         "type": "string"
+                    },
+                    "force": {
+                        "type": "boolean"
+                    },
+                    "lang": {
+                        "type": "string"
+                    },
+                    "profile": {
+                        "type": "string"
                     }
                 },
+                "required": [
+                    "lang",
+                    "profile"
+                ],
                 "type": "object"
             },
             "model.UpdateAccountRequest": {
@@ -836,42 +849,21 @@ const docTemplate = `{
                 ]
             }
         },
-        "/accounts/seed/{profile}/{lang}": {
+        "/accounts/seed": {
             "post": {
                 "description": "Seed chart of accounts using preset profile and language.",
-                "parameters": [
-                    {
-                        "description": "Profile name",
-                        "example": "freelancer",
-                        "in": "path",
-                        "name": "profile",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Language code",
-                        "example": "en",
-                        "in": "path",
-                        "name": "lang",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/model.SeedAccountRequest",
                                 "summary": "request",
-                                "description": "Seed request optional payload"
+                                "description": "Seed request payload"
                             }
                         }
                     },
-                    "description": "Seed request optional payload"
+                    "description": "Seed request payload",
+                    "required": true
                 },
                 "responses": {
                     "201": {

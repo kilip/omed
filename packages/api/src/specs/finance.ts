@@ -4,601 +4,1776 @@
  */
 
 export interface paths {
-  "/accounts": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List accounts
+         * @description Return all accounts in the active workspace (flat list, tree is built client-side).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filter by account type */
+                    type?: "asset" | "liability" | "equity" | "revenue" | "expense";
+                    /** @description Filter by status */
+                    status?: "active" | "archived";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-array_model_Account"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create account
+         * @description Create a new account in the active workspace.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Account payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.CreateAccountRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_Account"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Create Account
-     * @description Create a new account based on authenticated user workspace
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description Account Payload */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["model.CreateAccountRequest"];
+    "/accounts/seed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** @description Created */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
-          };
+        get?: never;
+        put?: never;
+        /**
+         * Seed accounts
+         * @description Seed chart of accounts using preset profile and language.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Seed request payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.SeedAccountRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-array_model_Account"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-        /** @description Invalid request payload */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Missing or invalid authentication */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Insufficient permission */
-        403: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Validation failed */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Internal server error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/accounts/search": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get account
+         * @description Get a single account by ID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_Account"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        /**
+         * Update account
+         * @description Update mutable fields of an account. Code, type and currency cannot be changed.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Account payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.UpdateAccountRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_Account"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Delete account
+         * @description Delete an account by ID.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Search
-     * @description Search Account
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description Account Payload */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["model.SearchAccountRequest"];
+    "/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** @description Created */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.WebResponse-array_model_AccountResponse"];
-          };
+        /**
+         * List journal entries
+         * @description Return journal entries with pagination and filters.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Cursor for pagination */
+                    cursor?: string;
+                    /** @description Number of items per page */
+                    limit?: number;
+                    /** @description Filter by start date */
+                    start_date?: string;
+                    /** @description Filter by end date */
+                    end_date?: string;
+                    /** @description Filter by entry type */
+                    entry_type?: "normal" | "opening_balance" | "adjustment" | "closing" | "fx_adjustment";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-array_model_Entry"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-        /** @description Invalid request payload */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
+        put?: never;
+        /**
+         * Create journal entry
+         * @description Create a new double-entry journal entry with postings.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Journal entry payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.CreateEntryRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_Entry"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-        /** @description Missing or invalid authentication */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Insufficient permission */
-        403: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Validation failed */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Internal server error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/accounts/seed/{profile}/{lang}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get journal entry
+         * @description Get a single journal entry by ID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Entry ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_Entry"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Create Account
-     * @description Create a new account based on authenticated user workspace
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description Seed Language */
-          in: string;
+    "/exchange-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": Record<string, never>;
+        /**
+         * List exchange rates
+         * @description Return exchange rates with optional filtering.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filter by base currency */
+                    from_currency?: string;
+                    /** @description Filter by target currency */
+                    to_currency?: string;
+                    /** @description Filter by effective date */
+                    rate_date?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-array_model_ExchangeRate"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-      };
-      responses: {
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
+        put?: never;
+        /**
+         * Create exchange rate
+         * @description Create a new currency exchange rate.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Exchange rate payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.CreateExchangeRateRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_ExchangeRate"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-        /** @description Invalid request payload */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Missing or invalid authentication */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Insufficient permission */
-        403: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Validation failed */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Internal server error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/accounts/{id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/exchange-rates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get exchange rate
+         * @description Get a single exchange rate entry by ID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Exchange Rate ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_ExchangeRate"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        /**
+         * Update exchange rate
+         * @description Update rate or source of an exchange rate entry.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Exchange Rate ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Exchange rate payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.UpdateExchangeRateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_ExchangeRate"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Delete exchange rate
+         * @description Delete an exchange rate entry by ID.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Exchange Rate ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Account By ID
-     * @description Create a new account based on authenticated user workspace
-     */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description Account ID */
-          in: string;
+    "/ledger-periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Created */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
-          };
+        /**
+         * List ledger periods
+         * @description Return all ledger periods in the active workspace.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filter by status */
+                    status?: "open" | "closed" | "locked";
+                    /** @description Filter periods covering this date */
+                    date?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-array_model_LedgerPeriod"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-        /** @description Invalid request payload */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
+        put?: never;
+        /**
+         * Create ledger period
+         * @description Create a new ledger period in the active workspace.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Ledger period payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.CreateLedgerPeriodRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_LedgerPeriod"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-        /** @description Missing or invalid authentication */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Insufficient permission */
-        403: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Validation failed */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Internal server error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    put?: never;
-    /**
-     * Update
-     * @description Update account with new definition
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description Account ID */
-          in: string;
+    "/ledger-periods/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        cookie?: never;
-      };
-      /** @description Account Payload */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["model.UpdateAccountRequest"];
+        /**
+         * Get ledger period
+         * @description Get a single ledger period by ID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Ledger Period ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_LedgerPeriod"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-      };
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.WebResponse-model_AccountResponse"];
-          };
+        /**
+         * Update ledger period status
+         * @description Update status of a ledger period following transition: open -> closed -> locked.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Ledger Period ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Ledger period payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.UpdateLedgerPeriodRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.WebResponse-model_LedgerPeriod"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-        /** @description Invalid request payload */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
+        post?: never;
+        /**
+         * Delete ledger period
+         * @description Delete a ledger period by ID.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Ledger Period ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Unprocessable Entity */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.ErrorResponse"];
+                    };
+                };
+            };
         };
-        /** @description Missing or invalid authentication */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Insufficient permission */
-        403: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Validation failed */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Internal server error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-      };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Delete
-     * @description Delete an account
-     */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description Account ID */
-          in: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description Invalid request payload */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Missing or invalid authentication */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Insufficient permission */
-        403: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Validation failed */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-        /** @description Internal server error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["model.ErrorResponse"];
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    "model.AccountFilter": {
-      field: components["schemas"]["model.AccountFilterField"];
-      op: components["schemas"]["model.FilterOp"];
-      value: unknown;
+    schemas: {
+        "model.Account": {
+            code?: string;
+            createdAt?: string;
+            createdBy?: string;
+            createdByName?: string;
+            currency?: string;
+            description?: string;
+            id?: string;
+            name?: string;
+            parentId?: string;
+            status?: components["schemas"]["model.AccountStatus"];
+            type?: components["schemas"]["model.AccountType"];
+            updatedAt?: string;
+            updatedBy?: string;
+            updatedByName?: string;
+            workspaceId?: string;
+        };
+        /** @enum {string} */
+        "model.AccountStatus": "active" | "archived";
+        /** @enum {string} */
+        "model.AccountType": "asset" | "liability" | "equity" | "revenue" | "expense";
+        "model.CreateAccountRequest": {
+            code: string;
+            /** @example IDR */
+            currency: string;
+            description?: string;
+            name: string;
+            parentId?: string;
+            type: components["schemas"]["model.AccountType"];
+        };
+        "model.CreateEntryRequest": {
+            description?: string;
+            entryDate: string;
+            entryType?: components["schemas"]["model.EntryType"];
+            postings: components["schemas"]["model.CreatePostingRequest"][];
+            reference?: string;
+        };
+        "model.CreateExchangeRateRequest": {
+            /** @example USD */
+            fromCurrency: string;
+            rate: number;
+            rateDate: string;
+            source?: string;
+            /** @example IDR */
+            toCurrency: string;
+        };
+        "model.CreateLedgerPeriodRequest": {
+            endDate: string;
+            startDate: string;
+            status?: components["schemas"]["model.LedgerPeriodStatus"];
+        };
+        "model.CreatePostingRequest": {
+            accountId: string;
+            creditAmount?: number;
+            /** @example IDR */
+            currency: string;
+            debitAmount?: number;
+            memo?: string;
+        };
+        "model.Entry": {
+            createdAt?: string;
+            createdBy?: string;
+            createdByName?: string;
+            description?: string;
+            entryDate?: string;
+            entryType?: components["schemas"]["model.EntryType"];
+            id?: string;
+            ledgerPeriodId?: string;
+            postings?: components["schemas"]["model.Posting"][];
+            reference?: string;
+            updatedAt?: string;
+            updatedBy?: string;
+            updatedByName?: string;
+            workspaceId?: string;
+        };
+        /** @enum {string} */
+        "model.EntryType": "normal" | "opening_balance" | "adjustment" | "closing" | "fx_adjustment";
+        "model.ErrorBody": {
+            code?: string;
+            fields?: components["schemas"]["model.FieldError"][];
+            message?: string;
+        };
+        "model.ErrorResponse": {
+            error?: components["schemas"]["model.ErrorBody"];
+            meta?: components["schemas"]["model.Meta"];
+        };
+        "model.ExchangeRate": {
+            fromCurrency?: string;
+            id?: string;
+            rate?: number;
+            rateDate?: string;
+            source?: string;
+            toCurrency?: string;
+            workspaceId?: string;
+        };
+        "model.FieldError": {
+            field?: string;
+            rule?: string;
+        };
+        "model.LedgerPeriod": {
+            createdAt?: string;
+            createdBy?: string;
+            createdByName?: string;
+            endDate?: string;
+            id?: string;
+            startDate?: string;
+            status?: components["schemas"]["model.LedgerPeriodStatus"];
+            updatedAt?: string;
+            updatedBy?: string;
+            updatedByName?: string;
+            workspaceId?: string;
+        };
+        /** @enum {string} */
+        "model.LedgerPeriodStatus": "open" | "closed" | "locked";
+        "model.Meta": {
+            cursor?: string;
+            requestId?: string;
+            timestamp?: string;
+        };
+        "model.Posting": {
+            accountCode?: string;
+            accountId?: string;
+            accountName?: string;
+            baseCreditAmount?: number;
+            baseCurrency?: string;
+            baseDebitAmount?: number;
+            creditAmount?: number;
+            currency?: string;
+            debitAmount?: number;
+            entryId?: string;
+            exchangeRate?: number;
+            id?: string;
+            memo?: string;
+            workspaceId?: string;
+        };
+        "model.SeedAccountRequest": {
+            /** @example IDR */
+            currency?: string;
+            force?: boolean;
+            lang: string;
+            profile: string;
+        };
+        "model.UpdateAccountRequest": {
+            description?: string;
+            name?: string;
+            parentId?: string;
+            status?: components["schemas"]["model.AccountStatus"];
+        };
+        "model.UpdateExchangeRateRequest": {
+            rate?: number;
+            source?: string;
+        };
+        "model.UpdateLedgerPeriodRequest": {
+            status: components["schemas"]["model.LedgerPeriodStatus"];
+        };
+        "model.WebResponse-array_model_Account": {
+            data?: components["schemas"]["model.Account"][];
+            meta?: components["schemas"]["model.Meta"];
+        };
+        "model.WebResponse-array_model_Entry": {
+            data?: components["schemas"]["model.Entry"][];
+            meta?: components["schemas"]["model.Meta"];
+        };
+        "model.WebResponse-array_model_ExchangeRate": {
+            data?: components["schemas"]["model.ExchangeRate"][];
+            meta?: components["schemas"]["model.Meta"];
+        };
+        "model.WebResponse-array_model_LedgerPeriod": {
+            data?: components["schemas"]["model.LedgerPeriod"][];
+            meta?: components["schemas"]["model.Meta"];
+        };
+        "model.WebResponse-model_Account": {
+            data?: components["schemas"]["model.Account"];
+            meta?: components["schemas"]["model.Meta"];
+        };
+        "model.WebResponse-model_Entry": {
+            data?: components["schemas"]["model.Entry"];
+            meta?: components["schemas"]["model.Meta"];
+        };
+        "model.WebResponse-model_ExchangeRate": {
+            data?: components["schemas"]["model.ExchangeRate"];
+            meta?: components["schemas"]["model.Meta"];
+        };
+        "model.WebResponse-model_LedgerPeriod": {
+            data?: components["schemas"]["model.LedgerPeriod"];
+            meta?: components["schemas"]["model.Meta"];
+        };
     };
-    /** @enum {string} */
-    "model.AccountFilterField":
-      | "code"
-      | "name"
-      | "type"
-      | "status"
-      | "parent_id"
-      | "currency";
-    "model.AccountResponse": {
-      accountStatus?: components["schemas"]["model.AccountStatus"];
-      code?: string;
-      createdAt?: string;
-      createdBy?: string;
-      createdByName?: string;
-      currency?: string;
-      description?: string;
-      id?: string;
-      name?: string;
-      parentId?: string;
-      type?: components["schemas"]["model.AccountType"];
-      updatedAt?: string;
-      updatedBy?: string;
-      updatedByName?: string;
-      workspaceId?: string;
-    };
-    "model.AccountSort": {
-      dir: components["schemas"]["model.SortDirection"];
-      field: components["schemas"]["model.AccountFilterField"];
-    };
-    /** @enum {string} */
-    "model.AccountStatus": "active" | "archived";
-    /** @enum {string} */
-    "model.AccountType":
-      | "asset"
-      | "liability"
-      | "equity"
-      | "revenue"
-      | "expense";
-    "model.CreateAccountRequest": {
-      accountStatus?: components["schemas"]["model.AccountStatus"];
-      code?: string;
-      currency?: string;
-      description?: string;
-      name?: string;
-      parentId?: string;
-      type?: components["schemas"]["model.AccountType"];
-    };
-    "model.ErrorResponse": {
-      meta?: components["schemas"]["model.Meta"];
-      string?: unknown;
-    };
-    /** @enum {string} */
-    "model.FilterOp": "eq" | "contains" | "in" | "gte" | "lte";
-    "model.Meta": {
-      omitempty?: string;
-      requestId?: string;
-      timestamp?: string;
-    };
-    "model.SearchAccountRequest": {
-      cursor?: string;
-      filters?: components["schemas"]["model.AccountFilter"][];
-      limit?: number;
-      sort?: components["schemas"]["model.AccountSort"][];
-    };
-    /** @enum {string} */
-    "model.SortDirection": "asc" | "desc";
-    "model.UpdateAccountRequest": {
-      accountStatus?: components["schemas"]["model.AccountStatus"];
-      code?: string;
-      currency?: string;
-      description?: string;
-      name?: string;
-      parentId?: string;
-      type?: components["schemas"]["model.AccountType"];
-    };
-    "model.WebResponse-array_model_AccountResponse": {
-      data?: components["schemas"]["model.AccountResponse"][];
-      meta?: components["schemas"]["model.Meta"];
-    };
-    "model.WebResponse-model_AccountResponse": {
-      data?: components["schemas"]["model.AccountResponse"];
-      meta?: components["schemas"]["model.Meta"];
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

@@ -323,6 +323,15 @@ components:
         currency:
           example: IDR
           type: string
+        force:
+          type: boolean
+        lang:
+          type: string
+        profile:
+          type: string
+      required:
+      - lang
+      - profile
       type: object
     model.UpdateAccountRequest:
       properties:
@@ -723,32 +732,18 @@ paths:
       summary: Update account
       tags:
       - accounts
-  /accounts/seed/{profile}/{lang}:
+  /accounts/seed:
     post:
       description: Seed chart of accounts using preset profile and language.
-      parameters:
-      - description: Profile name
-        example: freelancer
-        in: path
-        name: profile
-        required: true
-        schema:
-          type: string
-      - description: Language code
-        example: en
-        in: path
-        name: lang
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/model.SeedAccountRequest'
-              description: Seed request optional payload
+              description: Seed request payload
               summary: request
-        description: Seed request optional payload
+        description: Seed request payload
+        required: true
       responses:
         "201":
           content:

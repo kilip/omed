@@ -19,8 +19,6 @@ export const OpenAPI = {
         }
       }
       return reference;
-    }) as Promise<unknown>,
-  components: getSchema().then(
-    ({ components }) => components,
-  ) as Promise<unknown>,
+    }) as Promise<any>,
+  components: getSchema().then(({ components }) => components) as Promise<any>,
 } as const;
