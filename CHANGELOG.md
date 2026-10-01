@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.1](https://github.com/kilip/omed/compare/v0.2.0...v0.2.1) (2026-10-01)
+
+
+### Bug Fixes
+
+* **auth:** standardize env var name ([ed66792](https://github.com/kilip/omed/commit/ed66792f5e1c47034a85621c1715272c49a5d2f2))
+* **dash:** docker build error fix ([b6f8aee](https://github.com/kilip/omed/commit/b6f8aeee22fb69f88d1f356529a75a35ece9d2a3))
+* **dash:** standardize env var name ([0fbc49a](https://github.com/kilip/omed/commit/0fbc49a5f23bce2d2e0832de5d64b09b72ff2044))
+* **fin:** standardize env var name ([f623676](https://github.com/kilip/omed/commit/f6236764ce6a816ef5ed6b70a77319c47a8a3492))
+
 ## [0.2.0](https://github.com/kilip/omed/compare/v0.1.0...v0.2.0) (2026-09-30)
 
 
