@@ -13,9 +13,12 @@
 		"test": "turbo run test",
 		"typecheck": "turbo run typecheck",
 		"clean": "turbo run clean && rm -rf node_modules",
-		"prepare": "husky"
+		"prepare": "husky",
+		"auth:schema": "turbo run auth:schema",
+		"db:push": "turbo run db:push"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^2.5.15",
 		"@commitlint/cli": "^21.2.3",
 		"@commitlint/config-conventional": "^21.2.3",
 		"husky": "^9.1.7",

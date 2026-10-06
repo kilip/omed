@@ -7,7 +7,8 @@
 		"deploy": "wrangler deploy --minify",
 		"typecheck": "tsc --noEmit",
 		"cf-typegen": "wrangler types",
-		"auth:schema": "bunx auth@latest generate --output ../../packages/better-auth/src/drizzle/better-auth.ts --yes"
+		"auth:schema": "bunx auth@latest generate --output ../../packages/better-auth/src/drizzle/schema/better-auth.ts --yes",
+		"db:push": "drizzle-kit push --force"
 	},
 	"dependencies": {
 		"@elysia/cors": "^1.4.2",

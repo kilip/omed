@@ -19,7 +19,7 @@
 		"8003": { "label": "blog" },
 		"9001": { "label": "rustfs console" }
 	},
-	"postCreateCommand": "bun install && go install github.com/air-verse/air@latest",
+	"postCreateCommand": "bun install && go install github.com/air-verse/air@latest && bun install -g @biomejs/biome",
 	"customizations": {
 		"vscode": {
 			"extensions": [

@@ -1,16 +1,17 @@
 name = "omed-auth"
 main = "src/index.ts"
 compatibility_date = "2026-09-28"
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
 
 routes = [
   { pattern = "auth.itstoni.com", custom_domain = true }
 ]
 
 [vars]
-AUTH_URL = "https://auth.itstoni.com"
-AUTH_PATH = ""
-AUTH_TRUSTED_ORIGINS = "https://omed.itstoni.com https://fin.itstoni.com https://blog.itstoni.com"
+# AUTH_URL = "https://auth.itstoni.com"
+# AUTH_SECRET = "dKRTI/jU05s5G7aWjCimxdzfUzR+a+Jpjd1AjxIrfKo="
+# AUTH_PATH = ""
+# AUTH_TRUSTED_ORIGINS = "http://localhost:8001 https://omed.itstoni.com https://fin.itstoni.com https://blog.itstoni.com"
 
 [observability]
 enabled = true
