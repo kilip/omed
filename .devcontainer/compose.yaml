@@ -1,0 +1,67 @@
+services:
+  workspace:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    command: sleep infinity
+    volumes:
+      - ..:/workspaces/omed:cached
+    environment:
+      DATABASE_URL: postgres://omed:omed@postgres:5432/omed
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://rustfs:9000
+      S3_ACCESS_KEY: rustfsadmin
+      S3_SECRET_KEY: rustfsadmin
+      S3_REGION: us-east-1
+      S3_FORCE_PATH_STYLE: "true"
+      # wrangler dev (apps/auth) pakai ini kalau binding Hyperdrive bernama HYPERDRIVE
+      WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgres://omed:omed@postgres:5432/omed?options=-c%20search_path%3Dauth
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rustfs: { condition: service_started }
+
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: omed
+      POSTGRES_PASSWORD: omed
+      POSTGRES_DB: omed
+    volumes:
+      # PG 18+: mount di /var/lib/postgresql, bukan /var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omed -d omed"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rustfs:
+    image: rustfs/rustfs:latest # sebaiknya pin ke tag spesifik
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+    volumes:
+      - rustfsdata:/data
+    command: /data
+
+volumes:
+  pgdata:
+  redisdata:
+  rustfsdata:
