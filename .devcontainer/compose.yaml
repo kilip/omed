@@ -50,7 +50,7 @@ services:
       retries: 10
 
   rustfs:
-    image: rustfs/rustfs:latest # sebaiknya pin ke tag spesifik
+    image: rustfs/rustfs:1.0.1
     restart: unless-stopped
     environment:
       RUSTFS_ACCESS_KEY: rustfsadmin

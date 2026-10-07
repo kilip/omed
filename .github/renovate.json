@@ -1,0 +1,53 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [
+		"config:recommended",
+		":semanticCommits",
+		":semanticCommitTypeAll(chore)",
+		":semanticCommitScope(deps)"
+	],
+	"timezone": "Asia/Makassar",
+	"schedule": ["before 6am on monday"],
+	"postUpdateOptions": ["gomodTidy"],
+	"lockFileMaintenance": { "enabled": true, "automerge": true },
+	"packageRules": [
+		{
+			"description": "Automerge dev dependency minor/patch",
+			"matchDepTypes": ["devDependencies"],
+			"matchUpdateTypes": ["minor", "patch"],
+			"automerge": true
+		},
+		{
+			"description": "Group non-major npm updates",
+			"matchManagers": ["npm"],
+			"matchUpdateTypes": ["minor", "patch"],
+			"groupName": "npm non-major"
+		},
+		{
+			"description": "Group non-major Go module updates",
+			"matchManagers": ["gomod"],
+			"matchUpdateTypes": ["minor", "patch"],
+			"groupName": "go non-major"
+		},
+		{
+			"description": "Group non-major Docker updates",
+			"matchDatasources": ["docker"],
+			"matchUpdateTypes": ["minor", "patch"],
+			"groupName": "docker non-major"
+		},
+		{
+			"description": "ent/atlas bumps may need `go generate` for ./ent; keep out of the group, review manually",
+			"matchManagers": ["gomod"],
+			"matchPackageNames": ["entgo.io/ent", "ariga.io/atlas"],
+			"groupName": null,
+			"automerge": false
+		},
+		{
+			"description": "No automatic major bumps for stateful services",
+			"matchDatasources": ["docker"],
+			"matchPackageNames": ["postgres", "redis"],
+			"matchUpdateTypes": ["major"],
+			"enabled": false
+		}
+	]
+}
