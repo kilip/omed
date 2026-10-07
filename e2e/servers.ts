@@ -4,6 +4,7 @@ import { e2eEnv } from "./env";
 
 let authProcess: ChildProcess | null = null;
 let dashProcess: ChildProcess | null = null;
+let financeProcess: ChildProcess | null = null;
 
 async function waitForUrl(url: string, timeoutMs = 60000): Promise<void> {
   const start = Date.now();
@@ -30,6 +31,7 @@ export async function startServers(): Promise<void> {
   const rootDir = path.resolve(import.meta.dirname, "..");
   const authDir = path.resolve(rootDir, "apps/auth");
   const dashDir = path.resolve(rootDir, "apps/dash");
+  const financeDir = path.resolve(rootDir, "apps/finance");
 
   const cleanEnv = { ...process.env };
   delete cleanEnv.NODE_OPTIONS;
@@ -67,15 +69,36 @@ export async function startServers(): Promise<void> {
     if (!s.includes("deprecated")) console.error(`[dash:err] ${s.trim()}`);
   });
 
-  // Wait for both to be ready
+  const financePort = new URL(e2eEnv.FINANCE_URL).port || "8002";
+  console.log(`[servers] Starting @omed/finance on :${financePort}...`);
+  financeProcess = spawn("go", ["run", "./cmd/api"], {
+    cwd: financeDir,
+    detached: true,
+    env: {
+      ...cleanEnv,
+      FIN_PORT: financePort,
+      FIN_DB_URL: e2eEnv.DB_URL,
+      AUTH_JWKS_URL: `${e2eEnv.AUTH_URL}/jwks`,
+      FIN_TRUSTED_ORIGINS: `${e2eEnv.DASH_URL} ${e2eEnv.FINANCE_URL}`,
+    },
+    stdio: "pipe",
+  });
+
+  financeProcess.stderr?.on("data", (data) => {
+    const s = data.toString();
+    if (!s.includes("deprecated")) console.error(`[finance:err] ${s.trim()}`);
+  });
+
+  // Wait for all to be ready
   await Promise.all([
     waitForUrl(`${e2eEnv.AUTH_URL}/hello`, 30000),
     waitForUrl(e2eEnv.DASH_URL, 60000),
+    waitForUrl(`${e2eEnv.FINANCE_URL}/livez`, 30000),
   ]);
   try {
     await fetch(`${e2eEnv.DASH_URL}/login`);
   } catch {}
-  console.log("[servers] Both auth & dash servers are ready!");
+  console.log("[servers] All auth, dash & finance servers are ready!");
 }
 
 export async function stopServers(): Promise<void> {
@@ -87,5 +110,17 @@ export async function stopServers(): Promise<void> {
   if (dashProcess) {
     dashProcess.kill("SIGTERM");
     dashProcess = null;
+  }
+  if (financeProcess) {
+    if (financeProcess.pid) {
+      try {
+        process.kill(-financeProcess.pid, "SIGTERM");
+      } catch {
+        financeProcess.kill("SIGTERM");
+      }
+    } else {
+      financeProcess.kill("SIGTERM");
+    }
+    financeProcess = null;
   }
 }

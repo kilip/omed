@@ -2,7 +2,7 @@
 
 End-to-End (E2E) testing suite for Omed using [Cucumber](https://cucumber.io/) (`@cucumber/cucumber`) with [Playwright](https://playwright.dev/) and Page Object Model (POM).
 
-Tests are written in Gherkin (`.feature`) files and executed via Cucumber in Chromium against live servers (`auth` on `:8001` and `dash` on `:3001`), with an isolated PostgreSQL database (`omed_e2e`).
+Tests are written in Gherkin (`.feature`) files and executed via Cucumber in Chromium against live servers (`auth` on `:8001`, `dash` on `:3001`, and `finance` on `:8002`), with an isolated PostgreSQL database (`omed_e2e`).
 
 ## Directory Structure
 
@@ -27,7 +27,7 @@ e2e/
 ├── scripts/
 │   └── reset-db.ts      # Recreates and pushes auth schema to omed_e2e
 ├── env.ts               # Test environment configuration
-├── servers.ts           # Server manager for starting and stopping auth and dash
+├── servers.ts           # Server manager for starting and stopping auth, dash, and finance
 └── cucumber.json        # Cucumber configuration
 ```
 
@@ -46,4 +46,4 @@ bun run e2e
 bun run --cwd e2e test:dry
 ```
 
-> **Note:** E2E runs against ports `8001` (auth) and `3001` (dash). Make sure any running `bun run dev` server is stopped before running E2E.
+> **Note:** E2E runs against ports `8001` (auth), `3001` (dash), and `8002` (finance). Make sure any running `bun run dev` server is stopped before running E2E.
