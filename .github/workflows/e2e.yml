@@ -38,7 +38,7 @@ jobs:
           bun-version: 1.4.2
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: apps/finance/go.mod
           cache-dependency-path: apps/finance/go.sum
