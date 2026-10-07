@@ -23,68 +23,68 @@ import idUnderConstruction from "~/locales/id/underConstruction.json";
 export const defaultNS = "common";
 
 export const resources = {
-	en: {
-		common: enCommon,
-		auth: enAuth,
-		blog: enBlog,
-		finance: enFinance,
-		home: enHome,
-		nav: enNav,
-		settings: enSettings,
-		underConstruction: enUnderConstruction,
-	},
-	id: {
-		common: idCommon,
-		auth: idAuth,
-		blog: idBlog,
-		finance: idFinance,
-		home: idHome,
-		nav: idNav,
-		settings: idSettings,
-		underConstruction: idUnderConstruction,
-	},
+  en: {
+    common: enCommon,
+    auth: enAuth,
+    blog: enBlog,
+    finance: enFinance,
+    home: enHome,
+    nav: enNav,
+    settings: enSettings,
+    underConstruction: enUnderConstruction,
+  },
+  id: {
+    common: idCommon,
+    auth: idAuth,
+    blog: idBlog,
+    finance: idFinance,
+    home: idHome,
+    nav: idNav,
+    settings: idSettings,
+    underConstruction: idUnderConstruction,
+  },
 } as const;
 
 export const SUPPORTED_LANGUAGES = [
-	{ code: "en", label: "English" },
-	{ code: "id", label: "Bahasa Indonesia" },
+  { code: "en", label: "English" },
+  { code: "id", label: "Bahasa Indonesia" },
 ] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
 
 i18n
-	.use(LanguageDetector)
-	.use(initReactI18next)
-	.init({
-		resources,
-		fallbackLng: "en",
-		supportedLngs: ["en", "id"],
-		defaultNS,
-		ns: [
-			"common",
-			"auth",
-			"blog",
-			"finance",
-			"home",
-			"nav",
-			"settings",
-			"underConstruction",
-		],
-		detection: {
-			order: ["localStorage"],
-			lookupLocalStorage: "omed:lang",
-			caches: ["localStorage"],
-		},
-		interpolation: {
-			escapeValue: false,
-		},
-	});
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: "en",
+    supportedLngs: ["en", "id"],
+    defaultNS,
+    ns: [
+      "common",
+      "auth",
+      "blog",
+      "finance",
+      "home",
+      "nav",
+      "settings",
+      "underConstruction",
+    ],
+    detection: {
+      order: ["localStorage"],
+      lookupLocalStorage: "omed:lang",
+      caches: ["localStorage"],
+    },
+    interpolation: {
+      escapeValue: false,
+    },
+  });
 
 export default i18n;
 
 declare module "i18next" {
-	interface CustomTypeOptions {
-		defaultNS: typeof defaultNS;
-		resources: (typeof resources)["en"];
-	}
+  interface CustomTypeOptions {
+    defaultNS: typeof defaultNS;
+    resources: (typeof resources)["en"];
+  }
 }

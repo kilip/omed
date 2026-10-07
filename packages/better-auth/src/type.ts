@@ -7,13 +7,13 @@ export type User = AuthType["$Infer"]["Session"]["user"];
 export type Organization = AuthType["$Infer"]["Organization"];
 export type Session = AuthType["$Infer"]["Session"]["session"];
 export type ActiveTeam = {
-	id: string;
-	name: string;
-	organizationId: string;
-	personal: boolean;
+  id: string;
+  name: string;
+  organizationId: string;
+  personal: boolean;
 };
 export type ActiveWorkspace = ActiveTeam & {
-	activeWorkspaceId: string;
-	activeWorkspaceName: string;
-	activeWorkspaceRoles: string[];
+  activeWorkspaceId: string;
+  activeWorkspaceName: string;
+  activeWorkspaceRoles: string[];
 };

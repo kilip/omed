@@ -1,36 +1,36 @@
 {
-	"name": "omed",
-	"dockerComposeFile": "compose.yaml",
-	"service": "workspace",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {},
-		"ghcr.io/devcontainers/features/go:1": { "version": "latest" },
-		"ghcr.io/devcontainers/features/node:1": { "version": "lts" },
-		"ghcr.io/shyim/devcontainers-features/bun:0": {},
-		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
-		"ghcr.io/devcontainers/features/github-cli:1": {}
-	},
-	"forwardPorts": [3001, 8001, 8002, 8003, 5432, 6379, 9000, 9001],
-	"portsAttributes": {
-		"3001": { "label": "dash" },
-		"8001": { "label": "auth (wrangler)" },
-		"8002": { "label": "finance" },
-		"8003": { "label": "blog" },
-		"9001": { "label": "rustfs console" }
-	},
-	"postCreateCommand": "bun install && go install github.com/air-verse/air@latest && bun install -g @biomejs/biome",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"golang.go",
-				"biomejs.biome",
-				"bradlc.vscode-tailwindcss",
-				"cloudflare.vscode-wrangler",
-				"ms-azuretools.vscode-docker",
-				"editorconfig.editorconfig"
-			],
-			"settings": { "go.toolsManagement.autoUpdate": true }
-		}
-	}
+  "name": "omed",
+  "dockerComposeFile": "compose.yaml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/go:1": { "version": "latest" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
+    "ghcr.io/shyim/devcontainers-features/bun:0": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "forwardPorts": [3001, 8001, 8002, 8003, 5432, 6379, 9000, 9001],
+  "portsAttributes": {
+    "3001": { "label": "dash" },
+    "8001": { "label": "auth (wrangler)" },
+    "8002": { "label": "finance" },
+    "8003": { "label": "blog" },
+    "9001": { "label": "rustfs console" }
+  },
+  "postCreateCommand": "bun install && go install github.com/air-verse/air@latest && bun install -g @biomejs/biome",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "biomejs.biome",
+        "bradlc.vscode-tailwindcss",
+        "cloudflare.vscode-wrangler",
+        "ms-azuretools.vscode-docker",
+        "editorconfig.editorconfig"
+      ],
+      "settings": { "go.toolsManagement.autoUpdate": true }
+    }
+  }
 }

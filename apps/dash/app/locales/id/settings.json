@@ -1,9 +1,13 @@
 {
-	"title": "Pengaturan",
-	"metaTitle": "Omed | Pengaturan",
-	"metaDescription": "Pengaturan akun dan aplikasi",
-	"language": "Bahasa",
-	"languageDescription": "Pilih bahasa yang Anda gunakan",
-	"appearance": "Tampilan",
-	"appearanceDescription": "Sesuaikan tema dan tata letak"
+  "title": "Pengaturan",
+  "metaTitle": "Omed | Pengaturan",
+  "metaDescription": "Pengaturan akun dan aplikasi",
+  "language": "Bahasa",
+  "languageDescription": "Pilih bahasa yang Anda gunakan",
+  "appearance": "Tampilan",
+  "appearanceDescription": "Sesuaikan tema dan tata letak",
+  "currency": "Mata Uang Utama",
+  "currencyDescription": "Pilih mata uang utama akun Anda",
+  "currencySaved": "Mata uang utama berhasil disimpan",
+  "currencySaveFailed": "Gagal menyimpan mata uang utama"
 }

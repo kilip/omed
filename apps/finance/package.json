@@ -1,6 +1,6 @@
 {
-	"name": "@omed/finance",
-	"scripts": {
-		"dev": "air"
-	}
+  "name": "@omed/finance",
+  "scripts": {
+    "dev": "air"
+  }
 }

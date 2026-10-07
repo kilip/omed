@@ -1,0 +1,25 @@
+{
+  "name": "@omed/e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:reset": "bun scripts/reset-db.ts",
+    "test": "bun run db:reset && NODE_OPTIONS=\"--import tsx\" cucumber-js",
+    "test:dry": "NODE_OPTIONS=\"--import tsx\" cucumber-js --dry-run",
+    "test:wip": "NODE_OPTIONS=\"--import tsx\" cucumber-js --tags '@wip'"
+  },
+  "dependencies": {
+    "@omed/better-auth": "workspace:*",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^13.3.0",
+    "@omed/tsconfig": "workspace:*",
+    "@types/node": "^22",
+    "@types/pg": "^8.23.1",
+    "expect": "^30.5.2",
+    "playwright": "^1.63.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

@@ -4,10 +4,10 @@ import { defineConfig } from "vitest/config";
 dotenv.config({ path: ".env.test" });
 
 export default defineConfig({
-	test: {
-		environment: "node",
-	},
-	resolve: {
-		tsconfigPaths: true,
-	},
+  test: {
+    environment: "node",
+  },
+  resolve: {
+    tsconfigPaths: true,
+  },
 });

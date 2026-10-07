@@ -13,6 +13,7 @@ A polyglot monorepo powered by [Bun](https://bun.sh) workspaces and [Turborepo](
 ├── packages/
 │   ├── better-auth/ # @omed/better-auth – Shared Better Auth config, Drizzle schema & tests
 │   └── tsconfig/    # @omed/tsconfig    – Shared TypeScript configs
+├── e2e/             # @omed/e2e         – End-to-end tests (playwright-bdd + Playwright)
 └── .devcontainer/   # Dev container with Postgres, Redis and RustFS (S3)
 ```
 
@@ -59,6 +60,7 @@ Run a single app with Turbo filters, e.g. `bunx turbo run dev --filter=@omed/das
 | `bun run dev`         | Run all apps in development mode             |
 | `bun run build`       | Build all apps                               |
 | `bun run test`        | Run tests (Vitest)                           |
+| `bun run e2e`         | Run end-to-end tests (Playwright + Cucumber) |
 | `bun run typecheck`   | Type-check all TypeScript packages           |
 | `bun run check`       | Lint & format check with Biome               |
 | `bun run check:write` | Apply Biome fixes                            |

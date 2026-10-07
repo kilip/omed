@@ -1,0 +1,74 @@
+name: e2e
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: omed
+          POSTGRES_PASSWORD: omed
+          POSTGRES_DB: omed
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U omed -d omed"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package.json') }}
+
+      - name: Install Playwright Chromium & system deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: bunx --cwd e2e playwright install --with-deps chromium
+
+      - name: Install system dependencies only if cached
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: bunx --cwd e2e playwright install-deps chromium
+
+      - name: Run E2E tests
+        run: bun run e2e
+        env:
+          AUTH_DB_URL: postgresql://omed:omed@localhost:5432/omed
+          AUTH_SECRET: e2e-ci-dummy-secret-not-for-production-1234567890
+          CI: true
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+
