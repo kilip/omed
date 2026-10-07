@@ -60,6 +60,9 @@
         "vite": "^8.0.3",
       },
     },
+    "apps/finance": {
+      "name": "@omed/finance",
+    },
     "packages/better-auth": {
       "name": "@omed/better-auth",
       "dependencies": {
@@ -375,6 +378,8 @@
     "@omed/better-auth": ["@omed/better-auth@workspace:packages/better-auth"],
 
     "@omed/dash": ["@omed/dash@workspace:apps/dash"],
+
+    "@omed/finance": ["@omed/finance@workspace:apps/finance"],
 
     "@omed/tsconfig": ["@omed/tsconfig@workspace:packages/tsconfig"],
 

@@ -1,22 +1,25 @@
-FROM node:24-alpine AS development-dependencies-env
-COPY . /app
+FROM oven/bun:1.4.2-alpine AS build
 WORKDIR /app
-RUN npm ci
+COPY . .
+RUN bun install --frozen-lockfile --ignore-scripts
+RUN cd apps/dash && bun run build
 
-FROM node:24-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
+FROM oven/bun:1.4.2-alpine AS prod-deps
 WORKDIR /app
-RUN npm ci --omit=dev
-
-FROM node:24-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
-RUN npm run build
+COPY . .
+RUN bun install --frozen-lockfile --production --ignore-scripts
 
 FROM node:24-alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
 WORKDIR /app
-CMD ["npm", "run", "start"]
+ENV NODE_ENV=production PORT=3000
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/packages ./packages
+COPY --from=build /app/apps/dash/package.json ./apps/dash/package.json
+COPY --from=build /app/apps/dash/build ./apps/dash/build
+COPY --from=prod-deps /app/apps/dash/node_modules ./apps/dash/node_modules
+
+WORKDIR /app/apps/dash
+USER node
+EXPOSE 3000
+CMD ["node", "./node_modules/@react-router/serve/bin.cjs", "./build/server/index.js"]
