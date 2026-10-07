@@ -43,6 +43,7 @@ export const e2eEnv = {
     "e2e-secret-not-for-production-00000000000000000000",
   AUTH_URL: process.env.AUTH_URL ?? "http://localhost:8001",
   DASH_URL: process.env.DASH_URL ?? "http://localhost:3001",
+  FINANCE_URL: process.env.FINANCE_URL ?? "http://localhost:8002",
 };
 
 // Set env vars so imported @omed/better-auth and worker processes use omed_e2e
