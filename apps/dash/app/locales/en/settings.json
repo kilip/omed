@@ -1,9 +1,13 @@
 {
-	"title": "Settings",
-	"metaTitle": "Omed | Settings",
-	"metaDescription": "Account and application settings",
-	"language": "Language",
-	"languageDescription": "Select your preferred language",
-	"appearance": "Appearance",
-	"appearanceDescription": "Customize theme and layout"
+  "title": "Settings",
+  "metaTitle": "Omed | Settings",
+  "metaDescription": "Account and application settings",
+  "language": "Language",
+  "languageDescription": "Select your preferred language",
+  "appearance": "Appearance",
+  "appearanceDescription": "Customize theme and layout",
+  "currency": "Default Currency",
+  "currencyDescription": "Select your preferred default currency",
+  "currencySaved": "Default currency saved",
+  "currencySaveFailed": "Failed to save default currency"
 }

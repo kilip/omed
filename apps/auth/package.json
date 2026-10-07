@@ -1,28 +1,29 @@
 {
-	"name": "@omed/auth",
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"dev": "wrangler dev --port 8001",
-		"deploy": "wrangler deploy --minify",
-		"typecheck": "tsc --noEmit",
-		"cf-typegen": "wrangler types",
-		"start": "bun run src/main.ts",
-		"build:bun": "bun build src/main.ts --target=bun --outdir=dist",
-		"auth:schema": "bunx auth@latest generate --output ../../packages/better-auth/src/drizzle/schema/better-auth.ts --yes",
-		"db:push": "drizzle-kit push --force"
-	},
-	"dependencies": {
-		"@elysia/cors": "^1.4.2",
-		"@elysia/openapi": "^1.4.16",
-		"@omed/better-auth": "workspace:*",
-		"elysia": "^1.4.0",
-		"elysia-healthcheck": "^1.0.0"
-	},
-	"devDependencies": {
-		"@omed/tsconfig": "workspace:*",
-		"@cloudflare/workers-types": "^4.0.0",
-		"typescript": "^5.0.0",
-		"wrangler": "^4.0.0"
-	}
+  "name": "@omed/auth",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8001",
+    "deploy": "wrangler deploy --minify",
+    "typecheck": "tsc --noEmit",
+    "cf-typegen": "wrangler types",
+    "start": "bun run src/main.ts",
+    "build:bun": "bun build src/main.ts --target=bun --outdir=dist",
+    "auth:schema": "bunx auth@latest generate --output ../../packages/better-auth/src/drizzle/schema/better-auth.ts --yes",
+    "db:push": "drizzle-kit push --force"
+  },
+  "dependencies": {
+    "@elysia/cors": "^1.4.2",
+    "@elysia/openapi": "^1.4.16",
+    "@omed/better-auth": "workspace:*",
+    "elysia": "^1.4.0",
+    "elysia-healthcheck": "^1.0.0"
+  },
+  "devDependencies": {
+    "@omed/tsconfig": "workspace:*",
+    "@cloudflare/workers-types": "^4.0.0",
+    "drizzle-kit": "^1.0.0-rc.4",
+    "typescript": "^5.0.0",
+    "wrangler": "^4.0.0"
+  }
 }

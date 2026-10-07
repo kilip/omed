@@ -1,36 +1,36 @@
 {
-	"$schema": "./node_modules/turbo/schema.json",
-	"ui": "tui",
-	"globalDependencies": [".env"],
-	"globalPassThroughEnv": ["AUTH_*"],
-	"tasks": {
-		"build": {
-			"dependsOn": ["^build"],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": ["build/**", "dist/**", "bin/**", ".wrangler/**"]
-		},
-		"dev": {
-			"cache": false,
-			"persistent": true
-		},
-		"lint": {
-			"dependsOn": ["^lint"]
-		},
-		"typecheck": {
-			"dependsOn": ["^typecheck"]
-		},
-		"test": {
-			"dependsOn": ["^build"],
-			"outputs": ["coverage/**"]
-		},
-		"clean": {
-			"cache": false
-		},
-		"auth:schema": {
-			"cache": false
-		},
-		"db:push": {
-			"cache": false
-		}
-	}
+  "$schema": "./node_modules/turbo/schema.json",
+  "ui": "tui",
+  "globalDependencies": [".env"],
+  "globalPassThroughEnv": ["AUTH_*"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["build/**", "dist/**", "bin/**", ".wrangler/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "clean": {
+      "cache": false
+    },
+    "auth:schema": {
+      "cache": false
+    },
+    "db:push": {
+      "cache": false
+    }
+  }
 }

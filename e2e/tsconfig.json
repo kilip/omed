@@ -1,0 +1,8 @@
+{
+  "extends": "@omed/tsconfig/base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"],
+  "exclude": [".features-gen"]
+}

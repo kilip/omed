@@ -14,19 +14,19 @@ export const localeSchema = z.enum(SUPPORTED_LOCALES).nullish();
  * Stored on `user.defaultCurrency`.
  */
 export const SUPPORTED_CURRENCIES = [
-	"IDR",
-	"USD",
-	"EUR",
-	"SGD",
-	"GBP",
-	"JPY",
-	"AUD",
+  "IDR",
+  "USD",
+  "EUR",
+  "SGD",
+  "GBP",
+  "JPY",
+  "AUD",
 ] as const;
 export type Currency = (typeof SUPPORTED_CURRENCIES)[number];
 export const DEFAULT_CURRENCY: Currency = "IDR";
 
 export const currencySchema = z
-	.string()
-	.length(3)
-	.regex(/^[A-Z]{3}$/)
-	.nullish();
+  .string()
+  .length(3)
+  .regex(/^[A-Z]{3}$/)
+  .nullish();
