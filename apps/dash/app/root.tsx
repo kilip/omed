@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
 	isRouteErrorResponse,
 	Links,
@@ -6,7 +7,6 @@ import {
 	Scripts,
 	ScrollRestoration,
 } from "react-router";
-import { useTranslation } from "react-i18next";
 import "~/lib/i18n";
 
 import type { Route } from "./+types/root";

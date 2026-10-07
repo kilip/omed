@@ -121,8 +121,8 @@ export default function LoginPage() {
 							ns="auth"
 							i18nKey="termsNotice"
 							components={{
-								terms: <a href="/terms" />,
-								privacy: <a href="/privacy" />,
+								terms: <a href="/terms">Terms of Service</a>,
+								privacy: <a href="/privacy">Privacy Policy</a>,
 							}}
 						/>
 					</Typography.Paragraph>
@@ -134,7 +134,7 @@ export default function LoginPage() {
 					ns="auth"
 					i18nKey="troubleSigningIn"
 					components={{
-						contact: <a href="mailto:support@omed.app" />,
+						contact: <a href="mailto:support@omed.app">Contact us</a>,
 					}}
 				/>
 			</Typography.Text>

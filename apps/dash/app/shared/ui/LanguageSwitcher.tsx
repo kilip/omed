@@ -1,6 +1,6 @@
 import { CheckOutlined, GlobalOutlined } from "@ant-design/icons";
 import { Button, Dropdown, type MenuProps } from "antd";
-import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "~/lib/i18n";
+import { SUPPORTED_LANGUAGES } from "~/lib/i18n";
 import { useAppLanguage } from "~/shared/hooks/useAppLanguage";
 
 export interface LanguageSwitcherProps {

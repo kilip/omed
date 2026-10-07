@@ -37,7 +37,6 @@ import { useThemeMode } from "./ThemeProvider";
 const { Sider, Header, Content } = Layout;
 
 function Logo({ collapsed }: { collapsed: boolean }) {
-	const { token } = theme.useToken();
 	return (
 		<Link
 			to="/"

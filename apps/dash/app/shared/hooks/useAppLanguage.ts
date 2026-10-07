@@ -30,4 +30,3 @@ export function useAppLanguage() {
 		i18n,
 	};
 }
-
