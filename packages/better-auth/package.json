@@ -9,7 +9,7 @@
 	},
 	"devDependencies": {
 		"@electric-sql/pglite": "^0.5.8",
-		"@omed/tsconfig": "*",
+		"@omed/tsconfig": "workspace:*",
 		"@types/bun": "^1.4.2",
 		"@types/node": "^26.6.4",
 		"@types/pg": "^8.23.1",

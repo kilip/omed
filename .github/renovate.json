@@ -48,6 +48,11 @@
 			"matchPackageNames": ["postgres", "redis"],
 			"matchUpdateTypes": ["major"],
 			"enabled": false
+		},
+		{
+			"description": "Ignore internal monorepo packages",
+			"matchPackagePatterns": ["^@omed/"],
+			"enabled": false
 		}
 	]
 }
