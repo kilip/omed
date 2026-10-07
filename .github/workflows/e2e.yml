@@ -45,7 +45,7 @@ jobs:
 
       - name: Build Finance API
         working-directory: apps/finance
-        run: go build ./cmd/api
+        run: go build -o bin/api ./cmd/api
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
