@@ -28,9 +28,14 @@
         "bradlc.vscode-tailwindcss",
         "cloudflare.vscode-wrangler",
         "ms-azuretools.vscode-docker",
-        "editorconfig.editorconfig"
+        "editorconfig.editorconfig",
+        "CucumberOpen.cucumber-official"
       ],
-      "settings": { "go.toolsManagement.autoUpdate": true }
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "cucumber.features": ["e2e/features/**/*.feature"],
+        "cucumber.glue": ["e2e/steps/**/*.ts"]
+      }
     }
   }
 }
