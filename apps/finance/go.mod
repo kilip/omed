@@ -4,7 +4,8 @@ go 1.27.1
 
 require (
 	entgo.io/ent v0.14.6
-	github.com/casbin/casbin/v2 v2.135.0
+	github.com/casbin/casbin/v2 v2.63.0
+	github.com/casbin/casbin/v3 v3.10.0
 	github.com/go-playground/validator/v10 v10.30.5
 	github.com/gofiber/fiber/v3 v3.5.0
 	github.com/google/uuid v1.6.0
@@ -17,6 +18,7 @@ require (
 
 require (
 	ariga.io/atlas v0.36.2-0.20250730182955-2c6300d0a3e1 // indirect
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
