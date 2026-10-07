@@ -1,0 +1,24 @@
+{
+	"brand": "Omed",
+	"language": {
+		"en": "English",
+		"id": "Bahasa Indonesia",
+		"switch": "Ganti bahasa"
+	},
+	"theme": {
+		"switchToDark": "Ganti ke mode gelap",
+		"switchToLight": "Ganti ke mode terang",
+		"toggle": "Ganti tema",
+		"light": "Terang",
+		"dark": "Gelap"
+	},
+	"notifications": "Notifikasi",
+	"toggleMenu": "Alihkan menu",
+	"userMenu": "Menu pengguna",
+	"errors": {
+		"oops": "Ups!",
+		"unexpected": "Terjadi kesalahan yang tidak terduga.",
+		"notFound": "Halaman yang diminta tidak ditemukan.",
+		"error": "Kesalahan"
+	}
+}

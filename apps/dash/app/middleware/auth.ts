@@ -1,6 +1,7 @@
 import { redirect } from "react-router";
 import { type AuthContext, authContext } from "~/contexts/auth";
 import { getSession, token } from "~/lib/auth";
+import i18n from "~/lib/i18n";
 import type { Route } from "../+types/root";
 
 let cache: AuthContext | null = null;
@@ -70,6 +71,13 @@ export const authMiddleware: Route.ClientMiddlewareFunction = async (
 	const cached = getCachedAuth();
 	if (cached) {
 		context.set(authContext, cached);
+		if (
+			cached.user.locale &&
+			(cached.user.locale === "en" || cached.user.locale === "id") &&
+			i18n.language !== cached.user.locale
+		) {
+			await i18n.changeLanguage(cached.user.locale);
+		}
 		return next();
 	}
 
@@ -85,6 +93,15 @@ export const authMiddleware: Route.ClientMiddlewareFunction = async (
 	};
 	setCachedAuth(value);
 	context.set(authContext, value);
+
+	if (
+		data.user.locale &&
+		(data.user.locale === "en" || data.user.locale === "id") &&
+		i18n.language !== data.user.locale
+	) {
+		await i18n.changeLanguage(data.user.locale);
+	}
+
 	return next();
 };
 

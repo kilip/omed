@@ -1,0 +1,24 @@
+{
+	"brand": "Omed",
+	"language": {
+		"en": "English",
+		"id": "Bahasa Indonesia",
+		"switch": "Change language"
+	},
+	"theme": {
+		"switchToDark": "Switch to dark",
+		"switchToLight": "Switch to light",
+		"toggle": "Toggle theme",
+		"light": "Light",
+		"dark": "Dark"
+	},
+	"notifications": "Notifications",
+	"toggleMenu": "Toggle menu",
+	"userMenu": "User menu",
+	"errors": {
+		"oops": "Oops!",
+		"unexpected": "An unexpected error occurred.",
+		"notFound": "The requested page could not be found.",
+		"error": "Error"
+	}
+}

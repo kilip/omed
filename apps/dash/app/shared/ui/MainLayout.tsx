@@ -28,34 +28,13 @@ import {
 	theme,
 } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { signOut } from "~/lib/auth";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useThemeMode } from "./ThemeProvider";
 
 const { Sider, Header, Content } = Layout;
-
-const NAV = [
-	{ key: "/", label: "Home", icon: <HomeOutlined />, to: "/" },
-	{
-		key: "/fin",
-		label: "Finance",
-		icon: <WalletOutlined />,
-		to: "/fin",
-	},
-	{ key: "/blog", label: "Blog", icon: <ReadOutlined />, to: "/blog" },
-	{
-		key: "/settings",
-		label: "Settings",
-		icon: <SettingOutlined />,
-		to: "/settings",
-	},
-];
-
-const menuItems: MenuProps["items"] = NAV.map((n) => ({
-	key: n.key,
-	icon: n.icon,
-	label: <Link to={n.to}>{n.label}</Link>,
-}));
 
 function Logo({ collapsed }: { collapsed: boolean }) {
 	const { token } = theme.useToken();
@@ -83,7 +62,32 @@ function Logo({ collapsed }: { collapsed: boolean }) {
 
 function SideMenu({ onNavigate }: { onNavigate?: () => void }) {
 	const { pathname } = useLocation();
+	const { t } = useTranslation("nav");
 	const selected = `/${pathname.split("/")[1] ?? ""}`;
+
+	const navItems = [
+		{ key: "/", label: t("home"), icon: <HomeOutlined />, to: "/" },
+		{
+			key: "/fin",
+			label: t("finance"),
+			icon: <WalletOutlined />,
+			to: "/fin",
+		},
+		{ key: "/blog", label: t("blog"), icon: <ReadOutlined />, to: "/blog" },
+		{
+			key: "/settings",
+			label: t("settings"),
+			icon: <SettingOutlined />,
+			to: "/settings",
+		},
+	];
+
+	const menuItems: MenuProps["items"] = navItems.map((n) => ({
+		key: n.key,
+		icon: n.icon,
+		label: <Link to={n.to}>{n.label}</Link>,
+	}));
+
 	return (
 		<Menu
 			mode="inline"
@@ -97,11 +101,24 @@ function SideMenu({ onNavigate }: { onNavigate?: () => void }) {
 
 function AppBreadcrumb() {
 	const { pathname } = useLocation();
+	const { t } = useTranslation("nav");
 	const segments = pathname.split("/").filter(Boolean);
+
+	const segmentLabels: Record<string, string> = {
+		home: t("home"),
+		fin: t("finance"),
+		blog: t("blog"),
+		settings: t("settings"),
+	};
+
 	const items = [
-		{ title: segments.length ? <Link to="/"></Link> : "Home" },
+		{
+			title: segments.length ? <Link to="/">{t("home")}</Link> : t("home"),
+		},
 		...segments.map((seg, i) => {
-			const label = seg.charAt(0).toUpperCase() + seg.slice(1);
+			const label =
+				segmentLabels[seg.toLowerCase()] ??
+				seg.charAt(0).toUpperCase() + seg.slice(1);
 			const to = `/${segments.slice(0, i + 1).join("/")}`;
 			return {
 				title: i === segments.length - 1 ? label : <Link to={to}>{label}</Link>,
@@ -114,6 +131,7 @@ function AppBreadcrumb() {
 export default function DashboardLayout() {
 	const [collapsed, setCollapsed] = useState(false);
 	const [drawerOpen, setDrawerOpen] = useState(false);
+	const { t } = useTranslation(["common", "nav"]);
 	const { mode, toggle } = useThemeMode();
 	const { token } = theme.useToken();
 	const navigate = useNavigate();
@@ -122,12 +140,12 @@ export default function DashboardLayout() {
 
 	const userMenu: MenuProps = {
 		items: [
-			{ key: "profile", icon: <UserOutlined />, label: "Profile" },
+			{ key: "profile", icon: <UserOutlined />, label: t("nav:profile") },
 			{ type: "divider" },
 			{
 				key: "logout",
 				icon: <LogoutOutlined />,
-				label: "Log out",
+				label: t("nav:logout"),
 				danger: true,
 			},
 		],
@@ -199,7 +217,7 @@ export default function DashboardLayout() {
 					<Space size={16}>
 						<Button
 							type="text"
-							aria-label="Toggle menu"
+							aria-label={t("common:toggleMenu")}
 							icon={
 								collapsed && !isMobile ? (
 									<MenuUnfoldOutlined />
@@ -212,24 +230,29 @@ export default function DashboardLayout() {
 						{!isMobile && <AppBreadcrumb />}
 					</Space>
 
-					<Space size={4}>
+					<Space size={6}>
+						<LanguageSwitcher />
 						<Tooltip
-							title={mode === "light" ? "Switch to dark" : "Switch to light"}
+							title={
+								mode === "light"
+									? t("common:theme.switchToDark")
+									: t("common:theme.switchToLight")
+							}
 						>
 							<Button
 								type="text"
 								shape="circle"
-								aria-label="Toggle theme"
+								aria-label={t("common:theme.toggle")}
 								icon={mode === "light" ? <BulbOutlined /> : <BulbFilled />}
 								onClick={toggle}
 							/>
 						</Tooltip>
-						<Tooltip title="Notifications">
+						<Tooltip title={t("common:notifications")}>
 							<Badge dot offset={[-6, 6]}>
 								<Button
 									type="text"
 									shape="circle"
-									aria-label="Notifications"
+									aria-label={t("common:notifications")}
 									icon={<BellOutlined />}
 								/>
 							</Badge>
@@ -242,7 +265,7 @@ export default function DashboardLayout() {
 							<Button
 								type="text"
 								shape="circle"
-								aria-label="User menu"
+								aria-label={t("common:userMenu")}
 								style={{ marginLeft: 8 }}
 							>
 								<Avatar

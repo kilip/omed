@@ -1,6 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { UnderConstruction } from "~/shared/ui/UnderConstruction";
 
-export const meta = [{ title: "Finance", description: "Finance" }];
+export function meta() {
+	return [{ title: "Finance" }];
+}
+
 export default function FinancePage() {
-	return <UnderConstruction pageTitle="Finance" />;
+	const { t } = useTranslation("finance");
+	return <UnderConstruction pageTitle={t("title")} />;
 }

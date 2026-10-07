@@ -1,15 +1,12 @@
 import { GithubOutlined, GoogleOutlined } from "@ant-design/icons";
 import { Alert, Button, Card, Divider, Space, Typography, theme } from "antd";
 import { useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { signIn } from "~/lib/auth";
+import { LanguageSwitcher } from "~/shared/ui/LanguageSwitcher";
 
 type Provider = "google" | "github";
-
-const PROVIDERS: { id: Provider; label: string; icon: React.ReactNode }[] = [
-	{ id: "google", label: "Lanjut dengan Google", icon: <GoogleOutlined /> },
-	{ id: "github", label: "Lanjut dengan GitHub", icon: <GithubOutlined /> },
-];
 
 // Hanya terima path internal supaya tidak jadi open redirect
 function safeRedirect(value: string | null) {
@@ -17,16 +14,28 @@ function safeRedirect(value: string | null) {
 }
 
 export default function LoginPage() {
+	const { t } = useTranslation("auth");
 	const { token } = theme.useToken();
 	const [params] = useSearchParams();
 	const [loading, setLoading] = useState<Provider | null>(null);
 	const [error, setError] = useState<string | null>(
-		params.get("error")
-			? "Gagal masuk. Coba lagi, atau pakai akun lain."
-			: null,
+		params.get("error") ? t("errorGeneric") : null,
 	);
 
 	const redirectTo = safeRedirect(params.get("redirect"));
+
+	const providers: { id: Provider; label: string; icon: React.ReactNode }[] = [
+		{
+			id: "google",
+			label: t("continueWithGoogle"),
+			icon: <GoogleOutlined />,
+		},
+		{
+			id: "github",
+			label: t("continueWithGitHub"),
+			icon: <GithubOutlined />,
+		},
+	];
 
 	async function doSignIn(provider: Provider) {
 		setError(null);
@@ -40,9 +49,7 @@ export default function LoginPage() {
 			if (error) throw error;
 			// sukses: browser di-redirect ke provider, jadi loading dibiarkan
 		} catch {
-			setError(
-				"Tidak bisa terhubung ke layanan login. Cek koneksi, lalu coba lagi.",
-			);
+			setError(t("errorConnection"));
 			setLoading(null);
 		}
 	}
@@ -56,9 +63,14 @@ export default function LoginPage() {
 				alignItems: "center",
 				justifyContent: "center",
 				padding: 24,
+				position: "relative",
 				background: token.colorBgLayout,
 			}}
 		>
+			<div style={{ position: "absolute", top: 16, right: 16 }}>
+				<LanguageSwitcher showLabel />
+			</div>
+
 			<Card
 				style={{ width: "100%", maxWidth: 400 }}
 				styles={{ body: { padding: 40 } }}
@@ -73,17 +85,17 @@ export default function LoginPage() {
 							style={{ display: "block", margin: "0 auto 20px" }}
 						/>
 						<Typography.Title level={3} style={{ margin: 0 }}>
-							Masuk ke Omed
+							{t("loginTitle")}
 						</Typography.Title>
 						<Typography.Text type="secondary">
-							Pilih akun untuk lanjut ke dashboard.
+							{t("loginSubtitle")}
 						</Typography.Text>
 					</div>
 
 					{error && <Alert type="error" showIcon message={error} />}
 
 					<Space direction="vertical" size={12} style={{ width: "100%" }}>
-						{PROVIDERS.map((p) => (
+						{providers.map((p) => (
 							<Button
 								key={p.id}
 								block
@@ -105,14 +117,26 @@ export default function LoginPage() {
 						type="secondary"
 						style={{ margin: 0, textAlign: "center", fontSize: 12 }}
 					>
-						Dengan masuk, kamu setuju dengan <a href="/terms">Syarat Layanan</a>{" "}
-						dan <a href="/privacy">Kebijakan Privasi</a>.
+						<Trans
+							ns="auth"
+							i18nKey="termsNotice"
+							components={{
+								terms: <a href="/terms" />,
+								privacy: <a href="/privacy" />,
+							}}
+						/>
 					</Typography.Paragraph>
 				</Space>
 			</Card>
 
 			<Typography.Text type="secondary" style={{ marginTop: 24, fontSize: 13 }}>
-				Ada kendala masuk? <a href="mailto:support@omed.app">Hubungi kami</a>
+				<Trans
+					ns="auth"
+					i18nKey="troubleSigningIn"
+					components={{
+						contact: <a href="mailto:support@omed.app" />,
+					}}
+				/>
 			</Typography.Text>
 		</main>
 	);

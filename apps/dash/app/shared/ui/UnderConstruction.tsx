@@ -1,5 +1,6 @@
 import { ToolOutlined } from "@ant-design/icons";
 import { Button, Card, Space, Typography, theme } from "antd";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 type UnderConstructionProps = {
@@ -14,12 +15,17 @@ type UnderConstructionProps = {
 
 export function UnderConstruction({
 	pageTitle,
-	title = "Halaman ini sedang dibangun",
-	description = "Fitur ini belum siap dipakai. Kami sedang mengerjakannya.",
+	title,
+	description,
 	backTo = "/",
-	backLabel = "Kembali ke Home",
+	backLabel,
 }: UnderConstructionProps) {
+	const { t } = useTranslation("underConstruction");
 	const { token } = theme.useToken();
+
+	const resolvedTitle = title ?? t("title");
+	const resolvedDescription = description ?? t("description");
+	const resolvedBackLabel = backLabel ?? t("backHome");
 
 	return (
 		<>
@@ -53,19 +59,19 @@ export function UnderConstruction({
 
 					<div>
 						<Typography.Title level={4} style={{ margin: 0 }}>
-							{title}
+							{resolvedTitle}
 						</Typography.Title>
 						<Typography.Paragraph
 							type="secondary"
 							style={{ margin: "8px auto 0", maxWidth: 360 }}
 						>
-							{description}
+							{resolvedDescription}
 						</Typography.Paragraph>
 					</div>
 
 					{backTo !== null && (
 						<Link to={backTo}>
-							<Button type="primary">{backLabel}</Button>
+							<Button type="primary">{resolvedBackLabel}</Button>
 						</Link>
 					)}
 				</Space>
