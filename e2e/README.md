@@ -37,7 +37,7 @@ Ensure PostgreSQL is running (e.g. via Dev Container or local Docker container):
 
 ```bash
 # 1. Install Playwright browser (first time)
-bunx --cwd e2e playwright install chromium
+bun --cwd e2e playwright install chromium
 
 # 2. Run E2E tests (automatically resets omed_e2e and runs Cucumber)
 bun run e2e

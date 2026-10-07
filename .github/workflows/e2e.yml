@@ -43,6 +43,10 @@ jobs:
           go-version-file: apps/finance/go.mod
           cache-dependency-path: apps/finance/go.sum
 
+      - name: Build Finance API
+        working-directory: apps/finance
+        run: go build ./cmd/api
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
