@@ -70,8 +70,12 @@ export async function startServers(): Promise<void> {
   });
 
   const financePort = new URL(e2eEnv.FINANCE_URL).port || "8002";
+  const financeBin = path.resolve(financeDir, "bin/api");
+  const [financeCmd, financeArgs] = fs.existsSync(financeBin)
+    ? [financeBin, []]
+    : ["go", ["run", "./cmd/api"]];
   console.log(`[servers] Starting @omed/finance on :${financePort}...`);
-  financeProcess = spawn("go", ["run", "./cmd/api"], {
+  financeProcess = spawn(financeCmd, financeArgs, {
     cwd: financeDir,
     detached: true,
     env: {
@@ -84,6 +88,11 @@ export async function startServers(): Promise<void> {
     stdio: "pipe",
   });
 
+  financeProcess.stdout?.on("data", (data) => {
+    const s = data.toString().trim();
+    if (s) console.log(`[finance] ${s}`);
+  });
+
   financeProcess.stderr?.on("data", (data) => {
     const s = data.toString();
     if (!s.includes("deprecated")) console.error(`[finance:err] ${s.trim()}`);
@@ -91,9 +100,9 @@ export async function startServers(): Promise<void> {
 
   // Wait for all to be ready
   await Promise.all([
-    waitForUrl(`${e2eEnv.AUTH_URL}/hello`, 30000),
+    waitForUrl(`${e2eEnv.AUTH_URL}/hello`, 60000),
     waitForUrl(e2eEnv.DASH_URL, 60000),
-    waitForUrl(`${e2eEnv.FINANCE_URL}/livez`, 30000),
+    waitForUrl(`${e2eEnv.FINANCE_URL}/livez`, 60000),
   ]);
   try {
     await fetch(`${e2eEnv.DASH_URL}/login`);
