@@ -23,7 +23,7 @@
     "@omed/tsconfig": "workspace:*",
     "@cloudflare/workers-types": "^5.0.0",
     "drizzle-kit": "^1.0.0-rc.4",
-    "typescript": "^5.0.0",
+    "typescript": "^7.0.0",
     "wrangler": "^4.0.0"
   }
 }

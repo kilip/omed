@@ -29,6 +29,6 @@
     "@commitlint/config-conventional": "^21.2.3",
     "husky": "^9.1.7",
     "turbo": "^2.5.0",
-    "typescript": "^6"
+    "typescript": "^7.0.0"
   }
 }
