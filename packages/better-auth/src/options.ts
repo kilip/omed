@@ -49,6 +49,7 @@ export const authOptions = {
 			},
 		}),
 		jwt({
+			/*
 			jwt: {
 				definePayload({ user, session }) {
 					const sx = session as unknown as Record<string, unknown>;
@@ -62,6 +63,7 @@ export const authOptions = {
 					};
 				},
 			},
+      */
 		}),
 		openAPI(),
 		...(authEnv.DEVELOPMENT ? [testUtils()] : []),
@@ -96,5 +98,25 @@ export const authOptions = {
 		database: {
 			generateId: "uuid",
 		},
+	},
+	socialProviders: {
+		...(authEnv.AUTH_GOOGLE_ID && authEnv.AUTH_GOOGLE_SECRET
+			? {
+					google: {
+						clientId: authEnv.AUTH_GOOGLE_ID,
+						clientSecret: authEnv.AUTH_GOOGLE_SECRET,
+						scope: ["email", "openid", "profile"],
+					},
+				}
+			: {}),
+		...(authEnv.AUTH_GITHUB_ID && authEnv.AUTH_GITHUB_SECRET
+			? {
+					github: {
+						clientId: authEnv.AUTH_GITHUB_ID,
+						clientSecret: authEnv.AUTH_GITHUB_SECRET,
+						scope: ["profile", "openid", "email"],
+					},
+				}
+			: {}),
 	},
 } satisfies BetterAuthOptions;

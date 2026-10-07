@@ -23,7 +23,13 @@ export const getDBInstance = async (): Promise<AuthDatabase> => {
 
 	const connectionString = authEnv.AUTH_DB_URL;
 	if (authEnv.AUTH_DB_DRIVER === "node") {
-		const client = new NodePool({ connectionString });
+		const client = new NodePool({
+			connectionString,
+			max: 10,
+			maxUses: 1,
+			allowExitOnIdle: true,
+			idleTimeoutMillis: 1000,
+		});
 		cachedDB = nodeDrizzle({ client, relations });
 		return cachedDB;
 	}

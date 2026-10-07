@@ -16,7 +16,7 @@ export const user = authSchema.table("user", {
  banReason: text('ban_reason'),
  banExpires: timestamp('ban_expires'),
  locale: text('locale'),
- defaultCurrency: text('default_currency')
+ defaultCurrency: text('default_currency').default("IDR")
 					});
 
 export const session = authSchema.table("session", {
