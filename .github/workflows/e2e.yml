@@ -37,6 +37,12 @@ jobs:
         with:
           bun-version: 1.4.2
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/finance/go.mod
+          cache-dependency-path: apps/finance/go.sum
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -49,11 +55,13 @@ jobs:
 
       - name: Install Playwright Chromium & system deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: bunx --cwd e2e playwright install --with-deps chromium
+        working-directory: e2e
+        run: bunx playwright install --with-deps chromium
 
       - name: Install system dependencies only if cached
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: bunx --cwd e2e playwright install-deps chromium
+        working-directory: e2e
+        run: bunx playwright install-deps chromium
 
       - name: Run E2E tests
         run: bun run e2e
