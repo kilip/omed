@@ -7,3 +7,9 @@ indent_size = 2
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
+
+# Specific configuration for Go files, Makefiles, and Go Modules
+[{*.go,Makefile,go.mod,go.sum}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
