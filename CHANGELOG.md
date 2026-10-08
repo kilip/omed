@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/kilip/omed/compare/v0.2.0...v0.3.0) (2026-10-08)
+
+
+### Features
+
+* **auth:** kafka integration ([9bae688](https://github.com/kilip/omed/commit/9bae688f5ced704a1193e9563b3795cd292cda0d))
+* **fin:** accounts base feature ([808fa9b](https://github.com/kilip/omed/commit/808fa9ba9ce286fc0c77f076337498733c3cb268))
+* **fin:** integrated kafka into user snapshot ([6c3ce6a](https://github.com/kilip/omed/commit/6c3ce6ac5605b23cf0a7039b0db486900bcf6b77))
+
+
+### Bug Fixes
+
+* **auth:** change dev command ([e2ac59d](https://github.com/kilip/omed/commit/e2ac59dc622b515c972528d25f4325bb9f70372f))
+* **dash:** deprecated antd props ([1a13c53](https://github.com/kilip/omed/commit/1a13c53372adc6480ade2272cdeaf938b57b8195))
+
 ## [0.2.0](https://github.com/kilip/omed/compare/v0.1.0...v0.2.0) (2026-10-08)
 
 
