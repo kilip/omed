@@ -59,7 +59,7 @@ export default function SettingsPage() {
         {t("settings:title")}
       </Typography.Title>
 
-      <Space direction="vertical" size={20} style={{ width: "100%" }}>
+      <Space orientation="vertical" size={20} style={{ width: "100%" }}>
         <Card title={t("settings:language")}>
           <Typography.Paragraph type="secondary" style={{ marginBottom: 16 }}>
             {t("settings:languageDescription")}

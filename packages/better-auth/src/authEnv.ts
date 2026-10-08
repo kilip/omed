@@ -17,6 +17,15 @@ export const authEnvConfig = () => {
       AUTH_GOOGLE_SECRET: z.string().optional(),
       AUTH_GITHUB_ID: z.string().optional(),
       AUTH_GITHUB_SECRET: z.string().optional(),
+      KAFKA_BROKERS: z
+        .string()
+        .default("localhost:9092")
+        .transform((value) =>
+          value
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+        ),
     },
     runtimeEnv: process.env,
   });

@@ -8,6 +8,7 @@ import "context"
 // that can be passed at runtime.
 type SchemaConfig struct {
 	Account   string // Account table.
+	Entry     string // Entry table.
 	User      string // User table.
 	Workspace string // Workspace table.
 }

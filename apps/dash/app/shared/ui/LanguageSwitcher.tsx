@@ -6,12 +6,12 @@ import { useAppLanguage } from "~/shared/hooks/useAppLanguage";
 export interface LanguageSwitcherProps {
   /** Show full label or short code */
   showLabel?: boolean;
-  size?: "small" | "middle" | "large";
+  size?: "small" | "medium" | "middle" | "large";
 }
 
 export function LanguageSwitcher({
   showLabel = false,
-  size = "middle",
+  size = "medium",
 }: LanguageSwitcherProps) {
   const { language: activeLang, changeLanguage, t } = useAppLanguage();
 

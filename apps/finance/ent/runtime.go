@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/account"
+	"github.com/kilip/omed/finance/ent/entry"
 	"github.com/kilip/omed/finance/ent/schema"
 	"github.com/kilip/omed/finance/ent/user"
 	"github.com/kilip/omed/finance/ent/workspace"
@@ -49,6 +50,27 @@ func init() {
 	accountDescID := accountMixinFields0[0].Descriptor()
 	// account.DefaultID holds the default value on creation for the id field.
 	account.DefaultID = accountDescID.Default.(func() uuid.UUID)
+	entryMixin := schema.Entry{}.Mixin()
+	entryMixinFields0 := entryMixin[0].Fields()
+	_ = entryMixinFields0
+	entryMixinFields1 := entryMixin[1].Fields()
+	_ = entryMixinFields1
+	entryFields := schema.Entry{}.Fields()
+	_ = entryFields
+	// entryDescCreatedAt is the schema descriptor for createdAt field.
+	entryDescCreatedAt := entryMixinFields1[1].Descriptor()
+	// entry.DefaultCreatedAt holds the default value on creation for the createdAt field.
+	entry.DefaultCreatedAt = entryDescCreatedAt.Default.(func() time.Time)
+	// entryDescUpdatedAt is the schema descriptor for updatedAt field.
+	entryDescUpdatedAt := entryMixinFields1[3].Descriptor()
+	// entry.DefaultUpdatedAt holds the default value on creation for the updatedAt field.
+	entry.DefaultUpdatedAt = entryDescUpdatedAt.Default.(func() time.Time)
+	// entry.UpdateDefaultUpdatedAt holds the default value on update for the updatedAt field.
+	entry.UpdateDefaultUpdatedAt = entryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// entryDescID is the schema descriptor for id field.
+	entryDescID := entryMixinFields0[0].Descriptor()
+	// entry.DefaultID holds the default value on creation for the id field.
+	entry.DefaultID = entryDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

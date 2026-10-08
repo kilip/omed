@@ -63,6 +63,52 @@ var (
 			},
 		},
 	}
+	// EntryColumns holds the columns for the "entry" table.
+	EntryColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "workspace_id", Type: field.TypeUUID},
+		{Name: "entry_date", Type: field.TypeTime},
+		{Name: "entry_type", Type: field.TypeEnum, Enums: []string{"normal", "opening_balance", "adjustment", "closing", "fx_adjustment"}, Default: "normal"},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "reference", Type: field.TypeString, Nullable: true},
+		{Name: "ledger_period_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "updated_by", Type: field.TypeUUID},
+	}
+	// EntryTable holds the schema information for the "entry" table.
+	EntryTable = &schema.Table{
+		Name:       "entry",
+		Columns:    EntryColumns,
+		PrimaryKey: []*schema.Column{EntryColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entry_user_creator",
+				Columns:    []*schema.Column{EntryColumns[9]},
+				RefColumns: []*schema.Column{UserColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "entry_user_updater",
+				Columns:    []*schema.Column{EntryColumns[10]},
+				RefColumns: []*schema.Column{UserColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entry_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntryColumns[3]},
+			},
+			{
+				Name:    "entry_workspace_id_entry_date",
+				Unique:  false,
+				Columns: []*schema.Column{EntryColumns[3], EntryColumns[4]},
+			},
+		},
+	}
 	// UserColumns holds the columns for the "user" table.
 	UserColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -93,6 +139,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountTable,
+		EntryTable,
 		UserTable,
 		WorkspaceTable,
 	}
@@ -104,6 +151,11 @@ func init() {
 	AccountTable.ForeignKeys[2].RefTable = AccountTable
 	AccountTable.Annotation = &entsql.Annotation{
 		Table: "account",
+	}
+	EntryTable.ForeignKeys[0].RefTable = UserTable
+	EntryTable.ForeignKeys[1].RefTable = UserTable
+	EntryTable.Annotation = &entsql.Annotation{
+		Table: "entry",
 	}
 	UserTable.Annotation = &entsql.Annotation{
 		Table: "user",

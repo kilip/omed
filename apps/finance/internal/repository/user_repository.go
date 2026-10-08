@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent"
+	"github.com/kilip/omed/finance/ent/user"
 	"github.com/kilip/omed/finance/internal/core"
 	"github.com/kilip/omed/finance/internal/model"
 	"github.com/kilip/omed/finance/internal/shared/util"
@@ -59,5 +60,21 @@ func (r UserRepository) Update(ctx context.Context, user model.UserSnapshot) err
 			SetSyncedAt(user.SyncedAt).
 			Save(ctx)
 		return err
+	})
+}
+
+func (r UserRepository) Upsert(ctx context.Context, u model.UserSnapshot) error {
+	return WithTx(ctx, r.entClient, func(tx *ent.Tx) error {
+		return tx.User.Create().
+			SetID(u.ID).SetName(u.Name).SetAvatar(u.Avatar).
+			OnConflictColumns(user.FieldID).
+			UpdateNewValues().
+			Exec(ctx)
+	})
+}
+
+func (r UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	return WithTx(ctx, r.entClient, func(tx *ent.Tx) error {
+		return tx.User.DeleteOneID(id).Exec(ctx)
 	})
 }
