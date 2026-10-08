@@ -7,8 +7,11 @@ import {
   useState,
 } from "react";
 import type { AuthContext } from "~/contexts/auth";
-import { i18n, isLocale } from "~/locales";
+import i18n, { type SupportedLanguage } from "~/lib/i18n";
 import { updateCachedAuthUser } from "~/middleware/auth";
+
+const isLocale = (v: unknown): v is SupportedLanguage =>
+  v === "en" || v === "id";
 
 export interface AuthContextValue extends AuthContext {
   updateUser: (patch: Partial<User>) => void;

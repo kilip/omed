@@ -61,6 +61,7 @@ export async function startServers(): Promise<void> {
     env: {
       ...cleanEnv,
       VITE_AUTH_URL: e2eEnv.AUTH_URL,
+      VITE_FINANCE_URL: e2eEnv.FINANCE_URL,
     },
     stdio: "pipe",
   });

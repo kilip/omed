@@ -70,6 +70,12 @@ BeforeAll(async () => {
   globalBrowser = await chromium.launch({
     headless: true,
   });
+  const warmPage = await globalBrowser.newPage();
+  try {
+    await warmPage.goto(e2eEnv.DASH_URL);
+    await warmPage.waitForURL("**/login", { timeout: 45000 });
+  } catch {}
+  await warmPage.close();
 });
 
 AfterAll(async () => {
