@@ -1,5 +1,60 @@
 {
   "title": "Finance",
   "metaTitle": "Omed | Finance",
-  "metaDescription": "Manage your finances"
+  "metaDescription": "Manage your finances",
+  "seed": {
+    "title": "Seed Chart of Accounts",
+    "metaTitle": "Omed | Seed Chart of Accounts",
+    "description": "Initialize your Chart of Accounts using an industry-standard template.",
+    "profile": "Template Profile",
+    "currency": "Account Currency",
+    "language": "Accounts Language",
+    "preview": "Account Preview",
+    "searchPlaceholder": "Search by code or account name...",
+    "table": {
+      "code": "Code",
+      "name": "Name",
+      "type": "Type"
+    },
+    "types": {
+      "asset": "Asset",
+      "liability": "Liability",
+      "equity": "Equity",
+      "revenue": "Revenue",
+      "expense": "Expense"
+    },
+    "warning": {
+      "entriesExist": "Transactions already exist in this workspace. The Chart of Accounts cannot be reseeded.",
+      "accountsExist": "This workspace already has existing accounts. Seeding will overwrite existing accounts.",
+      "confirmOverwrite": "I understand that existing accounts will be replaced."
+    },
+    "submit": "Seed Chart of Accounts",
+    "submitting": "Seeding accounts...",
+    "success": {
+      "title": "Chart of Accounts Initialized!",
+      "description": "Successfully created {{count}} accounts for your workspace.",
+      "goToFinance": "Go to Finance"
+    },
+    "onboarding": {
+      "emptyTitle": "No Accounts Set Up Yet",
+      "emptyDescription": "Get started by initializing a standard Chart of Accounts tailored for your business.",
+      "seedAction": "Setup Chart of Accounts"
+    }
+  },
+  "accounts": {
+    "title": "Chart of Accounts",
+    "metaTitle": "Omed | Chart of Accounts",
+    "description": "View and manage all ledger accounts for your workspace.",
+    "viewAccounts": "View Accounts",
+    "totalAccounts": "Total Accounts",
+    "searchPlaceholder": "Search accounts by code or name...",
+    "allTypes": "All Account Types",
+    "empty": "No accounts found"
+  },
+  "modules": {
+    "accountsTitle": "Chart of Accounts",
+    "accountsDesc": "Inspect all financial accounts, code hierarchy, and balances.",
+    "seedTitle": "Reseed Template",
+    "seedDesc": "Re-initialize accounts using industry standard preset profiles."
+  }
 }

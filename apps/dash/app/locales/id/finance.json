@@ -1,5 +1,60 @@
 {
   "title": "Keuangan",
   "metaTitle": "Omed | Keuangan",
-  "metaDescription": "Kelola keuangan Anda"
+  "metaDescription": "Kelola keuangan Anda",
+  "seed": {
+    "title": "Inisialisasi Bagan Akun",
+    "metaTitle": "Omed | Inisialisasi Bagan Akun",
+    "description": "Inisialisasi Bagan Akun Anda menggunakan templat standar industri.",
+    "profile": "Templat Profil",
+    "currency": "Mata Uang Akun",
+    "language": "Bahasa Akun",
+    "preview": "Pratinjau Akun",
+    "searchPlaceholder": "Cari berdasarkan kode atau nama akun...",
+    "table": {
+      "code": "Kode",
+      "name": "Nama",
+      "type": "Tipe"
+    },
+    "types": {
+      "asset": "Aset",
+      "liability": "Liabilitas",
+      "equity": "Ekuitas",
+      "revenue": "Pendapatan",
+      "expense": "Beban"
+    },
+    "warning": {
+      "entriesExist": "Sudah terdapat transaksi dalam ruang kerja ini. Bagan akun tidak dapat diinisialisasi ulang.",
+      "accountsExist": "Ruang kerja ini sudah memiliki akun. Menginisialisasi ulang akan menimpa akun yang ada.",
+      "confirmOverwrite": "Saya mengerti bahwa akun yang ada saat ini akan diganti."
+    },
+    "submit": "Inisialisasi Bagan Akun",
+    "submitting": "Menginisialisasi akun...",
+    "success": {
+      "title": "Bagan Akun Berhasil Diinisialisasi!",
+      "description": "Berhasil membuat {{count}} akun untuk ruang kerja Anda.",
+      "goToFinance": "Buka Keuangan"
+    },
+    "onboarding": {
+      "emptyTitle": "Belum Ada Bagan Akun",
+      "emptyDescription": "Mulai dengan menginisialisasi Bagan Akun standar yang disesuaikan untuk bisnis Anda.",
+      "seedAction": "Setup Bagan Akun"
+    }
+  },
+  "accounts": {
+    "title": "Bagan Akun",
+    "metaTitle": "Omed | Bagan Akun",
+    "description": "Lihat dan kelola seluruh akun buku besar ruang kerja Anda.",
+    "viewAccounts": "Lihat Akun",
+    "totalAccounts": "Total Akun",
+    "searchPlaceholder": "Cari akun berdasarkan kode atau nama...",
+    "allTypes": "Semua Tipe Akun",
+    "empty": "Tidak ada akun ditemukan"
+  },
+  "modules": {
+    "accountsTitle": "Bagan Akun",
+    "accountsDesc": "Periksa akun keuangan, hierarki kode, dan saldo.",
+    "seedTitle": "Inisialisasi Ulang",
+    "seedDesc": "Inisialisasi ulang akun menggunakan templat profil standar."
+  }
 }

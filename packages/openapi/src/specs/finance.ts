@@ -255,6 +255,161 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/accounts/seed/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get seed preview
+     * @description Preview chart of accounts for a template and language, including workspace counts.
+     */
+    get: {
+      parameters: {
+        query: {
+          /** @description Profile name */
+          profile: string;
+          /** @description Language code */
+          lang: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.WebResponse-model_SeedPreviewResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/accounts/seed/templates": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get seed templates
+     * @description Get list of available chart of accounts seed template profiles.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.WebResponse-array_model_SeedTemplateResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/accounts/{id}": {
     parameters: {
       query?: never;
@@ -560,6 +715,26 @@ export interface components {
       lang: string;
       profile: string;
     };
+    "model.SeedPreviewAccount": {
+      code?: string;
+      name?: string;
+      parentCode?: string;
+      /** @enum {string} */
+      type?: "asset" | "liability" | "equity" | "revenue" | "expense";
+    };
+    "model.SeedPreviewResponse": {
+      accountCount?: number;
+      accounts?: components["schemas"]["model.SeedPreviewAccount"][];
+      entryCount?: number;
+      lang?: string;
+      profile?: string;
+    };
+    "model.SeedTemplateResponse": {
+      description?: string;
+      id?: string;
+      languages?: string[];
+      name?: string;
+    };
     "model.UpdateAccountRequest": {
       description?: string;
       name?: string;
@@ -570,8 +745,16 @@ export interface components {
       data?: components["schemas"]["model.AccountResponse"][];
       meta?: components["schemas"]["model.Meta"];
     };
+    "model.WebResponse-array_model_SeedTemplateResponse": {
+      data?: components["schemas"]["model.SeedTemplateResponse"][];
+      meta?: components["schemas"]["model.Meta"];
+    };
     "model.WebResponse-model_AccountResponse": {
       data?: components["schemas"]["model.AccountResponse"];
+      meta?: components["schemas"]["model.Meta"];
+    };
+    "model.WebResponse-model_SeedPreviewResponse": {
+      data?: components["schemas"]["model.SeedPreviewResponse"];
       meta?: components["schemas"]["model.Meta"];
     };
   };

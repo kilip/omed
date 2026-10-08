@@ -195,6 +195,75 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.SeedPreviewAccount": {
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "parentCode": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "asset",
+                            "liability",
+                            "equity",
+                            "revenue",
+                            "expense"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SeedPreviewResponse": {
+                "properties": {
+                    "accountCount": {
+                        "type": "integer"
+                    },
+                    "accounts": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.SeedPreviewAccount"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "entryCount": {
+                        "type": "integer"
+                    },
+                    "lang": {
+                        "type": "string"
+                    },
+                    "profile": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SeedTemplateResponse": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "languages": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.UpdateAccountRequest": {
                 "properties": {
                     "description": {
@@ -230,10 +299,36 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.WebResponse-array_model_SeedTemplateResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.SeedTemplateResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/model.Meta"
+                    }
+                },
+                "type": "object"
+            },
             "model.WebResponse-model_AccountResponse": {
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.AccountResponse"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/model.Meta"
+                    }
+                },
+                "type": "object"
+            },
+            "model.WebResponse-model_SeedPreviewResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.SeedPreviewResponse"
                     },
                     "meta": {
                         "$ref": "#/components/schemas/model.Meta"
@@ -536,6 +631,158 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Seed accounts",
+                "tags": [
+                    "accounts"
+                ]
+            }
+        },
+        "/accounts/seed/preview": {
+            "get": {
+                "description": "Preview chart of accounts for a template and language, including workspace counts.",
+                "parameters": [
+                    {
+                        "description": "Profile name",
+                        "in": "query",
+                        "name": "profile",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Language code",
+                        "in": "query",
+                        "name": "lang",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-model_SeedPreviewResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get seed preview",
+                "tags": [
+                    "accounts"
+                ]
+            }
+        },
+        "/accounts/seed/templates": {
+            "get": {
+                "description": "Get list of available chart of accounts seed template profiles.",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-array_model_SeedTemplateResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get seed templates",
                 "tags": [
                     "accounts"
                 ]

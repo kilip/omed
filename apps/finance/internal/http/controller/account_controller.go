@@ -17,6 +17,8 @@ type AccountService interface {
 	Update(ctx context.Context, id uuid.UUID, req model.UpdateAccountRequest) (*model.AccountResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	Seed(ctx context.Context, req model.SeedAccountRequest) ([]model.AccountResponse, error)
+	GetSeedTemplates(ctx context.Context) ([]model.SeedTemplateResponse, error)
+	GetSeedPreview(ctx context.Context, profile, lang string) (*model.SeedPreviewResponse, error)
 }
 
 type AccountController struct {
@@ -35,6 +37,8 @@ func (ac AccountController) InitRoutes(r fiber.Router) {
 	write := http.RequirePermission(authz.ResourceAccounts, authz.ActionWrite)
 
 	g.Get("/", read, ac.List)
+	g.Get("/seed/templates", read, ac.GetSeedTemplates)
+	g.Get("/seed/preview", read, ac.GetSeedPreview)
 	g.Post("/seed", write, ac.Seed)
 	g.Get("/:id", read, ac.GetById)
 	g.Post("/", write, ac.Create)
@@ -219,3 +223,53 @@ func (ac *AccountController) Seed(c fiber.Ctx) error {
 	}
 	return http.Created(c, accounts)
 }
+
+// GetSeedTemplates godoc
+//
+//	@Summary		Get seed templates
+//	@Description	Get list of available chart of accounts seed template profiles.
+//	@Tags			accounts
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	model.WebResponse[[]model.SeedTemplateResponse]
+//	@Failure		401	{object}	model.ErrorResponse
+//	@Failure		403	{object}	model.ErrorResponse
+//	@Failure		500	{object}	model.ErrorResponse
+//	@Router			/accounts/seed/templates [get]
+func (ac *AccountController) GetSeedTemplates(c fiber.Ctx) error {
+	templates, err := ac.accounts.GetSeedTemplates(c)
+	if err != nil {
+		return err
+	}
+	return http.OK(c, templates)
+}
+
+// GetSeedPreview godoc
+//
+//	@Summary		Get seed preview
+//	@Description	Preview chart of accounts for a template and language, including workspace counts.
+//	@Tags			accounts
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			profile	query		string	true	"Profile name"
+//	@Param			lang	query		string	true	"Language code"
+//	@Success		200		{object}	model.WebResponse[model.SeedPreviewResponse]
+//	@Failure		400		{object}	model.ErrorResponse
+//	@Failure		401		{object}	model.ErrorResponse
+//	@Failure		403		{object}	model.ErrorResponse
+//	@Failure		422		{object}	model.ErrorResponse
+//	@Failure		500		{object}	model.ErrorResponse
+//	@Router			/accounts/seed/preview [get]
+func (ac *AccountController) GetSeedPreview(c fiber.Ctx) error {
+	var req model.SeedPreviewRequest
+	if err := c.Bind().Query(&req); err != nil {
+		return err
+	}
+
+	preview, err := ac.accounts.GetSeedPreview(c, req.Profile, req.Lang)
+	if err != nil {
+		return err
+	}
+	return http.OK(c, preview)
+}
+

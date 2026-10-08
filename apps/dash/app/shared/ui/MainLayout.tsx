@@ -49,7 +49,7 @@ function Logo({ collapsed }: { collapsed: boolean }) {
         textDecoration: "none",
       }}
     >
-      <img src="logo-icon.svg" width={32} height={32} alt="O" />
+      <img src="/logo-icon.svg" width={32} height={32} alt="O" />
       {!collapsed && (
         <Typography.Text strong style={{ fontSize: 18, letterSpacing: -0.2 }}>
           Omed
@@ -106,6 +106,7 @@ function AppBreadcrumb() {
   const segmentLabels: Record<string, string> = {
     home: t("home"),
     fin: t("finance"),
+    accounts: t("accounts"),
     blog: t("blog"),
     settings: t("settings"),
   };

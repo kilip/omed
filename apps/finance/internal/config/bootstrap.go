@@ -54,7 +54,7 @@ func initFiber(state State) error {
 	// cors config
 	state.FiberApp.Use(cors.New(cors.Config{
 		AllowOrigins: state.Config.TrustedOrigins,
-		AllowHeaders: []string{"Origin", "Content-Type", "Accept"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
 	}))
 
 	// jwks config

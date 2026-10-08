@@ -30,3 +30,25 @@ func Load(profile, lang string) ([]COAAccount, error) {
 	}
 	return accounts, nil
 }
+
+type TemplateInfo struct {
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Languages   []string `json:"languages"`
+}
+
+var availableTemplates = []TemplateInfo{
+	{
+		ID:          "freelancer",
+		Name:        "Freelancer",
+		Description: "Chart of accounts optimized for freelancers and independent professionals",
+		Languages:   []string{"en", "id"},
+	},
+}
+
+func ListTemplates() []TemplateInfo {
+	templates := make([]TemplateInfo, len(availableTemplates))
+	copy(templates, availableTemplates)
+	return templates
+}

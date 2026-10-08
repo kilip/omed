@@ -7,6 +7,7 @@ export const appEnvConfig = () => {
     client: {
       VITE_AUTH_URL: z.string().default("http://localhost:8001"),
       VITE_AUTH_PATH: z.string().default(""),
+      VITE_FINANCE_URL: z.string().default("http://localhost:8002"),
     },
     runtimeEnv: import.meta.env,
     emptyStringAsUndefined: true,
