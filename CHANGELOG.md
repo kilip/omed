@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.0](https://github.com/kilip/omed/compare/v0.1.0...v0.2.0) (2026-10-08)
+
+
+### Features
+
+* **fin:** add auth user and workspace snapshot ([a2a878a](https://github.com/kilip/omed/commit/a2a878ae9f852a03ec59f2aeda1132d9f7a9d9df))
+* **fin:** add auth user and workspace snapshot ([58c39c5](https://github.com/kilip/omed/commit/58c39c5aeb81c0055c371d7900f5c4e4fad0bb08))
+
+
+### Dependencies
+
+* **deps:** update module github.com/casbin/casbin/v2 to v2.135.0 ([64a18b3](https://github.com/kilip/omed/commit/64a18b3ac75964b2fed6160c570e3df316643ce8))
+* **deps:** update module github.com/casbin/casbin/v2 to v2.135.0 ([ff86555](https://github.com/kilip/omed/commit/ff8655539ef01d065aed43e2017d4469add0b7f4))
+* **deps:** update module github.com/casbin/casbin/v2 to v3 ([c2666e3](https://github.com/kilip/omed/commit/c2666e36a14e6c077c32c24a88bcfcc21abf3a0a))
+* **deps:** update module github.com/sethvargo/go-envconfig to v2 ([832f8df](https://github.com/kilip/omed/commit/832f8df5da544c675d506ebbe514896647aa16f7))
+
 ## 0.1.0 (2026-10-07)
 
 
