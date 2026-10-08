@@ -6,6 +6,7 @@ services:
       # Mount the parent dir so the repo folder name does not matter (Codespaces)
       - ..:/workspaces:cached
       - bash-history:/commandhistory
+      - gemini:/home/vscode/.gemini
     environment:
       AUTH_DB_URL: postgres://omed:omed@postgres:5432/omed
       # Dev-only default. Override with a Codespaces secret or a local env var.
@@ -121,3 +122,4 @@ volumes:
   rustfsdata:
   kafka-data:
   bash-history:
+  gemini:

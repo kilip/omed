@@ -5,6 +5,7 @@ set -euo pipefail
 
 # Persistent bash history (named volume mounted at /commandhistory)
 sudo chown "$(id -u):$(id -g)" /commandhistory
+sudo chown "$(id -u):$(id -g)" /home/vscode/.gemini
 touch /commandhistory/.bash_history
 
 # Idempotent block: drop any previous version, then append the current one
