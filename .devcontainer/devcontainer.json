@@ -3,23 +3,31 @@
   "dockerComposeFile": "compose.yaml",
   "service": "workspace",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "hostRequirements": { "cpus": 4, "memory": "16gb" },
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {},
-    "ghcr.io/devcontainers/features/go:1": { "version": "latest" },
+    // Keep in sync with the go directive in apps/finance and apps/blog go.mod
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.27" },
     "ghcr.io/devcontainers/features/node:2": { "version": "lts" },
     "ghcr.io/shyim/devcontainers-features/bun:0": {},
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "forwardPorts": [3001, 8001, 8002, 8003, 5432, 6379, 9000, 9001],
+  "forwardPorts": [3001, 8001, 8002, 8003, 9001, 8080, 5432],
   "portsAttributes": {
     "3001": { "label": "dash" },
     "8001": { "label": "auth (wrangler)" },
     "8002": { "label": "finance" },
     "8003": { "label": "blog" },
-    "9001": { "label": "rustfs console" }
+    "9001": { "label": "rustfs console" },
+    "8080": { "label": "kafka ui" },
+    "5432": { "label": "postgres" }
   },
-  "postCreateCommand": "bun install && go install github.com/air-verse/air@latest && bun install -g @biomejs/biome",
+  // Runs in Codespaces prebuilds, so dependencies are cached
+  "updateContentCommand": "bun install",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  // Runs on every start: the named volume can come back root-owned
+  "postStartCommand": "sudo chown \"$(id -u):$(id -g)\" /commandhistory && touch /commandhistory/.bash_history",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -32,9 +40,16 @@
         "CucumberOpen.cucumber-official"
       ],
       "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
         "go.toolsManagement.autoUpdate": true,
+        "go.lintTool": "staticcheck",
+        "editor.formatOnSave": true,
         "cucumber.features": ["e2e/features/**/*.feature"],
-        "cucumber.glue": ["e2e/steps/**/*.ts"]
+        "cucumber.glue": ["e2e/steps/**/*.ts"],
+        "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[go]": { "editor.defaultFormatter": "golang.go" }
       }
     }
   }
