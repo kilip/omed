@@ -46,6 +46,8 @@ export class AuthService {
         personal: true,
       },
     });
+    if (!team) throw new Error("Default team not created");
+
     await this.db.create({
       model: "teamMember",
       data: {
@@ -55,7 +57,6 @@ export class AuthService {
         createdAt: new Date(),
       },
     });
-    if (!team) throw new Error("Default team not created");
 
     await this.internal.updateUser(user.id, { activeWorkspace: team.id });
   }

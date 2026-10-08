@@ -10,7 +10,8 @@
     "start": "bun run src/main.ts",
     "build:bun": "bun build src/main.ts --target=bun --outdir=dist",
     "auth:schema": "bunx auth@latest generate --output ../../packages/better-auth/src/drizzle/schema/better-auth.ts --yes",
-    "db:push": "drizzle-kit push --force"
+    "db:push": "drizzle-kit push --force && bun run db:triggers",
+    "db:triggers": "bun run scripts/db-triggers.ts"
   },
   "dependencies": {
     "@elysia/cors": "^1.4.2",

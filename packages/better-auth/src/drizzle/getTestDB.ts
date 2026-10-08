@@ -1,6 +1,7 @@
 import type { AuthDatabase } from "./adapter";
 import { relations } from "./relations";
 import * as schema from "./schema";
+import { applyOutboxTriggers } from "./triggers";
 
 export const getTestDB = async (): Promise<AuthDatabase> => {
   const [{ PGlite }, { pushSchema }, { drizzle }] = await Promise.all([
@@ -13,5 +14,6 @@ export const getTestDB = async (): Promise<AuthDatabase> => {
   const db = drizzle({ client, relations });
   const result = await pushSchema(schema, db);
   await result.apply();
+  await applyOutboxTriggers(db);
   return db as unknown as AuthDatabase;
 };
