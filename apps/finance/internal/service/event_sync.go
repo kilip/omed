@@ -50,9 +50,15 @@ func (s EventSync) HandleUser(ctx context.Context, rec *kgo.Record) error {
 
 func (s EventSync) HandleTeam(ctx context.Context, rec *kgo.Record) error {
 	id, err := uuid.Parse(string(rec.Key))
-	if err != nil || rec.Value == nil {
+	if err != nil {
 		return nil
 	}
+
+	// delete workspace
+	if rec.Value == nil {
+		return s.works.Delete(ctx, id)
+	}
+
 	var p struct {
 		Name string `json:"name"`
 	}

@@ -92,9 +92,9 @@ export default function LoginPage() {
             </Typography.Text>
           </div>
 
-          {error && <Alert type="error" showIcon message={error} />}
+          {error && <Alert type="error" showIcon title={error} />}
 
-          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+          <Space orientation="vertical" size={12} style={{ width: "100%" }}>
             {providers.map((p) => (
               <Button
                 key={p.id}

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   isRouteErrorResponse,
@@ -38,8 +39,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
     "-",
   )[0];
 
+  useEffect(() => {
+    document.documentElement.lang = currentLang;
+  }, [currentLang]);
+
   return (
-    <html lang={currentLang}>
+    <html lang={currentLang} suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
