@@ -2,7 +2,7 @@
   "$schema": "./node_modules/turbo/schema.json",
   "ui": "tui",
   "globalDependencies": [".env"],
-  "globalPassThroughEnv": ["AUTH_*"],
+  "globalPassThroughEnv": ["AUTH_*", "KAFKA_*"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
