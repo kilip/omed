@@ -11,6 +11,10 @@ import (
 func main() {
 	cfg := config.GetConfig()
 	logger := config.GetLogger(cfg)
+
+	// wait for jwks before we continue
+	config.WaitForJWKS(cfg, logger)
+
 	fiber := config.GetFiber(cfg, logger)
 	entClient := config.GetEntClient(cfg)
 

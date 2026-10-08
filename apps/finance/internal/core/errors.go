@@ -4,6 +4,8 @@ import "errors"
 
 var (
 	ErrInvalidID                = errors.New("INVALID_ID_FORMAT")
+	ErrUserSnapshot             = errors.New("USER_SNAPSHOT")
+	ErrWorkspaceSnapshot        = errors.New("WORKSPACE_SNAPSHOT")
 	ErrGenerateID               = errors.New("GENERATE_ID_FAILED")
 	ErrItemNotFound             = errors.New("ITEM_NOT_FOUND")
 	ErrUnimplemented            = errors.New("NOT_IMPLEMENTED")
@@ -46,3 +48,7 @@ var (
 	ErrInvoiceNotSendable       = errors.New("INVOICE_NOT_SENDABLE")
 	ErrExchangeRateMissing      = errors.New("EXCHANGE_RATE_MISSING")
 )
+
+func IsItemNotFound(err error) bool {
+	return errors.Is(err, ErrItemNotFound)
+}

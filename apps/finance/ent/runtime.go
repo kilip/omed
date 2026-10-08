@@ -2,8 +2,91 @@
 
 package ent
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/kilip/omed/finance/ent/account"
+	"github.com/kilip/omed/finance/ent/schema"
+	"github.com/kilip/omed/finance/ent/user"
+	"github.com/kilip/omed/finance/ent/workspace"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	accountMixin := schema.Account{}.Mixin()
+	accountMixinFields0 := accountMixin[0].Fields()
+	_ = accountMixinFields0
+	accountMixinFields1 := accountMixin[1].Fields()
+	_ = accountMixinFields1
+	accountFields := schema.Account{}.Fields()
+	_ = accountFields
+	// accountDescCreatedAt is the schema descriptor for createdAt field.
+	accountDescCreatedAt := accountMixinFields1[1].Descriptor()
+	// account.DefaultCreatedAt holds the default value on creation for the createdAt field.
+	account.DefaultCreatedAt = accountDescCreatedAt.Default.(func() time.Time)
+	// accountDescUpdatedAt is the schema descriptor for updatedAt field.
+	accountDescUpdatedAt := accountMixinFields1[3].Descriptor()
+	// account.DefaultUpdatedAt holds the default value on creation for the updatedAt field.
+	account.DefaultUpdatedAt = accountDescUpdatedAt.Default.(func() time.Time)
+	// account.UpdateDefaultUpdatedAt holds the default value on update for the updatedAt field.
+	account.UpdateDefaultUpdatedAt = accountDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// accountDescCode is the schema descriptor for code field.
+	accountDescCode := accountFields[0].Descriptor()
+	// account.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	account.CodeValidator = accountDescCode.Validators[0].(func(string) error)
+	// accountDescName is the schema descriptor for name field.
+	accountDescName := accountFields[1].Descriptor()
+	// account.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	account.NameValidator = accountDescName.Validators[0].(func(string) error)
+	// accountDescCurrency is the schema descriptor for currency field.
+	accountDescCurrency := accountFields[4].Descriptor()
+	// account.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	account.CurrencyValidator = accountDescCurrency.Validators[0].(func(string) error)
+	// accountDescID is the schema descriptor for id field.
+	accountDescID := accountMixinFields0[0].Descriptor()
+	// account.DefaultID holds the default value on creation for the id field.
+	account.DefaultID = accountDescID.Default.(func() uuid.UUID)
+	userMixin := schema.User{}.Mixin()
+	userMixinFields0 := userMixin[0].Fields()
+	_ = userMixinFields0
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescCreatedAt is the schema descriptor for createdAt field.
+	userDescCreatedAt := userFields[2].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the createdAt field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescSyncedAt is the schema descriptor for syncedAt field.
+	userDescSyncedAt := userFields[3].Descriptor()
+	// user.DefaultSyncedAt holds the default value on creation for the syncedAt field.
+	user.DefaultSyncedAt = userDescSyncedAt.Default.(func() time.Time)
+	// user.UpdateDefaultSyncedAt holds the default value on update for the syncedAt field.
+	user.UpdateDefaultSyncedAt = userDescSyncedAt.UpdateDefault.(func() time.Time)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userMixinFields0[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
+	workspaceMixin := schema.Workspace{}.Mixin()
+	workspaceMixinFields0 := workspaceMixin[0].Fields()
+	_ = workspaceMixinFields0
+	workspaceFields := schema.Workspace{}.Fields()
+	_ = workspaceFields
+	// workspaceDescName is the schema descriptor for name field.
+	workspaceDescName := workspaceFields[0].Descriptor()
+	// workspace.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	workspace.NameValidator = workspaceDescName.Validators[0].(func(string) error)
+	// workspaceDescCreatedAt is the schema descriptor for createdAt field.
+	workspaceDescCreatedAt := workspaceFields[1].Descriptor()
+	// workspace.DefaultCreatedAt holds the default value on creation for the createdAt field.
+	workspace.DefaultCreatedAt = workspaceDescCreatedAt.Default.(func() time.Time)
+	// workspaceDescSyncedAt is the schema descriptor for syncedAt field.
+	workspaceDescSyncedAt := workspaceFields[2].Descriptor()
+	// workspace.DefaultSyncedAt holds the default value on creation for the syncedAt field.
+	workspace.DefaultSyncedAt = workspaceDescSyncedAt.Default.(func() time.Time)
+	// workspaceDescID is the schema descriptor for id field.
+	workspaceDescID := workspaceMixinFields0[0].Descriptor()
+	// workspace.DefaultID holds the default value on creation for the id field.
+	workspace.DefaultID = workspaceDescID.Default.(func() uuid.UUID)
 }
