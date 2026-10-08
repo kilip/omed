@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	Port           int      `env:"FIN_PORT,default=8002"`
+	AuthBaseUrl    string   `env:"AUTH_BASE_URL,default=http://localhost:8001"`
 	JWKSUrl        string   `env:"AUTH_JWKS_URL,default=http://localhost:8001/jwks"`
 	DatabaseUrl    string   `env:"FIN_DB_URL,default=postgresql://omed:omed@localhost:5432/omed"`
 	TrustedOrigins []string `env:"FIN_TRUSTED_ORIGINS,delimiter= ,default=http://localhost:3001 http://localhost:8002"`

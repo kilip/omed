@@ -9,6 +9,18 @@ import (
 	"github.com/kilip/omed/finance/ent"
 )
 
+// The AccountFunc type is an adapter to allow the use of ordinary
+// function as Account mutator.
+type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AccountMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
@@ -19,6 +31,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The WorkspaceFunc type is an adapter to allow the use of ordinary
+// function as Workspace mutator.
+type WorkspaceFunc func(context.Context, *ent.WorkspaceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkspaceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.WorkspaceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WorkspaceMutation", m)
 }
 
 // Condition is a hook condition function.

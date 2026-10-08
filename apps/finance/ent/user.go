@@ -5,17 +5,27 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/user"
 )
 
 // User is the model entity for the User schema.
 type User struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Avatar holds the value of the "avatar" field.
+	Avatar *string `json:"avatar,omitempty"`
+	// CreatedAt holds the value of the "createdAt" field.
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	// SyncedAt holds the value of the "syncedAt" field.
+	SyncedAt     time.Time `json:"syncedAt,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -24,8 +34,12 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldName, user.FieldAvatar:
+			values[i] = new(sql.NullString)
+		case user.FieldCreatedAt, user.FieldSyncedAt:
+			values[i] = new(sql.NullTime)
 		case user.FieldID:
-			values[i] = new(sql.NullInt64)
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -42,11 +56,36 @@ func (_m *User) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case user.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				_m.ID = *value
 			}
-			_m.ID = int(value.Int64)
+		case user.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				_m.Name = value.String
+			}
+		case user.FieldAvatar:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field avatar", values[i])
+			} else if value.Valid {
+				_m.Avatar = new(string)
+				*_m.Avatar = value.String
+			}
+		case user.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field createdAt", values[i])
+			} else if value.Valid {
+				_m.CreatedAt = value.Time
+			}
+		case user.FieldSyncedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field syncedAt", values[i])
+			} else if value.Valid {
+				_m.SyncedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -82,7 +121,20 @@ func (_m *User) Unwrap() *User {
 func (_m *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
-	builder.WriteString(fmt.Sprintf("id=%v", _m.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("name=")
+	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	if v := _m.Avatar; v != nil {
+		builder.WriteString("avatar=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("createdAt=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("syncedAt=")
+	builder.WriteString(_m.SyncedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
