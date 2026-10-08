@@ -1,4 +1,4 @@
-name: e2e
+name: ci
 
 on:
   push:
@@ -7,11 +7,44 @@ on:
   pull_request:
 
 concurrency:
-  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  better-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run unit tests
+        run: bun run --cwd packages/better-auth test
+
+  finance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: apps/finance/go.mod
+          cache-dependency-path: apps/finance/go.sum
+
+      - name: Run Finance tests
+        working-directory: apps/finance
+        run: go test -v -p 1 ./...
+
+  e2e:
     runs-on: ubuntu-latest
     services:
       postgres:
