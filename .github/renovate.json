@@ -51,8 +51,10 @@
     },
     {
       "description": "Ignore internal monorepo packages",
-      "matchPackagePatterns": ["^@omed/"],
-      "enabled": false
+      "enabled": false,
+      "matchPackageNames": [
+        "/^@omed//"
+      ]
     }
   ]
 }
