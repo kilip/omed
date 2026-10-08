@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent"
+	"github.com/kilip/omed/finance/ent/workspace"
 	"github.com/kilip/omed/finance/internal/core"
 	"github.com/kilip/omed/finance/internal/model"
 	"github.com/kilip/omed/finance/internal/shared/util"
@@ -60,5 +61,22 @@ func (r WorkspaceRepository) Update(ctx context.Context, snapshot model.Workspac
 			SetSyncedAt(snapshot.SyncedAt).
 			Save(ctx)
 		return err
+	})
+}
+
+func (r WorkspaceRepository) Upsert(ctx context.Context, u model.WorkspaceSnapshot) error {
+	return WithTx(ctx, r.cl, func(tx *ent.Tx) error {
+		return tx.Workspace.Create().
+			SetID(u.ID).
+			SetName(u.Name).
+			OnConflictColumns(workspace.FieldID).
+			UpdateNewValues().
+			Exec(ctx)
+	})
+}
+
+func (r WorkspaceRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	return WithTx(ctx, r.cl, func(tx *ent.Tx) error {
+		return tx.Workspace.DeleteOneID(id).Exec(ctx)
 	})
 }

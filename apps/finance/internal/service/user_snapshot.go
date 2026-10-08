@@ -15,12 +15,16 @@ type UserRepository interface {
 	GetById(ctx context.Context, id uuid.UUID) (*model.UserSnapshot, error)
 	Create(ctx context.Context, user model.UserSnapshot) error
 	Update(ctx context.Context, user model.UserSnapshot) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	Upsert(ctx context.Context, user model.UserSnapshot) error
 }
 
 type WorkspaceRepository interface {
 	GetById(ctx context.Context, id uuid.UUID) (*model.WorkspaceSnapshot, error)
 	Create(ctx context.Context, ws model.WorkspaceSnapshot) error
 	Update(ctx context.Context, ws model.WorkspaceSnapshot) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	Upsert(ctx context.Context, ws model.WorkspaceSnapshot) error
 }
 
 type UserSnapshotService struct {

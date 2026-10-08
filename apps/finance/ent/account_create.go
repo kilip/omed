@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type AccountCreate struct {
 	config
 	mutation *AccountMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedBy sets the "createdBy" field.
@@ -352,6 +355,7 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(account.Table, sqlgraph.NewFieldSpec(account.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.Account
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -466,11 +470,462 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Account.Create().
+//		SetCreatedBy(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AccountUpsert) {
+//			SetCreatedBy(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AccountCreate) OnConflict(opts ...sql.ConflictOption) *AccountUpsertOne {
+	_c.conflict = opts
+	return &AccountUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Account.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AccountCreate) OnConflictColumns(columns ...string) *AccountUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AccountUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// AccountUpsertOne is the builder for "upsert"-ing
+	//  one Account node.
+	AccountUpsertOne struct {
+		create *AccountCreate
+	}
+
+	// AccountUpsert is the "OnConflict" setter.
+	AccountUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetCreatedBy sets the "createdBy" field.
+func (u *AccountUpsert) SetCreatedBy(v uuid.UUID) *AccountUpsert {
+	u.Set(account.FieldCreatedBy, v)
+	return u
+}
+
+// UpdateCreatedBy sets the "createdBy" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateCreatedBy() *AccountUpsert {
+	u.SetExcluded(account.FieldCreatedBy)
+	return u
+}
+
+// SetUpdatedBy sets the "updatedBy" field.
+func (u *AccountUpsert) SetUpdatedBy(v uuid.UUID) *AccountUpsert {
+	u.Set(account.FieldUpdatedBy, v)
+	return u
+}
+
+// UpdateUpdatedBy sets the "updatedBy" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateUpdatedBy() *AccountUpsert {
+	u.SetExcluded(account.FieldUpdatedBy)
+	return u
+}
+
+// SetUpdatedAt sets the "updatedAt" field.
+func (u *AccountUpsert) SetUpdatedAt(v time.Time) *AccountUpsert {
+	u.Set(account.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updatedAt" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateUpdatedAt() *AccountUpsert {
+	u.SetExcluded(account.FieldUpdatedAt)
+	return u
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (u *AccountUpsert) SetWorkspaceID(v uuid.UUID) *AccountUpsert {
+	u.Set(account.FieldWorkspaceID, v)
+	return u
+}
+
+// UpdateWorkspaceID sets the "workspace_id" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateWorkspaceID() *AccountUpsert {
+	u.SetExcluded(account.FieldWorkspaceID)
+	return u
+}
+
+// SetCode sets the "code" field.
+func (u *AccountUpsert) SetCode(v string) *AccountUpsert {
+	u.Set(account.FieldCode, v)
+	return u
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateCode() *AccountUpsert {
+	u.SetExcluded(account.FieldCode)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *AccountUpsert) SetName(v string) *AccountUpsert {
+	u.Set(account.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateName() *AccountUpsert {
+	u.SetExcluded(account.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *AccountUpsert) SetDescription(v string) *AccountUpsert {
+	u.Set(account.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateDescription() *AccountUpsert {
+	u.SetExcluded(account.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *AccountUpsert) ClearDescription() *AccountUpsert {
+	u.SetNull(account.FieldDescription)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *AccountUpsert) SetType(v account.Type) *AccountUpsert {
+	u.Set(account.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateType() *AccountUpsert {
+	u.SetExcluded(account.FieldType)
+	return u
+}
+
+// SetCurrency sets the "currency" field.
+func (u *AccountUpsert) SetCurrency(v string) *AccountUpsert {
+	u.Set(account.FieldCurrency, v)
+	return u
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateCurrency() *AccountUpsert {
+	u.SetExcluded(account.FieldCurrency)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *AccountUpsert) SetStatus(v account.Status) *AccountUpsert {
+	u.Set(account.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateStatus() *AccountUpsert {
+	u.SetExcluded(account.FieldStatus)
+	return u
+}
+
+// SetParentId sets the "parentId" field.
+func (u *AccountUpsert) SetParentId(v uuid.UUID) *AccountUpsert {
+	u.Set(account.FieldParentId, v)
+	return u
+}
+
+// UpdateParentId sets the "parentId" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateParentId() *AccountUpsert {
+	u.SetExcluded(account.FieldParentId)
+	return u
+}
+
+// ClearParentId clears the value of the "parentId" field.
+func (u *AccountUpsert) ClearParentId() *AccountUpsert {
+	u.SetNull(account.FieldParentId)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Account.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(account.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AccountUpsertOne) UpdateNewValues() *AccountUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(account.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(account.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Account.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *AccountUpsertOne) Ignore() *AccountUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AccountUpsertOne) DoNothing() *AccountUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AccountCreate.OnConflict
+// documentation for more info.
+func (u *AccountUpsertOne) Update(set func(*AccountUpsert)) *AccountUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AccountUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCreatedBy sets the "createdBy" field.
+func (u *AccountUpsertOne) SetCreatedBy(v uuid.UUID) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetCreatedBy(v)
+	})
+}
+
+// UpdateCreatedBy sets the "createdBy" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateCreatedBy() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateCreatedBy()
+	})
+}
+
+// SetUpdatedBy sets the "updatedBy" field.
+func (u *AccountUpsertOne) SetUpdatedBy(v uuid.UUID) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetUpdatedBy(v)
+	})
+}
+
+// UpdateUpdatedBy sets the "updatedBy" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateUpdatedBy() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateUpdatedBy()
+	})
+}
+
+// SetUpdatedAt sets the "updatedAt" field.
+func (u *AccountUpsertOne) SetUpdatedAt(v time.Time) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updatedAt" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateUpdatedAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (u *AccountUpsertOne) SetWorkspaceID(v uuid.UUID) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetWorkspaceID(v)
+	})
+}
+
+// UpdateWorkspaceID sets the "workspace_id" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateWorkspaceID() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateWorkspaceID()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *AccountUpsertOne) SetCode(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateCode() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *AccountUpsertOne) SetName(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateName() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *AccountUpsertOne) SetDescription(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateDescription() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *AccountUpsertOne) ClearDescription() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *AccountUpsertOne) SetType(v account.Type) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateType() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *AccountUpsertOne) SetCurrency(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateCurrency() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *AccountUpsertOne) SetStatus(v account.Status) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateStatus() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetParentId sets the "parentId" field.
+func (u *AccountUpsertOne) SetParentId(v uuid.UUID) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetParentId(v)
+	})
+}
+
+// UpdateParentId sets the "parentId" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateParentId() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateParentId()
+	})
+}
+
+// ClearParentId clears the value of the "parentId" field.
+func (u *AccountUpsertOne) ClearParentId() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearParentId()
+	})
+}
+
+// Exec executes the query.
+func (u *AccountUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for AccountCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AccountUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *AccountUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: AccountUpsertOne.ID is not supported by MySQL driver. Use AccountUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *AccountUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // AccountCreateBulk is the builder for creating many Account entities in bulk.
 type AccountCreateBulk struct {
 	config
 	err      error
 	builders []*AccountCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Account entities in the database.
@@ -500,6 +955,7 @@ func (_c *AccountCreateBulk) Save(ctx context.Context) ([]*Account, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -546,6 +1002,291 @@ func (_c *AccountCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *AccountCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Account.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AccountUpsert) {
+//			SetCreatedBy(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AccountCreateBulk) OnConflict(opts ...sql.ConflictOption) *AccountUpsertBulk {
+	_c.conflict = opts
+	return &AccountUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Account.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AccountCreateBulk) OnConflictColumns(columns ...string) *AccountUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AccountUpsertBulk{
+		create: _c,
+	}
+}
+
+// AccountUpsertBulk is the builder for "upsert"-ing
+// a bulk of Account nodes.
+type AccountUpsertBulk struct {
+	create *AccountCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Account.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(account.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AccountUpsertBulk) UpdateNewValues() *AccountUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(account.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(account.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Account.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *AccountUpsertBulk) Ignore() *AccountUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AccountUpsertBulk) DoNothing() *AccountUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AccountCreateBulk.OnConflict
+// documentation for more info.
+func (u *AccountUpsertBulk) Update(set func(*AccountUpsert)) *AccountUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AccountUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCreatedBy sets the "createdBy" field.
+func (u *AccountUpsertBulk) SetCreatedBy(v uuid.UUID) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetCreatedBy(v)
+	})
+}
+
+// UpdateCreatedBy sets the "createdBy" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateCreatedBy() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateCreatedBy()
+	})
+}
+
+// SetUpdatedBy sets the "updatedBy" field.
+func (u *AccountUpsertBulk) SetUpdatedBy(v uuid.UUID) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetUpdatedBy(v)
+	})
+}
+
+// UpdateUpdatedBy sets the "updatedBy" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateUpdatedBy() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateUpdatedBy()
+	})
+}
+
+// SetUpdatedAt sets the "updatedAt" field.
+func (u *AccountUpsertBulk) SetUpdatedAt(v time.Time) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updatedAt" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateUpdatedAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (u *AccountUpsertBulk) SetWorkspaceID(v uuid.UUID) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetWorkspaceID(v)
+	})
+}
+
+// UpdateWorkspaceID sets the "workspace_id" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateWorkspaceID() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateWorkspaceID()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *AccountUpsertBulk) SetCode(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateCode() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *AccountUpsertBulk) SetName(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateName() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *AccountUpsertBulk) SetDescription(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateDescription() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *AccountUpsertBulk) ClearDescription() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *AccountUpsertBulk) SetType(v account.Type) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateType() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *AccountUpsertBulk) SetCurrency(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateCurrency() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *AccountUpsertBulk) SetStatus(v account.Status) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateStatus() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetParentId sets the "parentId" field.
+func (u *AccountUpsertBulk) SetParentId(v uuid.UUID) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetParentId(v)
+	})
+}
+
+// UpdateParentId sets the "parentId" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateParentId() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateParentId()
+	})
+}
+
+// ClearParentId clears the value of the "parentId" field.
+func (u *AccountUpsertBulk) ClearParentId() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearParentId()
+	})
+}
+
+// Exec executes the query.
+func (u *AccountUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the AccountCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for AccountCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AccountUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

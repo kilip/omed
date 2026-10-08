@@ -26,6 +26,9 @@ export const authOptions = {
     organization({
       teams: {
         enabled: true,
+        defaultTeam: {
+          enabled: false,
+        },
       },
       schema: {
         organization: {
@@ -49,21 +52,19 @@ export const authOptions = {
       },
     }),
     jwt({
-      /*
-			jwt: {
-				definePayload({ user, session }) {
-					const sx = session as unknown as Record<string, unknown>;
-					return {
-						id: user.id,
-						name: user.name,
-						avatar: user.image,
-						activeWorkspaceId: sx.activeWorkspaceId,
-						activeWorkspaceName: sx.activeWorkspaceName,
-						activeWorkspaceRoles: sx.activeWorkspaceRoles,
-					};
-				},
-			},
-      */
+      jwt: {
+        definePayload({ user, session }) {
+          const sx = session as unknown as Record<string, unknown>;
+          return {
+            id: user.id,
+            name: user.name,
+            avatar: user.image,
+            activeWorkspaceId: sx.activeWorkspaceId,
+            activeWorkspaceName: sx.activeWorkspaceName,
+            activeWorkspaceRoles: sx.activeWorkspaceRoles,
+          };
+        },
+      },
     }),
     openAPI(),
     ...(authEnv.DEVELOPMENT ? [testUtils()] : []),
