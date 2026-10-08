@@ -22,12 +22,13 @@ services:
       KAFKA_BROKERS: kafka:9092
 
       # finance env config
-      FIN_DB_URL: postgres://omed:omed@postgres:5432/omed
+      FIN_DB_URL: postgres://omed:omed@postgres:5432/omed?sslmode=disable
 
       # blog env config
-      BLOG_DB_URL: postgres://omed:omed@postgres:5432/omed
+      BLOG_DB_URL: postgres://omed:omed@postgres:5432/omed?sslmode=disable
 
       VITE_AUTH_URL: "http://localhost:8001"
+      VITE_PUBLIC_URL: "http://localhost:3001"
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }

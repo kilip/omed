@@ -80,6 +80,7 @@ func initFiber(state State) error {
 func Bootstrap(state State) {
 	initFiber(state)
 	initAuth(state)
+	loadController(state)
 }
 
 func WaitForJWKS(cfg Config, logger *slog.Logger) {
