@@ -1,4 +1,9 @@
-import { BankOutlined, PlusOutlined, SettingOutlined } from "@ant-design/icons";
+import {
+  BankOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
 import type { Account } from "@omed/openapi/finance";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -81,10 +86,16 @@ export default function AccountsPage() {
       dataIndex: "code",
       key: "code",
       width: 140,
-      render: (code: string) => (
-        <Typography.Text strong code>
-          {code}
-        </Typography.Text>
+      render: (code: string, record) => (
+        <Button
+          type="link"
+          style={{ padding: 0, height: "auto" }}
+          onClick={() => navigate(`/fin/accounts/${record.id}`)}
+        >
+          <Typography.Text strong code>
+            {code}
+          </Typography.Text>
+        </Button>
       ),
       sorter: (a, b) => (a.code ?? "").localeCompare(b.code ?? ""),
     },
@@ -92,6 +103,15 @@ export default function AccountsPage() {
       title: t("finance:seed.table.name"),
       dataIndex: "name",
       key: "name",
+      render: (name: string, record) => (
+        <Button
+          type="link"
+          style={{ padding: 0, height: "auto", color: "inherit" }}
+          onClick={() => navigate(`/fin/accounts/${record.id}`)}
+        >
+          {name}
+        </Button>
+      ),
       sorter: (a, b) => (a.name ?? "").localeCompare(b.name ?? ""),
     },
     {
@@ -115,6 +135,20 @@ export default function AccountsPage() {
       width: 110,
       render: (currency: string) => <Tag>{currency}</Tag>,
     },
+    {
+      title: t("finance:accounts.action"),
+      key: "action",
+      width: 80,
+      align: "center",
+      render: (_, record) => (
+        <Button
+          type="text"
+          icon={<EditOutlined />}
+          onClick={() => navigate(`/fin/accounts/${record.id}`)}
+          title={t("finance:accounts.edit")}
+        />
+      ),
+    },
   ];
 
   if (isLoading) {
@@ -132,7 +166,7 @@ export default function AccountsPage() {
       >
         <Empty
           image={<BankOutlined style={{ fontSize: 64, color: "#1677ff" }} />}
-          imageStyle={{ height: 72 }}
+          styles={{ image: { height: 72 } }}
           description={
             <div style={{ maxWidth: 480, margin: "0 auto" }}>
               <Typography.Title level={4} style={{ marginBottom: 8 }}>
@@ -144,14 +178,23 @@ export default function AccountsPage() {
             </div>
           }
         >
-          <Button
-            type="primary"
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={() => navigate("/fin/seed-coa")}
-          >
-            {t("finance:seed.onboarding.seedAction")}
-          </Button>
+          <Space>
+            <Button
+              type="primary"
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/fin/seed-coa")}
+            >
+              {t("finance:seed.onboarding.seedAction")}
+            </Button>
+            <Button
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/fin/accounts/create")}
+            >
+              {t("finance:seed.onboarding.manualCreateAction")}
+            </Button>
+          </Space>
         </Empty>
       </Card>
     );
@@ -178,6 +221,13 @@ export default function AccountsPage() {
           </Typography.Paragraph>
         </div>
         <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate("/fin/accounts/create")}
+          >
+            {t("finance:create.title")}
+          </Button>
           <Button
             icon={<SettingOutlined />}
             onClick={() => navigate("/fin/seed-coa")}

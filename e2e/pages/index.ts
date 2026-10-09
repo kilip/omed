@@ -1,4 +1,7 @@
+export * from "./AccountsPage";
 export * from "./BasePage";
+export * from "./CreateAccountPage";
+export * from "./EditAccountPage";
 export * from "./FinancePage";
 export * from "./LayoutPage";
 export * from "./LoginPage";

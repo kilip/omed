@@ -1,1 +1,1 @@
-export { default, meta } from "~/features/Finance/AccountsPage";
+export { default, meta } from "~/features/Finance/Account/ListPage";

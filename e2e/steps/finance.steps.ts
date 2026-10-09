@@ -1,6 +1,12 @@
 import { Then, When } from "@cucumber/cucumber";
 import { expect } from "expect";
-import { FinancePage, SeedCoaPage } from "../pages";
+import {
+  AccountsPage,
+  CreateAccountPage,
+  EditAccountPage,
+  FinancePage,
+  SeedCoaPage,
+} from "../pages";
 import type { CustomWorld } from "./world";
 
 Then(
@@ -86,4 +92,87 @@ Then(
 When("I click view accounts", async function (this: CustomWorld) {
   const finPage = new FinancePage(this.page);
   await finPage.clickViewAccounts();
+});
+
+When("I click create account button", async function (this: CustomWorld) {
+  const accountsPage = new AccountsPage(this.page);
+  await accountsPage.clickCreateAccount();
+});
+
+When(
+  "I fill create account form with code {string}, name {string}, and type {string}",
+  async function (this: CustomWorld, code: string, name: string, type: string) {
+    const createPage = new CreateAccountPage(this.page);
+    await createPage.fillForm({ code, name, type });
+  },
+);
+
+When("I submit create account form", async function (this: CustomWorld) {
+  const createPage = new CreateAccountPage(this.page);
+  await createPage.clickSubmit();
+});
+
+When(
+  "I click edit button for account with code {string}",
+  async function (this: CustomWorld, code: string) {
+    const accountsPage = new AccountsPage(this.page);
+    await accountsPage.clickEditAccount(code);
+  },
+);
+
+When(
+  "I click account code {string}",
+  async function (this: CustomWorld, code: string) {
+    const accountsPage = new AccountsPage(this.page);
+    await accountsPage.clickAccountCode(code);
+  },
+);
+
+Then(
+  "I should see account code {string} disabled in form",
+  async function (this: CustomWorld, code: string) {
+    const editPage = new EditAccountPage(this.page);
+    await editPage.codeInput.waitFor({ state: "visible" });
+    expect(await editPage.codeInput.isDisabled()).toBe(true);
+    expect(await editPage.codeInput.inputValue()).toBe(code);
+  },
+);
+
+When(
+  "I update account name to {string}",
+  async function (this: CustomWorld, name: string) {
+    const editPage = new EditAccountPage(this.page);
+    await editPage.fillName(name);
+  },
+);
+
+When(
+  "I update account description to {string}",
+  async function (this: CustomWorld, description: string) {
+    const editPage = new EditAccountPage(this.page);
+    await editPage.fillDescription(description);
+  },
+);
+
+When(
+  "I select account status {string}",
+  async function (this: CustomWorld, status: string) {
+    const editPage = new EditAccountPage(this.page);
+    await editPage.selectStatus(status);
+  },
+);
+
+When("I submit edit account form", async function (this: CustomWorld) {
+  const editPage = new EditAccountPage(this.page);
+  await editPage.clickSubmit();
+});
+
+When("I click delete account button", async function (this: CustomWorld) {
+  const editPage = new EditAccountPage(this.page);
+  await editPage.clickDelete();
+});
+
+When("I confirm account deletion", async function (this: CustomWorld) {
+  const editPage = new EditAccountPage(this.page);
+  await editPage.confirmDelete();
 });

@@ -38,18 +38,75 @@
     "onboarding": {
       "emptyTitle": "No Accounts Set Up Yet",
       "emptyDescription": "Get started by initializing a standard Chart of Accounts tailored for your business.",
-      "seedAction": "Setup Chart of Accounts"
+      "seedAction": "Setup Chart of Accounts",
+      "manualCreateAction": "Create Account Manually"
     }
+  },
+  "create": {
+    "title": "Create Account",
+    "metaTitle": "Omed | Create Account",
+    "description": "Add a new ledger account to your Chart of Accounts.",
+    "backToAccounts": "Back to Accounts",
+    "cardTitle": "Account Details",
+    "code": "Account Code",
+    "codePlaceholder": "e.g. 1001",
+    "codeRequired": "Please enter account code",
+    "name": "Account Name",
+    "namePlaceholder": "e.g. Cash on Hand",
+    "nameRequired": "Please enter account name",
+    "type": "Account Type",
+    "typePlaceholder": "Select account type",
+    "typeRequired": "Please select account type",
+    "currency": "Currency",
+    "currencyPlaceholder": "Select currency",
+    "currencyRequired": "Please select currency",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Optional notes or purpose of this account",
+    "parentAccount": "Parent Account",
+    "parentAccountPlaceholder": "None (Top-level account)",
+    "submit": "Create Account",
+    "submitting": "Creating account...",
+    "cancel": "Cancel",
+    "successMessage": "Account created successfully",
+    "errorMessage": "Failed to create account"
+  },
+  "edit": {
+    "title": "Edit Account",
+    "metaTitle": "Omed | Edit Account",
+    "description": "Update account details or manage account lifecycle.",
+    "backToAccounts": "Back to Accounts",
+    "cardTitle": "Account Details",
+    "status": "Status",
+    "statusActive": "Active",
+    "statusArchived": "Archived",
+    "submit": "Save Changes",
+    "submitting": "Saving changes...",
+    "cancel": "Cancel",
+    "successMessage": "Account updated successfully",
+    "errorMessage": "Failed to update account",
+    "notFound": "Account not found"
+  },
+  "delete": {
+    "button": "Delete Account",
+    "confirmTitle": "Delete Account",
+    "confirmDescription": "Are you sure you want to delete this account? This action cannot be undone.",
+    "confirmOk": "Yes, Delete",
+    "confirmCancel": "Cancel",
+    "successMessage": "Account deleted successfully",
+    "errorMessage": "Failed to delete account"
   },
   "accounts": {
     "title": "Chart of Accounts",
     "metaTitle": "Omed | Chart of Accounts",
     "description": "View and manage all ledger accounts for your workspace.",
+    "create": "Create Account",
     "viewAccounts": "View Accounts",
     "totalAccounts": "Total Accounts",
     "searchPlaceholder": "Search accounts by code or name...",
     "allTypes": "All Account Types",
-    "empty": "No accounts found"
+    "empty": "No accounts found",
+    "action": "Action",
+    "edit": "Edit"
   },
   "modules": {
     "accountsTitle": "Chart of Accounts",
