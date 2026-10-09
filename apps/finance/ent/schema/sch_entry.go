@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
@@ -36,20 +37,20 @@ func (Entry) Fields() []ent.Field {
 			Default("normal"),
 		field.String("description").Optional(),
 		field.String("reference").Optional().Nillable(),
-		field.UUID("ledger_period_id", uuid.UUID{}),
+		field.UUID("period_id", uuid.UUID{}),
 	}
 }
 
 func (Entry) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("period", Period.Type).
+			Ref("entries").
+			Field("period_id").
+			Unique().
+			Required(),
 		/*
 			edge.To("postings", Posting.Type),
 			edge.To("attachments", Attachment.Type),
-			edge.From("ledger_period", LedgerPeriod.Type).
-				Ref("entries").
-				Field("ledger_period_id").
-				Unique().
-				Required(),
 		*/
 	}
 }

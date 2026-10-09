@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/entry"
 	"github.com/kilip/omed/finance/ent/internal"
+	"github.com/kilip/omed/finance/ent/period"
 	"github.com/kilip/omed/finance/ent/predicate"
 	"github.com/kilip/omed/finance/ent/user"
 )
@@ -147,16 +148,16 @@ func (_u *EntryUpdate) ClearReference() *EntryUpdate {
 	return _u
 }
 
-// SetLedgerPeriodID sets the "ledger_period_id" field.
-func (_u *EntryUpdate) SetLedgerPeriodID(v uuid.UUID) *EntryUpdate {
-	_u.mutation.SetLedgerPeriodID(v)
+// SetPeriodID sets the "period_id" field.
+func (_u *EntryUpdate) SetPeriodID(v uuid.UUID) *EntryUpdate {
+	_u.mutation.SetPeriodID(v)
 	return _u
 }
 
-// SetNillableLedgerPeriodID sets the "ledger_period_id" field if the given value is not nil.
-func (_u *EntryUpdate) SetNillableLedgerPeriodID(v *uuid.UUID) *EntryUpdate {
+// SetNillablePeriodID sets the "period_id" field if the given value is not nil.
+func (_u *EntryUpdate) SetNillablePeriodID(v *uuid.UUID) *EntryUpdate {
 	if v != nil {
-		_u.SetLedgerPeriodID(*v)
+		_u.SetPeriodID(*v)
 	}
 	return _u
 }
@@ -183,6 +184,11 @@ func (_u *EntryUpdate) SetUpdater(v *User) *EntryUpdate {
 	return _u.SetUpdaterID(v.ID)
 }
 
+// SetPeriod sets the "period" edge to the Period entity.
+func (_u *EntryUpdate) SetPeriod(v *Period) *EntryUpdate {
+	return _u.SetPeriodID(v.ID)
+}
+
 // Mutation returns the EntryMutation object of the builder.
 func (_u *EntryUpdate) Mutation() *EntryMutation {
 	return _u.mutation
@@ -197,6 +203,12 @@ func (_u *EntryUpdate) ClearCreator() *EntryUpdate {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (_u *EntryUpdate) ClearUpdater() *EntryUpdate {
 	_u.mutation.ClearUpdater()
+	return _u
+}
+
+// ClearPeriod clears the "period" edge to the Period entity.
+func (_u *EntryUpdate) ClearPeriod() *EntryUpdate {
+	_u.mutation.ClearPeriod()
 	return _u
 }
 
@@ -249,6 +261,9 @@ func (_u *EntryUpdate) check() error {
 	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Entry.updater"`)
 	}
+	if _u.mutation.PeriodCleared() && len(_u.mutation.PeriodIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Entry.period"`)
+	}
 	return nil
 }
 
@@ -287,9 +302,6 @@ func (_u *EntryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ReferenceCleared() {
 		_spec.ClearField(entry.FieldReference, field.TypeString)
-	}
-	if value, ok := _u.mutation.LedgerPeriodID(); ok {
-		_spec.SetField(entry.FieldLedgerPeriodID, field.TypeUUID, value)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -345,6 +357,37 @@ func (_u *EntryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Entry
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PeriodCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   entry.PeriodTable,
+			Columns: []string{entry.PeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(period.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Entry
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PeriodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   entry.PeriodTable,
+			Columns: []string{entry.PeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(period.FieldID, field.TypeUUID),
 			},
 		}
 		edge.Schema = _u.schemaConfig.Entry
@@ -491,16 +534,16 @@ func (_u *EntryUpdateOne) ClearReference() *EntryUpdateOne {
 	return _u
 }
 
-// SetLedgerPeriodID sets the "ledger_period_id" field.
-func (_u *EntryUpdateOne) SetLedgerPeriodID(v uuid.UUID) *EntryUpdateOne {
-	_u.mutation.SetLedgerPeriodID(v)
+// SetPeriodID sets the "period_id" field.
+func (_u *EntryUpdateOne) SetPeriodID(v uuid.UUID) *EntryUpdateOne {
+	_u.mutation.SetPeriodID(v)
 	return _u
 }
 
-// SetNillableLedgerPeriodID sets the "ledger_period_id" field if the given value is not nil.
-func (_u *EntryUpdateOne) SetNillableLedgerPeriodID(v *uuid.UUID) *EntryUpdateOne {
+// SetNillablePeriodID sets the "period_id" field if the given value is not nil.
+func (_u *EntryUpdateOne) SetNillablePeriodID(v *uuid.UUID) *EntryUpdateOne {
 	if v != nil {
-		_u.SetLedgerPeriodID(*v)
+		_u.SetPeriodID(*v)
 	}
 	return _u
 }
@@ -527,6 +570,11 @@ func (_u *EntryUpdateOne) SetUpdater(v *User) *EntryUpdateOne {
 	return _u.SetUpdaterID(v.ID)
 }
 
+// SetPeriod sets the "period" edge to the Period entity.
+func (_u *EntryUpdateOne) SetPeriod(v *Period) *EntryUpdateOne {
+	return _u.SetPeriodID(v.ID)
+}
+
 // Mutation returns the EntryMutation object of the builder.
 func (_u *EntryUpdateOne) Mutation() *EntryMutation {
 	return _u.mutation
@@ -541,6 +589,12 @@ func (_u *EntryUpdateOne) ClearCreator() *EntryUpdateOne {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (_u *EntryUpdateOne) ClearUpdater() *EntryUpdateOne {
 	_u.mutation.ClearUpdater()
+	return _u
+}
+
+// ClearPeriod clears the "period" edge to the Period entity.
+func (_u *EntryUpdateOne) ClearPeriod() *EntryUpdateOne {
+	_u.mutation.ClearPeriod()
 	return _u
 }
 
@@ -606,6 +660,9 @@ func (_u *EntryUpdateOne) check() error {
 	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Entry.updater"`)
 	}
+	if _u.mutation.PeriodCleared() && len(_u.mutation.PeriodIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Entry.period"`)
+	}
 	return nil
 }
 
@@ -662,9 +719,6 @@ func (_u *EntryUpdateOne) sqlSave(ctx context.Context) (_node *Entry, err error)
 	if _u.mutation.ReferenceCleared() {
 		_spec.ClearField(entry.FieldReference, field.TypeString)
 	}
-	if value, ok := _u.mutation.LedgerPeriodID(); ok {
-		_spec.SetField(entry.FieldLedgerPeriodID, field.TypeUUID, value)
-	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -719,6 +773,37 @@ func (_u *EntryUpdateOne) sqlSave(ctx context.Context) (_node *Entry, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Entry
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PeriodCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   entry.PeriodTable,
+			Columns: []string{entry.PeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(period.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Entry
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PeriodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   entry.PeriodTable,
+			Columns: []string{entry.PeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(period.FieldID, field.TypeUUID),
 			},
 		}
 		edge.Schema = _u.schemaConfig.Entry

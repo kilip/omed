@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -19,54 +20,54 @@ import (
 	"github.com/kilip/omed/finance/ent/user"
 )
 
-// EntryQuery is the builder for querying Entry entities.
-type EntryQuery struct {
+// PeriodQuery is the builder for querying Period entities.
+type PeriodQuery struct {
 	config
 	ctx         *QueryContext
-	order       []entry.OrderOption
+	order       []period.OrderOption
 	inters      []Interceptor
-	predicates  []predicate.Entry
+	predicates  []predicate.Period
 	withCreator *UserQuery
 	withUpdater *UserQuery
-	withPeriod  *PeriodQuery
+	withEntries *EntryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the EntryQuery builder.
-func (_q *EntryQuery) Where(ps ...predicate.Entry) *EntryQuery {
+// Where adds a new predicate for the PeriodQuery builder.
+func (_q *PeriodQuery) Where(ps ...predicate.Period) *PeriodQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *EntryQuery) Limit(limit int) *EntryQuery {
+func (_q *PeriodQuery) Limit(limit int) *PeriodQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *EntryQuery) Offset(offset int) *EntryQuery {
+func (_q *PeriodQuery) Offset(offset int) *PeriodQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *EntryQuery) Unique(unique bool) *EntryQuery {
+func (_q *PeriodQuery) Unique(unique bool) *PeriodQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *EntryQuery) Order(o ...entry.OrderOption) *EntryQuery {
+func (_q *PeriodQuery) Order(o ...period.OrderOption) *PeriodQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
 // QueryCreator chains the current query on the "creator" edge.
-func (_q *EntryQuery) QueryCreator() *UserQuery {
+func (_q *PeriodQuery) QueryCreator() *UserQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -77,13 +78,13 @@ func (_q *EntryQuery) QueryCreator() *UserQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(entry.Table, entry.FieldID, selector),
+			sqlgraph.From(period.Table, period.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, entry.CreatorTable, entry.CreatorColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, period.CreatorTable, period.CreatorColumn),
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.Entry
+		step.Edge.Schema = schemaConfig.Period
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -91,7 +92,7 @@ func (_q *EntryQuery) QueryCreator() *UserQuery {
 }
 
 // QueryUpdater chains the current query on the "updater" edge.
-func (_q *EntryQuery) QueryUpdater() *UserQuery {
+func (_q *PeriodQuery) QueryUpdater() *UserQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -102,22 +103,22 @@ func (_q *EntryQuery) QueryUpdater() *UserQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(entry.Table, entry.FieldID, selector),
+			sqlgraph.From(period.Table, period.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, entry.UpdaterTable, entry.UpdaterColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, period.UpdaterTable, period.UpdaterColumn),
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.Entry
+		step.Edge.Schema = schemaConfig.Period
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// QueryPeriod chains the current query on the "period" edge.
-func (_q *EntryQuery) QueryPeriod() *PeriodQuery {
-	query := (&PeriodClient{config: _q.config}).Query()
+// QueryEntries chains the current query on the "entries" edge.
+func (_q *PeriodQuery) QueryEntries() *EntryQuery {
+	query := (&EntryClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -127,12 +128,12 @@ func (_q *EntryQuery) QueryPeriod() *PeriodQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(entry.Table, entry.FieldID, selector),
-			sqlgraph.To(period.Table, period.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, entry.PeriodTable, entry.PeriodColumn),
+			sqlgraph.From(period.Table, period.FieldID, selector),
+			sqlgraph.To(entry.Table, entry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, period.EntriesTable, period.EntriesColumn),
 		)
 		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.Period
+		step.To.Schema = schemaConfig.Entry
 		step.Edge.Schema = schemaConfig.Entry
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -140,21 +141,21 @@ func (_q *EntryQuery) QueryPeriod() *PeriodQuery {
 	return query
 }
 
-// First returns the first Entry entity from the query.
-// Returns a *NotFoundError when no Entry was found.
-func (_q *EntryQuery) First(ctx context.Context) (*Entry, error) {
+// First returns the first Period entity from the query.
+// Returns a *NotFoundError when no Period was found.
+func (_q *PeriodQuery) First(ctx context.Context) (*Period, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{entry.Label}
+		return nil, &NotFoundError{period.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *EntryQuery) FirstX(ctx context.Context) *Entry {
+func (_q *PeriodQuery) FirstX(ctx context.Context) *Period {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -162,22 +163,22 @@ func (_q *EntryQuery) FirstX(ctx context.Context) *Entry {
 	return node
 }
 
-// FirstID returns the first Entry ID from the query.
-// Returns a *NotFoundError when no Entry ID was found.
-func (_q *EntryQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first Period ID from the query.
+// Returns a *NotFoundError when no Period ID was found.
+func (_q *PeriodQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{entry.Label}
+		err = &NotFoundError{period.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *EntryQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (_q *PeriodQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -185,10 +186,10 @@ func (_q *EntryQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// Only returns a single Entry entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one Entry entity is found.
-// Returns a *NotFoundError when no Entry entities are found.
-func (_q *EntryQuery) Only(ctx context.Context) (*Entry, error) {
+// Only returns a single Period entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one Period entity is found.
+// Returns a *NotFoundError when no Period entities are found.
+func (_q *PeriodQuery) Only(ctx context.Context) (*Period, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -197,14 +198,14 @@ func (_q *EntryQuery) Only(ctx context.Context) (*Entry, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{entry.Label}
+		return nil, &NotFoundError{period.Label}
 	default:
-		return nil, &NotSingularError{entry.Label}
+		return nil, &NotSingularError{period.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *EntryQuery) OnlyX(ctx context.Context) *Entry {
+func (_q *PeriodQuery) OnlyX(ctx context.Context) *Period {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -212,10 +213,10 @@ func (_q *EntryQuery) OnlyX(ctx context.Context) *Entry {
 	return node
 }
 
-// OnlyID is like Only, but returns the only Entry ID in the query.
-// Returns a *NotSingularError when more than one Entry ID is found.
+// OnlyID is like Only, but returns the only Period ID in the query.
+// Returns a *NotSingularError when more than one Period ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *EntryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *PeriodQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -224,15 +225,15 @@ func (_q *EntryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{entry.Label}
+		err = &NotFoundError{period.Label}
 	default:
-		err = &NotSingularError{entry.Label}
+		err = &NotSingularError{period.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *EntryQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (_q *PeriodQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -240,18 +241,18 @@ func (_q *EntryQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// All executes the query and returns a list of Entries.
-func (_q *EntryQuery) All(ctx context.Context) ([]*Entry, error) {
+// All executes the query and returns a list of Periods.
+func (_q *PeriodQuery) All(ctx context.Context) ([]*Period, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*Entry, *EntryQuery]()
-	return withInterceptors[[]*Entry](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*Period, *PeriodQuery]()
+	return withInterceptors[[]*Period](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *EntryQuery) AllX(ctx context.Context) []*Entry {
+func (_q *PeriodQuery) AllX(ctx context.Context) []*Period {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -259,20 +260,20 @@ func (_q *EntryQuery) AllX(ctx context.Context) []*Entry {
 	return nodes
 }
 
-// IDs executes the query and returns a list of Entry IDs.
-func (_q *EntryQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+// IDs executes the query and returns a list of Period IDs.
+func (_q *PeriodQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(entry.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(period.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *EntryQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (_q *PeriodQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -281,16 +282,16 @@ func (_q *EntryQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (_q *EntryQuery) Count(ctx context.Context) (int, error) {
+func (_q *PeriodQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*EntryQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*PeriodQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *EntryQuery) CountX(ctx context.Context) int {
+func (_q *PeriodQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -299,7 +300,7 @@ func (_q *EntryQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *EntryQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *PeriodQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -312,7 +313,7 @@ func (_q *EntryQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *EntryQuery) ExistX(ctx context.Context) bool {
+func (_q *PeriodQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -320,21 +321,21 @@ func (_q *EntryQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the EntryQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the PeriodQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *EntryQuery) Clone() *EntryQuery {
+func (_q *PeriodQuery) Clone() *PeriodQuery {
 	if _q == nil {
 		return nil
 	}
-	return &EntryQuery{
+	return &PeriodQuery{
 		config:      _q.config,
 		ctx:         _q.ctx.Clone(),
-		order:       append([]entry.OrderOption{}, _q.order...),
+		order:       append([]period.OrderOption{}, _q.order...),
 		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.Entry{}, _q.predicates...),
+		predicates:  append([]predicate.Period{}, _q.predicates...),
 		withCreator: _q.withCreator.Clone(),
 		withUpdater: _q.withUpdater.Clone(),
-		withPeriod:  _q.withPeriod.Clone(),
+		withEntries: _q.withEntries.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -343,7 +344,7 @@ func (_q *EntryQuery) Clone() *EntryQuery {
 
 // WithCreator tells the query-builder to eager-load the nodes that are connected to
 // the "creator" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *EntryQuery) WithCreator(opts ...func(*UserQuery)) *EntryQuery {
+func (_q *PeriodQuery) WithCreator(opts ...func(*UserQuery)) *PeriodQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -354,7 +355,7 @@ func (_q *EntryQuery) WithCreator(opts ...func(*UserQuery)) *EntryQuery {
 
 // WithUpdater tells the query-builder to eager-load the nodes that are connected to
 // the "updater" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *EntryQuery) WithUpdater(opts ...func(*UserQuery)) *EntryQuery {
+func (_q *PeriodQuery) WithUpdater(opts ...func(*UserQuery)) *PeriodQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -363,14 +364,14 @@ func (_q *EntryQuery) WithUpdater(opts ...func(*UserQuery)) *EntryQuery {
 	return _q
 }
 
-// WithPeriod tells the query-builder to eager-load the nodes that are connected to
-// the "period" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *EntryQuery) WithPeriod(opts ...func(*PeriodQuery)) *EntryQuery {
-	query := (&PeriodClient{config: _q.config}).Query()
+// WithEntries tells the query-builder to eager-load the nodes that are connected to
+// the "entries" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PeriodQuery) WithEntries(opts ...func(*EntryQuery)) *PeriodQuery {
+	query := (&EntryClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withPeriod = query
+	_q.withEntries = query
 	return _q
 }
 
@@ -384,15 +385,15 @@ func (_q *EntryQuery) WithPeriod(opts ...func(*PeriodQuery)) *EntryQuery {
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Entry.Query().
-//		GroupBy(entry.FieldCreatedBy).
+//	client.Period.Query().
+//		GroupBy(period.FieldCreatedBy).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *EntryQuery) GroupBy(field string, fields ...string) *EntryGroupBy {
+func (_q *PeriodQuery) GroupBy(field string, fields ...string) *PeriodGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &EntryGroupBy{build: _q}
+	grbuild := &PeriodGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = entry.Label
+	grbuild.label = period.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -406,23 +407,23 @@ func (_q *EntryQuery) GroupBy(field string, fields ...string) *EntryGroupBy {
 //		CreatedBy uuid.UUID `json:"createdBy,omitempty"`
 //	}
 //
-//	client.Entry.Query().
-//		Select(entry.FieldCreatedBy).
+//	client.Period.Query().
+//		Select(period.FieldCreatedBy).
 //		Scan(ctx, &v)
-func (_q *EntryQuery) Select(fields ...string) *EntrySelect {
+func (_q *PeriodQuery) Select(fields ...string) *PeriodSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &EntrySelect{EntryQuery: _q}
-	sbuild.label = entry.Label
+	sbuild := &PeriodSelect{PeriodQuery: _q}
+	sbuild.label = period.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a EntrySelect configured with the given aggregations.
-func (_q *EntryQuery) Aggregate(fns ...AggregateFunc) *EntrySelect {
+// Aggregate returns a PeriodSelect configured with the given aggregations.
+func (_q *PeriodQuery) Aggregate(fns ...AggregateFunc) *PeriodSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *EntryQuery) prepareQuery(ctx context.Context) error {
+func (_q *PeriodQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -434,7 +435,7 @@ func (_q *EntryQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !entry.ValidColumn(f) {
+		if !period.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -448,26 +449,26 @@ func (_q *EntryQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *EntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entry, error) {
+func (_q *PeriodQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Period, error) {
 	var (
-		nodes       = []*Entry{}
+		nodes       = []*Period{}
 		_spec       = _q.querySpec()
 		loadedTypes = [3]bool{
 			_q.withCreator != nil,
 			_q.withUpdater != nil,
-			_q.withPeriod != nil,
+			_q.withEntries != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*Entry).scanValues(nil, columns)
+		return (*Period).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &Entry{config: _q.config}
+		node := &Period{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
-	_spec.Node.Schema = _q.schemaConfig.Entry
+	_spec.Node.Schema = _q.schemaConfig.Period
 	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
 	for i := range hooks {
 		hooks[i](ctx, _spec)
@@ -480,28 +481,29 @@ func (_q *EntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entry,
 	}
 	if query := _q.withCreator; query != nil {
 		if err := _q.loadCreator(ctx, query, nodes, nil,
-			func(n *Entry, e *User) { n.Edges.Creator = e }); err != nil {
+			func(n *Period, e *User) { n.Edges.Creator = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := _q.withUpdater; query != nil {
 		if err := _q.loadUpdater(ctx, query, nodes, nil,
-			func(n *Entry, e *User) { n.Edges.Updater = e }); err != nil {
+			func(n *Period, e *User) { n.Edges.Updater = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withPeriod; query != nil {
-		if err := _q.loadPeriod(ctx, query, nodes, nil,
-			func(n *Entry, e *Period) { n.Edges.Period = e }); err != nil {
+	if query := _q.withEntries; query != nil {
+		if err := _q.loadEntries(ctx, query, nodes,
+			func(n *Period) { n.Edges.Entries = []*Entry{} },
+			func(n *Period, e *Entry) { n.Edges.Entries = append(n.Edges.Entries, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *EntryQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Entry, init func(*Entry), assign func(*Entry, *User)) error {
+func (_q *PeriodQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Period, init func(*Period), assign func(*Period, *User)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Entry)
+	nodeids := make(map[uuid.UUID][]*Period)
 	for i := range nodes {
 		fk := nodes[i].CreatedBy
 		if _, ok := nodeids[fk]; !ok {
@@ -528,9 +530,9 @@ func (_q *EntryQuery) loadCreator(ctx context.Context, query *UserQuery, nodes [
 	}
 	return nil
 }
-func (_q *EntryQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes []*Entry, init func(*Entry), assign func(*Entry, *User)) error {
+func (_q *PeriodQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes []*Period, init func(*Period), assign func(*Period, *User)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Entry)
+	nodeids := make(map[uuid.UUID][]*Period)
 	for i := range nodes {
 		fk := nodes[i].UpdatedBy
 		if _, ok := nodeids[fk]; !ok {
@@ -557,39 +559,40 @@ func (_q *EntryQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes [
 	}
 	return nil
 }
-func (_q *EntryQuery) loadPeriod(ctx context.Context, query *PeriodQuery, nodes []*Entry, init func(*Entry), assign func(*Entry, *Period)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Entry)
+func (_q *PeriodQuery) loadEntries(ctx context.Context, query *EntryQuery, nodes []*Period, init func(*Period), assign func(*Period, *Entry)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Period)
 	for i := range nodes {
-		fk := nodes[i].PeriodID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
 		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(ids) == 0 {
-		return nil
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(entry.FieldPeriodID)
 	}
-	query.Where(period.IDIn(ids...))
+	query.Where(predicate.Entry(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(period.EntriesColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.PeriodID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "period_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "period_id" returned %v for node %v`, fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
 
-func (_q *EntryQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *PeriodQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
-	_spec.Node.Schema = _q.schemaConfig.Entry
+	_spec.Node.Schema = _q.schemaConfig.Period
 	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -598,8 +601,8 @@ func (_q *EntryQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *EntryQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(entry.Table, entry.Columns, sqlgraph.NewFieldSpec(entry.FieldID, field.TypeUUID))
+func (_q *PeriodQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(period.Table, period.Columns, sqlgraph.NewFieldSpec(period.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -608,20 +611,17 @@ func (_q *EntryQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, entry.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, period.FieldID)
 		for i := range fields {
-			if fields[i] != entry.FieldID {
+			if fields[i] != period.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if _q.withCreator != nil {
-			_spec.Node.AddColumnOnce(entry.FieldCreatedBy)
+			_spec.Node.AddColumnOnce(period.FieldCreatedBy)
 		}
 		if _q.withUpdater != nil {
-			_spec.Node.AddColumnOnce(entry.FieldUpdatedBy)
-		}
-		if _q.withPeriod != nil {
-			_spec.Node.AddColumnOnce(entry.FieldPeriodID)
+			_spec.Node.AddColumnOnce(period.FieldUpdatedBy)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -647,12 +647,12 @@ func (_q *EntryQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *EntryQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *PeriodQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(entry.Table)
+	t1 := builder.Table(period.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = entry.Columns
+		columns = period.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -662,7 +662,7 @@ func (_q *EntryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	t1.Schema(_q.schemaConfig.Entry)
+	t1.Schema(_q.schemaConfig.Period)
 	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
 	selector.WithContext(ctx)
 	for _, p := range _q.predicates {
@@ -682,28 +682,28 @@ func (_q *EntryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// EntryGroupBy is the group-by builder for Entry entities.
-type EntryGroupBy struct {
+// PeriodGroupBy is the group-by builder for Period entities.
+type PeriodGroupBy struct {
 	selector
-	build *EntryQuery
+	build *PeriodQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *EntryGroupBy) Aggregate(fns ...AggregateFunc) *EntryGroupBy {
+func (_g *PeriodGroupBy) Aggregate(fns ...AggregateFunc) *PeriodGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *EntryGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *PeriodGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*EntryQuery, *EntryGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*PeriodQuery, *PeriodGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *EntryGroupBy) sqlScan(ctx context.Context, root *EntryQuery, v any) error {
+func (_g *PeriodGroupBy) sqlScan(ctx context.Context, root *PeriodQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -730,28 +730,28 @@ func (_g *EntryGroupBy) sqlScan(ctx context.Context, root *EntryQuery, v any) er
 	return sql.ScanSlice(rows, v)
 }
 
-// EntrySelect is the builder for selecting fields of Entry entities.
-type EntrySelect struct {
-	*EntryQuery
+// PeriodSelect is the builder for selecting fields of Period entities.
+type PeriodSelect struct {
+	*PeriodQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *EntrySelect) Aggregate(fns ...AggregateFunc) *EntrySelect {
+func (_s *PeriodSelect) Aggregate(fns ...AggregateFunc) *PeriodSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *EntrySelect) Scan(ctx context.Context, v any) error {
+func (_s *PeriodSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*EntryQuery, *EntrySelect](ctx, _s.EntryQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*PeriodQuery, *PeriodSelect](ctx, _s.PeriodQuery, _s, _s.inters, v)
 }
 
-func (_s *EntrySelect) sqlScan(ctx context.Context, root *EntryQuery, v any) error {
+func (_s *PeriodSelect) sqlScan(ctx context.Context, root *PeriodQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

@@ -10,13 +10,12 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/kilip/omed/finance/ent/entry"
 	"github.com/kilip/omed/finance/ent/period"
 	"github.com/kilip/omed/finance/ent/user"
 )
 
-// Entry is the model entity for the Entry schema.
-type Entry struct {
+// Period is the model entity for the Period schema.
+type Period struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
@@ -30,30 +29,26 @@ type Entry struct {
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 	// WorkspaceID holds the value of the "workspace_id" field.
 	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
-	// EntryDate holds the value of the "entry_date" field.
-	EntryDate time.Time `json:"entry_date,omitempty"`
-	// EntryType holds the value of the "entry_type" field.
-	EntryType entry.EntryType `json:"entry_type,omitempty"`
-	// Description holds the value of the "description" field.
-	Description string `json:"description,omitempty"`
-	// Reference holds the value of the "reference" field.
-	Reference *string `json:"reference,omitempty"`
-	// PeriodID holds the value of the "period_id" field.
-	PeriodID uuid.UUID `json:"period_id,omitempty"`
+	// StartDate holds the value of the "start_date" field.
+	StartDate time.Time `json:"start_date,omitempty"`
+	// EndDate holds the value of the "end_date" field.
+	EndDate time.Time `json:"end_date,omitempty"`
+	// Status holds the value of the "status" field.
+	Status period.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the EntryQuery when eager-loading is set.
-	Edges        EntryEdges `json:"edges"`
+	// The values are being populated by the PeriodQuery when eager-loading is set.
+	Edges        PeriodEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
-// EntryEdges holds the relations/edges for other nodes in the graph.
-type EntryEdges struct {
+// PeriodEdges holds the relations/edges for other nodes in the graph.
+type PeriodEdges struct {
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
 	// Updater holds the value of the updater edge.
 	Updater *User `json:"updater,omitempty"`
-	// Period holds the value of the period edge.
-	Period *Period `json:"period,omitempty"`
+	// Entries holds the value of the entries edge.
+	Entries []*Entry `json:"entries,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
@@ -61,7 +56,7 @@ type EntryEdges struct {
 
 // CreatorOrErr returns the Creator value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EntryEdges) CreatorOrErr() (*User, error) {
+func (e PeriodEdges) CreatorOrErr() (*User, error) {
 	if e.Creator != nil {
 		return e.Creator, nil
 	} else if e.loadedTypes[0] {
@@ -72,7 +67,7 @@ func (e EntryEdges) CreatorOrErr() (*User, error) {
 
 // UpdaterOrErr returns the Updater value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EntryEdges) UpdaterOrErr() (*User, error) {
+func (e PeriodEdges) UpdaterOrErr() (*User, error) {
 	if e.Updater != nil {
 		return e.Updater, nil
 	} else if e.loadedTypes[1] {
@@ -81,27 +76,25 @@ func (e EntryEdges) UpdaterOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "updater"}
 }
 
-// PeriodOrErr returns the Period value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e EntryEdges) PeriodOrErr() (*Period, error) {
-	if e.Period != nil {
-		return e.Period, nil
-	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: period.Label}
+// EntriesOrErr returns the Entries value or an error if the edge
+// was not loaded in eager-loading.
+func (e PeriodEdges) EntriesOrErr() ([]*Entry, error) {
+	if e.loadedTypes[2] {
+		return e.Entries, nil
 	}
-	return nil, &NotLoadedError{edge: "period"}
+	return nil, &NotLoadedError{edge: "entries"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Entry) scanValues(columns []string) ([]any, error) {
+func (*Period) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case entry.FieldEntryType, entry.FieldDescription, entry.FieldReference:
+		case period.FieldStatus:
 			values[i] = new(sql.NullString)
-		case entry.FieldCreatedAt, entry.FieldUpdatedAt, entry.FieldEntryDate:
+		case period.FieldCreatedAt, period.FieldUpdatedAt, period.FieldStartDate, period.FieldEndDate:
 			values[i] = new(sql.NullTime)
-		case entry.FieldID, entry.FieldCreatedBy, entry.FieldUpdatedBy, entry.FieldWorkspaceID, entry.FieldPeriodID:
+		case period.FieldID, period.FieldCreatedBy, period.FieldUpdatedBy, period.FieldWorkspaceID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -111,79 +104,66 @@ func (*Entry) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Entry fields.
-func (_m *Entry) assignValues(columns []string, values []any) error {
+// to the Period fields.
+func (_m *Period) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case entry.FieldID:
+		case period.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				_m.ID = *value
 			}
-		case entry.FieldCreatedBy:
+		case period.FieldCreatedBy:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field createdBy", values[i])
 			} else if value != nil {
 				_m.CreatedBy = *value
 			}
-		case entry.FieldCreatedAt:
+		case period.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createdAt", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case entry.FieldUpdatedBy:
+		case period.FieldUpdatedBy:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field updatedBy", values[i])
 			} else if value != nil {
 				_m.UpdatedBy = *value
 			}
-		case entry.FieldUpdatedAt:
+		case period.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updatedAt", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case entry.FieldWorkspaceID:
+		case period.FieldWorkspaceID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field workspace_id", values[i])
 			} else if value != nil {
 				_m.WorkspaceID = *value
 			}
-		case entry.FieldEntryDate:
+		case period.FieldStartDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field entry_date", values[i])
+				return fmt.Errorf("unexpected type %T for field start_date", values[i])
 			} else if value.Valid {
-				_m.EntryDate = value.Time
+				_m.StartDate = value.Time
 			}
-		case entry.FieldEntryType:
+		case period.FieldEndDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field end_date", values[i])
+			} else if value.Valid {
+				_m.EndDate = value.Time
+			}
+		case period.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field entry_type", values[i])
+				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				_m.EntryType = entry.EntryType(value.String)
-			}
-		case entry.FieldDescription:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field description", values[i])
-			} else if value.Valid {
-				_m.Description = value.String
-			}
-		case entry.FieldReference:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field reference", values[i])
-			} else if value.Valid {
-				_m.Reference = new(string)
-				*_m.Reference = value.String
-			}
-		case entry.FieldPeriodID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field period_id", values[i])
-			} else if value != nil {
-				_m.PeriodID = *value
+				_m.Status = period.Status(value.String)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -192,49 +172,49 @@ func (_m *Entry) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Entry.
+// Value returns the ent.Value that was dynamically selected and assigned to the Period.
 // This includes values selected through modifiers, order, etc.
-func (_m *Entry) Value(name string) (ent.Value, error) {
+func (_m *Period) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryCreator queries the "creator" edge of the Entry entity.
-func (_m *Entry) QueryCreator() *UserQuery {
-	return NewEntryClient(_m.config).QueryCreator(_m)
+// QueryCreator queries the "creator" edge of the Period entity.
+func (_m *Period) QueryCreator() *UserQuery {
+	return NewPeriodClient(_m.config).QueryCreator(_m)
 }
 
-// QueryUpdater queries the "updater" edge of the Entry entity.
-func (_m *Entry) QueryUpdater() *UserQuery {
-	return NewEntryClient(_m.config).QueryUpdater(_m)
+// QueryUpdater queries the "updater" edge of the Period entity.
+func (_m *Period) QueryUpdater() *UserQuery {
+	return NewPeriodClient(_m.config).QueryUpdater(_m)
 }
 
-// QueryPeriod queries the "period" edge of the Entry entity.
-func (_m *Entry) QueryPeriod() *PeriodQuery {
-	return NewEntryClient(_m.config).QueryPeriod(_m)
+// QueryEntries queries the "entries" edge of the Period entity.
+func (_m *Period) QueryEntries() *EntryQuery {
+	return NewPeriodClient(_m.config).QueryEntries(_m)
 }
 
-// Update returns a builder for updating this Entry.
-// Note that you need to call Entry.Unwrap() before calling this method if this Entry
+// Update returns a builder for updating this Period.
+// Note that you need to call Period.Unwrap() before calling this method if this Period
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *Entry) Update() *EntryUpdateOne {
-	return NewEntryClient(_m.config).UpdateOne(_m)
+func (_m *Period) Update() *PeriodUpdateOne {
+	return NewPeriodClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the Entry entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the Period entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *Entry) Unwrap() *Entry {
+func (_m *Period) Unwrap() *Period {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: Entry is not a transactional entity")
+		panic("ent: Period is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *Entry) String() string {
+func (_m *Period) String() string {
 	var builder strings.Builder
-	builder.WriteString("Entry(")
+	builder.WriteString("Period(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("createdBy=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CreatedBy))
@@ -251,25 +231,17 @@ func (_m *Entry) String() string {
 	builder.WriteString("workspace_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.WorkspaceID))
 	builder.WriteString(", ")
-	builder.WriteString("entry_date=")
-	builder.WriteString(_m.EntryDate.Format(time.ANSIC))
+	builder.WriteString("start_date=")
+	builder.WriteString(_m.StartDate.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("entry_type=")
-	builder.WriteString(fmt.Sprintf("%v", _m.EntryType))
+	builder.WriteString("end_date=")
+	builder.WriteString(_m.EndDate.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("description=")
-	builder.WriteString(_m.Description)
-	builder.WriteString(", ")
-	if v := _m.Reference; v != nil {
-		builder.WriteString("reference=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	builder.WriteString("period_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.PeriodID))
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// Entries is a parsable slice of Entry.
-type Entries []*Entry
+// Periods is a parsable slice of Period.
+type Periods []*Period

@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/account"
 	"github.com/kilip/omed/finance/ent/entry"
+	"github.com/kilip/omed/finance/ent/period"
 	"github.com/kilip/omed/finance/ent/predicate"
 	"github.com/kilip/omed/finance/ent/user"
 	"github.com/kilip/omed/finance/ent/workspace"
@@ -30,6 +31,7 @@ const (
 	// Node types.
 	TypeAccount   = "Account"
 	TypeEntry     = "Entry"
+	TypePeriod    = "Period"
 	TypeUser      = "User"
 	TypeWorkspace = "Workspace"
 )
@@ -1274,25 +1276,26 @@ func (m *AccountMutation) ResetEdge(name string) error {
 // EntryMutation represents an operation that mutates the Entry nodes in the graph.
 type EntryMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	createdAt        *time.Time
-	updatedAt        *time.Time
-	workspace_id     *uuid.UUID
-	entry_date       *time.Time
-	entry_type       *entry.EntryType
-	description      *string
-	reference        *string
-	ledger_period_id *uuid.UUID
-	clearedFields    map[string]struct{}
-	creator          *uuid.UUID
-	clearedcreator   bool
-	updater          *uuid.UUID
-	clearedupdater   bool
-	done             bool
-	oldValue         func(context.Context) (*Entry, error)
-	predicates       []predicate.Entry
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	createdAt      *time.Time
+	updatedAt      *time.Time
+	workspace_id   *uuid.UUID
+	entry_date     *time.Time
+	entry_type     *entry.EntryType
+	description    *string
+	reference      *string
+	clearedFields  map[string]struct{}
+	creator        *uuid.UUID
+	clearedcreator bool
+	updater        *uuid.UUID
+	clearedupdater bool
+	period         *uuid.UUID
+	clearedperiod  bool
+	done           bool
+	oldValue       func(context.Context) (*Entry, error)
+	predicates     []predicate.Entry
 }
 
 var _ ent.Mutation = (*EntryMutation)(nil)
@@ -1749,40 +1752,40 @@ func (m *EntryMutation) ResetReference() {
 	delete(m.clearedFields, entry.FieldReference)
 }
 
-// SetLedgerPeriodID sets the "ledger_period_id" field.
-func (m *EntryMutation) SetLedgerPeriodID(u uuid.UUID) {
-	m.ledger_period_id = &u
+// SetPeriodID sets the "period_id" field.
+func (m *EntryMutation) SetPeriodID(u uuid.UUID) {
+	m.period = &u
 }
 
-// LedgerPeriodID returns the value of the "ledger_period_id" field in the mutation.
-func (m *EntryMutation) LedgerPeriodID() (r uuid.UUID, exists bool) {
-	v := m.ledger_period_id
+// PeriodID returns the value of the "period_id" field in the mutation.
+func (m *EntryMutation) PeriodID() (r uuid.UUID, exists bool) {
+	v := m.period
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLedgerPeriodID returns the old "ledger_period_id" field's value of the Entry entity.
+// OldPeriodID returns the old "period_id" field's value of the Entry entity.
 // If the Entry object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EntryMutation) OldLedgerPeriodID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *EntryMutation) OldPeriodID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLedgerPeriodID is only allowed on UpdateOne operations")
+		return v, errors.New("OldPeriodID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLedgerPeriodID requires an ID field in the mutation")
+		return v, errors.New("OldPeriodID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLedgerPeriodID: %w", err)
+		return v, fmt.Errorf("querying old value for OldPeriodID: %w", err)
 	}
-	return oldValue.LedgerPeriodID, nil
+	return oldValue.PeriodID, nil
 }
 
-// ResetLedgerPeriodID resets all changes to the "ledger_period_id" field.
-func (m *EntryMutation) ResetLedgerPeriodID() {
-	m.ledger_period_id = nil
+// ResetPeriodID resets all changes to the "period_id" field.
+func (m *EntryMutation) ResetPeriodID() {
+	m.period = nil
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by id.
@@ -1865,6 +1868,33 @@ func (m *EntryMutation) ResetUpdater() {
 	m.clearedupdater = false
 }
 
+// ClearPeriod clears the "period" edge to the Period entity.
+func (m *EntryMutation) ClearPeriod() {
+	m.clearedperiod = true
+	m.clearedFields[entry.FieldPeriodID] = struct{}{}
+}
+
+// PeriodCleared reports if the "period" edge to the Period entity was cleared.
+func (m *EntryMutation) PeriodCleared() bool {
+	return m.clearedperiod
+}
+
+// PeriodIDs returns the "period" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PeriodID instead. It exists only for internal usage by the builders.
+func (m *EntryMutation) PeriodIDs() (ids []uuid.UUID) {
+	if id := m.period; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPeriod resets all changes to the "period" edge.
+func (m *EntryMutation) ResetPeriod() {
+	m.period = nil
+	m.clearedperiod = false
+}
+
 // Where appends a list predicates to the EntryMutation builder.
 func (m *EntryMutation) Where(ps ...predicate.Entry) {
 	m.predicates = append(m.predicates, ps...)
@@ -1927,8 +1957,8 @@ func (m *EntryMutation) Fields() []string {
 	if m.reference != nil {
 		fields = append(fields, entry.FieldReference)
 	}
-	if m.ledger_period_id != nil {
-		fields = append(fields, entry.FieldLedgerPeriodID)
+	if m.period != nil {
+		fields = append(fields, entry.FieldPeriodID)
 	}
 	return fields
 }
@@ -1956,8 +1986,8 @@ func (m *EntryMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case entry.FieldReference:
 		return m.Reference()
-	case entry.FieldLedgerPeriodID:
-		return m.LedgerPeriodID()
+	case entry.FieldPeriodID:
+		return m.PeriodID()
 	}
 	return nil, false
 }
@@ -1985,8 +2015,8 @@ func (m *EntryMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldDescription(ctx)
 	case entry.FieldReference:
 		return m.OldReference(ctx)
-	case entry.FieldLedgerPeriodID:
-		return m.OldLedgerPeriodID(ctx)
+	case entry.FieldPeriodID:
+		return m.OldPeriodID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Entry field %s", name)
 }
@@ -2059,12 +2089,12 @@ func (m *EntryMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetReference(v)
 		return nil
-	case entry.FieldLedgerPeriodID:
+	case entry.FieldPeriodID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLedgerPeriodID(v)
+		m.SetPeriodID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Entry field %s", name)
@@ -2157,8 +2187,8 @@ func (m *EntryMutation) ResetField(name string) error {
 	case entry.FieldReference:
 		m.ResetReference()
 		return nil
-	case entry.FieldLedgerPeriodID:
-		m.ResetLedgerPeriodID()
+	case entry.FieldPeriodID:
+		m.ResetPeriodID()
 		return nil
 	}
 	return fmt.Errorf("unknown Entry field %s", name)
@@ -2166,12 +2196,15 @@ func (m *EntryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EntryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.creator != nil {
 		edges = append(edges, entry.EdgeCreator)
 	}
 	if m.updater != nil {
 		edges = append(edges, entry.EdgeUpdater)
+	}
+	if m.period != nil {
+		edges = append(edges, entry.EdgePeriod)
 	}
 	return edges
 }
@@ -2188,13 +2221,17 @@ func (m *EntryMutation) AddedIDs(name string) []ent.Value {
 		if id := m.updater; id != nil {
 			return []ent.Value{*id}
 		}
+	case entry.EdgePeriod:
+		if id := m.period; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EntryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -2206,12 +2243,15 @@ func (m *EntryMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EntryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedcreator {
 		edges = append(edges, entry.EdgeCreator)
 	}
 	if m.clearedupdater {
 		edges = append(edges, entry.EdgeUpdater)
+	}
+	if m.clearedperiod {
+		edges = append(edges, entry.EdgePeriod)
 	}
 	return edges
 }
@@ -2224,6 +2264,8 @@ func (m *EntryMutation) EdgeCleared(name string) bool {
 		return m.clearedcreator
 	case entry.EdgeUpdater:
 		return m.clearedupdater
+	case entry.EdgePeriod:
+		return m.clearedperiod
 	}
 	return false
 }
@@ -2237,6 +2279,9 @@ func (m *EntryMutation) ClearEdge(name string) error {
 		return nil
 	case entry.EdgeUpdater:
 		m.ClearUpdater()
+		return nil
+	case entry.EdgePeriod:
+		m.ClearPeriod()
 		return nil
 	}
 	return fmt.Errorf("unknown Entry unique edge %s", name)
@@ -2252,8 +2297,932 @@ func (m *EntryMutation) ResetEdge(name string) error {
 	case entry.EdgeUpdater:
 		m.ResetUpdater()
 		return nil
+	case entry.EdgePeriod:
+		m.ResetPeriod()
+		return nil
 	}
 	return fmt.Errorf("unknown Entry edge %s", name)
+}
+
+// PeriodMutation represents an operation that mutates the Period nodes in the graph.
+type PeriodMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	createdAt      *time.Time
+	updatedAt      *time.Time
+	workspace_id   *uuid.UUID
+	start_date     *time.Time
+	end_date       *time.Time
+	status         *period.Status
+	clearedFields  map[string]struct{}
+	creator        *uuid.UUID
+	clearedcreator bool
+	updater        *uuid.UUID
+	clearedupdater bool
+	entries        map[uuid.UUID]struct{}
+	removedentries map[uuid.UUID]struct{}
+	clearedentries bool
+	done           bool
+	oldValue       func(context.Context) (*Period, error)
+	predicates     []predicate.Period
+}
+
+var _ ent.Mutation = (*PeriodMutation)(nil)
+
+// periodOption allows management of the mutation configuration using functional options.
+type periodOption func(*PeriodMutation)
+
+// newPeriodMutation creates new mutation for the Period entity.
+func newPeriodMutation(c config, op Op, opts ...periodOption) *PeriodMutation {
+	m := &PeriodMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePeriod,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPeriodID sets the ID field of the mutation.
+func withPeriodID(id uuid.UUID) periodOption {
+	return func(m *PeriodMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Period
+		)
+		m.oldValue = func(ctx context.Context) (*Period, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Period.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPeriod sets the old Period of the mutation.
+func withPeriod(node *Period) periodOption {
+	return func(m *PeriodMutation) {
+		m.oldValue = func(context.Context) (*Period, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PeriodMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PeriodMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Period entities.
+func (m *PeriodMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PeriodMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PeriodMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Period.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedBy sets the "createdBy" field.
+func (m *PeriodMutation) SetCreatedBy(u uuid.UUID) {
+	m.creator = &u
+}
+
+// CreatedBy returns the value of the "createdBy" field in the mutation.
+func (m *PeriodMutation) CreatedBy() (r uuid.UUID, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "createdBy" field's value of the Period entity.
+// If the Period object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodMutation) OldCreatedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "createdBy" field.
+func (m *PeriodMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetCreatedAt sets the "createdAt" field.
+func (m *PeriodMutation) SetCreatedAt(t time.Time) {
+	m.createdAt = &t
+}
+
+// CreatedAt returns the value of the "createdAt" field in the mutation.
+func (m *PeriodMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.createdAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "createdAt" field's value of the Period entity.
+// If the Period object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "createdAt" field.
+func (m *PeriodMutation) ResetCreatedAt() {
+	m.createdAt = nil
+}
+
+// SetUpdatedBy sets the "updatedBy" field.
+func (m *PeriodMutation) SetUpdatedBy(u uuid.UUID) {
+	m.updater = &u
+}
+
+// UpdatedBy returns the value of the "updatedBy" field in the mutation.
+func (m *PeriodMutation) UpdatedBy() (r uuid.UUID, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updatedBy" field's value of the Period entity.
+// If the Period object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodMutation) OldUpdatedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updatedBy" field.
+func (m *PeriodMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetUpdatedAt sets the "updatedAt" field.
+func (m *PeriodMutation) SetUpdatedAt(t time.Time) {
+	m.updatedAt = &t
+}
+
+// UpdatedAt returns the value of the "updatedAt" field in the mutation.
+func (m *PeriodMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updatedAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updatedAt" field's value of the Period entity.
+// If the Period object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updatedAt" field.
+func (m *PeriodMutation) ResetUpdatedAt() {
+	m.updatedAt = nil
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *PeriodMutation) SetWorkspaceID(u uuid.UUID) {
+	m.workspace_id = &u
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *PeriodMutation) WorkspaceID() (r uuid.UUID, exists bool) {
+	v := m.workspace_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the Period entity.
+// If the Period object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodMutation) OldWorkspaceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *PeriodMutation) ResetWorkspaceID() {
+	m.workspace_id = nil
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *PeriodMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *PeriodMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the Period entity.
+// If the Period object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *PeriodMutation) ResetStartDate() {
+	m.start_date = nil
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *PeriodMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *PeriodMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the Period entity.
+// If the Period object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodMutation) OldEndDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *PeriodMutation) ResetEndDate() {
+	m.end_date = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *PeriodMutation) SetStatus(pe period.Status) {
+	m.status = &pe
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *PeriodMutation) Status() (r period.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Period entity.
+// If the Period object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodMutation) OldStatus(ctx context.Context) (v period.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *PeriodMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *PeriodMutation) SetCreatorID(id uuid.UUID) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *PeriodMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[period.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *PeriodMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *PeriodMutation) CreatorID() (id uuid.UUID, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *PeriodMutation) CreatorIDs() (ids []uuid.UUID) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *PeriodMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *PeriodMutation) SetUpdaterID(id uuid.UUID) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *PeriodMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[period.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *PeriodMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *PeriodMutation) UpdaterID() (id uuid.UUID, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *PeriodMutation) UpdaterIDs() (ids []uuid.UUID) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *PeriodMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// AddEntryIDs adds the "entries" edge to the Entry entity by ids.
+func (m *PeriodMutation) AddEntryIDs(ids ...uuid.UUID) {
+	if m.entries == nil {
+		m.entries = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.entries[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEntries clears the "entries" edge to the Entry entity.
+func (m *PeriodMutation) ClearEntries() {
+	m.clearedentries = true
+}
+
+// EntriesCleared reports if the "entries" edge to the Entry entity was cleared.
+func (m *PeriodMutation) EntriesCleared() bool {
+	return m.clearedentries
+}
+
+// RemoveEntryIDs removes the "entries" edge to the Entry entity by IDs.
+func (m *PeriodMutation) RemoveEntryIDs(ids ...uuid.UUID) {
+	if m.removedentries == nil {
+		m.removedentries = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.entries, ids[i])
+		m.removedentries[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEntries returns the removed IDs of the "entries" edge to the Entry entity.
+func (m *PeriodMutation) RemovedEntriesIDs() (ids []uuid.UUID) {
+	for id := range m.removedentries {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EntriesIDs returns the "entries" edge IDs in the mutation.
+func (m *PeriodMutation) EntriesIDs() (ids []uuid.UUID) {
+	for id := range m.entries {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEntries resets all changes to the "entries" edge.
+func (m *PeriodMutation) ResetEntries() {
+	m.entries = nil
+	m.clearedentries = false
+	m.removedentries = nil
+}
+
+// Where appends a list predicates to the PeriodMutation builder.
+func (m *PeriodMutation) Where(ps ...predicate.Period) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PeriodMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PeriodMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Period, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PeriodMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PeriodMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Period).
+func (m *PeriodMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PeriodMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.creator != nil {
+		fields = append(fields, period.FieldCreatedBy)
+	}
+	if m.createdAt != nil {
+		fields = append(fields, period.FieldCreatedAt)
+	}
+	if m.updater != nil {
+		fields = append(fields, period.FieldUpdatedBy)
+	}
+	if m.updatedAt != nil {
+		fields = append(fields, period.FieldUpdatedAt)
+	}
+	if m.workspace_id != nil {
+		fields = append(fields, period.FieldWorkspaceID)
+	}
+	if m.start_date != nil {
+		fields = append(fields, period.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, period.FieldEndDate)
+	}
+	if m.status != nil {
+		fields = append(fields, period.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PeriodMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case period.FieldCreatedBy:
+		return m.CreatedBy()
+	case period.FieldCreatedAt:
+		return m.CreatedAt()
+	case period.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case period.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case period.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case period.FieldStartDate:
+		return m.StartDate()
+	case period.FieldEndDate:
+		return m.EndDate()
+	case period.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PeriodMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case period.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case period.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case period.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case period.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case period.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case period.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case period.FieldEndDate:
+		return m.OldEndDate(ctx)
+	case period.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown Period field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PeriodMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case period.FieldCreatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case period.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case period.FieldUpdatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case period.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case period.FieldWorkspaceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case period.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case period.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	case period.FieldStatus:
+		v, ok := value.(period.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Period field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PeriodMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PeriodMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PeriodMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Period numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PeriodMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PeriodMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PeriodMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Period nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PeriodMutation) ResetField(name string) error {
+	switch name {
+	case period.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case period.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case period.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case period.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case period.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case period.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case period.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	case period.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown Period field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PeriodMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.creator != nil {
+		edges = append(edges, period.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, period.EdgeUpdater)
+	}
+	if m.entries != nil {
+		edges = append(edges, period.EdgeEntries)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PeriodMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case period.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case period.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case period.EdgeEntries:
+		ids := make([]ent.Value, 0, len(m.entries))
+		for id := range m.entries {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PeriodMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedentries != nil {
+		edges = append(edges, period.EdgeEntries)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PeriodMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case period.EdgeEntries:
+		ids := make([]ent.Value, 0, len(m.removedentries))
+		for id := range m.removedentries {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PeriodMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedcreator {
+		edges = append(edges, period.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, period.EdgeUpdater)
+	}
+	if m.clearedentries {
+		edges = append(edges, period.EdgeEntries)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PeriodMutation) EdgeCleared(name string) bool {
+	switch name {
+	case period.EdgeCreator:
+		return m.clearedcreator
+	case period.EdgeUpdater:
+		return m.clearedupdater
+	case period.EdgeEntries:
+		return m.clearedentries
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PeriodMutation) ClearEdge(name string) error {
+	switch name {
+	case period.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case period.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	}
+	return fmt.Errorf("unknown Period unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PeriodMutation) ResetEdge(name string) error {
+	switch name {
+	case period.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case period.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	case period.EdgeEntries:
+		m.ResetEntries()
+		return nil
+	}
+	return fmt.Errorf("unknown Period edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

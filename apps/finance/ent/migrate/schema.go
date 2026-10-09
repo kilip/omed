@@ -73,9 +73,9 @@ var (
 		{Name: "entry_type", Type: field.TypeEnum, Enums: []string{"normal", "opening_balance", "adjustment", "closing", "fx_adjustment"}, Default: "normal"},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "reference", Type: field.TypeString, Nullable: true},
-		{Name: "ledger_period_id", Type: field.TypeUUID},
 		{Name: "created_by", Type: field.TypeUUID},
 		{Name: "updated_by", Type: field.TypeUUID},
+		{Name: "period_id", Type: field.TypeUUID},
 	}
 	// EntryTable holds the schema information for the "entry" table.
 	EntryTable = &schema.Table{
@@ -85,14 +85,20 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "entry_user_creator",
-				Columns:    []*schema.Column{EntryColumns[9]},
+				Columns:    []*schema.Column{EntryColumns[8]},
 				RefColumns: []*schema.Column{UserColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "entry_user_updater",
-				Columns:    []*schema.Column{EntryColumns[10]},
+				Columns:    []*schema.Column{EntryColumns[9]},
 				RefColumns: []*schema.Column{UserColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "entry_period_entries",
+				Columns:    []*schema.Column{EntryColumns[10]},
+				RefColumns: []*schema.Column{PeriodColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -106,6 +112,45 @@ var (
 				Name:    "entry_workspace_id_entry_date",
 				Unique:  false,
 				Columns: []*schema.Column{EntryColumns[3], EntryColumns[4]},
+			},
+		},
+	}
+	// PeriodColumns holds the columns for the "period" table.
+	PeriodColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "workspace_id", Type: field.TypeUUID},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"open", "closed", "locked"}, Default: "open"},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "updated_by", Type: field.TypeUUID},
+	}
+	// PeriodTable holds the schema information for the "period" table.
+	PeriodTable = &schema.Table{
+		Name:       "period",
+		Columns:    PeriodColumns,
+		PrimaryKey: []*schema.Column{PeriodColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "period_user_creator",
+				Columns:    []*schema.Column{PeriodColumns[7]},
+				RefColumns: []*schema.Column{UserColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "period_user_updater",
+				Columns:    []*schema.Column{PeriodColumns[8]},
+				RefColumns: []*schema.Column{UserColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "period_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{PeriodColumns[3]},
 			},
 		},
 	}
@@ -140,6 +185,7 @@ var (
 	Tables = []*schema.Table{
 		AccountTable,
 		EntryTable,
+		PeriodTable,
 		UserTable,
 		WorkspaceTable,
 	}
@@ -154,8 +200,14 @@ func init() {
 	}
 	EntryTable.ForeignKeys[0].RefTable = UserTable
 	EntryTable.ForeignKeys[1].RefTable = UserTable
+	EntryTable.ForeignKeys[2].RefTable = PeriodTable
 	EntryTable.Annotation = &entsql.Annotation{
 		Table: "entry",
+	}
+	PeriodTable.ForeignKeys[0].RefTable = UserTable
+	PeriodTable.ForeignKeys[1].RefTable = UserTable
+	PeriodTable.Annotation = &entsql.Annotation{
+		Table: "period",
 	}
 	UserTable.Annotation = &entsql.Annotation{
 		Table: "user",

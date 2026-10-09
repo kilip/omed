@@ -7,7 +7,7 @@ const (
 	ResourceAccounts      Resource = "accounts"
 	ResourceWorkspaces    Resource = "workspaces"
 	ResourceUsers         Resource = "users"
-	ResourceLedgerPeriods Resource = "ledger_periods"
+	ResourceLedgerPeriods Resource = "periods"
 	ResourceEntries       Resource = "entries"
 	ResourceExchangeRates Resource = "exchange_rates"
 	ResourceAttachments   Resource = "attachments"

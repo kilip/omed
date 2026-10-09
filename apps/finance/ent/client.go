@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/finance/ent/account"
 	"github.com/kilip/omed/finance/ent/entry"
+	"github.com/kilip/omed/finance/ent/period"
 	"github.com/kilip/omed/finance/ent/user"
 	"github.com/kilip/omed/finance/ent/workspace"
 
@@ -33,6 +34,8 @@ type Client struct {
 	Account *AccountClient
 	// Entry is the client for interacting with the Entry builders.
 	Entry *EntryClient
+	// Period is the client for interacting with the Period builders.
+	Period *PeriodClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Workspace is the client for interacting with the Workspace builders.
@@ -50,6 +53,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Account = NewAccountClient(c.config)
 	c.Entry = NewEntryClient(c.config)
+	c.Period = NewPeriodClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.Workspace = NewWorkspaceClient(c.config)
 }
@@ -149,6 +153,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:    cfg,
 		Account:   NewAccountClient(cfg),
 		Entry:     NewEntryClient(cfg),
+		Period:    NewPeriodClient(cfg),
 		User:      NewUserClient(cfg),
 		Workspace: NewWorkspaceClient(cfg),
 	}, nil
@@ -172,6 +177,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:    cfg,
 		Account:   NewAccountClient(cfg),
 		Entry:     NewEntryClient(cfg),
+		Period:    NewPeriodClient(cfg),
 		User:      NewUserClient(cfg),
 		Workspace: NewWorkspaceClient(cfg),
 	}, nil
@@ -204,6 +210,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Account.Use(hooks...)
 	c.Entry.Use(hooks...)
+	c.Period.Use(hooks...)
 	c.User.Use(hooks...)
 	c.Workspace.Use(hooks...)
 }
@@ -213,6 +220,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Account.Intercept(interceptors...)
 	c.Entry.Intercept(interceptors...)
+	c.Period.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 	c.Workspace.Intercept(interceptors...)
 }
@@ -224,6 +232,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Account.mutate(ctx, m)
 	case *EntryMutation:
 		return c.Entry.mutate(ctx, m)
+	case *PeriodMutation:
+		return c.Period.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *WorkspaceMutation:
@@ -588,6 +598,25 @@ func (c *EntryClient) QueryUpdater(_m *Entry) *UserQuery {
 	return query
 }
 
+// QueryPeriod queries the period edge of a Entry.
+func (c *EntryClient) QueryPeriod(_m *Entry) *PeriodQuery {
+	query := (&PeriodClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entry.Table, entry.FieldID, id),
+			sqlgraph.To(period.Table, period.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entry.PeriodTable, entry.PeriodColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Period
+		step.Edge.Schema = schemaConfig.Entry
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *EntryClient) Hooks() []Hook {
 	return c.hooks.Entry
@@ -610,6 +639,196 @@ func (c *EntryClient) mutate(ctx context.Context, m *EntryMutation) (Value, erro
 		return (&EntryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Entry mutation op: %q", m.Op())
+	}
+}
+
+// PeriodClient is a client for the Period schema.
+type PeriodClient struct {
+	config
+}
+
+// NewPeriodClient returns a client for the Period from the given config.
+func NewPeriodClient(c config) *PeriodClient {
+	return &PeriodClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `period.Hooks(f(g(h())))`.
+func (c *PeriodClient) Use(hooks ...Hook) {
+	c.hooks.Period = append(c.hooks.Period, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `period.Intercept(f(g(h())))`.
+func (c *PeriodClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Period = append(c.inters.Period, interceptors...)
+}
+
+// Create returns a builder for creating a Period entity.
+func (c *PeriodClient) Create() *PeriodCreate {
+	mutation := newPeriodMutation(c.config, OpCreate)
+	return &PeriodCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Period entities.
+func (c *PeriodClient) CreateBulk(builders ...*PeriodCreate) *PeriodCreateBulk {
+	return &PeriodCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PeriodClient) MapCreateBulk(slice any, setFunc func(*PeriodCreate, int)) *PeriodCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PeriodCreateBulk{err: fmt.Errorf("calling to PeriodClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PeriodCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PeriodCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Period.
+func (c *PeriodClient) Update() *PeriodUpdate {
+	mutation := newPeriodMutation(c.config, OpUpdate)
+	return &PeriodUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PeriodClient) UpdateOne(_m *Period) *PeriodUpdateOne {
+	mutation := newPeriodMutation(c.config, OpUpdateOne, withPeriod(_m))
+	return &PeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PeriodClient) UpdateOneID(id uuid.UUID) *PeriodUpdateOne {
+	mutation := newPeriodMutation(c.config, OpUpdateOne, withPeriodID(id))
+	return &PeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Period.
+func (c *PeriodClient) Delete() *PeriodDelete {
+	mutation := newPeriodMutation(c.config, OpDelete)
+	return &PeriodDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PeriodClient) DeleteOne(_m *Period) *PeriodDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PeriodClient) DeleteOneID(id uuid.UUID) *PeriodDeleteOne {
+	builder := c.Delete().Where(period.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PeriodDeleteOne{builder}
+}
+
+// Query returns a query builder for Period.
+func (c *PeriodClient) Query() *PeriodQuery {
+	return &PeriodQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePeriod},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Period entity by its id.
+func (c *PeriodClient) Get(ctx context.Context, id uuid.UUID) (*Period, error) {
+	return c.Query().Where(period.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PeriodClient) GetX(ctx context.Context, id uuid.UUID) *Period {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCreator queries the creator edge of a Period.
+func (c *PeriodClient) QueryCreator(_m *Period) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(period.Table, period.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, period.CreatorTable, period.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Period
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a Period.
+func (c *PeriodClient) QueryUpdater(_m *Period) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(period.Table, period.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, period.UpdaterTable, period.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Period
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEntries queries the entries edge of a Period.
+func (c *PeriodClient) QueryEntries(_m *Period) *EntryQuery {
+	query := (&EntryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(period.Table, period.FieldID, id),
+			sqlgraph.To(entry.Table, entry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, period.EntriesTable, period.EntriesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Entry
+		step.Edge.Schema = schemaConfig.Entry
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PeriodClient) Hooks() []Hook {
+	return c.hooks.Period
+}
+
+// Interceptors returns the client interceptors.
+func (c *PeriodClient) Interceptors() []Interceptor {
+	return c.inters.Period
+}
+
+func (c *PeriodClient) mutate(ctx context.Context, m *PeriodMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PeriodCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PeriodUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PeriodDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Period mutation op: %q", m.Op())
 	}
 }
 
@@ -882,10 +1101,10 @@ func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, Entry, User, Workspace []ent.Hook
+		Account, Entry, Period, User, Workspace []ent.Hook
 	}
 	inters struct {
-		Account, Entry, User, Workspace []ent.Interceptor
+		Account, Entry, Period, User, Workspace []ent.Interceptor
 	}
 )
 
@@ -894,6 +1113,7 @@ var (
 	DefaultSchemaConfig = SchemaConfig{
 		Account:   tableSchemas[0],
 		Entry:     tableSchemas[0],
+		Period:    tableSchemas[0],
 		User:      tableSchemas[0],
 		Workspace: tableSchemas[0],
 	}

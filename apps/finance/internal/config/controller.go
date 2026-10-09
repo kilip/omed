@@ -16,8 +16,14 @@ func loadController(st State) {
 
 	accountR := repository.NewAccountRepository(st.EntClient, st.Log)
 	entryR := repository.NewEntryRepository(st.EntClient, st.Log)
+	periodR := repository.NewPeriodRepository(st.EntClient, st.Log)
 
 	accountS := service.NewAccountService(accountR, entryR, st.Log)
 	accountCtl := controller.NewAccountController(accountS)
 	accountCtl.InitRoutes(router)
+
+	periodS := service.NewPeriodService(periodR, st.Log)
+	periodCtl := controller.NewPeriodController(periodS)
+	periodCtl.InitRoutes(router)
 }
+

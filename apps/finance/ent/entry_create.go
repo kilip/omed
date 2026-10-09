@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/entry"
+	"github.com/kilip/omed/finance/ent/period"
 	"github.com/kilip/omed/finance/ent/user"
 )
 
@@ -119,9 +120,9 @@ func (_c *EntryCreate) SetNillableReference(v *string) *EntryCreate {
 	return _c
 }
 
-// SetLedgerPeriodID sets the "ledger_period_id" field.
-func (_c *EntryCreate) SetLedgerPeriodID(v uuid.UUID) *EntryCreate {
-	_c.mutation.SetLedgerPeriodID(v)
+// SetPeriodID sets the "period_id" field.
+func (_c *EntryCreate) SetPeriodID(v uuid.UUID) *EntryCreate {
+	_c.mutation.SetPeriodID(v)
 	return _c
 }
 
@@ -159,6 +160,11 @@ func (_c *EntryCreate) SetUpdaterID(id uuid.UUID) *EntryCreate {
 // SetUpdater sets the "updater" edge to the User entity.
 func (_c *EntryCreate) SetUpdater(v *User) *EntryCreate {
 	return _c.SetUpdaterID(v.ID)
+}
+
+// SetPeriod sets the "period" edge to the Period entity.
+func (_c *EntryCreate) SetPeriod(v *Period) *EntryCreate {
+	return _c.SetPeriodID(v.ID)
 }
 
 // Mutation returns the EntryMutation object of the builder.
@@ -242,14 +248,17 @@ func (_c *EntryCreate) check() error {
 			return &ValidationError{Name: "entry_type", err: fmt.Errorf(`ent: validator failed for field "Entry.entry_type": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.LedgerPeriodID(); !ok {
-		return &ValidationError{Name: "ledger_period_id", err: errors.New(`ent: missing required field "Entry.ledger_period_id"`)}
+	if _, ok := _c.mutation.PeriodID(); !ok {
+		return &ValidationError{Name: "period_id", err: errors.New(`ent: missing required field "Entry.period_id"`)}
 	}
 	if len(_c.mutation.CreatorIDs()) == 0 {
 		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "Entry.creator"`)}
 	}
 	if len(_c.mutation.UpdaterIDs()) == 0 {
 		return &ValidationError{Name: "updater", err: errors.New(`ent: missing required edge "Entry.updater"`)}
+	}
+	if len(_c.mutation.PeriodIDs()) == 0 {
+		return &ValidationError{Name: "period", err: errors.New(`ent: missing required edge "Entry.period"`)}
 	}
 	return nil
 }
@@ -316,10 +325,6 @@ func (_c *EntryCreate) createSpec() (*Entry, *sqlgraph.CreateSpec) {
 		_spec.SetField(entry.FieldReference, field.TypeString, value)
 		_node.Reference = &value
 	}
-	if value, ok := _c.mutation.LedgerPeriodID(); ok {
-		_spec.SetField(entry.FieldLedgerPeriodID, field.TypeUUID, value)
-		_node.LedgerPeriodID = value
-	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -354,6 +359,24 @@ func (_c *EntryCreate) createSpec() (*Entry, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UpdatedBy = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PeriodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   entry.PeriodTable,
+			Columns: []string{entry.PeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(period.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.Entry
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.PeriodID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -516,15 +539,15 @@ func (u *EntryUpsert) ClearReference() *EntryUpsert {
 	return u
 }
 
-// SetLedgerPeriodID sets the "ledger_period_id" field.
-func (u *EntryUpsert) SetLedgerPeriodID(v uuid.UUID) *EntryUpsert {
-	u.Set(entry.FieldLedgerPeriodID, v)
+// SetPeriodID sets the "period_id" field.
+func (u *EntryUpsert) SetPeriodID(v uuid.UUID) *EntryUpsert {
+	u.Set(entry.FieldPeriodID, v)
 	return u
 }
 
-// UpdateLedgerPeriodID sets the "ledger_period_id" field to the value that was provided on create.
-func (u *EntryUpsert) UpdateLedgerPeriodID() *EntryUpsert {
-	u.SetExcluded(entry.FieldLedgerPeriodID)
+// UpdatePeriodID sets the "period_id" field to the value that was provided on create.
+func (u *EntryUpsert) UpdatePeriodID() *EntryUpsert {
+	u.SetExcluded(entry.FieldPeriodID)
 	return u
 }
 
@@ -705,17 +728,17 @@ func (u *EntryUpsertOne) ClearReference() *EntryUpsertOne {
 	})
 }
 
-// SetLedgerPeriodID sets the "ledger_period_id" field.
-func (u *EntryUpsertOne) SetLedgerPeriodID(v uuid.UUID) *EntryUpsertOne {
+// SetPeriodID sets the "period_id" field.
+func (u *EntryUpsertOne) SetPeriodID(v uuid.UUID) *EntryUpsertOne {
 	return u.Update(func(s *EntryUpsert) {
-		s.SetLedgerPeriodID(v)
+		s.SetPeriodID(v)
 	})
 }
 
-// UpdateLedgerPeriodID sets the "ledger_period_id" field to the value that was provided on create.
-func (u *EntryUpsertOne) UpdateLedgerPeriodID() *EntryUpsertOne {
+// UpdatePeriodID sets the "period_id" field to the value that was provided on create.
+func (u *EntryUpsertOne) UpdatePeriodID() *EntryUpsertOne {
 	return u.Update(func(s *EntryUpsert) {
-		s.UpdateLedgerPeriodID()
+		s.UpdatePeriodID()
 	})
 }
 
@@ -1063,17 +1086,17 @@ func (u *EntryUpsertBulk) ClearReference() *EntryUpsertBulk {
 	})
 }
 
-// SetLedgerPeriodID sets the "ledger_period_id" field.
-func (u *EntryUpsertBulk) SetLedgerPeriodID(v uuid.UUID) *EntryUpsertBulk {
+// SetPeriodID sets the "period_id" field.
+func (u *EntryUpsertBulk) SetPeriodID(v uuid.UUID) *EntryUpsertBulk {
 	return u.Update(func(s *EntryUpsert) {
-		s.SetLedgerPeriodID(v)
+		s.SetPeriodID(v)
 	})
 }
 
-// UpdateLedgerPeriodID sets the "ledger_period_id" field to the value that was provided on create.
-func (u *EntryUpsertBulk) UpdateLedgerPeriodID() *EntryUpsertBulk {
+// UpdatePeriodID sets the "period_id" field to the value that was provided on create.
+func (u *EntryUpsertBulk) UpdatePeriodID() *EntryUpsertBulk {
 	return u.Update(func(s *EntryUpsert) {
-		s.UpdateLedgerPeriodID()
+		s.UpdatePeriodID()
 	})
 }
 
