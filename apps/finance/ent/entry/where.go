@@ -97,9 +97,9 @@ func Reference(v string) predicate.Entry {
 	return predicate.Entry(sql.FieldEQ(FieldReference, v))
 }
 
-// LedgerPeriodID applies equality check predicate on the "ledger_period_id" field. It's identical to LedgerPeriodIDEQ.
-func LedgerPeriodID(v uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldEQ(FieldLedgerPeriodID, v))
+// PeriodID applies equality check predicate on the "period_id" field. It's identical to PeriodIDEQ.
+func PeriodID(v uuid.UUID) predicate.Entry {
+	return predicate.Entry(sql.FieldEQ(FieldPeriodID, v))
 }
 
 // CreatedByEQ applies the EQ predicate on the "createdBy" field.
@@ -472,44 +472,24 @@ func ReferenceContainsFold(v string) predicate.Entry {
 	return predicate.Entry(sql.FieldContainsFold(FieldReference, v))
 }
 
-// LedgerPeriodIDEQ applies the EQ predicate on the "ledger_period_id" field.
-func LedgerPeriodIDEQ(v uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldEQ(FieldLedgerPeriodID, v))
+// PeriodIDEQ applies the EQ predicate on the "period_id" field.
+func PeriodIDEQ(v uuid.UUID) predicate.Entry {
+	return predicate.Entry(sql.FieldEQ(FieldPeriodID, v))
 }
 
-// LedgerPeriodIDNEQ applies the NEQ predicate on the "ledger_period_id" field.
-func LedgerPeriodIDNEQ(v uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldNEQ(FieldLedgerPeriodID, v))
+// PeriodIDNEQ applies the NEQ predicate on the "period_id" field.
+func PeriodIDNEQ(v uuid.UUID) predicate.Entry {
+	return predicate.Entry(sql.FieldNEQ(FieldPeriodID, v))
 }
 
-// LedgerPeriodIDIn applies the In predicate on the "ledger_period_id" field.
-func LedgerPeriodIDIn(vs ...uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldIn(FieldLedgerPeriodID, vs...))
+// PeriodIDIn applies the In predicate on the "period_id" field.
+func PeriodIDIn(vs ...uuid.UUID) predicate.Entry {
+	return predicate.Entry(sql.FieldIn(FieldPeriodID, vs...))
 }
 
-// LedgerPeriodIDNotIn applies the NotIn predicate on the "ledger_period_id" field.
-func LedgerPeriodIDNotIn(vs ...uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldNotIn(FieldLedgerPeriodID, vs...))
-}
-
-// LedgerPeriodIDGT applies the GT predicate on the "ledger_period_id" field.
-func LedgerPeriodIDGT(v uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldGT(FieldLedgerPeriodID, v))
-}
-
-// LedgerPeriodIDGTE applies the GTE predicate on the "ledger_period_id" field.
-func LedgerPeriodIDGTE(v uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldGTE(FieldLedgerPeriodID, v))
-}
-
-// LedgerPeriodIDLT applies the LT predicate on the "ledger_period_id" field.
-func LedgerPeriodIDLT(v uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldLT(FieldLedgerPeriodID, v))
-}
-
-// LedgerPeriodIDLTE applies the LTE predicate on the "ledger_period_id" field.
-func LedgerPeriodIDLTE(v uuid.UUID) predicate.Entry {
-	return predicate.Entry(sql.FieldLTE(FieldLedgerPeriodID, v))
+// PeriodIDNotIn applies the NotIn predicate on the "period_id" field.
+func PeriodIDNotIn(vs ...uuid.UUID) predicate.Entry {
+	return predicate.Entry(sql.FieldNotIn(FieldPeriodID, vs...))
 }
 
 // HasCreator applies the HasEdge predicate on the "creator" edge.
@@ -561,6 +541,35 @@ func HasUpdaterWith(preds ...predicate.User) predicate.Entry {
 		step := newUpdaterStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Entry
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPeriod applies the HasEdge predicate on the "period" edge.
+func HasPeriod() predicate.Entry {
+	return predicate.Entry(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PeriodTable, PeriodColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Period
+		step.Edge.Schema = schemaConfig.Entry
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPeriodWith applies the HasEdge predicate on the "period" edge with a given conditions (other predicates).
+func HasPeriodWith(preds ...predicate.Period) predicate.Entry {
+	return predicate.Entry(func(s *sql.Selector) {
+		step := newPeriodStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Period
 		step.Edge.Schema = schemaConfig.Entry
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -9,6 +9,7 @@ import "context"
 type SchemaConfig struct {
 	Account   string // Account table.
 	Entry     string // Entry table.
+	Period    string // Period table.
 	User      string // User table.
 	Workspace string // Workspace table.
 }

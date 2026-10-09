@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/internal/core"
 	"github.com/kilip/omed/finance/internal/model"
+	seed_coa "github.com/kilip/omed/finance/seed/coa"
 )
 
 type AccountRepository interface {
@@ -76,4 +77,53 @@ func (s AccountService) Seed(ctx context.Context, req model.SeedAccountRequest) 
 	}
 
 	return s.accounts.Seed(ctx, req)
+}
+
+func (s AccountService) GetSeedTemplates(ctx context.Context) ([]model.SeedTemplateResponse, error) {
+	templates := seed_coa.ListTemplates()
+	res := make([]model.SeedTemplateResponse, len(templates))
+	for i, t := range templates {
+		res[i] = model.SeedTemplateResponse{
+			ID:          t.ID,
+			Name:        t.Name,
+			Description: t.Description,
+			Languages:   t.Languages,
+		}
+	}
+	return res, nil
+}
+
+func (s AccountService) GetSeedPreview(ctx context.Context, profile, lang string) (*model.SeedPreviewResponse, error) {
+	accounts, err := seed_coa.Load(profile, lang)
+	if err != nil {
+		return nil, err
+	}
+
+	accCount, err := s.accounts.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	entryCount, err := s.entries.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	previewAccounts := make([]model.SeedPreviewAccount, len(accounts))
+	for i, a := range accounts {
+		previewAccounts[i] = model.SeedPreviewAccount{
+			Code:       a.Code,
+			Name:       a.Name,
+			Type:       a.Type,
+			ParentCode: a.ParentCode,
+		}
+	}
+
+	return &model.SeedPreviewResponse{
+		Profile:      profile,
+		Lang:         lang,
+		AccountCount: accCount,
+		EntryCount:   entryCount,
+		Accounts:     previewAccounts,
+	}, nil
 }

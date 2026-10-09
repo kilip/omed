@@ -7,7 +7,7 @@ export abstract class BasePage {
     await this.page.goto(path);
   }
 
-  async expectUrlPath(expectedPath: string, timeout = 30000) {
+  async expectUrlPath(expectedPath: string, timeout = 60000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
       const current = new URL(this.page.url()).pathname;

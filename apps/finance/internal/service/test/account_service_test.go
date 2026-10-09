@@ -354,6 +354,37 @@ func (s *AccountServiceSuite) TestSeed_AccountsSeedError() {
 	s.Nil(res)
 }
 
+func (s *AccountServiceSuite) TestGetSeedTemplates_Success() {
+	templates, err := s.service.GetSeedTemplates(s.ctx)
+	s.NoError(err)
+	s.NotEmpty(templates)
+	s.Equal("freelancer", templates[0].ID)
+	s.Contains(templates[0].Languages, "en")
+	s.Contains(templates[0].Languages, "id")
+}
+
+func (s *AccountServiceSuite) TestGetSeedPreview_Success() {
+	s.mockAccounts.EXPECT().Count(s.ctx).Return(3, nil)
+	s.mockEntries.EXPECT().Count(s.ctx).Return(0, nil)
+
+	preview, err := s.service.GetSeedPreview(s.ctx, "freelancer", "en")
+	s.NoError(err)
+	s.NotNil(preview)
+	s.Equal("freelancer", preview.Profile)
+	s.Equal("en", preview.Lang)
+	s.Equal(3, preview.AccountCount)
+	s.Equal(0, preview.EntryCount)
+	s.NotEmpty(preview.Accounts)
+	s.Equal("1000", preview.Accounts[0].Code)
+}
+
+func (s *AccountServiceSuite) TestGetSeedPreview_InvalidProfile() {
+	preview, err := s.service.GetSeedPreview(s.ctx, "nonexistent", "en")
+	s.Error(err)
+	s.Nil(preview)
+}
+
 func TestAccountServiceSuite(t *testing.T) {
 	suite.Run(t, new(AccountServiceSuite))
 }
+

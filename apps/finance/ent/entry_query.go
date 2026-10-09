@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/entry"
 	"github.com/kilip/omed/finance/ent/internal"
+	"github.com/kilip/omed/finance/ent/period"
 	"github.com/kilip/omed/finance/ent/predicate"
 	"github.com/kilip/omed/finance/ent/user"
 )
@@ -27,6 +28,7 @@ type EntryQuery struct {
 	predicates  []predicate.Entry
 	withCreator *UserQuery
 	withUpdater *UserQuery
+	withPeriod  *PeriodQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -106,6 +108,31 @@ func (_q *EntryQuery) QueryUpdater() *UserQuery {
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Entry
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPeriod chains the current query on the "period" edge.
+func (_q *EntryQuery) QueryPeriod() *PeriodQuery {
+	query := (&PeriodClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entry.Table, entry.FieldID, selector),
+			sqlgraph.To(period.Table, period.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entry.PeriodTable, entry.PeriodColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.Period
 		step.Edge.Schema = schemaConfig.Entry
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -307,6 +334,7 @@ func (_q *EntryQuery) Clone() *EntryQuery {
 		predicates:  append([]predicate.Entry{}, _q.predicates...),
 		withCreator: _q.withCreator.Clone(),
 		withUpdater: _q.withUpdater.Clone(),
+		withPeriod:  _q.withPeriod.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -332,6 +360,17 @@ func (_q *EntryQuery) WithUpdater(opts ...func(*UserQuery)) *EntryQuery {
 		opt(query)
 	}
 	_q.withUpdater = query
+	return _q
+}
+
+// WithPeriod tells the query-builder to eager-load the nodes that are connected to
+// the "period" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EntryQuery) WithPeriod(opts ...func(*PeriodQuery)) *EntryQuery {
+	query := (&PeriodClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPeriod = query
 	return _q
 }
 
@@ -413,9 +452,10 @@ func (_q *EntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entry,
 	var (
 		nodes       = []*Entry{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withCreator != nil,
 			_q.withUpdater != nil,
+			_q.withPeriod != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -447,6 +487,12 @@ func (_q *EntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entry,
 	if query := _q.withUpdater; query != nil {
 		if err := _q.loadUpdater(ctx, query, nodes, nil,
 			func(n *Entry, e *User) { n.Edges.Updater = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPeriod; query != nil {
+		if err := _q.loadPeriod(ctx, query, nodes, nil,
+			func(n *Entry, e *Period) { n.Edges.Period = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -511,6 +557,35 @@ func (_q *EntryQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes [
 	}
 	return nil
 }
+func (_q *EntryQuery) loadPeriod(ctx context.Context, query *PeriodQuery, nodes []*Entry, init func(*Entry), assign func(*Entry, *Period)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Entry)
+	for i := range nodes {
+		fk := nodes[i].PeriodID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(period.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "period_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *EntryQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -544,6 +619,9 @@ func (_q *EntryQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withUpdater != nil {
 			_spec.Node.AddColumnOnce(entry.FieldUpdatedBy)
+		}
+		if _q.withPeriod != nil {
+			_spec.Node.AddColumnOnce(entry.FieldPeriodID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

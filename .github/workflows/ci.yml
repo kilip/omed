@@ -1,4 +1,4 @@
-name: e2e
+name: ci
 
 on:
   push:
@@ -7,11 +7,44 @@ on:
   pull_request:
 
 concurrency:
-  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  better-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run unit tests
+        run: bun run --cwd packages/better-auth test
+
+  finance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: apps/finance/go.mod
+          cache-dependency-path: apps/finance/go.sum
+
+      - name: Run Finance tests
+        working-directory: apps/finance
+        run: go test -v -p 1 ./...
+
+  e2e:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -27,6 +60,30 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+
+      kafka:
+        image: apache/kafka:3.9.0
+        env:
+          KAFKA_NODE_ID: 1
+          KAFKA_PROCESS_ROLES: broker,controller
+          KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+          KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+          KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+          KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+          KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+          KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+          KAFKA_HEAP_OPTS: -Xms256m -Xmx512m
+        ports:
+          - 9092:9092
+        options: >-
+          --health-cmd "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 15s
 
     steps:
       - name: Checkout code
@@ -67,6 +124,7 @@ jobs:
         env:
           AUTH_DB_URL: postgresql://omed:omed@localhost:5432/omed
           AUTH_SECRET: e2e-ci-dummy-secret-not-for-production-1234567890
+          KAFKA_BROKERS: localhost:9092
           CI: true
 
       - name: Upload Playwright report on failure

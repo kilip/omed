@@ -119,6 +119,24 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.CreatePeriodRequest": {
+                "properties": {
+                    "endDate": {
+                        "type": "string"
+                    },
+                    "startDate": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/model.PeriodStatus"
+                    }
+                },
+                "required": [
+                    "endDate",
+                    "startDate"
+                ],
+                "type": "object"
+            },
             "model.ErrorBody": {
                 "properties": {
                     "code": {
@@ -173,6 +191,57 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.Period": {
+                "properties": {
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "string"
+                    },
+                    "createdByName": {
+                        "type": "string"
+                    },
+                    "endDate": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "startDate": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/model.PeriodStatus"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    },
+                    "updatedBy": {
+                        "type": "string"
+                    },
+                    "updatedByName": {
+                        "type": "string"
+                    },
+                    "workspaceId": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.PeriodStatus": {
+                "enum": [
+                    "open",
+                    "closed",
+                    "locked"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "PeriodStatusOpen",
+                    "PeriodStatusClosed",
+                    "PeriodStatusLocked"
+                ]
+            },
             "model.SeedAccountRequest": {
                 "properties": {
                     "currency": {
@@ -195,6 +264,75 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.SeedPreviewAccount": {
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "parentCode": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "asset",
+                            "liability",
+                            "equity",
+                            "revenue",
+                            "expense"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SeedPreviewResponse": {
+                "properties": {
+                    "accountCount": {
+                        "type": "integer"
+                    },
+                    "accounts": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.SeedPreviewAccount"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "entryCount": {
+                        "type": "integer"
+                    },
+                    "lang": {
+                        "type": "string"
+                    },
+                    "profile": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SeedTemplateResponse": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "languages": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.UpdateAccountRequest": {
                 "properties": {
                     "description": {
@@ -215,6 +353,17 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.UpdatePeriodRequest": {
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/model.PeriodStatus"
+                    }
+                },
+                "required": [
+                    "status"
+                ],
+                "type": "object"
+            },
             "model.WebResponse-array_model_AccountResponse": {
                 "properties": {
                     "data": {
@@ -230,10 +379,62 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.WebResponse-array_model_Period": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.Period"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/model.Meta"
+                    }
+                },
+                "type": "object"
+            },
+            "model.WebResponse-array_model_SeedTemplateResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.SeedTemplateResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/model.Meta"
+                    }
+                },
+                "type": "object"
+            },
             "model.WebResponse-model_AccountResponse": {
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.AccountResponse"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/model.Meta"
+                    }
+                },
+                "type": "object"
+            },
+            "model.WebResponse-model_Period": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.Period"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/model.Meta"
+                    }
+                },
+                "type": "object"
+            },
+            "model.WebResponse-model_SeedPreviewResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.SeedPreviewResponse"
                     },
                     "meta": {
                         "$ref": "#/components/schemas/model.Meta"
@@ -541,6 +742,158 @@ const docTemplate = `{
                 ]
             }
         },
+        "/accounts/seed/preview": {
+            "get": {
+                "description": "Preview chart of accounts for a template and language, including workspace counts.",
+                "parameters": [
+                    {
+                        "description": "Profile name",
+                        "in": "query",
+                        "name": "profile",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Language code",
+                        "in": "query",
+                        "name": "lang",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-model_SeedPreviewResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get seed preview",
+                "tags": [
+                    "accounts"
+                ]
+            }
+        },
+        "/accounts/seed/templates": {
+            "get": {
+                "description": "Get list of available chart of accounts seed template profiles.",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-array_model_SeedTemplateResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get seed templates",
+                "tags": [
+                    "accounts"
+                ]
+            }
+        },
         "/accounts/{id}": {
             "delete": {
                 "description": "Delete an account by ID.",
@@ -814,6 +1167,478 @@ const docTemplate = `{
                 "summary": "Update account",
                 "tags": [
                     "accounts"
+                ]
+            }
+        },
+        "/periods": {
+            "get": {
+                "description": "Return all ledger periods in the active workspace.",
+                "parameters": [
+                    {
+                        "description": "Filter by status",
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "enum": [
+                                "open",
+                                "closed",
+                                "locked"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Filter by date falling within period (YYYY-MM-DD or RFC3339)",
+                        "in": "query",
+                        "name": "date",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-array_model_Period"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List ledger periods",
+                "tags": [
+                    "periods"
+                ]
+            },
+            "post": {
+                "description": "Create a new ledger period in the active workspace.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreatePeriodRequest",
+                                "summary": "request",
+                                "description": "Period payload"
+                            }
+                        }
+                    },
+                    "description": "Period payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-model_Period"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create ledger period",
+                "tags": [
+                    "periods"
+                ]
+            }
+        },
+        "/periods/{id}": {
+            "delete": {
+                "description": "Delete a ledger period by ID.",
+                "parameters": [
+                    {
+                        "description": "Period ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete ledger period",
+                "tags": [
+                    "periods"
+                ]
+            },
+            "get": {
+                "description": "Get a single ledger period by ID.",
+                "parameters": [
+                    {
+                        "description": "Period ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-model_Period"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get ledger period",
+                "tags": [
+                    "periods"
+                ]
+            },
+            "put": {
+                "description": "Update status of a ledger period.",
+                "parameters": [
+                    {
+                        "description": "Period ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdatePeriodRequest",
+                                "summary": "request",
+                                "description": "Period payload"
+                            }
+                        }
+                    },
+                    "description": "Period payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.WebResponse-model_Period"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update ledger period",
+                "tags": [
+                    "periods"
                 ]
             }
         }

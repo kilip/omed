@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/kilip/omed/finance/ent/entry"
+	"github.com/kilip/omed/finance/ent/period"
 	"github.com/kilip/omed/finance/ent/user"
 )
 
@@ -37,8 +38,8 @@ type Entry struct {
 	Description string `json:"description,omitempty"`
 	// Reference holds the value of the "reference" field.
 	Reference *string `json:"reference,omitempty"`
-	// LedgerPeriodID holds the value of the "ledger_period_id" field.
-	LedgerPeriodID uuid.UUID `json:"ledger_period_id,omitempty"`
+	// PeriodID holds the value of the "period_id" field.
+	PeriodID uuid.UUID `json:"period_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EntryQuery when eager-loading is set.
 	Edges        EntryEdges `json:"edges"`
@@ -51,9 +52,11 @@ type EntryEdges struct {
 	Creator *User `json:"creator,omitempty"`
 	// Updater holds the value of the updater edge.
 	Updater *User `json:"updater,omitempty"`
+	// Period holds the value of the period edge.
+	Period *Period `json:"period,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -78,6 +81,17 @@ func (e EntryEdges) UpdaterOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "updater"}
 }
 
+// PeriodOrErr returns the Period value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EntryEdges) PeriodOrErr() (*Period, error) {
+	if e.Period != nil {
+		return e.Period, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: period.Label}
+	}
+	return nil, &NotLoadedError{edge: "period"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Entry) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -87,7 +101,7 @@ func (*Entry) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case entry.FieldCreatedAt, entry.FieldUpdatedAt, entry.FieldEntryDate:
 			values[i] = new(sql.NullTime)
-		case entry.FieldID, entry.FieldCreatedBy, entry.FieldUpdatedBy, entry.FieldWorkspaceID, entry.FieldLedgerPeriodID:
+		case entry.FieldID, entry.FieldCreatedBy, entry.FieldUpdatedBy, entry.FieldWorkspaceID, entry.FieldPeriodID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -165,11 +179,11 @@ func (_m *Entry) assignValues(columns []string, values []any) error {
 				_m.Reference = new(string)
 				*_m.Reference = value.String
 			}
-		case entry.FieldLedgerPeriodID:
+		case entry.FieldPeriodID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field ledger_period_id", values[i])
+				return fmt.Errorf("unexpected type %T for field period_id", values[i])
 			} else if value != nil {
-				_m.LedgerPeriodID = *value
+				_m.PeriodID = *value
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -192,6 +206,11 @@ func (_m *Entry) QueryCreator() *UserQuery {
 // QueryUpdater queries the "updater" edge of the Entry entity.
 func (_m *Entry) QueryUpdater() *UserQuery {
 	return NewEntryClient(_m.config).QueryUpdater(_m)
+}
+
+// QueryPeriod queries the "period" edge of the Entry entity.
+func (_m *Entry) QueryPeriod() *PeriodQuery {
+	return NewEntryClient(_m.config).QueryPeriod(_m)
 }
 
 // Update returns a builder for updating this Entry.
@@ -246,8 +265,8 @@ func (_m *Entry) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("ledger_period_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.LedgerPeriodID))
+	builder.WriteString("period_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PeriodID))
 	builder.WriteByte(')')
 	return builder.String()
 }

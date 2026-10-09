@@ -34,12 +34,14 @@ const (
 	FieldDescription = "description"
 	// FieldReference holds the string denoting the reference field in the database.
 	FieldReference = "reference"
-	// FieldLedgerPeriodID holds the string denoting the ledger_period_id field in the database.
-	FieldLedgerPeriodID = "ledger_period_id"
+	// FieldPeriodID holds the string denoting the period_id field in the database.
+	FieldPeriodID = "period_id"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeUpdater holds the string denoting the updater edge name in mutations.
 	EdgeUpdater = "updater"
+	// EdgePeriod holds the string denoting the period edge name in mutations.
+	EdgePeriod = "period"
 	// Table holds the table name of the entry in the database.
 	Table = "entry"
 	// CreatorTable is the table that holds the creator relation/edge.
@@ -56,6 +58,13 @@ const (
 	UpdaterInverseTable = "user"
 	// UpdaterColumn is the table column denoting the updater relation/edge.
 	UpdaterColumn = "updated_by"
+	// PeriodTable is the table that holds the period relation/edge.
+	PeriodTable = "entry"
+	// PeriodInverseTable is the table name for the Period entity.
+	// It exists in this package in order to avoid circular dependency with the "period" package.
+	PeriodInverseTable = "period"
+	// PeriodColumn is the table column denoting the period relation/edge.
+	PeriodColumn = "period_id"
 )
 
 // Columns holds all SQL columns for entry fields.
@@ -70,7 +79,7 @@ var Columns = []string{
 	FieldEntryType,
 	FieldDescription,
 	FieldReference,
-	FieldLedgerPeriodID,
+	FieldPeriodID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -176,9 +185,9 @@ func ByReference(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReference, opts...).ToFunc()
 }
 
-// ByLedgerPeriodID orders the results by the ledger_period_id field.
-func ByLedgerPeriodID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldLedgerPeriodID, opts...).ToFunc()
+// ByPeriodID orders the results by the period_id field.
+func ByPeriodID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPeriodID, opts...).ToFunc()
 }
 
 // ByCreatorField orders the results by creator field.
@@ -194,6 +203,13 @@ func ByUpdaterField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUpdaterStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByPeriodField orders the results by period field.
+func ByPeriodField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPeriodStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newCreatorStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -206,5 +222,12 @@ func newUpdaterStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UpdaterInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, UpdaterTable, UpdaterColumn),
+	)
+}
+func newPeriodStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PeriodInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PeriodTable, PeriodColumn),
 	)
 }

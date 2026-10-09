@@ -12,6 +12,9 @@ type Account func(*sql.Selector)
 // Entry is the predicate function for entry builders.
 type Entry func(*sql.Selector)
 
+// Period is the predicate function for period builders.
+type Period func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 

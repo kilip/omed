@@ -1,1 +1,1 @@
-export * from "./finance";
+export { paths as financePaths } from "./finance";

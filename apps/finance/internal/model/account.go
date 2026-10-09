@@ -70,3 +70,30 @@ type ListAccountRequest struct {
 	Type   AccountType   `query:"type" validate:"omitempty,oneof=asset liability equity revenue expense"`
 	Status AccountStatus `query:"status" validate:"omitempty,oneof=active archived"`
 }
+
+type SeedTemplateResponse struct {
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Languages   []string `json:"languages"`
+}
+
+type SeedPreviewAccount struct {
+	Code       string  `json:"code"`
+	Name       string  `json:"name"`
+	Type       string  `json:"type" enums:"asset,liability,equity,revenue,expense"`
+	ParentCode *string `json:"parentCode,omitempty"`
+}
+
+type SeedPreviewResponse struct {
+	Profile      string               `json:"profile"`
+	Lang         string               `json:"lang"`
+	AccountCount int                  `json:"accountCount"`
+	EntryCount   int                  `json:"entryCount"`
+	Accounts     []SeedPreviewAccount `json:"accounts"`
+}
+
+type SeedPreviewRequest struct {
+	Profile string `query:"profile" validate:"required"`
+	Lang    string `query:"lang" validate:"required"`
+}

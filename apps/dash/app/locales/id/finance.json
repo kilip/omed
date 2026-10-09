@@ -1,5 +1,117 @@
 {
   "title": "Keuangan",
   "metaTitle": "Omed | Keuangan",
-  "metaDescription": "Kelola keuangan Anda"
+  "metaDescription": "Kelola keuangan Anda",
+  "seed": {
+    "title": "Inisialisasi Bagan Akun",
+    "metaTitle": "Omed | Inisialisasi Bagan Akun",
+    "description": "Inisialisasi Bagan Akun Anda menggunakan templat standar industri.",
+    "profile": "Templat Profil",
+    "currency": "Mata Uang Akun",
+    "language": "Bahasa Akun",
+    "preview": "Pratinjau Akun",
+    "searchPlaceholder": "Cari berdasarkan kode atau nama akun...",
+    "table": {
+      "code": "Kode",
+      "name": "Nama",
+      "type": "Tipe"
+    },
+    "types": {
+      "asset": "Aset",
+      "liability": "Liabilitas",
+      "equity": "Ekuitas",
+      "revenue": "Pendapatan",
+      "expense": "Beban"
+    },
+    "warning": {
+      "entriesExist": "Sudah terdapat transaksi dalam ruang kerja ini. Bagan akun tidak dapat diinisialisasi ulang.",
+      "accountsExist": "Ruang kerja ini sudah memiliki akun. Menginisialisasi ulang akan menimpa akun yang ada.",
+      "confirmOverwrite": "Saya mengerti bahwa akun yang ada saat ini akan diganti."
+    },
+    "submit": "Inisialisasi Bagan Akun",
+    "submitting": "Menginisialisasi akun...",
+    "success": {
+      "title": "Bagan Akun Berhasil Diinisialisasi!",
+      "description": "Berhasil membuat {{count}} akun untuk ruang kerja Anda.",
+      "goToFinance": "Buka Keuangan"
+    },
+    "onboarding": {
+      "emptyTitle": "Belum Ada Bagan Akun",
+      "emptyDescription": "Mulai dengan menginisialisasi Bagan Akun standar yang disesuaikan untuk bisnis Anda.",
+      "seedAction": "Setup Bagan Akun",
+      "manualCreateAction": "Tambah Akun Manual"
+    }
+  },
+  "create": {
+    "title": "Tambah Akun",
+    "metaTitle": "Omed | Tambah Akun",
+    "description": "Tambahkan akun buku besar baru ke Bagan Akun Anda.",
+    "backToAccounts": "Kembali ke Bagan Akun",
+    "cardTitle": "Detail Akun",
+    "code": "Kode Akun",
+    "codePlaceholder": "contoh: 1001",
+    "codeRequired": "Silakan masukkan kode akun",
+    "name": "Nama Akun",
+    "namePlaceholder": "contoh: Kas Utama",
+    "nameRequired": "Silakan masukkan nama akun",
+    "type": "Tipe Akun",
+    "typePlaceholder": "Pilih tipe akun",
+    "typeRequired": "Silakan pilih tipe akun",
+    "currency": "Mata Uang",
+    "currencyPlaceholder": "Pilih mata uang",
+    "currencyRequired": "Silakan pilih mata uang",
+    "descriptionLabel": "Deskripsi",
+    "descriptionPlaceholder": "Catatan atau keterangan akun (opsional)",
+    "parentAccount": "Akun Induk",
+    "parentAccountPlaceholder": "Tidak ada (Akun tingkat atas)",
+    "submit": "Simpan Akun",
+    "submitting": "Menyimpan akun...",
+    "cancel": "Batal",
+    "successMessage": "Akun berhasil dibuat",
+    "errorMessage": "Gagal membuat akun"
+  },
+  "edit": {
+    "title": "Edit Akun",
+    "metaTitle": "Omed | Edit Akun",
+    "description": "Perbarui detail akun atau kelola status akun.",
+    "backToAccounts": "Kembali ke Bagan Akun",
+    "cardTitle": "Detail Akun",
+    "status": "Status",
+    "statusActive": "Aktif",
+    "statusArchived": "Diarsipkan",
+    "submit": "Simpan Perubahan",
+    "submitting": "Menyimpan perubahan...",
+    "cancel": "Batal",
+    "successMessage": "Akun berhasil diperbarui",
+    "errorMessage": "Gagal memperbarui akun",
+    "notFound": "Akun tidak ditemukan"
+  },
+  "delete": {
+    "button": "Hapus Akun",
+    "confirmTitle": "Hapus Akun",
+    "confirmDescription": "Apakah Anda yakin ingin menghapus akun ini? Tindakan ini tidak dapat dibatalkan.",
+    "confirmOk": "Ya, Hapus",
+    "confirmCancel": "Batal",
+    "successMessage": "Akun berhasil dihapus",
+    "errorMessage": "Gagal menghapus akun"
+  },
+  "accounts": {
+    "title": "Bagan Akun",
+    "metaTitle": "Omed | Bagan Akun",
+    "description": "Lihat dan kelola seluruh akun buku besar ruang kerja Anda.",
+    "create": "Tambah Akun",
+    "viewAccounts": "Lihat Akun",
+    "totalAccounts": "Total Akun",
+    "searchPlaceholder": "Cari akun berdasarkan kode atau nama...",
+    "allTypes": "Semua Tipe Akun",
+    "empty": "Tidak ada akun ditemukan",
+    "action": "Aksi",
+    "edit": "Edit"
+  },
+  "modules": {
+    "accountsTitle": "Bagan Akun",
+    "accountsDesc": "Periksa akun keuangan, hierarki kode, dan saldo.",
+    "seedTitle": "Inisialisasi Ulang",
+    "seedDesc": "Inisialisasi ulang akun menggunakan templat profil standar."
+  }
 }

@@ -16,6 +16,8 @@ type Tx struct {
 	Account *AccountClient
 	// Entry is the client for interacting with the Entry builders.
 	Entry *EntryClient
+	// Period is the client for interacting with the Period builders.
+	Period *PeriodClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Workspace is the client for interacting with the Workspace builders.
@@ -153,6 +155,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
 	tx.Entry = NewEntryClient(tx.config)
+	tx.Period = NewPeriodClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.Workspace = NewWorkspaceClient(tx.config)
 }

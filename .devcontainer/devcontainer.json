@@ -38,7 +38,8 @@
         "cloudflare.vscode-wrangler",
         "ms-azuretools.vscode-docker",
         "editorconfig.editorconfig",
-        "CucumberOpen.cucumber-official"
+        "CucumberOpen.cucumber-official",
+        "github.vscode-github-actions"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",

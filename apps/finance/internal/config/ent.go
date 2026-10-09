@@ -8,6 +8,8 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/finance/ent/account"
+	"github.com/kilip/omed/finance/ent/entry"
+	"github.com/kilip/omed/finance/ent/period"
 
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib" // Registers the "pgx" driver
@@ -69,6 +71,10 @@ func workspaceInterceptor() ent.Interceptor {
 				switch query := q.(type) {
 				case *ent.AccountQuery:
 					query.Where(account.WorkspaceIDEQ(user.WorkspaceID))
+				case *ent.EntryQuery:
+					query.Where(entry.WorkspaceIDEQ(user.WorkspaceID))
+				case *ent.PeriodQuery:
+					query.Where(period.WorkspaceIDEQ(user.WorkspaceID))
 				}
 			}
 			return next.Query(ctx, q)
@@ -99,9 +105,11 @@ func GetEntClient(cfg Config) *ent.Client {
 	}
 
 	schemaCfg := ent.SchemaConfig{
-		Account:   "finance",
 		User:      "finance",
 		Workspace: "finance",
+		Account:   "finance",
+		Entry:     "finance",
+		Period:    "finance",
 	}
 
 	drv := entsql.OpenDB(dialect.Postgres, db)

@@ -18,6 +18,13 @@ export type AccountType = components["schemas"]["model.AccountType"];
 export type AccountStatus = components["schemas"]["model.AccountStatus"];
 export type SeedAccountRequest =
   components["schemas"]["model.SeedAccountRequest"];
+export type SeedTemplate = components["schemas"]["model.SeedTemplateResponse"];
+export type SeedTemplatesResponse =
+  components["schemas"]["model.WebResponse-array_model_SeedTemplateResponse"];
+export type SeedPreviewResponse =
+  components["schemas"]["model.WebResponse-model_SeedPreviewResponse"];
+export type SeedPreviewAccount =
+  components["schemas"]["model.SeedPreviewAccount"];
 export type CreateAccountRequest =
   components["schemas"]["model.CreateAccountRequest"];
 export type UpdateAccountRequest =
