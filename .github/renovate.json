@@ -53,6 +53,10 @@
       "description": "Ignore internal monorepo packages",
       "enabled": false,
       "matchPackageNames": ["/^@omed//"]
+    },
+    {
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "6.x"
     }
   ]
 }
