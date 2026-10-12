@@ -105,13 +105,14 @@ Each dashboard module is self-contained under `app/modules/{module_name}/`:
 
 ```
 apps/dash/app/modules/{module_name}/
+├── module.ts      # Module metadata for the launcher (label, icon, etc.)
 ├── route.ts       # Route definitions for the module
 ├── hooks/         # Module-specific React hooks
 └── ...            # Other module-local code (components, utils, types)
 ```
 
 - Module names match the Go modules: `sys`, `user`, `fin`, `web`.
-- A module registers itself through its own `route.ts`. There is no central registry file: adding a module means adding `app/modules/{module_name}/route.ts`.
+- A module registers itself through its own files: `route.ts` for routes and `module.ts` for launcher metadata. There is no central registry file: adding a module means adding `app/modules/{module_name}/` with both files.
 - API types come from `@omed/openapi` and are consumed through `openapi-fetch`. Do not hand-write types for API responses.
 - Style with the design tokens and the Ant Design theme described in `BRANDING.md`. Do not hardcode hex values in components.
 - Unit tests sit next to the file under test, the same convention as Go.

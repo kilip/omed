@@ -46,7 +46,7 @@ omed/
 - `apps/auth` issues JWTs. `apps/api` verifies them with the JWKS, matches `iss`/`aud` against `AUTH_URL`.
 - `apps/auth` only handles identity (credentials, sessions, JWT). `apps/api` is the source of truth for users, workspaces, and memberships.
 - Authorization in `apps/api` is **workspace based**: every user gets a personal workspace, can create more, and can invite other users. Roles are assigned per workspace membership, plus a global `superadmin`.
-- The dashboard is split into modules (`sys`, `user`, `fin`, `web`), each under `apps/dash/app/modules/<module>/`. A module registers itself through its own `route.ts`; there is no central registry file.
+- The dashboard is split into modules (`sys`, `user`, `fin`, `web`), each under `apps/dash/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
 
 ## Tech Stack
 
