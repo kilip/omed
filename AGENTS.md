@@ -37,13 +37,13 @@ Examples:
 
 ```
 feat(api): add auth :rocket:
-fix(dash): handle empty workspace list :bug:
+fix(web): handle empty workspace list :bug:
 chore(deps): bump biome :wrench:
 ```
 
 Rules:
 
-- The scope is optional. Allowed scopes (see `commitlint.config.ts`): `auth`, `dash`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs`.
+- The scope is optional. Allowed scopes (see `commitlint.config.ts`): `auth`, `web`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs`.
 - The subject is lowercase, imperative, and has no trailing period. The emoji shortcode comes last, separated by a space.
 - Use shortcodes (`:rocket:`), not the Unicode character.
 - `deps` is a scope, not a type: use `chore(deps): ...`.
@@ -99,12 +99,12 @@ Controllers carry the Swaggo annotations. After changing annotations or response
 
 ## 4. TypeScript (React Router)
 
-### Module structure (`apps/dash`)
+### Module structure (`apps/web`)
 
 Each dashboard module is self-contained under `app/modules/{module_name}/`:
 
 ```
-apps/dash/app/modules/{module_name}/
+apps/web/app/modules/{module_name}/
 ├── module.ts      # Module metadata for the launcher (label, icon, etc.)
 ├── route.ts       # Route definitions for the module
 ├── hooks/         # Module-specific React hooks

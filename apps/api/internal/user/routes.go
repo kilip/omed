@@ -1,0 +1,15 @@
+package user
+
+import (
+	"github.com/gofiber/fiber/v3"
+	"github.com/kilip/omed/api/internal/user/controller"
+)
+
+func initRoutes(mod UserModule, r fiber.Router) {
+	ctlU := controller.NewUserController(mod.UserService)
+	r.Get("/:id", ctlU.GetByID)
+	r.Post("/search", ctlU.Search)
+	r.Post("/", ctlU.Create)
+	r.Put("/:id", ctlU.Update)
+	r.Delete(":id", ctlU.Delete)
+}

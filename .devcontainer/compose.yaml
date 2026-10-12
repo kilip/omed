@@ -8,6 +8,9 @@ services:
       - bash-history:/commandhistory
       - gemini:/home/vscode/.gemini
     environment:
+      OMED_API_URL: http://localhost:8002
+      OMED_WEB_URL: http://localhost:3001
+
       OMED_DB_URL: postgres://omed:omed@postgres:5432/omed?sslmode=disable
       OMED_TRUSTED_ORIGINS: http://localhost:3001,http://localhost:8002
       OMED_AUTH_URL: http://localhost:8001

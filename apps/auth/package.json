@@ -1,0 +1,24 @@
+{
+  "name": "@omed/auth",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bun run --watch src/main.ts",
+    "build:bun": "bun build src/main.ts --target=bun --outdir=dist",
+    "typecheck": "tsc --noEmit",
+    "start": "bun run src/main.ts"
+  },
+  "dependencies": {
+    "@omed/better-auth": "workspace:*",
+    "@elysia/cors": "^1.4.2",
+    "@elysia/openapi": "^1.4.16",
+    "elysia": "latest"
+  },
+  "devDependencies": {
+    "@omed/tsconfig": "workspace:*",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.4",
+    "typescript": "6.x"
+  }
+}

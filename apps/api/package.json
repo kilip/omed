@@ -1,0 +1,9 @@
+{
+  "name": "@omed/api",
+  "private": true,
+  "scripts": {
+    "dev": "air",
+    "gen": "go generate ./ent",
+    "postinstall": "go mod tidy"
+  }
+}

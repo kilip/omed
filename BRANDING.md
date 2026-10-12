@@ -4,8 +4,8 @@ Style: **modern, glassmorphism, compact, warm**. Component base: Ant Design. Pri
 
 Related files:
 
-- `apps/dash/app/theme/tokens.css`: CSS variables + glass utilities
-- `apps/dash/app/theme/antd.ts`: `getAntdTheme(mode)` for `ConfigProvider`
+- `apps/web/app/theme/tokens.css`: CSS variables + glass utilities
+- `apps/web/app/theme/antd.ts`: `getAntdTheme(mode)` for `ConfigProvider`
 
 ## 1. Principles
 
@@ -156,9 +156,3 @@ export default function App() {
   );
 }
 ```
-
-Notes:
-
-- A manual light/dark toggle just changes `mode` and `data-theme`. Both must stay in sync.
-- `apps/dash/app/app.css` currently only has `@import "tailwindcss"`. Import `tokens.css` after it so the variables are available.
-- `react-router.config.ts` is still `ssr: true`, while the README says SPA. If it stays SSR, Ant Design needs `@ant-design/cssinjs` setup to avoid a style flash.
