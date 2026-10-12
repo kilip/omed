@@ -8,7 +8,7 @@ services:
       - bash-history:/commandhistory
       - gemini:/home/vscode/.gemini
     environment:
-      OMED_DB_URL: postgres://omed:omed@postgres:5432/omed?sslmode=false
+      OMED_DB_URL: postgres://omed:omed@postgres:5432/omed?sslmode=disable
       OMED_TRUSTED_ORIGINS: http://localhost:3001,http://localhost:8002
       OMED_AUTH_URL: http://localhost:8001
       OMED_AUTH_SECRET: 6171ce314c622f9a4cdb542c810d40b91edde2f659bcd5224c6aeee7d7ea4925

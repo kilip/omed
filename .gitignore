@@ -52,4 +52,4 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
-!.vscode/settings.jso
+!.vscode/settings.json
