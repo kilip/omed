@@ -80,7 +80,7 @@ apps/api/internal/{module_name}/
 └── test/          # Integration tests (API endpoint testing)
 ```
 
-Module names match the dashboard module registry: `sys`, `user`, `fin`, `web`.
+Module names match the dashboard modules: `sys`, `user`, `fin`, `web`.
 
 Dependency direction is strictly `controller -> service -> repository`:
 
@@ -111,7 +111,7 @@ apps/dash/app/modules/{module_name}/
 ```
 
 - Module names match the Go modules: `sys`, `user`, `fin`, `web`.
-- A module is made visible to the launcher by adding one entry to the registry at `apps/dash/app/shared/modules/registry.ts`.
+- A module registers itself through its own `route.ts`. There is no central registry file: adding a module means adding `app/modules/{module_name}/route.ts`.
 - API types come from `@omed/openapi` and are consumed through `openapi-fetch`. Do not hand-write types for API responses.
 - Style with the design tokens and the Ant Design theme described in `BRANDING.md`. Do not hardcode hex values in components.
 - Unit tests sit next to the file under test, the same convention as Go.
