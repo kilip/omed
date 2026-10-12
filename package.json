@@ -1,18 +1,27 @@
 {
-  "name": "omed",
-  "private": true,
-  "packageManager": "bun@1.4.2",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-   "devDependencies": {
-    "@biomejs/biome": "^2.5.15",
-    "@commitlint/cli": "^21.2.3",
-    "@commitlint/config-conventional": "^21.2.3",
-    "husky": "^9.1.7",
-    "openapi-typescript": "^7.13.0",
-    "turbo": "^2.5.0",
-    "typescript": "6.x.x"
-  }
+	"name": "omed",
+	"private": true,
+	"packageManager": "bun@1.4.2",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.15",
+		"@commitlint/cli": "^21.2.3",
+		"@commitlint/config-conventional": "^21.2.3",
+		"husky": "^9.1.7",
+		"openapi-typescript": "^7.13.0",
+		"turbo": "^2.5.0",
+		"typescript": "6.x.x"
+	},
+	"scripts": {
+		"prepare": "husky",
+		"dev": "turbo run dev",
+		"build": "turbo run build",
+		"lint": "biome check .",
+		"format": "biome check --write .",
+		"typecheck": "turbo run typecheck",
+		"test": "turbo run test"
+	}
 }

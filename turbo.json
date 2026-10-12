@@ -1,0 +1,9 @@
+{
+	"$schema": "./node_modules/turbo/schema.json",
+	"ui": "tui",
+	"globalDependencies": [".env"],
+	"globalPassThroughEnv": ["OMED_*"],
+	"tasks": {
+		"typecheck": {}
+	}
+}
