@@ -19,6 +19,7 @@ omed/
 │   └── tsconfig/      # @omed/tsconfig    - Shared base tsconfig
 ├── .devcontainer/     # Full dev environment (tools + Postgres, Redis, RustFS, Kafka)
 ├── .github/           # CI, image builds, release-please, Renovate
+├── AGENTS.md          # Conventions for AI coding agents (CLAUDE.md and GEMINI.md point here)
 ├── BRANDING.md        # Dashboard visual guidelines / design tokens
 └── turbo.json
 ```
@@ -151,13 +152,13 @@ The `build.yml` workflow pushes images to `ghcr.io/<owner>/omed/<app>` (`nightly
 ## Contributing
 
 1. Branch off `main`.
-2. Commit using [Conventional Commits](https://www.conventionalcommits.org). Allowed scopes: `auth`, `dash`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs` (validated by commitlint).
+2. Commit using [Conventional Commits](https://www.conventionalcommits.org). Allowed scopes: `auth`, `dash`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs` (validated by commitlint). End every subject with an emoji shortcode, e.g. `feat(api): add auth :rocket:` (see [AGENTS.md](./AGENTS.md)).
 3. The pre-commit hook runs `biome check --staged`; make sure `bun run lint` and the relevant tests pass.
 4. Open a pull request against `main`. CI runs the API tests, Better Auth tests, and E2E.
 
 Releases and `CHANGELOG.md` are managed automatically by release-please from commits on `main`.
 
-Dashboard visual guidelines are in [BRANDING.md](./BRANDING.md).
+Guidance for AI coding agents is in [AGENTS.md](./AGENTS.md); dashboard visual guidelines are in [BRANDING.md](./BRANDING.md).
 
 ## License
 
