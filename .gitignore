@@ -1,0 +1,55 @@
+# omed specific
+devcontainer-lock.json
+notes
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.react-router/
+*.tsbuildinfo
+
+# Turborepo
+.turbo/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Go (apps/api)
+apps/api/tmp/
+apps/api/bin/
+*.test
+*.out
+coverage.out
+
+# Logs
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# Coverage
+coverage/
+
+# PWA / service worker
+dev-dist/
+
+# Drizzle
+drizzle/**/*.sqlite
+
+# Local data (devcontainer / docker volumes)
+.data/
+pgdata/
+kafka-data/
+redis-data/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.jso

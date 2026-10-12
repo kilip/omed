@@ -1,0 +1,57 @@
+{
+  "name": "omed",
+  "dockerComposeFile": "compose.yaml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "hostRequirements": { "cpus": 4, "memory": "16gb" },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    // Keep in sync with the go directive in apps/finance and apps/blog go.mod
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.27" },
+    "ghcr.io/devcontainers/features/node:2": { "version": "lts" },
+    "ghcr.io/shyim/devcontainers-features/bun:0": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "forwardPorts": [3001, 8001, 8002, 9001, 8080, 5432, 4983],
+  "portsAttributes": {
+    "3001": { "label": "@omed/dash" },
+    "8001": { "label": "@omed/auth" },
+    "8002": { "label": "@omed/api" },
+    "9001": { "label": "rustfs console" },
+    "8080": { "label": "kafka ui" },
+    "5432": { "label": "postgres" },
+    "4983": { "label": "drizzle studio" }
+  },
+  // Runs in Codespaces prebuilds, so dependencies are cached
+  "updateContentCommand": "bun install",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  // Runs on every start: the named volume can come back root-owned
+  "postStartCommand": "sudo chown \"$(id -u):$(id -g)\" /commandhistory && touch /commandhistory/.bash_history",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "biomejs.biome",
+        "bradlc.vscode-tailwindcss",
+        "cloudflare.vscode-wrangler",
+        "ms-azuretools.vscode-docker",
+        "editorconfig.editorconfig",
+        "CucumberOpen.cucumber-official",
+        "google.google-antigravity",
+        "vitest.explorer",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "cucumber.features": ["e2e/features/**/*.feature"],
+        "cucumber.glue": ["e2e/steps/**/*.ts"],
+        "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[go]": { "editor.defaultFormatter": "golang.go" }
+      }
+    }
+  }
+}
