@@ -4,6 +4,21 @@
 	"globalDependencies": [".env"],
 	"globalPassThroughEnv": ["OMED_*"],
 	"tasks": {
-		"typecheck": {}
+		"e2e": {
+			"cache": false
+		},
+		"typecheck": {
+			"cache": false,
+			"persistent": true
+		},
+		"build": {},
+		"test": {
+			"cache": false,
+			"persistent": true
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		}
 	}
 }
