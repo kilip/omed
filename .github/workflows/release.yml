@@ -20,7 +20,7 @@ jobs:
           client-id: ${{ secrets.ASPRI_CLIENT_ID }}
           private-key: ${{ secrets.ASPRI_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: domus
+          repositories: omed
 
       - uses: googleapis/release-please-action@v5
         with:
