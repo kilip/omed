@@ -11,12 +11,12 @@ omed/
 ├── apps/
 │   ├── auth/          # @omed/auth        - Authentication service (ElysiaJS + Better Auth)
 │   ├── api/           # @omed/api         - REST backend (Go, Fiber v3, Ent, Casbin, Swaggo)
-│   └── dash/          # @omed/dash        - Web dashboard (React Router v8 SPA, Ant Design)
+│   ├── dash/          # @omed/dash        - Web dashboard (React Router v8 SPA, Ant Design)
+│   └── e2e/           # @omed/e2e         - End-to-end tests (Cucumber + Playwright)
 ├── packages/
 │   ├── better-auth/   # @omed/better-auth - Better Auth + Drizzle configuration (server & client)
 │   ├── openapi/       # @omed/openapi     - TypeScript types generated from the `apps/api` OpenAPI spec
 │   └── tsconfig/      # @omed/tsconfig    - Shared base tsconfig
-├── e2e/               # @omed/e2e         - End-to-end tests (Cucumber + Playwright)
 ├── .devcontainer/     # Full dev environment (tools + Postgres, Redis, RustFS, Kafka)
 ├── .github/           # CI, image builds, release-please, Renovate
 ├── BRANDING.md        # Dashboard visual guidelines / design tokens
@@ -43,8 +43,9 @@ omed/
 ```
 
 - `apps/auth` issues JWTs. `apps/api` verifies them with the JWKS, matches `iss`/`aud` against `AUTH_URL`.
-- Authorization in `apps/api` is **membership based** per scope (`system`, `diocese`, `parish`, `unit`), with per-module roles (e.g. `finance-writer`) and a global `superadmin`.
-- The dashboard uses a module registry (`sys`, `web`, `sacra`, `fin`, `par`, `act`). Adding a module means adding one entry to `apps/dash/app/shared/modules/registry.ts`.
+- `apps/auth` only handles identity (credentials, sessions, JWT). `apps/api` is the source of truth for users, workspaces, and memberships.
+- Authorization in `apps/api` is **workspace based**: every user gets a personal workspace, can create more, and can invite other users. Roles are assigned per workspace membership, plus a global `superadmin`.
+- The dashboard uses a module registry (`sys`, `user`, `fin`, `web`). Adding a module means adding one entry to `apps/dash/app/shared/modules/registry.ts`.
 
 ## Tech Stack
 
@@ -63,7 +64,7 @@ omed/
 - Docker & Docker Compose (Postgres and supporting services)
 - Go tools: [`air`](https://github.com/air-verse/air) and [`swag`](https://github.com/swaggo/swag) v2
 
-> Easiest path: open the repo in the **devcontainer** (or GitHub Codespaces). All tools, services, and environment variables are prepared, and `bun install` and `bun db:push` run automatically.
+> Easiest path: open the repo in the **devcontainer** (or GitHub Codespaces). All tools, services, and environment variables are prepared, and `bun install` runs automatically.
 
 ## Getting Started
 
@@ -72,7 +73,6 @@ git clone https://github.com/kilip/omed.git
 cd omed
 
 bun install            # also installs git hooks (husky)
-bun run db:push        # sync the Better Auth schema to Postgres
 
 bun run dev            # run all apps (turbo)
 ```
@@ -93,7 +93,7 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 
 | Variable | Used by | Notes |
 | --- | --- | --- |
-| `OMED_DB_URL` | auth, better-auth | Postgres connection for Better Auth |
+| `OMED_DB_URL` | auth, better-auth, api | Postgres connection (Better Auth uses schema `auth`) |
 | `OMED_TRUSTED_ORIGINS` | auth, api | Comma-separated CORS origins |
 | `OMED_AUTH_URL` | auth, api, e2e | Public auth URL (also the JWT `iss`/`aud`) |
 | `OMED_AUTH_SECRET` | auth | Better Auth secret (change in production) |
@@ -112,9 +112,8 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 The OpenAPI v3.1 spec is generated from the Swaggo annotations in `apps/api`, then converted to TypeScript types in `packages/openapi`:
 
 ```bash
-bun run api:gen
-# = turbo run oa:gen (swag init in apps/api)
-#   + openapi-typescript apps/api/docs/swagger.json -> packages/openapi/src/api.ts
+bunx turbo run oa:gen   # swag init in apps/api
+bunx openapi-typescript apps/api/docs/swagger.json -o packages/openapi/src/api.ts
 ```
 
 Commit the results (`apps/api/docs/*` and `packages/openapi/src/api.ts`) whenever annotations or response models change.
@@ -126,10 +125,9 @@ bun run dev          # all apps, watch mode
 bun run build        # build packages/apps that define a build script
 bun run typecheck    # TypeScript typecheck
 bun run lint         # Biome check (lint + format)
-bun run lint:fix     # Biome auto-fix
+bun run format       # Biome auto-fix (check --write)
 bun run test         # tests via turbo (see note below)
 bun run e2e          # end-to-end tests
-bun run db:push      # sync the Better Auth schema to the DB (dev)
 ```
 
 ### Testing
@@ -153,13 +151,13 @@ The `build.yml` workflow pushes images to `ghcr.io/<owner>/omed/<app>` (`nightly
 ## Contributing
 
 1. Branch off `main`.
-2. Commit using [Conventional Commits](https://www.conventionalcommits.org). Allowed scopes: `auth`, `dash`, `api`, `e2e`, `deps`, `ci`, `release`, `tools` (validated by commitlint).
+2. Commit using [Conventional Commits](https://www.conventionalcommits.org). Allowed scopes: `auth`, `dash`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs` (validated by commitlint).
 3. The pre-commit hook runs `biome check --staged`; make sure `bun run lint` and the relevant tests pass.
 4. Open a pull request against `main`. CI runs the API tests, Better Auth tests, and E2E.
 
 Releases and `CHANGELOG.md` are managed automatically by release-please from commits on `main`.
 
-Guidance for AI coding agents is in [AGENTS.md](./AGENTS.md); dashboard visual guidelines are in [BRANDING.md](./BRANDING.md).
+Dashboard visual guidelines are in [BRANDING.md](./BRANDING.md).
 
 ## License
 
