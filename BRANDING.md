@@ -108,7 +108,7 @@ Sentence case for all labels, buttons, and titles. No ALL CAPS.
 
 ## 7. Voice and copy
 
-- Warm and clear, like talking to a fellow parish volunteer. No jargon.
+- Warm and clear, like talking to a helpful teammate. No jargon.
 - Buttons: verb first, 1–3 words ("Add member", "Save changes").
 - Errors: what happened, then what to do. No exclamation marks.
 

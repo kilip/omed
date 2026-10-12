@@ -27,11 +27,9 @@ BASHRC
 # Starship: official installer (direct release download, no GitHub API rate limit)
 curl -sS https://starship.rs/install.sh | sudo sh -s -- -y -v v1.26.0
 
-# swag version must match github.com/swaggo/swag in go.mod (finance + blog)
+# swag version must match github.com/swaggo/swag in apps/api/go.mod
 go install github.com/air-verse/air@v1.67.4
 go install github.com/swaggo/swag/v2/cmd/swag@latest
 
 # Playwright: Chromium only (version follows the one installed by bun install)
 bunx playwright install --with-deps chromium
-
-bun db:push

@@ -6,7 +6,7 @@
 	"hostRequirements": { "cpus": 4, "memory": "16gb" },
 	"features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {},
-		// Keep in sync with the go directive in apps/finance and apps/blog go.mod
+		// Keep in sync with the go directive in apps/api/go.mod
 		"ghcr.io/devcontainers/features/go:1": { "version": "1.27" },
 		"ghcr.io/devcontainers/features/node:2": { "version": "lts" },
 		"ghcr.io/shyim/devcontainers-features/bun:0": {},
@@ -45,8 +45,8 @@
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "bash",
 				"editor.formatOnSave": true,
-				"cucumber.features": ["e2e/features/**/*.feature"],
-				"cucumber.glue": ["e2e/steps/**/*.ts"],
+				"cucumber.features": ["apps/e2e/features/**/*.feature"],
+				"cucumber.glue": ["apps/e2e/steps/**/*.ts"],
 				"[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
 				"[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
 				"[json]": { "editor.defaultFormatter": "biomejs.biome" },
