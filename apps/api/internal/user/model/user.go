@@ -22,5 +22,7 @@ type UpdateUserRequest struct {
 }
 
 type SearchRequest struct {
-	Name string `json:"name"`
+	Name   string `json:"name,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
+	Limit  int    `json:"limit,omitempty"`
 }

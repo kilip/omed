@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
-	"errors"
+	"strconv"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/predicate"
+	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/internal/core"
 	"github.com/kilip/omed/api/internal/platform/entx"
 	"github.com/kilip/omed/api/internal/user/model"
@@ -36,10 +38,47 @@ func (r UserRepository) GetByID(c context.Context, id int64) (model.UserResponse
 }
 
 func (r UserRepository) Search(c context.Context, req model.SearchRequest) ([]model.UserResponse, string, error) {
-	var res []model.UserResponse
-	var cursor string
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 20
+	} else if limit > 100 {
+		limit = 100
+	}
 
-	return res, cursor, errors.New("unimplemented")
+	var predicates []predicate.User
+	if req.Name != "" {
+		predicates = append(predicates, user.NameContainsFold(req.Name))
+	}
+
+	if req.Cursor != "" {
+		cursorID, err := strconv.ParseInt(req.Cursor, 10, 64)
+		if err != nil || cursorID < 0 {
+			return nil, "", core.ErrInvalidCursor
+		}
+		predicates = append(predicates, user.IDLT(cursorID))
+	}
+
+	users, err := r.cli.User.Query().
+		Where(predicates...).
+		Order(ent.Desc(user.FieldID)).
+		Limit(limit + 1).
+		All(c)
+	if err != nil {
+		return nil, "", err
+	}
+
+	var cursor string
+	if len(users) > limit {
+		cursor = strconv.FormatInt(users[limit-1].ID, 10)
+		users = users[:limit]
+	}
+
+	res := make([]model.UserResponse, len(users))
+	for i, u := range users {
+		res[i] = toUserResponse(u)
+	}
+
+	return res, cursor, nil
 }
 
 func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (model.UserResponse, error) {

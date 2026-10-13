@@ -371,6 +371,8 @@ export interface components {
       name?: string;
     };
     "model.SearchRequest": {
+      cursor?: string;
+      limit?: number;
       name?: string;
     };
     "model.UpdateUserRequest": {

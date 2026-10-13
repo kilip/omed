@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"uuid"
 
@@ -96,6 +97,100 @@ func (u *UserSuite) Test_Delete_Successfully() {
 func (u *UserSuite) Test_Delete_InvalidID() {
 	u.Request("/users/invalid-id", fiber.MethodDelete, nil)
 	u.AssertStatus(fiber.StatusBadRequest)
+}
+
+func (u *UserSuite) Test_Search_ByName_Successfully() {
+	u.EnsureUser(ent.User{
+		Name:  "Alice Wonderland",
+		Email: "alice.search@example.com",
+	})
+	u.EnsureUser(ent.User{
+		Name:  "Bob Builder",
+		Email: "bob.search@example.com",
+	})
+
+	u.Request("/users/search", fiber.MethodPost, model.SearchRequest{
+		Name: "alice",
+	})
+	u.OK()
+
+	res := u.PagedResponse()
+	u.NotEmpty(res.Data)
+	for _, usr := range res.Data {
+		u.Contains(strings.ToLower(usr.Name), "alice")
+	}
+}
+
+func (u *UserSuite) Test_Search_EmptyName_ReturnsAll() {
+	u.EnsureUser(ent.User{
+		Name:  "Charlie Chaplin",
+		Email: "charlie.search@example.com",
+	})
+
+	u.Request("/users/search", fiber.MethodPost, model.SearchRequest{})
+	u.OK()
+
+	res := u.PagedResponse()
+	u.NotEmpty(res.Data)
+}
+
+func (u *UserSuite) Test_Search_Pagination_Cursor() {
+	u.EnsureUser(ent.User{
+		Name:  "PaginatedUser One",
+		Email: "page1@example.com",
+	})
+	u.EnsureUser(ent.User{
+		Name:  "PaginatedUser Two",
+		Email: "page2@example.com",
+	})
+	u.EnsureUser(ent.User{
+		Name:  "PaginatedUser Three",
+		Email: "page3@example.com",
+	})
+
+	// Page 1 with limit 2
+	u.Request("/users/search", fiber.MethodPost, model.SearchRequest{
+		Name:  "PaginatedUser",
+		Limit: 2,
+	})
+	u.OK()
+
+	page1 := u.PagedResponse()
+	u.Len(page1.Data, 2)
+	u.NotEmpty(page1.Meta.Cursor)
+
+	// Page 2 with cursor from Page 1
+	u.Request("/users/search", fiber.MethodPost, model.SearchRequest{
+		Name:   "PaginatedUser",
+		Cursor: page1.Meta.Cursor,
+		Limit:  2,
+	})
+	u.OK()
+
+	page2 := u.PagedResponse()
+	u.Len(page2.Data, 1)
+	u.Empty(page2.Meta.Cursor)
+
+	// Ensure descending ID order
+	u.Greater(page1.Data[1].ID, page2.Data[0].ID)
+}
+
+func (u *UserSuite) Test_Search_InvalidCursor() {
+	u.Request("/users/search", fiber.MethodPost, model.SearchRequest{
+		Cursor: "not-a-number",
+	})
+	u.AssertStatus(fiber.StatusBadRequest)
+}
+
+func (u *UserSuite) Test_Search_NoResults() {
+	u.Request("/users/search", fiber.MethodPost, model.SearchRequest{
+		Name: "NonExistentUserXYZ987",
+	})
+	u.OK()
+
+	res := u.PagedResponse()
+	u.Empty(res.Data)
+	u.Empty(res.Meta.Cursor)
 }
 
 func TestUserSuite(t *testing.T) {

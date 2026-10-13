@@ -104,6 +104,12 @@ const docTemplate = `{
             },
             "model.SearchRequest": {
                 "properties": {
+                    "cursor": {
+                        "type": "string"
+                    },
+                    "limit": {
+                        "type": "integer"
+                    },
                     "name": {
                         "type": "string"
                     }
