@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kilip/omed/api/internal/app"
 	"github.com/kilip/omed/api/internal/base"
+	"github.com/kilip/omed/api/internal/config"
 )
 
 // main initializes configuration, logging, fiber app state, and starts the server.
@@ -18,8 +18,8 @@ func main() {
 	defer stop()
 
 	cfg := base.GetConfig()
-	logger := app.GetLogger()
-	fiber := app.GetFiber(cfg, logger)
+	logger := config.GetLogger()
+	fiber := config.GetFiber(cfg, logger)
 
 	state := base.State{
 		Logger:   logger,
@@ -29,9 +29,9 @@ func main() {
 		Secure:   fiber.Group("/"),
 	}
 
-	app.WaitForJWKS(cfg, logger)
+	config.WaitForJWKS(cfg, logger)
 
-	a := app.New(state)
+	a := config.New(state)
 
 	if err := a.Run(ctx); err != nil {
 		slog.Error("app stopped", "err", err)

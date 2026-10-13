@@ -1,6 +1,6 @@
-// Package app orchestrates application initialization, module lifecycle, Fiber HTTP configuration,
+// Package config orchestrates application initialization, module lifecycle, Fiber HTTP configuration,
 // authentication firewall setup, and graceful server shutdowns.
-package app
+package config
 
 import (
 	"context"

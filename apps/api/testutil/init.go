@@ -10,8 +10,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
 	"github.com/kilip/omed/api/ent"
-	"github.com/kilip/omed/api/internal/app"
 	"github.com/kilip/omed/api/internal/base"
+	"github.com/kilip/omed/api/internal/config"
 )
 
 //go:generate go run go.uber.org/mock/mockgen@latest -destination=cmocks/mock_slog_handler.go -package=cmocks log/slog Handler
@@ -62,7 +62,7 @@ func init() {
 	logger = slog.New(slog.NewJSONHandler(logWriter, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
-	api = app.GetFiber(cfg, logger)
+	api = config.GetFiber(cfg, logger)
 	entClient = CreateTestDB()
 
 	// config.ConfigureEntCli(entClient)
@@ -76,7 +76,7 @@ func init() {
 		// Storage:  mockStorage,
 	}
 
-	a := app.New(state)
+	a := config.New(state)
 	a.Boot()
 
 }
