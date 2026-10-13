@@ -24,7 +24,7 @@ type WorkspaceRepoSuite struct {
 func (s *WorkspaceRepoSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:workspace_repo_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
 	s.repo = repository.NewWorkspaceRepository(s.client)
-	s.ctx = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{})
+	s.ctx = testutil.NewAdminContext()
 }
 
 func (s *WorkspaceRepoSuite) TearDownSuite() {
@@ -37,6 +37,14 @@ func (s *WorkspaceRepoSuite) SetupTest() {
 	ctx := context.Background()
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
 	_, _ = s.client.User.Delete().Exec(ctx)
+
+	admin := s.createTestUser("Admin", "admin@example.com")
+	s.ctx = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+		ID:            admin.ID,
+		Name:          admin.Name,
+		EmailVerified: true,
+		Roles:         []base.UserRole{base.UserRoleAdmin},
+	})
 }
 
 func (s *WorkspaceRepoSuite) createTestUser(name, email string) *ent.User {
@@ -50,13 +58,11 @@ func (s *WorkspaceRepoSuite) createTestUser(name, email string) *ent.User {
 }
 
 func (s *WorkspaceRepoSuite) createTestWorkspace(name, desc string, ownerID int64) *ent.Workspace {
-	ctx := context.Background()
+	ctx := context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{ID: ownerID})
 	w, err := s.client.Workspace.Create().
 		SetName(name).
 		SetDescription(desc).
 		SetOwnerID(ownerID).
-		SetCreatedByID(ownerID).
-		SetUpdatedByID(ownerID).
 		Save(ctx)
 	s.Require().NoError(err)
 	return w
@@ -74,8 +80,6 @@ func (s *WorkspaceRepoSuite) Test_GetByID_Success() {
 	s.Equal("Main Desc", dom.Description)
 	s.Equal(user.ID, dom.OwnerID)
 	s.Equal(user.Name, dom.Owner.Name)
-	s.Equal(user.Name, dom.CreatedBy.Name)
-	s.Equal(user.Name, dom.UpdatedBy.Name)
 	s.False(dom.CreatedAt.IsZero())
 	s.False(dom.UpdatedAt.IsZero())
 }
@@ -103,7 +107,6 @@ func (s *WorkspaceRepoSuite) Test_Create_Success() {
 	s.Equal("Bob Workspace", dom.Name)
 	s.Equal("Bob's private space", dom.Description)
 	s.Equal(user.ID, dom.Owner.ID)
-	s.Equal("Bob", dom.CreatedBy.Name)
 	s.False(dom.CreatedAt.IsZero())
 
 	// Verify in database
@@ -128,7 +131,6 @@ func (s *WorkspaceRepoSuite) Test_Create_WithUserContext() {
 	dom, err := s.repo.Create(ctx, req)
 	s.Require().NoError(err)
 	s.Equal(user.ID, dom.Owner.ID)
-	s.Equal("Charlie", dom.CreatedBy.Name)
 }
 
 func (s *WorkspaceRepoSuite) Test_Update_Success() {

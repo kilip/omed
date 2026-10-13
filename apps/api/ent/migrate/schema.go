@@ -22,8 +22,8 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "is_postable", Type: field.TypeBool, Default: true},
-		{Name: "created_by_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "updated_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
 		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "workspace_id", Type: field.TypeInt64},
 		{Name: "parent_id", Type: field.TypeInt64, Nullable: true},
@@ -38,13 +38,13 @@ var (
 				Symbol:     "accounts_users_creator",
 				Columns:    []*schema.Column{AccountsColumns[11]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "accounts_users_updater",
 				Columns:    []*schema.Column{AccountsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "accounts_users_deleter",
@@ -114,8 +114,8 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "personal", Type: field.TypeBool, Default: false},
-		{Name: "created_by_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "updated_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
 		{Name: "owner_id", Type: field.TypeInt64},
 	}
 	// WorkspacesTable holds the schema information for the "workspaces" table.
@@ -128,13 +128,13 @@ var (
 				Symbol:     "workspaces_users_creator",
 				Columns:    []*schema.Column{WorkspacesColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "workspaces_users_updater",
 				Columns:    []*schema.Column{WorkspacesColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "workspaces_users_owner",
@@ -161,8 +161,8 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "roles", Type: field.TypeJSON},
 		{Name: "workspace_id", Type: field.TypeInt64},
-		{Name: "created_by_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "updated_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
 		{Name: "user_id", Type: field.TypeInt64},
 	}
 	// WorkspaceMembersTable holds the schema information for the "workspace_members" table.
@@ -181,13 +181,13 @@ var (
 				Symbol:     "workspace_members_users_creator",
 				Columns:    []*schema.Column{WorkspaceMembersColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "workspace_members_users_updater",
 				Columns:    []*schema.Column{WorkspaceMembersColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "workspace_members_users_user",

@@ -18,10 +18,10 @@ type Workspace struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
-	// CreatedByID holds the value of the "created_by_id" field.
-	CreatedByID *int64 `json:"created_by_id,omitempty"`
-	// UpdatedByID holds the value of the "updated_by_id" field.
-	UpdatedByID *int64 `json:"updated_by_id,omitempty"`
+	// CreatedBy holds the value of the "created_by" field.
+	CreatedBy int64 `json:"created_by,omitempty"`
+	// UpdatedBy holds the value of the "updated_by" field.
+	UpdatedBy int64 `json:"updated_by,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -104,7 +104,7 @@ func (*Workspace) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case workspace.FieldPersonal:
 			values[i] = new(sql.NullBool)
-		case workspace.FieldID, workspace.FieldCreatedByID, workspace.FieldUpdatedByID, workspace.FieldOwnerID:
+		case workspace.FieldID, workspace.FieldCreatedBy, workspace.FieldUpdatedBy, workspace.FieldOwnerID:
 			values[i] = new(sql.NullInt64)
 		case workspace.FieldName, workspace.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -131,19 +131,17 @@ func (_m *Workspace) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int64(value.Int64)
-		case workspace.FieldCreatedByID:
+		case workspace.FieldCreatedBy:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field created_by_id", values[i])
+				return fmt.Errorf("unexpected type %T for field created_by", values[i])
 			} else if value.Valid {
-				_m.CreatedByID = new(int64)
-				*_m.CreatedByID = value.Int64
+				_m.CreatedBy = value.Int64
 			}
-		case workspace.FieldUpdatedByID:
+		case workspace.FieldUpdatedBy:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_by_id", values[i])
+				return fmt.Errorf("unexpected type %T for field updated_by", values[i])
 			} else if value.Valid {
-				_m.UpdatedByID = new(int64)
-				*_m.UpdatedByID = value.Int64
+				_m.UpdatedBy = value.Int64
 			}
 		case workspace.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -237,15 +235,11 @@ func (_m *Workspace) String() string {
 	var builder strings.Builder
 	builder.WriteString("Workspace(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	if v := _m.CreatedByID; v != nil {
-		builder.WriteString("created_by_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("created_by=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CreatedBy))
 	builder.WriteString(", ")
-	if v := _m.UpdatedByID; v != nil {
-		builder.WriteString("updated_by_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("updated_by=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UpdatedBy))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

@@ -90,19 +90,12 @@ func (r MemberRepository) Search(ctx context.Context, wid int64, req model.Searc
 // Create persists a new workspace member within a transaction.
 func (r MemberRepository) Create(ctx context.Context, wid, uid int64, roles []string) (domain.Member, error) {
 	var dom domain.Member
-	var createdByID *int64
-	if u := base.UserFromContext(ctx); u.ID != 0 {
-		createdByID = &u.ID
-	}
 
 	err := entx.WithTx(ctx, r.cli, func(tx *ent.Tx) error {
 		builder := tx.WorkspaceMember.Create().
 			SetWorkspaceID(wid).
 			SetUserID(uid).
 			SetRoles(roles)
-		if createdByID != nil {
-			builder.SetCreatedByID(*createdByID).SetUpdatedByID(*createdByID)
-		}
 		_, err := builder.Save(ctx)
 		return err
 	})
@@ -119,10 +112,6 @@ func (r MemberRepository) Create(ctx context.Context, wid, uid int64, roles []st
 // UpdateRoles replaces the roles of a member.
 func (r MemberRepository) UpdateRoles(ctx context.Context, wid, uid int64, roles []string) (domain.Member, error) {
 	var dom domain.Member
-	var updatedByID *int64
-	if u := base.UserFromContext(ctx); u.ID != 0 {
-		updatedByID = &u.ID
-	}
 
 	err := entx.WithTx(ctx, r.cli, func(tx *ent.Tx) error {
 		query := tx.WorkspaceMember.Update().
@@ -131,9 +120,6 @@ func (r MemberRepository) UpdateRoles(ctx context.Context, wid, uid int64, roles
 				workspacemember.UserIDEQ(uid),
 			).
 			SetRoles(roles)
-		if updatedByID != nil {
-			query.SetUpdatedByID(*updatedByID)
-		}
 		count, err := query.Save(ctx)
 		if err != nil {
 			return err

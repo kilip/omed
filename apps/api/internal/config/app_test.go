@@ -12,7 +12,10 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/config"
+	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -20,16 +23,21 @@ type AppSuite struct {
 	suite.Suite
 	mockAuth *testAuthMock
 	logger   *slog.Logger
+	entCli   *ent.Client
 }
 
 func (s *AppSuite) SetupSuite() {
 	s.mockAuth = newTestAuthMock(s.T())
 	s.logger = slog.New(slog.NewTextHandler(io.Discard, nil))
+	s.entCli = testutil.CreateTestDB("file:config_app_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
 }
 
 func (s *AppSuite) TearDownSuite() {
 	if s.mockAuth != nil && s.mockAuth.server != nil {
 		s.mockAuth.server.Close()
+	}
+	if s.entCli != nil {
+		_ = s.entCli.Close()
 	}
 }
 
@@ -72,6 +80,7 @@ func (s *AppSuite) Test_New() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
+		EntCli:   s.entCli,
 		Config: config.Config{
 			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
@@ -91,6 +100,7 @@ func (s *AppSuite) Test_Boot_DefaultApp_WithBaseMiddleware() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
+		EntCli:   s.entCli,
 		Config: config.Config{
 			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
@@ -104,6 +114,12 @@ func (s *AppSuite) Test_Boot_DefaultApp_WithBaseMiddleware() {
 	// Since requestid middleware was registered by initBaseMiddleware,
 	// incoming requests receive an X-Request-Id header in response.
 	req := httptest.NewRequest(fiber.MethodGet, "/internal/any", nil)
+	ctx := context.WithValue(req.Context(), base.USER_CONTEXT_KEY, base.UserContext{
+		ID:    1,
+		Name:  "Test User",
+		Roles: []base.UserRole{base.UserRoleUser},
+	})
+	req = req.WithContext(ctx)
 	resp, err := fApp.Test(req)
 	s.Require().NoError(err)
 	defer resp.Body.Close()
@@ -252,6 +268,7 @@ func (s *AppSuite) Test_Run_GracefulShutdown() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
+		EntCli:   s.entCli,
 		Config: config.Config{
 			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",

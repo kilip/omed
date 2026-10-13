@@ -14,10 +14,10 @@ const (
 	Label = "workspace_member"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldCreatedByID holds the string denoting the created_by_id field in the database.
-	FieldCreatedByID = "created_by_id"
-	// FieldUpdatedByID holds the string denoting the updated_by_id field in the database.
-	FieldUpdatedByID = "updated_by_id"
+	// FieldCreatedBy holds the string denoting the created_by field in the database.
+	FieldCreatedBy = "created_by"
+	// FieldUpdatedBy holds the string denoting the updated_by field in the database.
+	FieldUpdatedBy = "updated_by"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -44,14 +44,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	CreatorInverseTable = "users"
 	// CreatorColumn is the table column denoting the creator relation/edge.
-	CreatorColumn = "created_by_id"
+	CreatorColumn = "created_by"
 	// UpdaterTable is the table that holds the updater relation/edge.
 	UpdaterTable = "workspace_members"
 	// UpdaterInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UpdaterInverseTable = "users"
 	// UpdaterColumn is the table column denoting the updater relation/edge.
-	UpdaterColumn = "updated_by_id"
+	UpdaterColumn = "updated_by"
 	// WorkspaceTable is the table that holds the workspace relation/edge.
 	WorkspaceTable = "workspace_members"
 	// WorkspaceInverseTable is the table name for the Workspace entity.
@@ -71,8 +71,8 @@ const (
 // Columns holds all SQL columns for workspacemember fields.
 var Columns = []string{
 	FieldID,
-	FieldCreatedByID,
-	FieldUpdatedByID,
+	FieldCreatedBy,
+	FieldUpdatedBy,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldWorkspaceID,
@@ -109,14 +109,14 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByCreatedByID orders the results by the created_by_id field.
-func ByCreatedByID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreatedByID, opts...).ToFunc()
+// ByCreatedBy orders the results by the created_by field.
+func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
 }
 
-// ByUpdatedByID orders the results by the updated_by_id field.
-func ByUpdatedByID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdatedByID, opts...).ToFunc()
+// ByUpdatedBy orders the results by the updated_by field.
+func ByUpdatedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedBy, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

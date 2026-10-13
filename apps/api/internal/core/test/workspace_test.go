@@ -26,8 +26,6 @@ func (s *WorkspaceSuite) ensureWorkspace(name, desc string, ownerID int64) *ent.
 		SetName(name).
 		SetDescription(desc).
 		SetOwnerID(ownerID).
-		SetCreatedByID(ownerID).
-		SetUpdatedByID(ownerID).
 		Save(s.Context)
 	s.Require().NoError(err)
 	return w
@@ -52,8 +50,6 @@ func (s *WorkspaceSuite) Test_GetByID_Successfully() {
 	s.Equal("Engineering Workspace", res.Data.Description)
 	s.Equal(s.User.ID, res.Data.Owner.ID)
 	s.Equal(s.User.Name, res.Data.Owner.Name)
-	s.Equal(s.User.Name, res.Data.CreatedBy.Name)
-	s.Equal(s.User.Name, res.Data.UpdatedBy.Name)
 }
 
 func (s *WorkspaceSuite) Test_GetByID_NotExistID() {
@@ -83,8 +79,6 @@ func (s *WorkspaceSuite) Test_Create_Successfully() {
 	s.Equal("Design Team Workspace", res.Data.Description)
 	s.Equal(s.User.ID, res.Data.Owner.ID)
 	s.Equal(s.User.Name, res.Data.Owner.Name)
-	s.Equal(s.User.Name, res.Data.CreatedBy.Name)
-	s.Equal(s.User.Name, res.Data.UpdatedBy.Name)
 	s.False(res.Data.CreatedAt.IsZero())
 	s.False(res.Data.UpdatedAt.IsZero())
 }
@@ -262,8 +256,6 @@ func (s *WorkspaceSuite) Test_Delete_PersonalWorkspace_Forbidden() {
 		SetName("My Personal Workspace").
 		SetOwnerID(s.User.ID).
 		SetPersonal(true).
-		SetCreatedByID(s.User.ID).
-		SetUpdatedByID(s.User.ID).
 		Save(s.Context)
 	s.Require().NoError(err)
 

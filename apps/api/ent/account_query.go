@@ -494,12 +494,12 @@ func (_q *AccountQuery) WithChildren(opts ...func(*AccountQuery)) *AccountQuery 
 // Example:
 //
 //	var v []struct {
-//		CreatedByID int64 `json:"created_by_id,omitempty"`
+//		CreatedBy int64 `json:"created_by,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Account.Query().
-//		GroupBy(account.FieldCreatedByID).
+//		GroupBy(account.FieldCreatedBy).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *AccountQuery) GroupBy(field string, fields ...string) *AccountGroupBy {
@@ -517,11 +517,11 @@ func (_q *AccountQuery) GroupBy(field string, fields ...string) *AccountGroupBy 
 // Example:
 //
 //	var v []struct {
-//		CreatedByID int64 `json:"created_by_id,omitempty"`
+//		CreatedBy int64 `json:"created_by,omitempty"`
 //	}
 //
 //	client.Account.Query().
-//		Select(account.FieldCreatedByID).
+//		Select(account.FieldCreatedBy).
 //		Scan(ctx, &v)
 func (_q *AccountQuery) Select(fields ...string) *AccountSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -639,10 +639,7 @@ func (_q *AccountQuery) loadCreator(ctx context.Context, query *UserQuery, nodes
 	ids := make([]int64, 0, len(nodes))
 	nodeids := make(map[int64][]*Account)
 	for i := range nodes {
-		if nodes[i].CreatedByID == nil {
-			continue
-		}
-		fk := *nodes[i].CreatedByID
+		fk := nodes[i].CreatedBy
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -659,7 +656,7 @@ func (_q *AccountQuery) loadCreator(ctx context.Context, query *UserQuery, nodes
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "created_by_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -671,10 +668,7 @@ func (_q *AccountQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes
 	ids := make([]int64, 0, len(nodes))
 	nodeids := make(map[int64][]*Account)
 	for i := range nodes {
-		if nodes[i].UpdatedByID == nil {
-			continue
-		}
-		fk := *nodes[i].UpdatedByID
+		fk := nodes[i].UpdatedBy
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -691,7 +685,7 @@ func (_q *AccountQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "updated_by_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "updated_by" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -854,10 +848,10 @@ func (_q *AccountQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 		if _q.withCreator != nil {
-			_spec.Node.AddColumnOnce(account.FieldCreatedByID)
+			_spec.Node.AddColumnOnce(account.FieldCreatedBy)
 		}
 		if _q.withUpdater != nil {
-			_spec.Node.AddColumnOnce(account.FieldUpdatedByID)
+			_spec.Node.AddColumnOnce(account.FieldUpdatedBy)
 		}
 		if _q.withDeleter != nil {
 			_spec.Node.AddColumnOnce(account.FieldDeletedByID)

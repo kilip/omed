@@ -93,7 +93,6 @@ func (s *AuthorizerSuite) Test_Require_InvalidWorkspaceID() {
 	s.Equal(fiber.StatusBadRequest, s.status(app, "/workspaces/0/invoices"))
 }
 
-
 func (s *AuthorizerSuite) Test_Member_ResolvesOnceAcrossMiddlewares() {
 	s.resolver.EXPECT().ResolveMembership(gomock.Any(), int64(7), int64(1)).
 		Return(authz.Membership{WorkspaceID: 1, UserID: 7, Roles: []string{"fin:accountant"}}, nil).

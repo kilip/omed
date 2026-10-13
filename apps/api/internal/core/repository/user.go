@@ -123,13 +123,15 @@ func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (
 
 		// Auto-create personal workspace
 		wsName := req.Name + "'s Workspace"
+		wsCtx := c
+		if wsCtx.Value(base.USER_CONTEXT_KEY) == nil {
+			wsCtx = context.WithValue(c, base.USER_CONTEXT_KEY, base.UserContext{ID: usr.ID, Name: usr.Name})
+		}
 		_, err = tx.Workspace.Create().
 			SetName(wsName).
 			SetOwnerID(usr.ID).
 			SetPersonal(true).
-			SetCreatedByID(usr.ID).
-			SetUpdatedByID(usr.ID).
-			Save(c)
+			Save(wsCtx)
 		return err
 	})
 

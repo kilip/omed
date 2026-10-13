@@ -49,6 +49,8 @@ func New(cfg Config) *CoreModule {
 		WorkspaceService: workspaceSvc,
 		MemberService:    memberSvc,
 	}
+
+	InitMutator(cfg.EntCli)
 	return mod
 }
 

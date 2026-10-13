@@ -21,8 +21,8 @@ type Audit = AuditMixin
 // Fields of the AuditMixin.
 func (AuditMixin) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("created_by_id").Optional().Nillable(),
-		field.Int64("updated_by_id").Optional().Nillable(),
+		field.Int64("created_by"),
+		field.Int64("updated_by"),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -32,10 +32,12 @@ func (AuditMixin) Fields() []ent.Field {
 func (AuditMixin) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("creator", User.Type).
-			Field("created_by_id").
-			Unique(),
+			Field("created_by").
+			Unique().
+			Required(),
 		edge.To("updater", User.Type).
-			Field("updated_by_id").
-			Unique(),
+			Field("updated_by").
+			Unique().
+			Required(),
 	}
 }

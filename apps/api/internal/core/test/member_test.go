@@ -22,8 +22,6 @@ func (s *MemberSuite) ensureWorkspace(name string, ownerID int64) *ent.Workspace
 	w, err := client.Workspace.Create().
 		SetName(name).
 		SetOwnerID(ownerID).
-		SetCreatedByID(ownerID).
-		SetUpdatedByID(ownerID).
 		Save(s.Context)
 	s.Require().NoError(err)
 	return w

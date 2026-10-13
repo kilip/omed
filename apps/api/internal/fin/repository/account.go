@@ -76,11 +76,6 @@ func (r AccountRepository) Search(c context.Context, workspaceID int64, _ model.
 func (r AccountRepository) Create(c context.Context, workspaceID int64, req model.CreateAccountRequest, normalBalance string) (domain.Account, error) {
 	var dom domain.Account
 
-	var userID int64
-	if u := base.UserFromContext(c); u.ID != 0 {
-		userID = u.ID
-	}
-
 	var createdID int64
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		builder := tx.Account.Create().
@@ -97,9 +92,6 @@ func (r AccountRepository) Create(c context.Context, workspaceID int64, req mode
 		}
 		if req.Description != "" {
 			builder.SetDescription(req.Description)
-		}
-		if userID != 0 {
-			builder.SetCreatedByID(userID).SetUpdatedByID(userID)
 		}
 
 		res, err := builder.Save(c)
@@ -123,11 +115,6 @@ func (r AccountRepository) Create(c context.Context, workspaceID int64, req mode
 // Update modifies an existing account within a database transaction.
 func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req model.UpdateAccountRequest) (domain.Account, error) {
 	var dom domain.Account
-
-	var userID int64
-	if u := base.UserFromContext(c); u.ID != 0 {
-		userID = u.ID
-	}
 
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		// Verify account exists and is not soft deleted
@@ -164,9 +151,6 @@ func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req 
 		}
 		builder.SetNillableIsActive(req.IsActive)
 		builder.SetNillableIsPostable(req.IsPostable)
-		if userID != 0 {
-			builder.SetUpdatedByID(userID)
-		}
 
 		_, err = builder.Save(c)
 		if err != nil {

@@ -14,9 +14,9 @@ type Workspace struct {
 	OwnerID     int64
 	Owner       User
 	Personal    bool
-	CreatedByID *int64
+	CreatedByID int64
 	CreatedBy   base.ByUser
-	UpdatedByID *int64
+	UpdatedByID int64
 	UpdatedBy   base.ByUser
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

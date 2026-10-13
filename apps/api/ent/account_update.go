@@ -30,43 +30,31 @@ func (_u *AccountUpdate) Where(ps ...predicate.Account) *AccountUpdate {
 	return _u
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (_u *AccountUpdate) SetCreatedByID(v int64) *AccountUpdate {
-	_u.mutation.SetCreatedByID(v)
+// SetCreatedBy sets the "created_by" field.
+func (_u *AccountUpdate) SetCreatedBy(v int64) *AccountUpdate {
+	_u.mutation.SetCreatedBy(v)
 	return _u
 }
 
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (_u *AccountUpdate) SetNillableCreatedByID(v *int64) *AccountUpdate {
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableCreatedBy(v *int64) *AccountUpdate {
 	if v != nil {
-		_u.SetCreatedByID(*v)
+		_u.SetCreatedBy(*v)
 	}
 	return _u
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (_u *AccountUpdate) ClearCreatedByID() *AccountUpdate {
-	_u.mutation.ClearCreatedByID()
+// SetUpdatedBy sets the "updated_by" field.
+func (_u *AccountUpdate) SetUpdatedBy(v int64) *AccountUpdate {
+	_u.mutation.SetUpdatedBy(v)
 	return _u
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (_u *AccountUpdate) SetUpdatedByID(v int64) *AccountUpdate {
-	_u.mutation.SetUpdatedByID(v)
-	return _u
-}
-
-// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
-func (_u *AccountUpdate) SetNillableUpdatedByID(v *int64) *AccountUpdate {
+// SetNillableUpdatedBy sets the "updated_by" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableUpdatedBy(v *int64) *AccountUpdate {
 	if v != nil {
-		_u.SetUpdatedByID(*v)
+		_u.SetUpdatedBy(*v)
 	}
-	return _u
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (_u *AccountUpdate) ClearUpdatedByID() *AccountUpdate {
-	_u.mutation.ClearUpdatedByID()
 	return _u
 }
 
@@ -246,14 +234,6 @@ func (_u *AccountUpdate) SetCreatorID(id int64) *AccountUpdate {
 	return _u
 }
 
-// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
-func (_u *AccountUpdate) SetNillableCreatorID(id *int64) *AccountUpdate {
-	if id != nil {
-		_u = _u.SetCreatorID(*id)
-	}
-	return _u
-}
-
 // SetCreator sets the "creator" edge to the User entity.
 func (_u *AccountUpdate) SetCreator(v *User) *AccountUpdate {
 	return _u.SetCreatorID(v.ID)
@@ -262,14 +242,6 @@ func (_u *AccountUpdate) SetCreator(v *User) *AccountUpdate {
 // SetUpdaterID sets the "updater" edge to the User entity by ID.
 func (_u *AccountUpdate) SetUpdaterID(id int64) *AccountUpdate {
 	_u.mutation.SetUpdaterID(id)
-	return _u
-}
-
-// SetNillableUpdaterID sets the "updater" edge to the User entity by ID if the given value is not nil.
-func (_u *AccountUpdate) SetNillableUpdaterID(id *int64) *AccountUpdate {
-	if id != nil {
-		_u = _u.SetUpdaterID(*id)
-	}
 	return _u
 }
 
@@ -424,6 +396,12 @@ func (_u *AccountUpdate) check() error {
 		if err := account.NormalBalanceValidator(v); err != nil {
 			return &ValidationError{Name: "normal_balance", err: fmt.Errorf(`ent: validator failed for field "Account.normal_balance": %w`, err)}
 		}
+	}
+	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.creator"`)
+	}
+	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.updater"`)
 	}
 	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
@@ -670,43 +648,31 @@ type AccountUpdateOne struct {
 	mutation *AccountMutation
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (_u *AccountUpdateOne) SetCreatedByID(v int64) *AccountUpdateOne {
-	_u.mutation.SetCreatedByID(v)
+// SetCreatedBy sets the "created_by" field.
+func (_u *AccountUpdateOne) SetCreatedBy(v int64) *AccountUpdateOne {
+	_u.mutation.SetCreatedBy(v)
 	return _u
 }
 
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (_u *AccountUpdateOne) SetNillableCreatedByID(v *int64) *AccountUpdateOne {
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableCreatedBy(v *int64) *AccountUpdateOne {
 	if v != nil {
-		_u.SetCreatedByID(*v)
+		_u.SetCreatedBy(*v)
 	}
 	return _u
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (_u *AccountUpdateOne) ClearCreatedByID() *AccountUpdateOne {
-	_u.mutation.ClearCreatedByID()
+// SetUpdatedBy sets the "updated_by" field.
+func (_u *AccountUpdateOne) SetUpdatedBy(v int64) *AccountUpdateOne {
+	_u.mutation.SetUpdatedBy(v)
 	return _u
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (_u *AccountUpdateOne) SetUpdatedByID(v int64) *AccountUpdateOne {
-	_u.mutation.SetUpdatedByID(v)
-	return _u
-}
-
-// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
-func (_u *AccountUpdateOne) SetNillableUpdatedByID(v *int64) *AccountUpdateOne {
+// SetNillableUpdatedBy sets the "updated_by" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableUpdatedBy(v *int64) *AccountUpdateOne {
 	if v != nil {
-		_u.SetUpdatedByID(*v)
+		_u.SetUpdatedBy(*v)
 	}
-	return _u
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (_u *AccountUpdateOne) ClearUpdatedByID() *AccountUpdateOne {
-	_u.mutation.ClearUpdatedByID()
 	return _u
 }
 
@@ -886,14 +852,6 @@ func (_u *AccountUpdateOne) SetCreatorID(id int64) *AccountUpdateOne {
 	return _u
 }
 
-// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
-func (_u *AccountUpdateOne) SetNillableCreatorID(id *int64) *AccountUpdateOne {
-	if id != nil {
-		_u = _u.SetCreatorID(*id)
-	}
-	return _u
-}
-
 // SetCreator sets the "creator" edge to the User entity.
 func (_u *AccountUpdateOne) SetCreator(v *User) *AccountUpdateOne {
 	return _u.SetCreatorID(v.ID)
@@ -902,14 +860,6 @@ func (_u *AccountUpdateOne) SetCreator(v *User) *AccountUpdateOne {
 // SetUpdaterID sets the "updater" edge to the User entity by ID.
 func (_u *AccountUpdateOne) SetUpdaterID(id int64) *AccountUpdateOne {
 	_u.mutation.SetUpdaterID(id)
-	return _u
-}
-
-// SetNillableUpdaterID sets the "updater" edge to the User entity by ID if the given value is not nil.
-func (_u *AccountUpdateOne) SetNillableUpdaterID(id *int64) *AccountUpdateOne {
-	if id != nil {
-		_u = _u.SetUpdaterID(*id)
-	}
 	return _u
 }
 
@@ -1077,6 +1027,12 @@ func (_u *AccountUpdateOne) check() error {
 		if err := account.NormalBalanceValidator(v); err != nil {
 			return &ValidationError{Name: "normal_balance", err: fmt.Errorf(`ent: validator failed for field "Account.normal_balance": %w`, err)}
 		}
+	}
+	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.creator"`)
+	}
+	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.updater"`)
 	}
 	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)

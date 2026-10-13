@@ -48,12 +48,14 @@ func (s *AccountServiceSuite) SetupTest() {
 	s.Require().NoError(err)
 	s.userID = u.ID
 
+	userCtx := context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+		ID:   u.ID,
+		Name: "Bob",
+	})
 	w, err := s.client.Workspace.Create().
 		SetName("Finance WS").
 		SetOwnerID(u.ID).
-		SetCreatedByID(u.ID).
-		SetUpdatedByID(u.ID).
-		Save(ctx)
+		Save(userCtx)
 	s.Require().NoError(err)
 	s.workspaceID = w.ID
 }

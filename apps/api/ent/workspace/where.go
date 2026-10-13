@@ -56,14 +56,14 @@ func IDLTE(id int64) predicate.Workspace {
 	return predicate.Workspace(sql.FieldLTE(FieldID, id))
 }
 
-// CreatedByID applies equality check predicate on the "created_by_id" field. It's identical to CreatedByIDEQ.
-func CreatedByID(v int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldEQ(FieldCreatedByID, v))
+// CreatedBy applies equality check predicate on the "created_by" field. It's identical to CreatedByEQ.
+func CreatedBy(v int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldCreatedBy, v))
 }
 
-// UpdatedByID applies equality check predicate on the "updated_by_id" field. It's identical to UpdatedByIDEQ.
-func UpdatedByID(v int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldEQ(FieldUpdatedByID, v))
+// UpdatedBy applies equality check predicate on the "updated_by" field. It's identical to UpdatedByEQ.
+func UpdatedBy(v int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldUpdatedBy, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -96,64 +96,44 @@ func Personal(v bool) predicate.Workspace {
 	return predicate.Workspace(sql.FieldEQ(FieldPersonal, v))
 }
 
-// CreatedByIDEQ applies the EQ predicate on the "created_by_id" field.
-func CreatedByIDEQ(v int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldEQ(FieldCreatedByID, v))
+// CreatedByEQ applies the EQ predicate on the "created_by" field.
+func CreatedByEQ(v int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldCreatedBy, v))
 }
 
-// CreatedByIDNEQ applies the NEQ predicate on the "created_by_id" field.
-func CreatedByIDNEQ(v int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldNEQ(FieldCreatedByID, v))
+// CreatedByNEQ applies the NEQ predicate on the "created_by" field.
+func CreatedByNEQ(v int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNEQ(FieldCreatedBy, v))
 }
 
-// CreatedByIDIn applies the In predicate on the "created_by_id" field.
-func CreatedByIDIn(vs ...int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldIn(FieldCreatedByID, vs...))
+// CreatedByIn applies the In predicate on the "created_by" field.
+func CreatedByIn(vs ...int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldIn(FieldCreatedBy, vs...))
 }
 
-// CreatedByIDNotIn applies the NotIn predicate on the "created_by_id" field.
-func CreatedByIDNotIn(vs ...int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldNotIn(FieldCreatedByID, vs...))
+// CreatedByNotIn applies the NotIn predicate on the "created_by" field.
+func CreatedByNotIn(vs ...int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNotIn(FieldCreatedBy, vs...))
 }
 
-// CreatedByIDIsNil applies the IsNil predicate on the "created_by_id" field.
-func CreatedByIDIsNil() predicate.Workspace {
-	return predicate.Workspace(sql.FieldIsNull(FieldCreatedByID))
+// UpdatedByEQ applies the EQ predicate on the "updated_by" field.
+func UpdatedByEQ(v int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldUpdatedBy, v))
 }
 
-// CreatedByIDNotNil applies the NotNil predicate on the "created_by_id" field.
-func CreatedByIDNotNil() predicate.Workspace {
-	return predicate.Workspace(sql.FieldNotNull(FieldCreatedByID))
+// UpdatedByNEQ applies the NEQ predicate on the "updated_by" field.
+func UpdatedByNEQ(v int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNEQ(FieldUpdatedBy, v))
 }
 
-// UpdatedByIDEQ applies the EQ predicate on the "updated_by_id" field.
-func UpdatedByIDEQ(v int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldEQ(FieldUpdatedByID, v))
+// UpdatedByIn applies the In predicate on the "updated_by" field.
+func UpdatedByIn(vs ...int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldIn(FieldUpdatedBy, vs...))
 }
 
-// UpdatedByIDNEQ applies the NEQ predicate on the "updated_by_id" field.
-func UpdatedByIDNEQ(v int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldNEQ(FieldUpdatedByID, v))
-}
-
-// UpdatedByIDIn applies the In predicate on the "updated_by_id" field.
-func UpdatedByIDIn(vs ...int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldIn(FieldUpdatedByID, vs...))
-}
-
-// UpdatedByIDNotIn applies the NotIn predicate on the "updated_by_id" field.
-func UpdatedByIDNotIn(vs ...int64) predicate.Workspace {
-	return predicate.Workspace(sql.FieldNotIn(FieldUpdatedByID, vs...))
-}
-
-// UpdatedByIDIsNil applies the IsNil predicate on the "updated_by_id" field.
-func UpdatedByIDIsNil() predicate.Workspace {
-	return predicate.Workspace(sql.FieldIsNull(FieldUpdatedByID))
-}
-
-// UpdatedByIDNotNil applies the NotNil predicate on the "updated_by_id" field.
-func UpdatedByIDNotNil() predicate.Workspace {
-	return predicate.Workspace(sql.FieldNotNull(FieldUpdatedByID))
+// UpdatedByNotIn applies the NotIn predicate on the "updated_by" field.
+func UpdatedByNotIn(vs ...int64) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNotIn(FieldUpdatedBy, vs...))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

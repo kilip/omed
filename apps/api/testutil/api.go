@@ -30,9 +30,23 @@ type ApiTestSuite[T any] struct {
 	Context      context.Context
 }
 
-// SetupTest prepares test state before each test case runs, resetting cookies and provisioning a default test user.
-func (s *ApiTestSuite[T]) SetupTest() {
-	s.Cookies = nil
+// MockAdminUser is a default mock administrator user context used in test suites.
+var MockAdminUser = base.UserContext{
+	ID:            1,
+	Name:          "Mock Admin",
+	EmailVerified: true,
+	Roles:         []base.UserRole{base.UserRoleAdmin},
+}
+
+// NewAdminContext returns a context injected with MockAdminUser.
+func NewAdminContext() context.Context {
+	return context.WithValue(context.Background(), base.USER_CONTEXT_KEY, MockAdminUser)
+}
+
+// SetupSuite prepares the test suite state and injects the default admin user into Context.
+func (s *ApiTestSuite[T]) SetupSuite() {
+	s.Context = NewAdminContext()
+
 	usr := s.EnsureUser(ent.User{
 		Name:  "Test User",
 		Email: "test@example.com",
@@ -45,7 +59,29 @@ func (s *ApiTestSuite[T]) SetupTest() {
 		Roles:         []base.UserRole{base.UserRoleAdmin},
 	}
 
-	s.Context = context.Background()
+	s.Context = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, *s.User)
+}
+
+// SetupTest prepares test state before each test case runs, resetting cookies and provisioning a default test user.
+func (s *ApiTestSuite[T]) SetupTest() {
+	s.Cookies = nil
+	if s.Context == nil || s.Context.Value(base.USER_CONTEXT_KEY) == nil {
+		s.Context = NewAdminContext()
+	}
+
+	usr := s.EnsureUser(ent.User{
+		Name:  "Test User",
+		Email: "test@example.com",
+	})
+
+	s.User = &base.UserContext{
+		ID:            usr.ID,
+		Name:          "Test User",
+		EmailVerified: true,
+		Roles:         []base.UserRole{base.UserRoleAdmin},
+	}
+
+	s.Context = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, *s.User)
 }
 
 // AsUser switches the active test user to the specified email and optional global roles.
@@ -64,12 +100,16 @@ func (s *ApiTestSuite[T]) AsUser(email, name string, globalRoles ...base.UserRol
 		EmailVerified: true,
 		Roles:         roles,
 	}
+	s.Context = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, *s.User)
 	return usr
 }
 
 // AddMember adds a user as a member of a workspace with the given roles in the test DB.
 func (s *ApiTestSuite[T]) AddMember(wid, uid int64, roles ...string) {
-	ctx := context.Background()
+	ctx := s.Context
+	if ctx == nil || ctx.Value(base.USER_CONTEXT_KEY) == nil {
+		ctx = NewAdminContext()
+	}
 	_, err := entClient.WorkspaceMember.Create().
 		SetWorkspaceID(wid).
 		SetUserID(uid).
@@ -91,7 +131,10 @@ func (s *ApiTestSuite[T]) SetCookie(cookie *http.Cookie) {
 
 // EnsureUser creates or updates a user in the test database and returns the resulting user entity.
 func (s *ApiTestSuite[T]) EnsureUser(req ent.User) *ent.User {
-	ctx := context.Background()
+	ctx := s.Context
+	if ctx == nil || ctx.Value(base.USER_CONTEXT_KEY) == nil {
+		ctx = NewAdminContext()
+	}
 	id, err := entClient.User.Create().
 		SetName(req.Name).
 		SetEmail(req.Email).

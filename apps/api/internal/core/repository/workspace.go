@@ -111,30 +111,26 @@ func (r WorkspaceRepository) Create(c context.Context, req model.CreateWorkspace
 	var dom domain.Workspace
 
 	ownerID := req.OwnerID
-	var userID int64
-	if u := base.UserFromContext(c); u.ID != 0 {
-		userID = u.ID
-	}
-
 	if ownerID == 0 {
-		ownerID = userID
+		if u := base.UserFromContext(c); u.ID != 0 {
+			ownerID = u.ID
+		}
 	}
 	if ownerID == 0 {
 		return dom, base.ErrUnauthorized
 	}
 
-	createdByID := userID
-	if createdByID == 0 {
-		createdByID = ownerID
+	if u := base.UserFromContext(c); u.ID == 0 {
+		c = context.WithValue(c, base.USER_CONTEXT_KEY, base.UserContext{
+			ID: ownerID,
+		})
 	}
 
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		var err error
 		builder := tx.Workspace.Create().
 			SetName(req.Name).
-			SetOwnerID(ownerID).
-			SetCreatedByID(createdByID).
-			SetUpdatedByID(createdByID)
+			SetOwnerID(ownerID)
 
 		if req.Description != "" {
 			builder.SetDescription(req.Description)
@@ -153,13 +149,15 @@ func (r WorkspaceRepository) Create(c context.Context, req model.CreateWorkspace
 
 // CreatePersonal creates a personal workspace for the given user, within the given transaction.
 func (r WorkspaceRepository) CreatePersonal(c context.Context, tx *ent.Tx, userID int64, name string) (domain.Workspace, error) {
+	wsCtx := c
+	if wsCtx.Value(base.USER_CONTEXT_KEY) == nil {
+		wsCtx = context.WithValue(c, base.USER_CONTEXT_KEY, base.UserContext{ID: userID})
+	}
 	w, err := tx.Workspace.Create().
 		SetName(name).
 		SetOwnerID(userID).
 		SetPersonal(true).
-		SetCreatedByID(userID).
-		SetUpdatedByID(userID).
-		Save(c)
+		Save(wsCtx)
 	if err != nil {
 		return domain.Workspace{}, err
 	}
@@ -169,19 +167,12 @@ func (r WorkspaceRepository) CreatePersonal(c context.Context, tx *ent.Tx, userI
 // Update modifies an existing workspace by ID within a transaction.
 func (r WorkspaceRepository) Update(c context.Context, id int64, req model.UpdateWorkspaceRequest) (domain.Workspace, error) {
 	var dom domain.Workspace
-	var updatedByID *int64
-	if u := base.UserFromContext(c); u.ID != 0 {
-		updatedByID = &u.ID
-	}
 
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		builder := tx.Workspace.UpdateOneID(id).
 			SetName(req.Name)
 		if req.Description != "" {
 			builder.SetDescription(req.Description)
-		}
-		if updatedByID != nil {
-			builder.SetUpdatedByID(*updatedByID)
 		}
 		_, err := builder.Save(c)
 		if err != nil {
@@ -221,8 +212,8 @@ func toWorkspaceDomain(w *ent.Workspace) domain.Workspace {
 		Description: w.Description,
 		OwnerID:     w.OwnerID,
 		Personal:    w.Personal,
-		CreatedByID: w.CreatedByID,
-		UpdatedByID: w.UpdatedByID,
+		CreatedByID: w.CreatedBy,
+		UpdatedByID: w.UpdatedBy,
 		CreatedAt:   w.CreatedAt,
 		UpdatedAt:   w.UpdatedAt,
 	}

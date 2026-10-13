@@ -27,8 +27,6 @@ func (s *AccountApiSuite) ensureWorkspace(name string, ownerID int64) *ent.Works
 	w, err := client.Workspace.Create().
 		SetName(name).
 		SetOwnerID(ownerID).
-		SetCreatedByID(ownerID).
-		SetUpdatedByID(ownerID).
 		Save(s.Context)
 	s.Require().NoError(err)
 	return w

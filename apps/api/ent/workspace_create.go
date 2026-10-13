@@ -24,31 +24,15 @@ type WorkspaceCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (_c *WorkspaceCreate) SetCreatedByID(v int64) *WorkspaceCreate {
-	_c.mutation.SetCreatedByID(v)
+// SetCreatedBy sets the "created_by" field.
+func (_c *WorkspaceCreate) SetCreatedBy(v int64) *WorkspaceCreate {
+	_c.mutation.SetCreatedBy(v)
 	return _c
 }
 
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (_c *WorkspaceCreate) SetNillableCreatedByID(v *int64) *WorkspaceCreate {
-	if v != nil {
-		_c.SetCreatedByID(*v)
-	}
-	return _c
-}
-
-// SetUpdatedByID sets the "updated_by_id" field.
-func (_c *WorkspaceCreate) SetUpdatedByID(v int64) *WorkspaceCreate {
-	_c.mutation.SetUpdatedByID(v)
-	return _c
-}
-
-// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
-func (_c *WorkspaceCreate) SetNillableUpdatedByID(v *int64) *WorkspaceCreate {
-	if v != nil {
-		_c.SetUpdatedByID(*v)
-	}
+// SetUpdatedBy sets the "updated_by" field.
+func (_c *WorkspaceCreate) SetUpdatedBy(v int64) *WorkspaceCreate {
+	_c.mutation.SetUpdatedBy(v)
 	return _c
 }
 
@@ -132,14 +116,6 @@ func (_c *WorkspaceCreate) SetCreatorID(id int64) *WorkspaceCreate {
 	return _c
 }
 
-// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
-func (_c *WorkspaceCreate) SetNillableCreatorID(id *int64) *WorkspaceCreate {
-	if id != nil {
-		_c = _c.SetCreatorID(*id)
-	}
-	return _c
-}
-
 // SetCreator sets the "creator" edge to the User entity.
 func (_c *WorkspaceCreate) SetCreator(v *User) *WorkspaceCreate {
 	return _c.SetCreatorID(v.ID)
@@ -148,14 +124,6 @@ func (_c *WorkspaceCreate) SetCreator(v *User) *WorkspaceCreate {
 // SetUpdaterID sets the "updater" edge to the User entity by ID.
 func (_c *WorkspaceCreate) SetUpdaterID(id int64) *WorkspaceCreate {
 	_c.mutation.SetUpdaterID(id)
-	return _c
-}
-
-// SetNillableUpdaterID sets the "updater" edge to the User entity by ID if the given value is not nil.
-func (_c *WorkspaceCreate) SetNillableUpdaterID(id *int64) *WorkspaceCreate {
-	if id != nil {
-		_c = _c.SetUpdaterID(*id)
-	}
 	return _c
 }
 
@@ -235,6 +203,12 @@ func (_c *WorkspaceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *WorkspaceCreate) check() error {
+	if _, ok := _c.mutation.CreatedBy(); !ok {
+		return &ValidationError{Name: "created_by", err: errors.New(`ent: missing required field "Workspace.created_by"`)}
+	}
+	if _, ok := _c.mutation.UpdatedBy(); !ok {
+		return &ValidationError{Name: "updated_by", err: errors.New(`ent: missing required field "Workspace.updated_by"`)}
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Workspace.created_at"`)}
 	}
@@ -254,6 +228,12 @@ func (_c *WorkspaceCreate) check() error {
 	}
 	if _, ok := _c.mutation.Personal(); !ok {
 		return &ValidationError{Name: "personal", err: errors.New(`ent: missing required field "Workspace.personal"`)}
+	}
+	if len(_c.mutation.CreatorIDs()) == 0 {
+		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "Workspace.creator"`)}
+	}
+	if len(_c.mutation.UpdaterIDs()) == 0 {
+		return &ValidationError{Name: "updater", err: errors.New(`ent: missing required edge "Workspace.updater"`)}
 	}
 	if len(_c.mutation.OwnerIDs()) == 0 {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Workspace.owner"`)}
@@ -327,7 +307,7 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.CreatedByID = &nodes[0]
+		_node.CreatedBy = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.UpdaterIDs(); len(nodes) > 0 {
@@ -345,7 +325,7 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.UpdatedByID = &nodes[0]
+		_node.UpdatedBy = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
@@ -390,7 +370,7 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Workspace.Create().
-//		SetCreatedByID(v).
+//		SetCreatedBy(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -399,7 +379,7 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.WorkspaceUpsert) {
-//			SetCreatedByID(v+v).
+//			SetCreatedBy(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *WorkspaceCreate) OnConflict(opts ...sql.ConflictOption) *WorkspaceUpsertOne {
@@ -435,39 +415,27 @@ type (
 	}
 )
 
-// SetCreatedByID sets the "created_by_id" field.
-func (u *WorkspaceUpsert) SetCreatedByID(v int64) *WorkspaceUpsert {
-	u.Set(workspace.FieldCreatedByID, v)
+// SetCreatedBy sets the "created_by" field.
+func (u *WorkspaceUpsert) SetCreatedBy(v int64) *WorkspaceUpsert {
+	u.Set(workspace.FieldCreatedBy, v)
 	return u
 }
 
-// UpdateCreatedByID sets the "created_by_id" field to the value that was provided on create.
-func (u *WorkspaceUpsert) UpdateCreatedByID() *WorkspaceUpsert {
-	u.SetExcluded(workspace.FieldCreatedByID)
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *WorkspaceUpsert) UpdateCreatedBy() *WorkspaceUpsert {
+	u.SetExcluded(workspace.FieldCreatedBy)
 	return u
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (u *WorkspaceUpsert) ClearCreatedByID() *WorkspaceUpsert {
-	u.SetNull(workspace.FieldCreatedByID)
+// SetUpdatedBy sets the "updated_by" field.
+func (u *WorkspaceUpsert) SetUpdatedBy(v int64) *WorkspaceUpsert {
+	u.Set(workspace.FieldUpdatedBy, v)
 	return u
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (u *WorkspaceUpsert) SetUpdatedByID(v int64) *WorkspaceUpsert {
-	u.Set(workspace.FieldUpdatedByID, v)
-	return u
-}
-
-// UpdateUpdatedByID sets the "updated_by_id" field to the value that was provided on create.
-func (u *WorkspaceUpsert) UpdateUpdatedByID() *WorkspaceUpsert {
-	u.SetExcluded(workspace.FieldUpdatedByID)
-	return u
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (u *WorkspaceUpsert) ClearUpdatedByID() *WorkspaceUpsert {
-	u.SetNull(workspace.FieldUpdatedByID)
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *WorkspaceUpsert) UpdateUpdatedBy() *WorkspaceUpsert {
+	u.SetExcluded(workspace.FieldUpdatedBy)
 	return u
 }
 
@@ -579,45 +547,31 @@ func (u *WorkspaceUpsertOne) Update(set func(*WorkspaceUpsert)) *WorkspaceUpsert
 	return u
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (u *WorkspaceUpsertOne) SetCreatedByID(v int64) *WorkspaceUpsertOne {
+// SetCreatedBy sets the "created_by" field.
+func (u *WorkspaceUpsertOne) SetCreatedBy(v int64) *WorkspaceUpsertOne {
 	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetCreatedByID(v)
+		s.SetCreatedBy(v)
 	})
 }
 
-// UpdateCreatedByID sets the "created_by_id" field to the value that was provided on create.
-func (u *WorkspaceUpsertOne) UpdateCreatedByID() *WorkspaceUpsertOne {
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *WorkspaceUpsertOne) UpdateCreatedBy() *WorkspaceUpsertOne {
 	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateCreatedByID()
+		s.UpdateCreatedBy()
 	})
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (u *WorkspaceUpsertOne) ClearCreatedByID() *WorkspaceUpsertOne {
+// SetUpdatedBy sets the "updated_by" field.
+func (u *WorkspaceUpsertOne) SetUpdatedBy(v int64) *WorkspaceUpsertOne {
 	return u.Update(func(s *WorkspaceUpsert) {
-		s.ClearCreatedByID()
+		s.SetUpdatedBy(v)
 	})
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (u *WorkspaceUpsertOne) SetUpdatedByID(v int64) *WorkspaceUpsertOne {
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *WorkspaceUpsertOne) UpdateUpdatedBy() *WorkspaceUpsertOne {
 	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetUpdatedByID(v)
-	})
-}
-
-// UpdateUpdatedByID sets the "updated_by_id" field to the value that was provided on create.
-func (u *WorkspaceUpsertOne) UpdateUpdatedByID() *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateUpdatedByID()
-	})
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (u *WorkspaceUpsertOne) ClearUpdatedByID() *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.ClearUpdatedByID()
+		s.UpdateUpdatedBy()
 	})
 }
 
@@ -819,7 +773,7 @@ func (_c *WorkspaceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.WorkspaceUpsert) {
-//			SetCreatedByID(v+v).
+//			SetCreatedBy(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *WorkspaceCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkspaceUpsertBulk {
@@ -904,45 +858,31 @@ func (u *WorkspaceUpsertBulk) Update(set func(*WorkspaceUpsert)) *WorkspaceUpser
 	return u
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (u *WorkspaceUpsertBulk) SetCreatedByID(v int64) *WorkspaceUpsertBulk {
+// SetCreatedBy sets the "created_by" field.
+func (u *WorkspaceUpsertBulk) SetCreatedBy(v int64) *WorkspaceUpsertBulk {
 	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetCreatedByID(v)
+		s.SetCreatedBy(v)
 	})
 }
 
-// UpdateCreatedByID sets the "created_by_id" field to the value that was provided on create.
-func (u *WorkspaceUpsertBulk) UpdateCreatedByID() *WorkspaceUpsertBulk {
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *WorkspaceUpsertBulk) UpdateCreatedBy() *WorkspaceUpsertBulk {
 	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateCreatedByID()
+		s.UpdateCreatedBy()
 	})
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (u *WorkspaceUpsertBulk) ClearCreatedByID() *WorkspaceUpsertBulk {
+// SetUpdatedBy sets the "updated_by" field.
+func (u *WorkspaceUpsertBulk) SetUpdatedBy(v int64) *WorkspaceUpsertBulk {
 	return u.Update(func(s *WorkspaceUpsert) {
-		s.ClearCreatedByID()
+		s.SetUpdatedBy(v)
 	})
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (u *WorkspaceUpsertBulk) SetUpdatedByID(v int64) *WorkspaceUpsertBulk {
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *WorkspaceUpsertBulk) UpdateUpdatedBy() *WorkspaceUpsertBulk {
 	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetUpdatedByID(v)
-	})
-}
-
-// UpdateUpdatedByID sets the "updated_by_id" field to the value that was provided on create.
-func (u *WorkspaceUpsertBulk) UpdateUpdatedByID() *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateUpdatedByID()
-	})
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (u *WorkspaceUpsertBulk) ClearUpdatedByID() *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.ClearUpdatedByID()
+		s.UpdateUpdatedBy()
 	})
 }
 

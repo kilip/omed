@@ -24,31 +24,15 @@ type AccountCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (_c *AccountCreate) SetCreatedByID(v int64) *AccountCreate {
-	_c.mutation.SetCreatedByID(v)
+// SetCreatedBy sets the "created_by" field.
+func (_c *AccountCreate) SetCreatedBy(v int64) *AccountCreate {
+	_c.mutation.SetCreatedBy(v)
 	return _c
 }
 
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (_c *AccountCreate) SetNillableCreatedByID(v *int64) *AccountCreate {
-	if v != nil {
-		_c.SetCreatedByID(*v)
-	}
-	return _c
-}
-
-// SetUpdatedByID sets the "updated_by_id" field.
-func (_c *AccountCreate) SetUpdatedByID(v int64) *AccountCreate {
-	_c.mutation.SetUpdatedByID(v)
-	return _c
-}
-
-// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
-func (_c *AccountCreate) SetNillableUpdatedByID(v *int64) *AccountCreate {
-	if v != nil {
-		_c.SetUpdatedByID(*v)
-	}
+// SetUpdatedBy sets the "updated_by" field.
+func (_c *AccountCreate) SetUpdatedBy(v int64) *AccountCreate {
+	_c.mutation.SetUpdatedBy(v)
 	return _c
 }
 
@@ -206,14 +190,6 @@ func (_c *AccountCreate) SetCreatorID(id int64) *AccountCreate {
 	return _c
 }
 
-// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
-func (_c *AccountCreate) SetNillableCreatorID(id *int64) *AccountCreate {
-	if id != nil {
-		_c = _c.SetCreatorID(*id)
-	}
-	return _c
-}
-
 // SetCreator sets the "creator" edge to the User entity.
 func (_c *AccountCreate) SetCreator(v *User) *AccountCreate {
 	return _c.SetCreatorID(v.ID)
@@ -222,14 +198,6 @@ func (_c *AccountCreate) SetCreator(v *User) *AccountCreate {
 // SetUpdaterID sets the "updater" edge to the User entity by ID.
 func (_c *AccountCreate) SetUpdaterID(id int64) *AccountCreate {
 	_c.mutation.SetUpdaterID(id)
-	return _c
-}
-
-// SetNillableUpdaterID sets the "updater" edge to the User entity by ID if the given value is not nil.
-func (_c *AccountCreate) SetNillableUpdaterID(id *int64) *AccountCreate {
-	if id != nil {
-		_c = _c.SetUpdaterID(*id)
-	}
 	return _c
 }
 
@@ -337,6 +305,12 @@ func (_c *AccountCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *AccountCreate) check() error {
+	if _, ok := _c.mutation.CreatedBy(); !ok {
+		return &ValidationError{Name: "created_by", err: errors.New(`ent: missing required field "Account.created_by"`)}
+	}
+	if _, ok := _c.mutation.UpdatedBy(); !ok {
+		return &ValidationError{Name: "updated_by", err: errors.New(`ent: missing required field "Account.updated_by"`)}
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Account.created_at"`)}
 	}
@@ -383,6 +357,12 @@ func (_c *AccountCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsPostable(); !ok {
 		return &ValidationError{Name: "is_postable", err: errors.New(`ent: missing required field "Account.is_postable"`)}
+	}
+	if len(_c.mutation.CreatorIDs()) == 0 {
+		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "Account.creator"`)}
+	}
+	if len(_c.mutation.UpdaterIDs()) == 0 {
+		return &ValidationError{Name: "updater", err: errors.New(`ent: missing required edge "Account.updater"`)}
 	}
 	if len(_c.mutation.WorkspaceIDs()) == 0 {
 		return &ValidationError{Name: "workspace", err: errors.New(`ent: missing required edge "Account.workspace"`)}
@@ -476,7 +456,7 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.CreatedByID = &nodes[0]
+		_node.CreatedBy = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.UpdaterIDs(); len(nodes) > 0 {
@@ -494,7 +474,7 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.UpdatedByID = &nodes[0]
+		_node.UpdatedBy = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.DeleterIDs(); len(nodes) > 0 {
@@ -575,7 +555,7 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Account.Create().
-//		SetCreatedByID(v).
+//		SetCreatedBy(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -584,7 +564,7 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.AccountUpsert) {
-//			SetCreatedByID(v+v).
+//			SetCreatedBy(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *AccountCreate) OnConflict(opts ...sql.ConflictOption) *AccountUpsertOne {
@@ -620,39 +600,27 @@ type (
 	}
 )
 
-// SetCreatedByID sets the "created_by_id" field.
-func (u *AccountUpsert) SetCreatedByID(v int64) *AccountUpsert {
-	u.Set(account.FieldCreatedByID, v)
+// SetCreatedBy sets the "created_by" field.
+func (u *AccountUpsert) SetCreatedBy(v int64) *AccountUpsert {
+	u.Set(account.FieldCreatedBy, v)
 	return u
 }
 
-// UpdateCreatedByID sets the "created_by_id" field to the value that was provided on create.
-func (u *AccountUpsert) UpdateCreatedByID() *AccountUpsert {
-	u.SetExcluded(account.FieldCreatedByID)
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateCreatedBy() *AccountUpsert {
+	u.SetExcluded(account.FieldCreatedBy)
 	return u
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (u *AccountUpsert) ClearCreatedByID() *AccountUpsert {
-	u.SetNull(account.FieldCreatedByID)
+// SetUpdatedBy sets the "updated_by" field.
+func (u *AccountUpsert) SetUpdatedBy(v int64) *AccountUpsert {
+	u.Set(account.FieldUpdatedBy, v)
 	return u
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (u *AccountUpsert) SetUpdatedByID(v int64) *AccountUpsert {
-	u.Set(account.FieldUpdatedByID, v)
-	return u
-}
-
-// UpdateUpdatedByID sets the "updated_by_id" field to the value that was provided on create.
-func (u *AccountUpsert) UpdateUpdatedByID() *AccountUpsert {
-	u.SetExcluded(account.FieldUpdatedByID)
-	return u
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (u *AccountUpsert) ClearUpdatedByID() *AccountUpsert {
-	u.SetNull(account.FieldUpdatedByID)
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateUpdatedBy() *AccountUpsert {
+	u.SetExcluded(account.FieldUpdatedBy)
 	return u
 }
 
@@ -866,45 +834,31 @@ func (u *AccountUpsertOne) Update(set func(*AccountUpsert)) *AccountUpsertOne {
 	return u
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (u *AccountUpsertOne) SetCreatedByID(v int64) *AccountUpsertOne {
+// SetCreatedBy sets the "created_by" field.
+func (u *AccountUpsertOne) SetCreatedBy(v int64) *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
-		s.SetCreatedByID(v)
+		s.SetCreatedBy(v)
 	})
 }
 
-// UpdateCreatedByID sets the "created_by_id" field to the value that was provided on create.
-func (u *AccountUpsertOne) UpdateCreatedByID() *AccountUpsertOne {
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateCreatedBy() *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
-		s.UpdateCreatedByID()
+		s.UpdateCreatedBy()
 	})
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (u *AccountUpsertOne) ClearCreatedByID() *AccountUpsertOne {
+// SetUpdatedBy sets the "updated_by" field.
+func (u *AccountUpsertOne) SetUpdatedBy(v int64) *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
-		s.ClearCreatedByID()
+		s.SetUpdatedBy(v)
 	})
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (u *AccountUpsertOne) SetUpdatedByID(v int64) *AccountUpsertOne {
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateUpdatedBy() *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
-		s.SetUpdatedByID(v)
-	})
-}
-
-// UpdateUpdatedByID sets the "updated_by_id" field to the value that was provided on create.
-func (u *AccountUpsertOne) UpdateUpdatedByID() *AccountUpsertOne {
-	return u.Update(func(s *AccountUpsert) {
-		s.UpdateUpdatedByID()
-	})
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (u *AccountUpsertOne) ClearUpdatedByID() *AccountUpsertOne {
-	return u.Update(func(s *AccountUpsert) {
-		s.ClearUpdatedByID()
+		s.UpdateUpdatedBy()
 	})
 }
 
@@ -1225,7 +1179,7 @@ func (_c *AccountCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.AccountUpsert) {
-//			SetCreatedByID(v+v).
+//			SetCreatedBy(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *AccountCreateBulk) OnConflict(opts ...sql.ConflictOption) *AccountUpsertBulk {
@@ -1310,45 +1264,31 @@ func (u *AccountUpsertBulk) Update(set func(*AccountUpsert)) *AccountUpsertBulk 
 	return u
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (u *AccountUpsertBulk) SetCreatedByID(v int64) *AccountUpsertBulk {
+// SetCreatedBy sets the "created_by" field.
+func (u *AccountUpsertBulk) SetCreatedBy(v int64) *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
-		s.SetCreatedByID(v)
+		s.SetCreatedBy(v)
 	})
 }
 
-// UpdateCreatedByID sets the "created_by_id" field to the value that was provided on create.
-func (u *AccountUpsertBulk) UpdateCreatedByID() *AccountUpsertBulk {
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateCreatedBy() *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
-		s.UpdateCreatedByID()
+		s.UpdateCreatedBy()
 	})
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (u *AccountUpsertBulk) ClearCreatedByID() *AccountUpsertBulk {
+// SetUpdatedBy sets the "updated_by" field.
+func (u *AccountUpsertBulk) SetUpdatedBy(v int64) *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
-		s.ClearCreatedByID()
+		s.SetUpdatedBy(v)
 	})
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (u *AccountUpsertBulk) SetUpdatedByID(v int64) *AccountUpsertBulk {
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateUpdatedBy() *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
-		s.SetUpdatedByID(v)
-	})
-}
-
-// UpdateUpdatedByID sets the "updated_by_id" field to the value that was provided on create.
-func (u *AccountUpsertBulk) UpdateUpdatedByID() *AccountUpsertBulk {
-	return u.Update(func(s *AccountUpsert) {
-		s.UpdateUpdatedByID()
-	})
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (u *AccountUpsertBulk) ClearUpdatedByID() *AccountUpsertBulk {
-	return u.Update(func(s *AccountUpsert) {
-		s.ClearUpdatedByID()
+		s.UpdateUpdatedBy()
 	})
 }
 

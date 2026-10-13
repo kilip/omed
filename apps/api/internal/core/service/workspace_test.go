@@ -28,7 +28,9 @@ func (s *WorkspaceSuite) SetupTest() {
 	ctl := gomock.NewController(s.T())
 	s.mockRepo = mock.NewMockWorkspaceRepository(ctl)
 	s.service = service.NewWorkspaceService(s.mockRepo)
-	s.ctx = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{})
+	s.ctx = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+		Roles: []base.UserRole{base.UserRoleAdmin},
+	})
 }
 
 func (s *WorkspaceSuite) Test_GetByID_Success() {

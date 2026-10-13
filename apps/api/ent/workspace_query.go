@@ -418,12 +418,12 @@ func (_q *WorkspaceQuery) WithMembers(opts ...func(*WorkspaceMemberQuery)) *Work
 // Example:
 //
 //	var v []struct {
-//		CreatedByID int64 `json:"created_by_id,omitempty"`
+//		CreatedBy int64 `json:"created_by,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Workspace.Query().
-//		GroupBy(workspace.FieldCreatedByID).
+//		GroupBy(workspace.FieldCreatedBy).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *WorkspaceQuery) GroupBy(field string, fields ...string) *WorkspaceGroupBy {
@@ -441,11 +441,11 @@ func (_q *WorkspaceQuery) GroupBy(field string, fields ...string) *WorkspaceGrou
 // Example:
 //
 //	var v []struct {
-//		CreatedByID int64 `json:"created_by_id,omitempty"`
+//		CreatedBy int64 `json:"created_by,omitempty"`
 //	}
 //
 //	client.Workspace.Query().
-//		Select(workspace.FieldCreatedByID).
+//		Select(workspace.FieldCreatedBy).
 //		Scan(ctx, &v)
 func (_q *WorkspaceQuery) Select(fields ...string) *WorkspaceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -549,10 +549,7 @@ func (_q *WorkspaceQuery) loadCreator(ctx context.Context, query *UserQuery, nod
 	ids := make([]int64, 0, len(nodes))
 	nodeids := make(map[int64][]*Workspace)
 	for i := range nodes {
-		if nodes[i].CreatedByID == nil {
-			continue
-		}
-		fk := *nodes[i].CreatedByID
+		fk := nodes[i].CreatedBy
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -569,7 +566,7 @@ func (_q *WorkspaceQuery) loadCreator(ctx context.Context, query *UserQuery, nod
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "created_by_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -581,10 +578,7 @@ func (_q *WorkspaceQuery) loadUpdater(ctx context.Context, query *UserQuery, nod
 	ids := make([]int64, 0, len(nodes))
 	nodeids := make(map[int64][]*Workspace)
 	for i := range nodes {
-		if nodes[i].UpdatedByID == nil {
-			continue
-		}
-		fk := *nodes[i].UpdatedByID
+		fk := nodes[i].UpdatedBy
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -601,7 +595,7 @@ func (_q *WorkspaceQuery) loadUpdater(ctx context.Context, query *UserQuery, nod
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "updated_by_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "updated_by" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -697,10 +691,10 @@ func (_q *WorkspaceQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 		if _q.withCreator != nil {
-			_spec.Node.AddColumnOnce(workspace.FieldCreatedByID)
+			_spec.Node.AddColumnOnce(workspace.FieldCreatedBy)
 		}
 		if _q.withUpdater != nil {
-			_spec.Node.AddColumnOnce(workspace.FieldUpdatedByID)
+			_spec.Node.AddColumnOnce(workspace.FieldUpdatedBy)
 		}
 		if _q.withOwner != nil {
 			_spec.Node.AddColumnOnce(workspace.FieldOwnerID)

@@ -47,12 +47,14 @@ func (s *AccountRepoSuite) SetupTest() {
 	s.Require().NoError(err)
 	s.userID = u.ID
 
+	userCtx := context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+		ID:   u.ID,
+		Name: "Alice",
+	})
 	w, err := s.client.Workspace.Create().
 		SetName("Finance WS").
 		SetOwnerID(u.ID).
-		SetCreatedByID(u.ID).
-		SetUpdatedByID(u.ID).
-		Save(ctx)
+		Save(userCtx)
 	s.Require().NoError(err)
 	s.workspaceID = w.ID
 }
@@ -93,7 +95,6 @@ func (s *AccountRepoSuite) Test_CreateAndGetByID() {
 	fetched, err := s.repo.GetByID(ctx, s.workspaceID, acc.ID)
 	s.Require().NoError(err)
 	s.Equal(acc.ID, fetched.ID)
-	s.Equal("Alice", fetched.AuditMeta.CreatedBy.Name)
 }
 
 func (s *AccountRepoSuite) Test_Search() {

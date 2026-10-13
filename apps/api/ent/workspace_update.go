@@ -31,43 +31,31 @@ func (_u *WorkspaceUpdate) Where(ps ...predicate.Workspace) *WorkspaceUpdate {
 	return _u
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (_u *WorkspaceUpdate) SetCreatedByID(v int64) *WorkspaceUpdate {
-	_u.mutation.SetCreatedByID(v)
+// SetCreatedBy sets the "created_by" field.
+func (_u *WorkspaceUpdate) SetCreatedBy(v int64) *WorkspaceUpdate {
+	_u.mutation.SetCreatedBy(v)
 	return _u
 }
 
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (_u *WorkspaceUpdate) SetNillableCreatedByID(v *int64) *WorkspaceUpdate {
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_u *WorkspaceUpdate) SetNillableCreatedBy(v *int64) *WorkspaceUpdate {
 	if v != nil {
-		_u.SetCreatedByID(*v)
+		_u.SetCreatedBy(*v)
 	}
 	return _u
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (_u *WorkspaceUpdate) ClearCreatedByID() *WorkspaceUpdate {
-	_u.mutation.ClearCreatedByID()
+// SetUpdatedBy sets the "updated_by" field.
+func (_u *WorkspaceUpdate) SetUpdatedBy(v int64) *WorkspaceUpdate {
+	_u.mutation.SetUpdatedBy(v)
 	return _u
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (_u *WorkspaceUpdate) SetUpdatedByID(v int64) *WorkspaceUpdate {
-	_u.mutation.SetUpdatedByID(v)
-	return _u
-}
-
-// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
-func (_u *WorkspaceUpdate) SetNillableUpdatedByID(v *int64) *WorkspaceUpdate {
+// SetNillableUpdatedBy sets the "updated_by" field if the given value is not nil.
+func (_u *WorkspaceUpdate) SetNillableUpdatedBy(v *int64) *WorkspaceUpdate {
 	if v != nil {
-		_u.SetUpdatedByID(*v)
+		_u.SetUpdatedBy(*v)
 	}
-	return _u
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (_u *WorkspaceUpdate) ClearUpdatedByID() *WorkspaceUpdate {
-	_u.mutation.ClearUpdatedByID()
 	return _u
 }
 
@@ -131,14 +119,6 @@ func (_u *WorkspaceUpdate) SetCreatorID(id int64) *WorkspaceUpdate {
 	return _u
 }
 
-// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
-func (_u *WorkspaceUpdate) SetNillableCreatorID(id *int64) *WorkspaceUpdate {
-	if id != nil {
-		_u = _u.SetCreatorID(*id)
-	}
-	return _u
-}
-
 // SetCreator sets the "creator" edge to the User entity.
 func (_u *WorkspaceUpdate) SetCreator(v *User) *WorkspaceUpdate {
 	return _u.SetCreatorID(v.ID)
@@ -147,14 +127,6 @@ func (_u *WorkspaceUpdate) SetCreator(v *User) *WorkspaceUpdate {
 // SetUpdaterID sets the "updater" edge to the User entity by ID.
 func (_u *WorkspaceUpdate) SetUpdaterID(id int64) *WorkspaceUpdate {
 	_u.mutation.SetUpdaterID(id)
-	return _u
-}
-
-// SetNillableUpdaterID sets the "updater" edge to the User entity by ID if the given value is not nil.
-func (_u *WorkspaceUpdate) SetNillableUpdaterID(id *int64) *WorkspaceUpdate {
-	if id != nil {
-		_u = _u.SetUpdaterID(*id)
-	}
 	return _u
 }
 
@@ -269,6 +241,12 @@ func (_u *WorkspaceUpdate) check() error {
 		if err := workspace.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Workspace.name": %w`, err)}
 		}
+	}
+	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Workspace.creator"`)
+	}
+	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Workspace.updater"`)
 	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Workspace.owner"`)
@@ -463,43 +441,31 @@ type WorkspaceUpdateOne struct {
 	mutation *WorkspaceMutation
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (_u *WorkspaceUpdateOne) SetCreatedByID(v int64) *WorkspaceUpdateOne {
-	_u.mutation.SetCreatedByID(v)
+// SetCreatedBy sets the "created_by" field.
+func (_u *WorkspaceUpdateOne) SetCreatedBy(v int64) *WorkspaceUpdateOne {
+	_u.mutation.SetCreatedBy(v)
 	return _u
 }
 
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (_u *WorkspaceUpdateOne) SetNillableCreatedByID(v *int64) *WorkspaceUpdateOne {
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_u *WorkspaceUpdateOne) SetNillableCreatedBy(v *int64) *WorkspaceUpdateOne {
 	if v != nil {
-		_u.SetCreatedByID(*v)
+		_u.SetCreatedBy(*v)
 	}
 	return _u
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (_u *WorkspaceUpdateOne) ClearCreatedByID() *WorkspaceUpdateOne {
-	_u.mutation.ClearCreatedByID()
+// SetUpdatedBy sets the "updated_by" field.
+func (_u *WorkspaceUpdateOne) SetUpdatedBy(v int64) *WorkspaceUpdateOne {
+	_u.mutation.SetUpdatedBy(v)
 	return _u
 }
 
-// SetUpdatedByID sets the "updated_by_id" field.
-func (_u *WorkspaceUpdateOne) SetUpdatedByID(v int64) *WorkspaceUpdateOne {
-	_u.mutation.SetUpdatedByID(v)
-	return _u
-}
-
-// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
-func (_u *WorkspaceUpdateOne) SetNillableUpdatedByID(v *int64) *WorkspaceUpdateOne {
+// SetNillableUpdatedBy sets the "updated_by" field if the given value is not nil.
+func (_u *WorkspaceUpdateOne) SetNillableUpdatedBy(v *int64) *WorkspaceUpdateOne {
 	if v != nil {
-		_u.SetUpdatedByID(*v)
+		_u.SetUpdatedBy(*v)
 	}
-	return _u
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (_u *WorkspaceUpdateOne) ClearUpdatedByID() *WorkspaceUpdateOne {
-	_u.mutation.ClearUpdatedByID()
 	return _u
 }
 
@@ -563,14 +529,6 @@ func (_u *WorkspaceUpdateOne) SetCreatorID(id int64) *WorkspaceUpdateOne {
 	return _u
 }
 
-// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
-func (_u *WorkspaceUpdateOne) SetNillableCreatorID(id *int64) *WorkspaceUpdateOne {
-	if id != nil {
-		_u = _u.SetCreatorID(*id)
-	}
-	return _u
-}
-
 // SetCreator sets the "creator" edge to the User entity.
 func (_u *WorkspaceUpdateOne) SetCreator(v *User) *WorkspaceUpdateOne {
 	return _u.SetCreatorID(v.ID)
@@ -579,14 +537,6 @@ func (_u *WorkspaceUpdateOne) SetCreator(v *User) *WorkspaceUpdateOne {
 // SetUpdaterID sets the "updater" edge to the User entity by ID.
 func (_u *WorkspaceUpdateOne) SetUpdaterID(id int64) *WorkspaceUpdateOne {
 	_u.mutation.SetUpdaterID(id)
-	return _u
-}
-
-// SetNillableUpdaterID sets the "updater" edge to the User entity by ID if the given value is not nil.
-func (_u *WorkspaceUpdateOne) SetNillableUpdaterID(id *int64) *WorkspaceUpdateOne {
-	if id != nil {
-		_u = _u.SetUpdaterID(*id)
-	}
 	return _u
 }
 
@@ -714,6 +664,12 @@ func (_u *WorkspaceUpdateOne) check() error {
 		if err := workspace.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Workspace.name": %w`, err)}
 		}
+	}
+	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Workspace.creator"`)
+	}
+	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Workspace.updater"`)
 	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Workspace.owner"`)

@@ -172,13 +172,13 @@ func (m *AccountMutation) IDs(ctx context.Context) ([]int64, error) {
 	}
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (m *AccountMutation) SetCreatedByID(i int64) {
+// SetCreatedBy sets the "created_by" field.
+func (m *AccountMutation) SetCreatedBy(i int64) {
 	m.creator = &i
 }
 
-// CreatedByID returns the value of the "created_by_id" field in the mutation.
-func (m *AccountMutation) CreatedByID() (r int64, exists bool) {
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *AccountMutation) CreatedBy() (r int64, exists bool) {
 	v := m.creator
 	if v == nil {
 		return
@@ -186,48 +186,35 @@ func (m *AccountMutation) CreatedByID() (r int64, exists bool) {
 	return *v, true
 }
 
-// OldCreatedByID returns the old "created_by_id" field's value of the Account entity.
+// OldCreatedBy returns the old "created_by" field's value of the Account entity.
 // If the Account object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountMutation) OldCreatedByID(ctx context.Context) (v *int64, err error) {
+func (m *AccountMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedByID is only allowed on UpdateOne operations")
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedByID requires an ID field in the mutation")
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedByID: %w", err)
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
 	}
-	return oldValue.CreatedByID, nil
+	return oldValue.CreatedBy, nil
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (m *AccountMutation) ClearCreatedByID() {
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *AccountMutation) ResetCreatedBy() {
 	m.creator = nil
-	m.clearedFields[account.FieldCreatedByID] = struct{}{}
 }
 
-// CreatedByIDCleared returns if the "created_by_id" field was cleared in this mutation.
-func (m *AccountMutation) CreatedByIDCleared() bool {
-	_, ok := m.clearedFields[account.FieldCreatedByID]
-	return ok
-}
-
-// ResetCreatedByID resets all changes to the "created_by_id" field.
-func (m *AccountMutation) ResetCreatedByID() {
-	m.creator = nil
-	delete(m.clearedFields, account.FieldCreatedByID)
-}
-
-// SetUpdatedByID sets the "updated_by_id" field.
-func (m *AccountMutation) SetUpdatedByID(i int64) {
+// SetUpdatedBy sets the "updated_by" field.
+func (m *AccountMutation) SetUpdatedBy(i int64) {
 	m.updater = &i
 }
 
-// UpdatedByID returns the value of the "updated_by_id" field in the mutation.
-func (m *AccountMutation) UpdatedByID() (r int64, exists bool) {
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *AccountMutation) UpdatedBy() (r int64, exists bool) {
 	v := m.updater
 	if v == nil {
 		return
@@ -235,39 +222,26 @@ func (m *AccountMutation) UpdatedByID() (r int64, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedByID returns the old "updated_by_id" field's value of the Account entity.
+// OldUpdatedBy returns the old "updated_by" field's value of the Account entity.
 // If the Account object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountMutation) OldUpdatedByID(ctx context.Context) (v *int64, err error) {
+func (m *AccountMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedByID is only allowed on UpdateOne operations")
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedByID requires an ID field in the mutation")
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedByID: %w", err)
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
 	}
-	return oldValue.UpdatedByID, nil
+	return oldValue.UpdatedBy, nil
 }
 
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (m *AccountMutation) ClearUpdatedByID() {
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *AccountMutation) ResetUpdatedBy() {
 	m.updater = nil
-	m.clearedFields[account.FieldUpdatedByID] = struct{}{}
-}
-
-// UpdatedByIDCleared returns if the "updated_by_id" field was cleared in this mutation.
-func (m *AccountMutation) UpdatedByIDCleared() bool {
-	_, ok := m.clearedFields[account.FieldUpdatedByID]
-	return ok
-}
-
-// ResetUpdatedByID resets all changes to the "updated_by_id" field.
-func (m *AccountMutation) ResetUpdatedByID() {
-	m.updater = nil
-	delete(m.clearedFields, account.FieldUpdatedByID)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -798,12 +772,12 @@ func (m *AccountMutation) SetCreatorID(id int64) {
 // ClearCreator clears the "creator" edge to the User entity.
 func (m *AccountMutation) ClearCreator() {
 	m.clearedcreator = true
-	m.clearedFields[account.FieldCreatedByID] = struct{}{}
+	m.clearedFields[account.FieldCreatedBy] = struct{}{}
 }
 
 // CreatorCleared reports if the "creator" edge to the User entity was cleared.
 func (m *AccountMutation) CreatorCleared() bool {
-	return m.CreatedByIDCleared() || m.clearedcreator
+	return m.clearedcreator
 }
 
 // CreatorID returns the "creator" edge ID in the mutation.
@@ -838,12 +812,12 @@ func (m *AccountMutation) SetUpdaterID(id int64) {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (m *AccountMutation) ClearUpdater() {
 	m.clearedupdater = true
-	m.clearedFields[account.FieldUpdatedByID] = struct{}{}
+	m.clearedFields[account.FieldUpdatedBy] = struct{}{}
 }
 
 // UpdaterCleared reports if the "updater" edge to the User entity was cleared.
 func (m *AccountMutation) UpdaterCleared() bool {
-	return m.UpdatedByIDCleared() || m.clearedupdater
+	return m.clearedupdater
 }
 
 // UpdaterID returns the "updater" edge ID in the mutation.
@@ -1054,10 +1028,10 @@ func (m *AccountMutation) Type() string {
 func (m *AccountMutation) Fields() []string {
 	fields := make([]string, 0, 15)
 	if m.creator != nil {
-		fields = append(fields, account.FieldCreatedByID)
+		fields = append(fields, account.FieldCreatedBy)
 	}
 	if m.updater != nil {
-		fields = append(fields, account.FieldUpdatedByID)
+		fields = append(fields, account.FieldUpdatedBy)
 	}
 	if m.created_at != nil {
 		fields = append(fields, account.FieldCreatedAt)
@@ -1106,10 +1080,10 @@ func (m *AccountMutation) Fields() []string {
 // schema.
 func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case account.FieldCreatedByID:
-		return m.CreatedByID()
-	case account.FieldUpdatedByID:
-		return m.UpdatedByID()
+	case account.FieldCreatedBy:
+		return m.CreatedBy()
+	case account.FieldUpdatedBy:
+		return m.UpdatedBy()
 	case account.FieldCreatedAt:
 		return m.CreatedAt()
 	case account.FieldUpdatedAt:
@@ -1145,10 +1119,10 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case account.FieldCreatedByID:
-		return m.OldCreatedByID(ctx)
-	case account.FieldUpdatedByID:
-		return m.OldUpdatedByID(ctx)
+	case account.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case account.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
 	case account.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case account.FieldUpdatedAt:
@@ -1184,19 +1158,19 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *AccountMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case account.FieldCreatedByID:
+	case account.FieldCreatedBy:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCreatedByID(v)
+		m.SetCreatedBy(v)
 		return nil
-	case account.FieldUpdatedByID:
+	case account.FieldUpdatedBy:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUpdatedByID(v)
+		m.SetUpdatedBy(v)
 		return nil
 	case account.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1322,12 +1296,6 @@ func (m *AccountMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *AccountMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(account.FieldCreatedByID) {
-		fields = append(fields, account.FieldCreatedByID)
-	}
-	if m.FieldCleared(account.FieldUpdatedByID) {
-		fields = append(fields, account.FieldUpdatedByID)
-	}
 	if m.FieldCleared(account.FieldDeletedAt) {
 		fields = append(fields, account.FieldDeletedAt)
 	}
@@ -1354,12 +1322,6 @@ func (m *AccountMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *AccountMutation) ClearField(name string) error {
 	switch name {
-	case account.FieldCreatedByID:
-		m.ClearCreatedByID()
-		return nil
-	case account.FieldUpdatedByID:
-		m.ClearUpdatedByID()
-		return nil
 	case account.FieldDeletedAt:
 		m.ClearDeletedAt()
 		return nil
@@ -1380,11 +1342,11 @@ func (m *AccountMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AccountMutation) ResetField(name string) error {
 	switch name {
-	case account.FieldCreatedByID:
-		m.ResetCreatedByID()
+	case account.FieldCreatedBy:
+		m.ResetCreatedBy()
 		return nil
-	case account.FieldUpdatedByID:
-		m.ResetUpdatedByID()
+	case account.FieldUpdatedBy:
+		m.ResetUpdatedBy()
 		return nil
 	case account.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -2303,13 +2265,13 @@ func (m *WorkspaceMutation) IDs(ctx context.Context) ([]int64, error) {
 	}
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (m *WorkspaceMutation) SetCreatedByID(i int64) {
+// SetCreatedBy sets the "created_by" field.
+func (m *WorkspaceMutation) SetCreatedBy(i int64) {
 	m.creator = &i
 }
 
-// CreatedByID returns the value of the "created_by_id" field in the mutation.
-func (m *WorkspaceMutation) CreatedByID() (r int64, exists bool) {
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *WorkspaceMutation) CreatedBy() (r int64, exists bool) {
 	v := m.creator
 	if v == nil {
 		return
@@ -2317,48 +2279,35 @@ func (m *WorkspaceMutation) CreatedByID() (r int64, exists bool) {
 	return *v, true
 }
 
-// OldCreatedByID returns the old "created_by_id" field's value of the Workspace entity.
+// OldCreatedBy returns the old "created_by" field's value of the Workspace entity.
 // If the Workspace object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkspaceMutation) OldCreatedByID(ctx context.Context) (v *int64, err error) {
+func (m *WorkspaceMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedByID is only allowed on UpdateOne operations")
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedByID requires an ID field in the mutation")
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedByID: %w", err)
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
 	}
-	return oldValue.CreatedByID, nil
+	return oldValue.CreatedBy, nil
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (m *WorkspaceMutation) ClearCreatedByID() {
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *WorkspaceMutation) ResetCreatedBy() {
 	m.creator = nil
-	m.clearedFields[workspace.FieldCreatedByID] = struct{}{}
 }
 
-// CreatedByIDCleared returns if the "created_by_id" field was cleared in this mutation.
-func (m *WorkspaceMutation) CreatedByIDCleared() bool {
-	_, ok := m.clearedFields[workspace.FieldCreatedByID]
-	return ok
-}
-
-// ResetCreatedByID resets all changes to the "created_by_id" field.
-func (m *WorkspaceMutation) ResetCreatedByID() {
-	m.creator = nil
-	delete(m.clearedFields, workspace.FieldCreatedByID)
-}
-
-// SetUpdatedByID sets the "updated_by_id" field.
-func (m *WorkspaceMutation) SetUpdatedByID(i int64) {
+// SetUpdatedBy sets the "updated_by" field.
+func (m *WorkspaceMutation) SetUpdatedBy(i int64) {
 	m.updater = &i
 }
 
-// UpdatedByID returns the value of the "updated_by_id" field in the mutation.
-func (m *WorkspaceMutation) UpdatedByID() (r int64, exists bool) {
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *WorkspaceMutation) UpdatedBy() (r int64, exists bool) {
 	v := m.updater
 	if v == nil {
 		return
@@ -2366,39 +2315,26 @@ func (m *WorkspaceMutation) UpdatedByID() (r int64, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedByID returns the old "updated_by_id" field's value of the Workspace entity.
+// OldUpdatedBy returns the old "updated_by" field's value of the Workspace entity.
 // If the Workspace object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkspaceMutation) OldUpdatedByID(ctx context.Context) (v *int64, err error) {
+func (m *WorkspaceMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedByID is only allowed on UpdateOne operations")
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedByID requires an ID field in the mutation")
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedByID: %w", err)
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
 	}
-	return oldValue.UpdatedByID, nil
+	return oldValue.UpdatedBy, nil
 }
 
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (m *WorkspaceMutation) ClearUpdatedByID() {
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *WorkspaceMutation) ResetUpdatedBy() {
 	m.updater = nil
-	m.clearedFields[workspace.FieldUpdatedByID] = struct{}{}
-}
-
-// UpdatedByIDCleared returns if the "updated_by_id" field was cleared in this mutation.
-func (m *WorkspaceMutation) UpdatedByIDCleared() bool {
-	_, ok := m.clearedFields[workspace.FieldUpdatedByID]
-	return ok
-}
-
-// ResetUpdatedByID resets all changes to the "updated_by_id" field.
-func (m *WorkspaceMutation) ResetUpdatedByID() {
-	m.updater = nil
-	delete(m.clearedFields, workspace.FieldUpdatedByID)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -2638,12 +2574,12 @@ func (m *WorkspaceMutation) SetCreatorID(id int64) {
 // ClearCreator clears the "creator" edge to the User entity.
 func (m *WorkspaceMutation) ClearCreator() {
 	m.clearedcreator = true
-	m.clearedFields[workspace.FieldCreatedByID] = struct{}{}
+	m.clearedFields[workspace.FieldCreatedBy] = struct{}{}
 }
 
 // CreatorCleared reports if the "creator" edge to the User entity was cleared.
 func (m *WorkspaceMutation) CreatorCleared() bool {
-	return m.CreatedByIDCleared() || m.clearedcreator
+	return m.clearedcreator
 }
 
 // CreatorID returns the "creator" edge ID in the mutation.
@@ -2678,12 +2614,12 @@ func (m *WorkspaceMutation) SetUpdaterID(id int64) {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (m *WorkspaceMutation) ClearUpdater() {
 	m.clearedupdater = true
-	m.clearedFields[workspace.FieldUpdatedByID] = struct{}{}
+	m.clearedFields[workspace.FieldUpdatedBy] = struct{}{}
 }
 
 // UpdaterCleared reports if the "updater" edge to the User entity was cleared.
 func (m *WorkspaceMutation) UpdaterCleared() bool {
-	return m.UpdatedByIDCleared() || m.clearedupdater
+	return m.clearedupdater
 }
 
 // UpdaterID returns the "updater" edge ID in the mutation.
@@ -2827,10 +2763,10 @@ func (m *WorkspaceMutation) Type() string {
 func (m *WorkspaceMutation) Fields() []string {
 	fields := make([]string, 0, 8)
 	if m.creator != nil {
-		fields = append(fields, workspace.FieldCreatedByID)
+		fields = append(fields, workspace.FieldCreatedBy)
 	}
 	if m.updater != nil {
-		fields = append(fields, workspace.FieldUpdatedByID)
+		fields = append(fields, workspace.FieldUpdatedBy)
 	}
 	if m.created_at != nil {
 		fields = append(fields, workspace.FieldCreatedAt)
@@ -2858,10 +2794,10 @@ func (m *WorkspaceMutation) Fields() []string {
 // schema.
 func (m *WorkspaceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case workspace.FieldCreatedByID:
-		return m.CreatedByID()
-	case workspace.FieldUpdatedByID:
-		return m.UpdatedByID()
+	case workspace.FieldCreatedBy:
+		return m.CreatedBy()
+	case workspace.FieldUpdatedBy:
+		return m.UpdatedBy()
 	case workspace.FieldCreatedAt:
 		return m.CreatedAt()
 	case workspace.FieldUpdatedAt:
@@ -2883,10 +2819,10 @@ func (m *WorkspaceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *WorkspaceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case workspace.FieldCreatedByID:
-		return m.OldCreatedByID(ctx)
-	case workspace.FieldUpdatedByID:
-		return m.OldUpdatedByID(ctx)
+	case workspace.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case workspace.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
 	case workspace.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case workspace.FieldUpdatedAt:
@@ -2908,19 +2844,19 @@ func (m *WorkspaceMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *WorkspaceMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case workspace.FieldCreatedByID:
+	case workspace.FieldCreatedBy:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCreatedByID(v)
+		m.SetCreatedBy(v)
 		return nil
-	case workspace.FieldUpdatedByID:
+	case workspace.FieldUpdatedBy:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUpdatedByID(v)
+		m.SetUpdatedBy(v)
 		return nil
 	case workspace.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -2997,12 +2933,6 @@ func (m *WorkspaceMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *WorkspaceMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(workspace.FieldCreatedByID) {
-		fields = append(fields, workspace.FieldCreatedByID)
-	}
-	if m.FieldCleared(workspace.FieldUpdatedByID) {
-		fields = append(fields, workspace.FieldUpdatedByID)
-	}
 	if m.FieldCleared(workspace.FieldDescription) {
 		fields = append(fields, workspace.FieldDescription)
 	}
@@ -3020,12 +2950,6 @@ func (m *WorkspaceMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *WorkspaceMutation) ClearField(name string) error {
 	switch name {
-	case workspace.FieldCreatedByID:
-		m.ClearCreatedByID()
-		return nil
-	case workspace.FieldUpdatedByID:
-		m.ClearUpdatedByID()
-		return nil
 	case workspace.FieldDescription:
 		m.ClearDescription()
 		return nil
@@ -3037,11 +2961,11 @@ func (m *WorkspaceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *WorkspaceMutation) ResetField(name string) error {
 	switch name {
-	case workspace.FieldCreatedByID:
-		m.ResetCreatedByID()
+	case workspace.FieldCreatedBy:
+		m.ResetCreatedBy()
 		return nil
-	case workspace.FieldUpdatedByID:
-		m.ResetUpdatedByID()
+	case workspace.FieldUpdatedBy:
+		m.ResetUpdatedBy()
 		return nil
 	case workspace.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -3331,13 +3255,13 @@ func (m *WorkspaceMemberMutation) IDs(ctx context.Context) ([]int64, error) {
 	}
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (m *WorkspaceMemberMutation) SetCreatedByID(i int64) {
+// SetCreatedBy sets the "created_by" field.
+func (m *WorkspaceMemberMutation) SetCreatedBy(i int64) {
 	m.creator = &i
 }
 
-// CreatedByID returns the value of the "created_by_id" field in the mutation.
-func (m *WorkspaceMemberMutation) CreatedByID() (r int64, exists bool) {
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *WorkspaceMemberMutation) CreatedBy() (r int64, exists bool) {
 	v := m.creator
 	if v == nil {
 		return
@@ -3345,48 +3269,35 @@ func (m *WorkspaceMemberMutation) CreatedByID() (r int64, exists bool) {
 	return *v, true
 }
 
-// OldCreatedByID returns the old "created_by_id" field's value of the WorkspaceMember entity.
+// OldCreatedBy returns the old "created_by" field's value of the WorkspaceMember entity.
 // If the WorkspaceMember object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkspaceMemberMutation) OldCreatedByID(ctx context.Context) (v *int64, err error) {
+func (m *WorkspaceMemberMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedByID is only allowed on UpdateOne operations")
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedByID requires an ID field in the mutation")
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedByID: %w", err)
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
 	}
-	return oldValue.CreatedByID, nil
+	return oldValue.CreatedBy, nil
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (m *WorkspaceMemberMutation) ClearCreatedByID() {
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *WorkspaceMemberMutation) ResetCreatedBy() {
 	m.creator = nil
-	m.clearedFields[workspacemember.FieldCreatedByID] = struct{}{}
 }
 
-// CreatedByIDCleared returns if the "created_by_id" field was cleared in this mutation.
-func (m *WorkspaceMemberMutation) CreatedByIDCleared() bool {
-	_, ok := m.clearedFields[workspacemember.FieldCreatedByID]
-	return ok
-}
-
-// ResetCreatedByID resets all changes to the "created_by_id" field.
-func (m *WorkspaceMemberMutation) ResetCreatedByID() {
-	m.creator = nil
-	delete(m.clearedFields, workspacemember.FieldCreatedByID)
-}
-
-// SetUpdatedByID sets the "updated_by_id" field.
-func (m *WorkspaceMemberMutation) SetUpdatedByID(i int64) {
+// SetUpdatedBy sets the "updated_by" field.
+func (m *WorkspaceMemberMutation) SetUpdatedBy(i int64) {
 	m.updater = &i
 }
 
-// UpdatedByID returns the value of the "updated_by_id" field in the mutation.
-func (m *WorkspaceMemberMutation) UpdatedByID() (r int64, exists bool) {
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *WorkspaceMemberMutation) UpdatedBy() (r int64, exists bool) {
 	v := m.updater
 	if v == nil {
 		return
@@ -3394,39 +3305,26 @@ func (m *WorkspaceMemberMutation) UpdatedByID() (r int64, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedByID returns the old "updated_by_id" field's value of the WorkspaceMember entity.
+// OldUpdatedBy returns the old "updated_by" field's value of the WorkspaceMember entity.
 // If the WorkspaceMember object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkspaceMemberMutation) OldUpdatedByID(ctx context.Context) (v *int64, err error) {
+func (m *WorkspaceMemberMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedByID is only allowed on UpdateOne operations")
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedByID requires an ID field in the mutation")
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedByID: %w", err)
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
 	}
-	return oldValue.UpdatedByID, nil
+	return oldValue.UpdatedBy, nil
 }
 
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (m *WorkspaceMemberMutation) ClearUpdatedByID() {
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *WorkspaceMemberMutation) ResetUpdatedBy() {
 	m.updater = nil
-	m.clearedFields[workspacemember.FieldUpdatedByID] = struct{}{}
-}
-
-// UpdatedByIDCleared returns if the "updated_by_id" field was cleared in this mutation.
-func (m *WorkspaceMemberMutation) UpdatedByIDCleared() bool {
-	_, ok := m.clearedFields[workspacemember.FieldUpdatedByID]
-	return ok
-}
-
-// ResetUpdatedByID resets all changes to the "updated_by_id" field.
-func (m *WorkspaceMemberMutation) ResetUpdatedByID() {
-	m.updater = nil
-	delete(m.clearedFields, workspacemember.FieldUpdatedByID)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -3632,12 +3530,12 @@ func (m *WorkspaceMemberMutation) SetCreatorID(id int64) {
 // ClearCreator clears the "creator" edge to the User entity.
 func (m *WorkspaceMemberMutation) ClearCreator() {
 	m.clearedcreator = true
-	m.clearedFields[workspacemember.FieldCreatedByID] = struct{}{}
+	m.clearedFields[workspacemember.FieldCreatedBy] = struct{}{}
 }
 
 // CreatorCleared reports if the "creator" edge to the User entity was cleared.
 func (m *WorkspaceMemberMutation) CreatorCleared() bool {
-	return m.CreatedByIDCleared() || m.clearedcreator
+	return m.clearedcreator
 }
 
 // CreatorID returns the "creator" edge ID in the mutation.
@@ -3672,12 +3570,12 @@ func (m *WorkspaceMemberMutation) SetUpdaterID(id int64) {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (m *WorkspaceMemberMutation) ClearUpdater() {
 	m.clearedupdater = true
-	m.clearedFields[workspacemember.FieldUpdatedByID] = struct{}{}
+	m.clearedFields[workspacemember.FieldUpdatedBy] = struct{}{}
 }
 
 // UpdaterCleared reports if the "updater" edge to the User entity was cleared.
 func (m *WorkspaceMemberMutation) UpdaterCleared() bool {
-	return m.UpdatedByIDCleared() || m.clearedupdater
+	return m.clearedupdater
 }
 
 // UpdaterID returns the "updater" edge ID in the mutation.
@@ -3794,10 +3692,10 @@ func (m *WorkspaceMemberMutation) Type() string {
 func (m *WorkspaceMemberMutation) Fields() []string {
 	fields := make([]string, 0, 7)
 	if m.creator != nil {
-		fields = append(fields, workspacemember.FieldCreatedByID)
+		fields = append(fields, workspacemember.FieldCreatedBy)
 	}
 	if m.updater != nil {
-		fields = append(fields, workspacemember.FieldUpdatedByID)
+		fields = append(fields, workspacemember.FieldUpdatedBy)
 	}
 	if m.created_at != nil {
 		fields = append(fields, workspacemember.FieldCreatedAt)
@@ -3822,10 +3720,10 @@ func (m *WorkspaceMemberMutation) Fields() []string {
 // schema.
 func (m *WorkspaceMemberMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case workspacemember.FieldCreatedByID:
-		return m.CreatedByID()
-	case workspacemember.FieldUpdatedByID:
-		return m.UpdatedByID()
+	case workspacemember.FieldCreatedBy:
+		return m.CreatedBy()
+	case workspacemember.FieldUpdatedBy:
+		return m.UpdatedBy()
 	case workspacemember.FieldCreatedAt:
 		return m.CreatedAt()
 	case workspacemember.FieldUpdatedAt:
@@ -3845,10 +3743,10 @@ func (m *WorkspaceMemberMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *WorkspaceMemberMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case workspacemember.FieldCreatedByID:
-		return m.OldCreatedByID(ctx)
-	case workspacemember.FieldUpdatedByID:
-		return m.OldUpdatedByID(ctx)
+	case workspacemember.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case workspacemember.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
 	case workspacemember.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case workspacemember.FieldUpdatedAt:
@@ -3868,19 +3766,19 @@ func (m *WorkspaceMemberMutation) OldField(ctx context.Context, name string) (en
 // type.
 func (m *WorkspaceMemberMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case workspacemember.FieldCreatedByID:
+	case workspacemember.FieldCreatedBy:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCreatedByID(v)
+		m.SetCreatedBy(v)
 		return nil
-	case workspacemember.FieldUpdatedByID:
+	case workspacemember.FieldUpdatedBy:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUpdatedByID(v)
+		m.SetUpdatedBy(v)
 		return nil
 	case workspacemember.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -3949,14 +3847,7 @@ func (m *WorkspaceMemberMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *WorkspaceMemberMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(workspacemember.FieldCreatedByID) {
-		fields = append(fields, workspacemember.FieldCreatedByID)
-	}
-	if m.FieldCleared(workspacemember.FieldUpdatedByID) {
-		fields = append(fields, workspacemember.FieldUpdatedByID)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3969,14 +3860,6 @@ func (m *WorkspaceMemberMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *WorkspaceMemberMutation) ClearField(name string) error {
-	switch name {
-	case workspacemember.FieldCreatedByID:
-		m.ClearCreatedByID()
-		return nil
-	case workspacemember.FieldUpdatedByID:
-		m.ClearUpdatedByID()
-		return nil
-	}
 	return fmt.Errorf("unknown WorkspaceMember nullable field %s", name)
 }
 
@@ -3984,11 +3867,11 @@ func (m *WorkspaceMemberMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *WorkspaceMemberMutation) ResetField(name string) error {
 	switch name {
-	case workspacemember.FieldCreatedByID:
-		m.ResetCreatedByID()
+	case workspacemember.FieldCreatedBy:
+		m.ResetCreatedBy()
 		return nil
-	case workspacemember.FieldUpdatedByID:
-		m.ResetUpdatedByID()
+	case workspacemember.FieldUpdatedBy:
+		m.ResetUpdatedBy()
 		return nil
 	case workspacemember.FieldCreatedAt:
 		m.ResetCreatedAt()
