@@ -14,6 +14,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+//go:generate go run go.uber.org/mock/mockgen -source=user.go -destination=mock/mock_user.go -package=mock
+
 type UserSuite struct {
 	suite.Suite
 	mockRepo *mock.MockUserRepository

@@ -6,8 +6,6 @@ import (
 	"github.com/kilip/omed/api/internal/user/model"
 )
 
-//go:generate go run go.uber.org/mock/mockgen -source=user.go -destination=mock/mock_user.go -package=mock
-
 type UserRepository interface {
 	core.ServiceRepository[int64, domain.User, model.CreateUserRequest, model.UpdateUserRequest, model.SearchRequest]
 }
