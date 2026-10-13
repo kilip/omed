@@ -60,12 +60,17 @@ components:
           type: string
         name:
           type: string
+      required:
+      - email
+      - name
       type: object
     model.SearchRequest:
       properties:
         cursor:
           type: string
         limit:
+          maximum: 100
+          minimum: 1
           type: integer
         name:
           type: string
@@ -76,6 +81,8 @@ components:
           type: string
         name:
           type: string
+      required:
+      - name
       type: object
     model.UserResponse:
       properties:

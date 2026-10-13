@@ -367,8 +367,8 @@ export interface components {
     };
     "model.CreateUserRequest": {
       avatar?: string;
-      email?: string;
-      name?: string;
+      email: string;
+      name: string;
     };
     "model.SearchRequest": {
       cursor?: string;
@@ -377,7 +377,7 @@ export interface components {
     };
     "model.UpdateUserRequest": {
       avatar?: string;
-      name?: string;
+      name: string;
     };
     "model.UserResponse": {
       avatar?: string;

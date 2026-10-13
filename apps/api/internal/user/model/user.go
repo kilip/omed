@@ -11,18 +11,18 @@ type UserResponse struct {
 }
 
 type CreateUserRequest struct {
-	Name   string `json:"name"`
-	Email  string `json:"email"`
-	Avatar string `json:"avatar,omitempty"`
+	Name   string `json:"name" validate:"required"`
+	Email  string `json:"email" validate:"required,email"`
+	Avatar string `json:"avatar,omitempty" validate:"omitempty,url"`
 }
 
 type UpdateUserRequest struct {
-	Name   string `json:"name,omitempty"`
-	Avatar string `json:"avatar,omitempty"`
+	Name   string `json:"name,omitempty" validate:"required"`
+	Avatar string `json:"avatar,omitempty" validate:"omitempty,url"`
 }
 
 type SearchRequest struct {
 	Name   string `json:"name,omitempty"`
 	Cursor string `json:"cursor,omitempty"`
-	Limit  int    `json:"limit,omitempty"`
+	Limit  int    `json:"limit,omitempty" validate:"omitempty,min=1,max=100"`
 }

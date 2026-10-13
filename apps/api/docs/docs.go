@@ -100,6 +100,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "email",
+                    "name"
+                ],
                 "type": "object"
             },
             "model.SearchRequest": {
@@ -108,6 +112,8 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer"
                     },
                     "name": {
@@ -125,6 +131,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "name"
+                ],
                 "type": "object"
             },
             "model.UserResponse": {

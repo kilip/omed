@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/internal/user/model"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
@@ -191,6 +193,111 @@ func (u *UserSuite) Test_Search_NoResults() {
 	res := u.PagedResponse()
 	u.Empty(res.Data)
 	u.Empty(res.Meta.Cursor)
+}
+
+func (u *UserSuite) getErrorResponse() httpx.ErrorResponse {
+	var res httpx.ErrorResponse
+	u.T().Helper()
+	defer u.HttpResponse.Body.Close()
+	u.Require().NoError(json.NewDecoder(u.HttpResponse.Body).Decode(&res))
+	return res
+}
+
+func (u *UserSuite) Test_Create_ValidationError_RequiredFields() {
+	u.Request("/users", fiber.MethodPost, model.CreateUserRequest{})
+	u.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	errRes := u.getErrorResponse()
+	u.Equal("VALIDATION_FAILED", errRes.Error.Code)
+
+	fieldRules := make(map[string]string)
+	for _, f := range errRes.Error.Fields {
+		fieldRules[f.Field] = f.Rule
+	}
+	u.Equal("required", fieldRules["Name"])
+	u.Equal("required", fieldRules["Email"])
+}
+
+func (u *UserSuite) Test_Create_ValidationError_InvalidEmail() {
+	u.Request("/users", fiber.MethodPost, model.CreateUserRequest{
+		Name:  "Test User",
+		Email: "invalid-email-format",
+	})
+	u.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	errRes := u.getErrorResponse()
+	u.Equal("VALIDATION_FAILED", errRes.Error.Code)
+	u.Require().Len(errRes.Error.Fields, 1)
+	u.Equal("Email", errRes.Error.Fields[0].Field)
+	u.Equal("email", errRes.Error.Fields[0].Rule)
+}
+
+func (u *UserSuite) Test_Create_ValidationError_InvalidAvatarURL() {
+	u.Request("/users", fiber.MethodPost, model.CreateUserRequest{
+		Name:   "Test User",
+		Email:  "test@example.com",
+		Avatar: "not-a-valid-url",
+	})
+	u.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	errRes := u.getErrorResponse()
+	u.Equal("VALIDATION_FAILED", errRes.Error.Code)
+	u.Require().Len(errRes.Error.Fields, 1)
+	u.Equal("Avatar", errRes.Error.Fields[0].Field)
+	u.Equal("url", errRes.Error.Fields[0].Rule)
+}
+
+func (u *UserSuite) Test_Update_ValidationError_RequiredName() {
+	user := u.EnsureUser(testUser)
+	u.Request(fmt.Sprintf("/users/%d", user.ID), fiber.MethodPut, model.UpdateUserRequest{
+		Name: "",
+	})
+	u.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	errRes := u.getErrorResponse()
+	u.Equal("VALIDATION_FAILED", errRes.Error.Code)
+	u.Require().Len(errRes.Error.Fields, 1)
+	u.Equal("Name", errRes.Error.Fields[0].Field)
+	u.Equal("required", errRes.Error.Fields[0].Rule)
+}
+
+func (u *UserSuite) Test_Update_ValidationError_InvalidAvatarURL() {
+	user := u.EnsureUser(testUser)
+	u.Request(fmt.Sprintf("/users/%d", user.ID), fiber.MethodPut, model.UpdateUserRequest{
+		Name:   "Valid Name",
+		Avatar: "not-a-valid-url",
+	})
+	u.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	errRes := u.getErrorResponse()
+	u.Equal("VALIDATION_FAILED", errRes.Error.Code)
+	u.Require().Len(errRes.Error.Fields, 1)
+	u.Equal("Avatar", errRes.Error.Fields[0].Field)
+	u.Equal("url", errRes.Error.Fields[0].Rule)
+}
+
+func (u *UserSuite) Test_Search_ValidationError_InvalidLimit() {
+	u.Request("/users/search", fiber.MethodPost, model.SearchRequest{
+		Limit: -1,
+	})
+	u.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	errRes := u.getErrorResponse()
+	u.Equal("VALIDATION_FAILED", errRes.Error.Code)
+	u.Require().Len(errRes.Error.Fields, 1)
+	u.Equal("Limit", errRes.Error.Fields[0].Field)
+	u.Equal("min", errRes.Error.Fields[0].Rule)
+
+	u.Request("/users/search", fiber.MethodPost, model.SearchRequest{
+		Limit: 101,
+	})
+	u.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	errRes = u.getErrorResponse()
+	u.Equal("VALIDATION_FAILED", errRes.Error.Code)
+	u.Require().Len(errRes.Error.Fields, 1)
+	u.Equal("Limit", errRes.Error.Fields[0].Field)
+	u.Equal("max", errRes.Error.Fields[0].Rule)
 }
 
 func TestUserSuite(t *testing.T) {
