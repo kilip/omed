@@ -1,5 +1,7 @@
 # Omed
 
+[![codecov](https://img.shields.io/codecov/c/github/kilip/omed)](https://codecov.io/gh/kilip/omed)
+
 A demo project on steroids
 
 The monorepo is managed with [Bun workspaces](https://bun.sh/docs/install/workspaces) and [Turborepo](https://turbo.build/repo).
@@ -163,3 +165,7 @@ Guidance for AI coding agents is in [AGENTS.md](./AGENTS.md); dashboard visual g
 ## License
 
 [MIT](./LICENSE) © Anthonius
+
+---
+
+Made with ❤️ and ☕
