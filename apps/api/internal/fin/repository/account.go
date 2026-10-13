@@ -171,11 +171,6 @@ func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req 
 
 // Delete marks an existing account as soft-deleted.
 func (r AccountRepository) Delete(c context.Context, workspaceID, id int64) error {
-	var userID *int64
-	if u := base.UserFromContext(c); u.ID != 0 {
-		userID = &u.ID
-	}
-
 	return entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		exists, err := tx.Account.Query().
 			Where(
@@ -192,14 +187,9 @@ func (r AccountRepository) Delete(c context.Context, workspaceID, id int64) erro
 		}
 
 		now := time.Now()
-		builder := tx.Account.UpdateOneID(id).
-			SetDeletedAt(now)
-
-		if userID != nil {
-			builder.SetDeletedByID(*userID)
-		}
-
-		return builder.Exec(c)
+		return tx.Account.UpdateOneID(id).
+			SetDeletedAt(now).
+			Exec(c)
 	})
 }
 
