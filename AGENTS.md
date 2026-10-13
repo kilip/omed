@@ -80,8 +80,6 @@ apps/api/internal/{module_name}/
 └── test/          # Integration tests (API endpoint testing)
 ```
 
-Module names match the dashboard modules: `sys`, `user`, `fin`, `web`.
-
 Dependency direction is strictly `controller -> service -> repository`:
 
 - Controllers never touch Ent or repositories directly.
