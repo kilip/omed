@@ -3,11 +3,10 @@ package config
 import (
 	"log"
 
-	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/platform/jwtx"
 )
 
-func initFirewall(state base.State) {
+func initFirewall(state State) {
 	app := state.FiberApp
 	cfg := state.Config
 

@@ -15,29 +15,32 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3/middleware/requestid"
-	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/user"
 	"golang.org/x/sync/errgroup"
 )
 
 // App manages application modules and the HTTP server lifecycle.
 type App struct {
-	cfg     base.Config
-	state   base.State
-	modules []base.Module
+	cfg     Config
+	state   State
+	modules []Module
 }
 
 // New creates a new App instance populated with runtime state and registered modules.
-func New(state base.State) App {
+func New(state State) App {
 	return App{
 		state: state,
-		modules: []base.Module{
-			user.New(),
+		modules: []Module{
+			user.New(user.Config{
+				FiberApp: state.FiberApp,
+				Logger:   state.Logger,
+				EntCli:   state.EntCli,
+			}),
 		},
 	}
 }
 
-func initBaseMiddleware(state base.State) {
+func initBaseMiddleware(state State) {
 	app := state.FiberApp
 	app.Use(requestid.New())
 }
@@ -51,15 +54,15 @@ func (a *App) Boot() error {
 	var err error
 
 	for _, m := range a.modules {
-		if _, ok := m.(base.HasPreBoot); ok {
-			if preBootErr := m.(base.HasPreBoot).PreBoot(a.state); preBootErr != nil {
+		if _, ok := m.(HasPreBoot); ok {
+			if preBootErr := m.(HasPreBoot).PreBoot(); preBootErr != nil {
 				err = errors.Join(preBootErr, err)
 			}
 		}
 	}
 
 	for _, m := range a.modules {
-		if bootErr := m.Boot(a.state); bootErr != nil {
+		if bootErr := m.Boot(); bootErr != nil {
 			return errors.Join(bootErr, err)
 		}
 	}
@@ -88,52 +91,11 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	return g.Wait()
-	/*
-		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
-		db, err := openDB(ctx, a.cfg.DBURL) // ent client
-		if err != nil {
-			return fmt.Errorf("open db: %w", err)
-		}
-		defer db.Close()
-
-		st := &base.State{
-			App:    fiber.New(fiber.Config{ErrorHandler: base.ErrorHandler(logger)}),
-			Logger: logger,
-			DB:     db,
-		}
-
-		for _, m := range a.modules {
-			if err := m.Register(st); err != nil {
-				return fmt.Errorf("register %T: %w", m, err)
-			}
-		}
-
-		g, ctx := errgroup.WithContext(ctx)
-
-		// HTTP server
-		g.Go(func() error {
-			return st.App.Listen(a.cfg.APIAddr)
-		})
-
-		// Shutdown: nunggu signal / error dari goroutine lain
-		g.Go(func() error {
-			<-ctx.Done()
-			sctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			return st.App.ShutdownWithContext(sctx)
-		})
-
-		// Worker (Kafka dll) nanti tinggal tambah g.Go di sini,
-		// atau loop dari module yang implement interface Runner.
-
-		return g.Wait()
-	*/
 }
 
 // WaitForJWKS blocks until the JWKS endpoint is reachable and returns HTTP 200,
 // or until an OS termination signal is received.
-func WaitForJWKS(cfg base.Config, logger *slog.Logger) {
+func WaitForJWKS(cfg Config, logger *slog.Logger) {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 

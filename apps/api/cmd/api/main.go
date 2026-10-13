@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/config"
 )
 
@@ -17,11 +16,11 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cfg := base.GetConfig()
+	cfg := config.GetConfig()
 	logger := config.GetLogger()
 	fiber := config.GetFiber(cfg, logger)
 
-	state := base.State{
+	state := config.State{
 		Logger:   logger,
 		Config:   cfg,
 		FiberApp: fiber,
