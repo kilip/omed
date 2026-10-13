@@ -25,5 +25,6 @@
     "test": "turbo run test",
     "e2e": "turbo run e2e",
     "db:push": "turbo run db:push"
-  }
+  },
+  "version": "0.1.0"
 }
