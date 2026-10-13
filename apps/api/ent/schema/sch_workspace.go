@@ -2,8 +2,6 @@
 package schema
 
 import (
-	"time"
-
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
@@ -23,6 +21,13 @@ func (Workspace) Annotations() []schema.Annotation {
 	}
 }
 
+// Mixin of the Workspace entity.
+func (Workspace) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		AuditMixin{},
+	}
+}
+
 // Fields of the Workspace entity.
 func (Workspace) Fields() []ent.Field {
 	return []ent.Field{
@@ -30,10 +35,6 @@ func (Workspace) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("description").Optional(),
 		field.Int64("owner_id"),
-		field.Int64("created_by_id").Optional().Nillable(),
-		field.Int64("updated_by_id").Optional().Nillable(),
-		field.Time("created_at").Default(time.Now).Immutable(),
-		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 
@@ -44,12 +45,5 @@ func (Workspace) Edges() []ent.Edge {
 			Field("owner_id").
 			Unique().
 			Required(),
-		edge.To("creator", User.Type).
-			Field("created_by_id").
-			Unique(),
-		edge.To("updater", User.Type).
-			Field("updated_by_id").
-			Unique(),
 	}
 }
-

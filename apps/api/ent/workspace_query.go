@@ -24,9 +24,9 @@ type WorkspaceQuery struct {
 	order       []workspace.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.Workspace
-	withOwner   *UserQuery
 	withCreator *UserQuery
 	withUpdater *UserQuery
+	withOwner   *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -61,31 +61,6 @@ func (_q *WorkspaceQuery) Unique(unique bool) *WorkspaceQuery {
 func (_q *WorkspaceQuery) Order(o ...workspace.OrderOption) *WorkspaceQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryOwner chains the current query on the "owner" edge.
-func (_q *WorkspaceQuery) QueryOwner() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workspace.Table, workspace.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, workspace.OwnerTable, workspace.OwnerColumn),
-		)
-		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.Workspace
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryCreator chains the current query on the "creator" edge.
@@ -128,6 +103,31 @@ func (_q *WorkspaceQuery) QueryUpdater() *UserQuery {
 			sqlgraph.From(workspace.Table, workspace.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, workspace.UpdaterTable, workspace.UpdaterColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Workspace
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOwner chains the current query on the "owner" edge.
+func (_q *WorkspaceQuery) QueryOwner() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspace.Table, workspace.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspace.OwnerTable, workspace.OwnerColumn),
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.User
@@ -330,24 +330,13 @@ func (_q *WorkspaceQuery) Clone() *WorkspaceQuery {
 		order:       append([]workspace.OrderOption{}, _q.order...),
 		inters:      append([]Interceptor{}, _q.inters...),
 		predicates:  append([]predicate.Workspace{}, _q.predicates...),
-		withOwner:   _q.withOwner.Clone(),
 		withCreator: _q.withCreator.Clone(),
 		withUpdater: _q.withUpdater.Clone(),
+		withOwner:   _q.withOwner.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithOwner tells the query-builder to eager-load the nodes that are connected to
-// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *WorkspaceQuery) WithOwner(opts ...func(*UserQuery)) *WorkspaceQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withOwner = query
-	return _q
 }
 
 // WithCreator tells the query-builder to eager-load the nodes that are connected to
@@ -372,18 +361,29 @@ func (_q *WorkspaceQuery) WithUpdater(opts ...func(*UserQuery)) *WorkspaceQuery 
 	return _q
 }
 
+// WithOwner tells the query-builder to eager-load the nodes that are connected to
+// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorkspaceQuery) WithOwner(opts ...func(*UserQuery)) *WorkspaceQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOwner = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedByID int64 `json:"created_by_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Workspace.Query().
-//		GroupBy(workspace.FieldName).
+//		GroupBy(workspace.FieldCreatedByID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *WorkspaceQuery) GroupBy(field string, fields ...string) *WorkspaceGroupBy {
@@ -401,11 +401,11 @@ func (_q *WorkspaceQuery) GroupBy(field string, fields ...string) *WorkspaceGrou
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedByID int64 `json:"created_by_id,omitempty"`
 //	}
 //
 //	client.Workspace.Query().
-//		Select(workspace.FieldName).
+//		Select(workspace.FieldCreatedByID).
 //		Scan(ctx, &v)
 func (_q *WorkspaceQuery) Select(fields ...string) *WorkspaceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -451,9 +451,9 @@ func (_q *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 		nodes       = []*Workspace{}
 		_spec       = _q.querySpec()
 		loadedTypes = [3]bool{
-			_q.withOwner != nil,
 			_q.withCreator != nil,
 			_q.withUpdater != nil,
+			_q.withOwner != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -476,12 +476,6 @@ func (_q *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withOwner; query != nil {
-		if err := _q.loadOwner(ctx, query, nodes, nil,
-			func(n *Workspace, e *User) { n.Edges.Owner = e }); err != nil {
-			return nil, err
-		}
-	}
 	if query := _q.withCreator; query != nil {
 		if err := _q.loadCreator(ctx, query, nodes, nil,
 			func(n *Workspace, e *User) { n.Edges.Creator = e }); err != nil {
@@ -494,38 +488,15 @@ func (_q *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 			return nil, err
 		}
 	}
+	if query := _q.withOwner; query != nil {
+		if err := _q.loadOwner(ctx, query, nodes, nil,
+			func(n *Workspace, e *User) { n.Edges.Owner = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (_q *WorkspaceQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Workspace, init func(*Workspace), assign func(*Workspace, *User)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*Workspace)
-	for i := range nodes {
-		fk := nodes[i].OwnerID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "owner_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (_q *WorkspaceQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Workspace, init func(*Workspace), assign func(*Workspace, *User)) error {
 	ids := make([]int64, 0, len(nodes))
 	nodeids := make(map[int64][]*Workspace)
@@ -590,6 +561,35 @@ func (_q *WorkspaceQuery) loadUpdater(ctx context.Context, query *UserQuery, nod
 	}
 	return nil
 }
+func (_q *WorkspaceQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Workspace, init func(*Workspace), assign func(*Workspace, *User)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*Workspace)
+	for i := range nodes {
+		fk := nodes[i].OwnerID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "owner_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *WorkspaceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -618,14 +618,14 @@ func (_q *WorkspaceQuery) querySpec() *sqlgraph.QuerySpec {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
-		if _q.withOwner != nil {
-			_spec.Node.AddColumnOnce(workspace.FieldOwnerID)
-		}
 		if _q.withCreator != nil {
 			_spec.Node.AddColumnOnce(workspace.FieldCreatedByID)
 		}
 		if _q.withUpdater != nil {
 			_spec.Node.AddColumnOnce(workspace.FieldUpdatedByID)
+		}
+		if _q.withOwner != nil {
+			_spec.Node.AddColumnOnce(workspace.FieldOwnerID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

@@ -18,12 +18,6 @@ type Workspace struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// Description holds the value of the "description" field.
-	Description string `json:"description,omitempty"`
-	// OwnerID holds the value of the "owner_id" field.
-	OwnerID int64 `json:"owner_id,omitempty"`
 	// CreatedByID holds the value of the "created_by_id" field.
 	CreatedByID *int64 `json:"created_by_id,omitempty"`
 	// UpdatedByID holds the value of the "updated_by_id" field.
@@ -32,6 +26,12 @@ type Workspace struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// OwnerID holds the value of the "owner_id" field.
+	OwnerID int64 `json:"owner_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkspaceQuery when eager-loading is set.
 	Edges        WorkspaceEdges `json:"edges"`
@@ -40,26 +40,15 @@ type Workspace struct {
 
 // WorkspaceEdges holds the relations/edges for other nodes in the graph.
 type WorkspaceEdges struct {
-	// Owner holds the value of the owner edge.
-	Owner *User `json:"owner,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
 	// Updater holds the value of the updater edge.
 	Updater *User `json:"updater,omitempty"`
+	// Owner holds the value of the owner edge.
+	Owner *User `json:"owner,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
-}
-
-// OwnerOrErr returns the Owner value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e WorkspaceEdges) OwnerOrErr() (*User, error) {
-	if e.Owner != nil {
-		return e.Owner, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "owner"}
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -67,7 +56,7 @@ func (e WorkspaceEdges) OwnerOrErr() (*User, error) {
 func (e WorkspaceEdges) CreatorOrErr() (*User, error) {
 	if e.Creator != nil {
 		return e.Creator, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[0] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "creator"}
@@ -78,10 +67,21 @@ func (e WorkspaceEdges) CreatorOrErr() (*User, error) {
 func (e WorkspaceEdges) UpdaterOrErr() (*User, error) {
 	if e.Updater != nil {
 		return e.Updater, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "updater"}
+}
+
+// OwnerOrErr returns the Owner value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkspaceEdges) OwnerOrErr() (*User, error) {
+	if e.Owner != nil {
+		return e.Owner, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "owner"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -89,7 +89,7 @@ func (*Workspace) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case workspace.FieldID, workspace.FieldOwnerID, workspace.FieldCreatedByID, workspace.FieldUpdatedByID:
+		case workspace.FieldID, workspace.FieldCreatedByID, workspace.FieldUpdatedByID, workspace.FieldOwnerID:
 			values[i] = new(sql.NullInt64)
 		case workspace.FieldName, workspace.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -116,24 +116,6 @@ func (_m *Workspace) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int64(value.Int64)
-		case workspace.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				_m.Name = value.String
-			}
-		case workspace.FieldDescription:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field description", values[i])
-			} else if value.Valid {
-				_m.Description = value.String
-			}
-		case workspace.FieldOwnerID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
-			} else if value.Valid {
-				_m.OwnerID = value.Int64
-			}
 		case workspace.FieldCreatedByID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field created_by_id", values[i])
@@ -160,6 +142,24 @@ func (_m *Workspace) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
+		case workspace.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				_m.Name = value.String
+			}
+		case workspace.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				_m.Description = value.String
+			}
+		case workspace.FieldOwnerID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
+			} else if value.Valid {
+				_m.OwnerID = value.Int64
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -173,11 +173,6 @@ func (_m *Workspace) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryOwner queries the "owner" edge of the Workspace entity.
-func (_m *Workspace) QueryOwner() *UserQuery {
-	return NewWorkspaceClient(_m.config).QueryOwner(_m)
-}
-
 // QueryCreator queries the "creator" edge of the Workspace entity.
 func (_m *Workspace) QueryCreator() *UserQuery {
 	return NewWorkspaceClient(_m.config).QueryCreator(_m)
@@ -186,6 +181,11 @@ func (_m *Workspace) QueryCreator() *UserQuery {
 // QueryUpdater queries the "updater" edge of the Workspace entity.
 func (_m *Workspace) QueryUpdater() *UserQuery {
 	return NewWorkspaceClient(_m.config).QueryUpdater(_m)
+}
+
+// QueryOwner queries the "owner" edge of the Workspace entity.
+func (_m *Workspace) QueryOwner() *UserQuery {
+	return NewWorkspaceClient(_m.config).QueryOwner(_m)
 }
 
 // Update returns a builder for updating this Workspace.
@@ -211,15 +211,6 @@ func (_m *Workspace) String() string {
 	var builder strings.Builder
 	builder.WriteString("Workspace(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("name=")
-	builder.WriteString(_m.Name)
-	builder.WriteString(", ")
-	builder.WriteString("description=")
-	builder.WriteString(_m.Description)
-	builder.WriteString(", ")
-	builder.WriteString("owner_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OwnerID))
-	builder.WriteString(", ")
 	if v := _m.CreatedByID; v != nil {
 		builder.WriteString("created_by_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -235,6 +226,15 @@ func (_m *Workspace) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("owner_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OwnerID))
 	builder.WriteByte(')')
 	return builder.String()
 }

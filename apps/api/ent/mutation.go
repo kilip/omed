@@ -605,17 +605,17 @@ type WorkspaceMutation struct {
 	op             Op
 	typ            string
 	id             *int64
-	name           *string
-	description    *string
 	created_at     *time.Time
 	updated_at     *time.Time
+	name           *string
+	description    *string
 	clearedFields  map[string]struct{}
-	owner          *int64
-	clearedowner   bool
 	creator        *int64
 	clearedcreator bool
 	updater        *int64
 	clearedupdater bool
+	owner          *int64
+	clearedowner   bool
 	done           bool
 	oldValue       func(context.Context) (*Workspace, error)
 	predicates     []predicate.Workspace
@@ -723,127 +723,6 @@ func (m *WorkspaceMutation) IDs(ctx context.Context) ([]int64, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetName sets the "name" field.
-func (m *WorkspaceMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *WorkspaceMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the Workspace entity.
-// If the Workspace object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkspaceMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *WorkspaceMutation) ResetName() {
-	m.name = nil
-}
-
-// SetDescription sets the "description" field.
-func (m *WorkspaceMutation) SetDescription(s string) {
-	m.description = &s
-}
-
-// Description returns the value of the "description" field in the mutation.
-func (m *WorkspaceMutation) Description() (r string, exists bool) {
-	v := m.description
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDescription returns the old "description" field's value of the Workspace entity.
-// If the Workspace object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkspaceMutation) OldDescription(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDescription requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
-	}
-	return oldValue.Description, nil
-}
-
-// ClearDescription clears the value of the "description" field.
-func (m *WorkspaceMutation) ClearDescription() {
-	m.description = nil
-	m.clearedFields[workspace.FieldDescription] = struct{}{}
-}
-
-// DescriptionCleared returns if the "description" field was cleared in this mutation.
-func (m *WorkspaceMutation) DescriptionCleared() bool {
-	_, ok := m.clearedFields[workspace.FieldDescription]
-	return ok
-}
-
-// ResetDescription resets all changes to the "description" field.
-func (m *WorkspaceMutation) ResetDescription() {
-	m.description = nil
-	delete(m.clearedFields, workspace.FieldDescription)
-}
-
-// SetOwnerID sets the "owner_id" field.
-func (m *WorkspaceMutation) SetOwnerID(i int64) {
-	m.owner = &i
-}
-
-// OwnerID returns the value of the "owner_id" field in the mutation.
-func (m *WorkspaceMutation) OwnerID() (r int64, exists bool) {
-	v := m.owner
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOwnerID returns the old "owner_id" field's value of the Workspace entity.
-// If the Workspace object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WorkspaceMutation) OldOwnerID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOwnerID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOwnerID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOwnerID: %w", err)
-	}
-	return oldValue.OwnerID, nil
-}
-
-// ResetOwnerID resets all changes to the "owner_id" field.
-func (m *WorkspaceMutation) ResetOwnerID() {
-	m.owner = nil
 }
 
 // SetCreatedByID sets the "created_by_id" field.
@@ -1016,31 +895,125 @@ func (m *WorkspaceMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// ClearOwner clears the "owner" edge to the User entity.
-func (m *WorkspaceMutation) ClearOwner() {
-	m.clearedowner = true
-	m.clearedFields[workspace.FieldOwnerID] = struct{}{}
+// SetName sets the "name" field.
+func (m *WorkspaceMutation) SetName(s string) {
+	m.name = &s
 }
 
-// OwnerCleared reports if the "owner" edge to the User entity was cleared.
-func (m *WorkspaceMutation) OwnerCleared() bool {
-	return m.clearedowner
-}
-
-// OwnerIDs returns the "owner" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// OwnerID instead. It exists only for internal usage by the builders.
-func (m *WorkspaceMutation) OwnerIDs() (ids []int64) {
-	if id := m.owner; id != nil {
-		ids = append(ids, *id)
+// Name returns the value of the "name" field in the mutation.
+func (m *WorkspaceMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
 	}
-	return
+	return *v, true
 }
 
-// ResetOwner resets all changes to the "owner" edge.
-func (m *WorkspaceMutation) ResetOwner() {
+// OldName returns the old "name" field's value of the Workspace entity.
+// If the Workspace object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkspaceMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *WorkspaceMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *WorkspaceMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *WorkspaceMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Workspace entity.
+// If the Workspace object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkspaceMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *WorkspaceMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[workspace.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *WorkspaceMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[workspace.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *WorkspaceMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, workspace.FieldDescription)
+}
+
+// SetOwnerID sets the "owner_id" field.
+func (m *WorkspaceMutation) SetOwnerID(i int64) {
+	m.owner = &i
+}
+
+// OwnerID returns the value of the "owner_id" field in the mutation.
+func (m *WorkspaceMutation) OwnerID() (r int64, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwnerID returns the old "owner_id" field's value of the Workspace entity.
+// If the Workspace object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkspaceMutation) OldOwnerID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwnerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwnerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwnerID: %w", err)
+	}
+	return oldValue.OwnerID, nil
+}
+
+// ResetOwnerID resets all changes to the "owner_id" field.
+func (m *WorkspaceMutation) ResetOwnerID() {
 	m.owner = nil
-	m.clearedowner = false
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by id.
@@ -1123,6 +1096,33 @@ func (m *WorkspaceMutation) ResetUpdater() {
 	m.clearedupdater = false
 }
 
+// ClearOwner clears the "owner" edge to the User entity.
+func (m *WorkspaceMutation) ClearOwner() {
+	m.clearedowner = true
+	m.clearedFields[workspace.FieldOwnerID] = struct{}{}
+}
+
+// OwnerCleared reports if the "owner" edge to the User entity was cleared.
+func (m *WorkspaceMutation) OwnerCleared() bool {
+	return m.clearedowner
+}
+
+// OwnerIDs returns the "owner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *WorkspaceMutation) OwnerIDs() (ids []int64) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner resets all changes to the "owner" edge.
+func (m *WorkspaceMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
 // Where appends a list predicates to the WorkspaceMutation builder.
 func (m *WorkspaceMutation) Where(ps ...predicate.Workspace) {
 	m.predicates = append(m.predicates, ps...)
@@ -1158,15 +1158,6 @@ func (m *WorkspaceMutation) Type() string {
 // AddedFields().
 func (m *WorkspaceMutation) Fields() []string {
 	fields := make([]string, 0, 7)
-	if m.name != nil {
-		fields = append(fields, workspace.FieldName)
-	}
-	if m.description != nil {
-		fields = append(fields, workspace.FieldDescription)
-	}
-	if m.owner != nil {
-		fields = append(fields, workspace.FieldOwnerID)
-	}
 	if m.creator != nil {
 		fields = append(fields, workspace.FieldCreatedByID)
 	}
@@ -1179,6 +1170,15 @@ func (m *WorkspaceMutation) Fields() []string {
 	if m.updated_at != nil {
 		fields = append(fields, workspace.FieldUpdatedAt)
 	}
+	if m.name != nil {
+		fields = append(fields, workspace.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, workspace.FieldDescription)
+	}
+	if m.owner != nil {
+		fields = append(fields, workspace.FieldOwnerID)
+	}
 	return fields
 }
 
@@ -1187,12 +1187,6 @@ func (m *WorkspaceMutation) Fields() []string {
 // schema.
 func (m *WorkspaceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case workspace.FieldName:
-		return m.Name()
-	case workspace.FieldDescription:
-		return m.Description()
-	case workspace.FieldOwnerID:
-		return m.OwnerID()
 	case workspace.FieldCreatedByID:
 		return m.CreatedByID()
 	case workspace.FieldUpdatedByID:
@@ -1201,6 +1195,12 @@ func (m *WorkspaceMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case workspace.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case workspace.FieldName:
+		return m.Name()
+	case workspace.FieldDescription:
+		return m.Description()
+	case workspace.FieldOwnerID:
+		return m.OwnerID()
 	}
 	return nil, false
 }
@@ -1210,12 +1210,6 @@ func (m *WorkspaceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *WorkspaceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case workspace.FieldName:
-		return m.OldName(ctx)
-	case workspace.FieldDescription:
-		return m.OldDescription(ctx)
-	case workspace.FieldOwnerID:
-		return m.OldOwnerID(ctx)
 	case workspace.FieldCreatedByID:
 		return m.OldCreatedByID(ctx)
 	case workspace.FieldUpdatedByID:
@@ -1224,6 +1218,12 @@ func (m *WorkspaceMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldCreatedAt(ctx)
 	case workspace.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case workspace.FieldName:
+		return m.OldName(ctx)
+	case workspace.FieldDescription:
+		return m.OldDescription(ctx)
+	case workspace.FieldOwnerID:
+		return m.OldOwnerID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Workspace field %s", name)
 }
@@ -1233,27 +1233,6 @@ func (m *WorkspaceMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *WorkspaceMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case workspace.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case workspace.FieldDescription:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDescription(v)
-		return nil
-	case workspace.FieldOwnerID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOwnerID(v)
-		return nil
 	case workspace.FieldCreatedByID:
 		v, ok := value.(int64)
 		if !ok {
@@ -1281,6 +1260,27 @@ func (m *WorkspaceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case workspace.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case workspace.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case workspace.FieldOwnerID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwnerID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Workspace field %s", name)
@@ -1315,14 +1315,14 @@ func (m *WorkspaceMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *WorkspaceMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(workspace.FieldDescription) {
-		fields = append(fields, workspace.FieldDescription)
-	}
 	if m.FieldCleared(workspace.FieldCreatedByID) {
 		fields = append(fields, workspace.FieldCreatedByID)
 	}
 	if m.FieldCleared(workspace.FieldUpdatedByID) {
 		fields = append(fields, workspace.FieldUpdatedByID)
+	}
+	if m.FieldCleared(workspace.FieldDescription) {
+		fields = append(fields, workspace.FieldDescription)
 	}
 	return fields
 }
@@ -1338,14 +1338,14 @@ func (m *WorkspaceMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *WorkspaceMutation) ClearField(name string) error {
 	switch name {
-	case workspace.FieldDescription:
-		m.ClearDescription()
-		return nil
 	case workspace.FieldCreatedByID:
 		m.ClearCreatedByID()
 		return nil
 	case workspace.FieldUpdatedByID:
 		m.ClearUpdatedByID()
+		return nil
+	case workspace.FieldDescription:
+		m.ClearDescription()
 		return nil
 	}
 	return fmt.Errorf("unknown Workspace nullable field %s", name)
@@ -1355,15 +1355,6 @@ func (m *WorkspaceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *WorkspaceMutation) ResetField(name string) error {
 	switch name {
-	case workspace.FieldName:
-		m.ResetName()
-		return nil
-	case workspace.FieldDescription:
-		m.ResetDescription()
-		return nil
-	case workspace.FieldOwnerID:
-		m.ResetOwnerID()
-		return nil
 	case workspace.FieldCreatedByID:
 		m.ResetCreatedByID()
 		return nil
@@ -1376,6 +1367,15 @@ func (m *WorkspaceMutation) ResetField(name string) error {
 	case workspace.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
+	case workspace.FieldName:
+		m.ResetName()
+		return nil
+	case workspace.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case workspace.FieldOwnerID:
+		m.ResetOwnerID()
+		return nil
 	}
 	return fmt.Errorf("unknown Workspace field %s", name)
 }
@@ -1383,14 +1383,14 @@ func (m *WorkspaceMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WorkspaceMutation) AddedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.owner != nil {
-		edges = append(edges, workspace.EdgeOwner)
-	}
 	if m.creator != nil {
 		edges = append(edges, workspace.EdgeCreator)
 	}
 	if m.updater != nil {
 		edges = append(edges, workspace.EdgeUpdater)
+	}
+	if m.owner != nil {
+		edges = append(edges, workspace.EdgeOwner)
 	}
 	return edges
 }
@@ -1399,16 +1399,16 @@ func (m *WorkspaceMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *WorkspaceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case workspace.EdgeOwner:
-		if id := m.owner; id != nil {
-			return []ent.Value{*id}
-		}
 	case workspace.EdgeCreator:
 		if id := m.creator; id != nil {
 			return []ent.Value{*id}
 		}
 	case workspace.EdgeUpdater:
 		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case workspace.EdgeOwner:
+		if id := m.owner; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -1430,14 +1430,14 @@ func (m *WorkspaceMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WorkspaceMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.clearedowner {
-		edges = append(edges, workspace.EdgeOwner)
-	}
 	if m.clearedcreator {
 		edges = append(edges, workspace.EdgeCreator)
 	}
 	if m.clearedupdater {
 		edges = append(edges, workspace.EdgeUpdater)
+	}
+	if m.clearedowner {
+		edges = append(edges, workspace.EdgeOwner)
 	}
 	return edges
 }
@@ -1446,12 +1446,12 @@ func (m *WorkspaceMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *WorkspaceMutation) EdgeCleared(name string) bool {
 	switch name {
-	case workspace.EdgeOwner:
-		return m.clearedowner
 	case workspace.EdgeCreator:
 		return m.clearedcreator
 	case workspace.EdgeUpdater:
 		return m.clearedupdater
+	case workspace.EdgeOwner:
+		return m.clearedowner
 	}
 	return false
 }
@@ -1460,14 +1460,14 @@ func (m *WorkspaceMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *WorkspaceMutation) ClearEdge(name string) error {
 	switch name {
-	case workspace.EdgeOwner:
-		m.ClearOwner()
-		return nil
 	case workspace.EdgeCreator:
 		m.ClearCreator()
 		return nil
 	case workspace.EdgeUpdater:
 		m.ClearUpdater()
+		return nil
+	case workspace.EdgeOwner:
+		m.ClearOwner()
 		return nil
 	}
 	return fmt.Errorf("unknown Workspace unique edge %s", name)
@@ -1477,14 +1477,14 @@ func (m *WorkspaceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *WorkspaceMutation) ResetEdge(name string) error {
 	switch name {
-	case workspace.EdgeOwner:
-		m.ResetOwner()
-		return nil
 	case workspace.EdgeCreator:
 		m.ResetCreator()
 		return nil
 	case workspace.EdgeUpdater:
 		m.ResetUpdater()
+		return nil
+	case workspace.EdgeOwner:
+		m.ResetOwner()
 		return nil
 	}
 	return fmt.Errorf("unknown Workspace edge %s", name)

@@ -30,6 +30,52 @@ func (_u *WorkspaceUpdate) Where(ps ...predicate.Workspace) *WorkspaceUpdate {
 	return _u
 }
 
+// SetCreatedByID sets the "created_by_id" field.
+func (_u *WorkspaceUpdate) SetCreatedByID(v int64) *WorkspaceUpdate {
+	_u.mutation.SetCreatedByID(v)
+	return _u
+}
+
+// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
+func (_u *WorkspaceUpdate) SetNillableCreatedByID(v *int64) *WorkspaceUpdate {
+	if v != nil {
+		_u.SetCreatedByID(*v)
+	}
+	return _u
+}
+
+// ClearCreatedByID clears the value of the "created_by_id" field.
+func (_u *WorkspaceUpdate) ClearCreatedByID() *WorkspaceUpdate {
+	_u.mutation.ClearCreatedByID()
+	return _u
+}
+
+// SetUpdatedByID sets the "updated_by_id" field.
+func (_u *WorkspaceUpdate) SetUpdatedByID(v int64) *WorkspaceUpdate {
+	_u.mutation.SetUpdatedByID(v)
+	return _u
+}
+
+// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
+func (_u *WorkspaceUpdate) SetNillableUpdatedByID(v *int64) *WorkspaceUpdate {
+	if v != nil {
+		_u.SetUpdatedByID(*v)
+	}
+	return _u
+}
+
+// ClearUpdatedByID clears the value of the "updated_by_id" field.
+func (_u *WorkspaceUpdate) ClearUpdatedByID() *WorkspaceUpdate {
+	_u.mutation.ClearUpdatedByID()
+	return _u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *WorkspaceUpdate) SetUpdatedAt(v time.Time) *WorkspaceUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *WorkspaceUpdate) SetName(v string) *WorkspaceUpdate {
 	_u.mutation.SetName(v)
@@ -78,57 +124,6 @@ func (_u *WorkspaceUpdate) SetNillableOwnerID(v *int64) *WorkspaceUpdate {
 	return _u
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (_u *WorkspaceUpdate) SetCreatedByID(v int64) *WorkspaceUpdate {
-	_u.mutation.SetCreatedByID(v)
-	return _u
-}
-
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (_u *WorkspaceUpdate) SetNillableCreatedByID(v *int64) *WorkspaceUpdate {
-	if v != nil {
-		_u.SetCreatedByID(*v)
-	}
-	return _u
-}
-
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (_u *WorkspaceUpdate) ClearCreatedByID() *WorkspaceUpdate {
-	_u.mutation.ClearCreatedByID()
-	return _u
-}
-
-// SetUpdatedByID sets the "updated_by_id" field.
-func (_u *WorkspaceUpdate) SetUpdatedByID(v int64) *WorkspaceUpdate {
-	_u.mutation.SetUpdatedByID(v)
-	return _u
-}
-
-// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
-func (_u *WorkspaceUpdate) SetNillableUpdatedByID(v *int64) *WorkspaceUpdate {
-	if v != nil {
-		_u.SetUpdatedByID(*v)
-	}
-	return _u
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (_u *WorkspaceUpdate) ClearUpdatedByID() *WorkspaceUpdate {
-	_u.mutation.ClearUpdatedByID()
-	return _u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (_u *WorkspaceUpdate) SetUpdatedAt(v time.Time) *WorkspaceUpdate {
-	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOwner sets the "owner" edge to the User entity.
-func (_u *WorkspaceUpdate) SetOwner(v *User) *WorkspaceUpdate {
-	return _u.SetOwnerID(v.ID)
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_u *WorkspaceUpdate) SetCreatorID(id int64) *WorkspaceUpdate {
 	_u.mutation.SetCreatorID(id)
@@ -167,15 +162,14 @@ func (_u *WorkspaceUpdate) SetUpdater(v *User) *WorkspaceUpdate {
 	return _u.SetUpdaterID(v.ID)
 }
 
+// SetOwner sets the "owner" edge to the User entity.
+func (_u *WorkspaceUpdate) SetOwner(v *User) *WorkspaceUpdate {
+	return _u.SetOwnerID(v.ID)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (_u *WorkspaceUpdate) Mutation() *WorkspaceMutation {
 	return _u.mutation
-}
-
-// ClearOwner clears the "owner" edge to the User entity.
-func (_u *WorkspaceUpdate) ClearOwner() *WorkspaceUpdate {
-	_u.mutation.ClearOwner()
-	return _u
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
@@ -187,6 +181,12 @@ func (_u *WorkspaceUpdate) ClearCreator() *WorkspaceUpdate {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (_u *WorkspaceUpdate) ClearUpdater() *WorkspaceUpdate {
 	_u.mutation.ClearUpdater()
+	return _u
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (_u *WorkspaceUpdate) ClearOwner() *WorkspaceUpdate {
+	_u.mutation.ClearOwner()
 	return _u
 }
 
@@ -251,6 +251,9 @@ func (_u *WorkspaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(workspace.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(workspace.FieldName, field.TypeString, value)
 	}
@@ -259,40 +262,6 @@ func (_u *WorkspaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(workspace.FieldDescription, field.TypeString)
-	}
-	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(workspace.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if _u.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   workspace.OwnerTable,
-			Columns: []string{workspace.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Workspace
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   workspace.OwnerTable,
-			Columns: []string{workspace.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Workspace
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -356,6 +325,37 @@ func (_u *WorkspaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.OwnerTable,
+			Columns: []string{workspace.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Workspace
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.OwnerTable,
+			Columns: []string{workspace.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Workspace
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Workspace
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -376,6 +376,52 @@ type WorkspaceUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *WorkspaceMutation
+}
+
+// SetCreatedByID sets the "created_by_id" field.
+func (_u *WorkspaceUpdateOne) SetCreatedByID(v int64) *WorkspaceUpdateOne {
+	_u.mutation.SetCreatedByID(v)
+	return _u
+}
+
+// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
+func (_u *WorkspaceUpdateOne) SetNillableCreatedByID(v *int64) *WorkspaceUpdateOne {
+	if v != nil {
+		_u.SetCreatedByID(*v)
+	}
+	return _u
+}
+
+// ClearCreatedByID clears the value of the "created_by_id" field.
+func (_u *WorkspaceUpdateOne) ClearCreatedByID() *WorkspaceUpdateOne {
+	_u.mutation.ClearCreatedByID()
+	return _u
+}
+
+// SetUpdatedByID sets the "updated_by_id" field.
+func (_u *WorkspaceUpdateOne) SetUpdatedByID(v int64) *WorkspaceUpdateOne {
+	_u.mutation.SetUpdatedByID(v)
+	return _u
+}
+
+// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
+func (_u *WorkspaceUpdateOne) SetNillableUpdatedByID(v *int64) *WorkspaceUpdateOne {
+	if v != nil {
+		_u.SetUpdatedByID(*v)
+	}
+	return _u
+}
+
+// ClearUpdatedByID clears the value of the "updated_by_id" field.
+func (_u *WorkspaceUpdateOne) ClearUpdatedByID() *WorkspaceUpdateOne {
+	_u.mutation.ClearUpdatedByID()
+	return _u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *WorkspaceUpdateOne) SetUpdatedAt(v time.Time) *WorkspaceUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetName sets the "name" field.
@@ -426,57 +472,6 @@ func (_u *WorkspaceUpdateOne) SetNillableOwnerID(v *int64) *WorkspaceUpdateOne {
 	return _u
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (_u *WorkspaceUpdateOne) SetCreatedByID(v int64) *WorkspaceUpdateOne {
-	_u.mutation.SetCreatedByID(v)
-	return _u
-}
-
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (_u *WorkspaceUpdateOne) SetNillableCreatedByID(v *int64) *WorkspaceUpdateOne {
-	if v != nil {
-		_u.SetCreatedByID(*v)
-	}
-	return _u
-}
-
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (_u *WorkspaceUpdateOne) ClearCreatedByID() *WorkspaceUpdateOne {
-	_u.mutation.ClearCreatedByID()
-	return _u
-}
-
-// SetUpdatedByID sets the "updated_by_id" field.
-func (_u *WorkspaceUpdateOne) SetUpdatedByID(v int64) *WorkspaceUpdateOne {
-	_u.mutation.SetUpdatedByID(v)
-	return _u
-}
-
-// SetNillableUpdatedByID sets the "updated_by_id" field if the given value is not nil.
-func (_u *WorkspaceUpdateOne) SetNillableUpdatedByID(v *int64) *WorkspaceUpdateOne {
-	if v != nil {
-		_u.SetUpdatedByID(*v)
-	}
-	return _u
-}
-
-// ClearUpdatedByID clears the value of the "updated_by_id" field.
-func (_u *WorkspaceUpdateOne) ClearUpdatedByID() *WorkspaceUpdateOne {
-	_u.mutation.ClearUpdatedByID()
-	return _u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (_u *WorkspaceUpdateOne) SetUpdatedAt(v time.Time) *WorkspaceUpdateOne {
-	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOwner sets the "owner" edge to the User entity.
-func (_u *WorkspaceUpdateOne) SetOwner(v *User) *WorkspaceUpdateOne {
-	return _u.SetOwnerID(v.ID)
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_u *WorkspaceUpdateOne) SetCreatorID(id int64) *WorkspaceUpdateOne {
 	_u.mutation.SetCreatorID(id)
@@ -515,15 +510,14 @@ func (_u *WorkspaceUpdateOne) SetUpdater(v *User) *WorkspaceUpdateOne {
 	return _u.SetUpdaterID(v.ID)
 }
 
+// SetOwner sets the "owner" edge to the User entity.
+func (_u *WorkspaceUpdateOne) SetOwner(v *User) *WorkspaceUpdateOne {
+	return _u.SetOwnerID(v.ID)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (_u *WorkspaceUpdateOne) Mutation() *WorkspaceMutation {
 	return _u.mutation
-}
-
-// ClearOwner clears the "owner" edge to the User entity.
-func (_u *WorkspaceUpdateOne) ClearOwner() *WorkspaceUpdateOne {
-	_u.mutation.ClearOwner()
-	return _u
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
@@ -535,6 +529,12 @@ func (_u *WorkspaceUpdateOne) ClearCreator() *WorkspaceUpdateOne {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (_u *WorkspaceUpdateOne) ClearUpdater() *WorkspaceUpdateOne {
 	_u.mutation.ClearUpdater()
+	return _u
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (_u *WorkspaceUpdateOne) ClearOwner() *WorkspaceUpdateOne {
+	_u.mutation.ClearOwner()
 	return _u
 }
 
@@ -629,6 +629,9 @@ func (_u *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, er
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(workspace.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(workspace.FieldName, field.TypeString, value)
 	}
@@ -637,40 +640,6 @@ func (_u *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, er
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(workspace.FieldDescription, field.TypeString)
-	}
-	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(workspace.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if _u.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   workspace.OwnerTable,
-			Columns: []string{workspace.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Workspace
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   workspace.OwnerTable,
-			Columns: []string{workspace.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Workspace
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -723,6 +692,37 @@ func (_u *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, er
 			Inverse: false,
 			Table:   workspace.UpdaterTable,
 			Columns: []string{workspace.UpdaterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Workspace
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.OwnerTable,
+			Columns: []string{workspace.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Workspace
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.OwnerTable,
+			Columns: []string{workspace.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),

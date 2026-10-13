@@ -23,32 +23,6 @@ type WorkspaceCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetName sets the "name" field.
-func (_c *WorkspaceCreate) SetName(v string) *WorkspaceCreate {
-	_c.mutation.SetName(v)
-	return _c
-}
-
-// SetDescription sets the "description" field.
-func (_c *WorkspaceCreate) SetDescription(v string) *WorkspaceCreate {
-	_c.mutation.SetDescription(v)
-	return _c
-}
-
-// SetNillableDescription sets the "description" field if the given value is not nil.
-func (_c *WorkspaceCreate) SetNillableDescription(v *string) *WorkspaceCreate {
-	if v != nil {
-		_c.SetDescription(*v)
-	}
-	return _c
-}
-
-// SetOwnerID sets the "owner_id" field.
-func (_c *WorkspaceCreate) SetOwnerID(v int64) *WorkspaceCreate {
-	_c.mutation.SetOwnerID(v)
-	return _c
-}
-
 // SetCreatedByID sets the "created_by_id" field.
 func (_c *WorkspaceCreate) SetCreatedByID(v int64) *WorkspaceCreate {
 	_c.mutation.SetCreatedByID(v)
@@ -105,15 +79,36 @@ func (_c *WorkspaceCreate) SetNillableUpdatedAt(v *time.Time) *WorkspaceCreate {
 	return _c
 }
 
+// SetName sets the "name" field.
+func (_c *WorkspaceCreate) SetName(v string) *WorkspaceCreate {
+	_c.mutation.SetName(v)
+	return _c
+}
+
+// SetDescription sets the "description" field.
+func (_c *WorkspaceCreate) SetDescription(v string) *WorkspaceCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_c *WorkspaceCreate) SetNillableDescription(v *string) *WorkspaceCreate {
+	if v != nil {
+		_c.SetDescription(*v)
+	}
+	return _c
+}
+
+// SetOwnerID sets the "owner_id" field.
+func (_c *WorkspaceCreate) SetOwnerID(v int64) *WorkspaceCreate {
+	_c.mutation.SetOwnerID(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *WorkspaceCreate) SetID(v int64) *WorkspaceCreate {
 	_c.mutation.SetID(v)
 	return _c
-}
-
-// SetOwner sets the "owner" edge to the User entity.
-func (_c *WorkspaceCreate) SetOwner(v *User) *WorkspaceCreate {
-	return _c.SetOwnerID(v.ID)
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
@@ -152,6 +147,11 @@ func (_c *WorkspaceCreate) SetNillableUpdaterID(id *int64) *WorkspaceCreate {
 // SetUpdater sets the "updater" edge to the User entity.
 func (_c *WorkspaceCreate) SetUpdater(v *User) *WorkspaceCreate {
 	return _c.SetUpdaterID(v.ID)
+}
+
+// SetOwner sets the "owner" edge to the User entity.
+func (_c *WorkspaceCreate) SetOwner(v *User) *WorkspaceCreate {
+	return _c.SetOwnerID(v.ID)
 }
 
 // Mutation returns the WorkspaceMutation object of the builder.
@@ -201,6 +201,12 @@ func (_c *WorkspaceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *WorkspaceCreate) check() error {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Workspace.created_at"`)}
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Workspace.updated_at"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Workspace.name"`)}
 	}
@@ -211,12 +217,6 @@ func (_c *WorkspaceCreate) check() error {
 	}
 	if _, ok := _c.mutation.OwnerID(); !ok {
 		return &ValidationError{Name: "owner_id", err: errors.New(`ent: missing required field "Workspace.owner_id"`)}
-	}
-	if _, ok := _c.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Workspace.created_at"`)}
-	}
-	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Workspace.updated_at"`)}
 	}
 	if len(_c.mutation.OwnerIDs()) == 0 {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Workspace.owner"`)}
@@ -255,14 +255,6 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(workspace.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := _c.mutation.Description(); ok {
-		_spec.SetField(workspace.FieldDescription, field.TypeString, value)
-		_node.Description = value
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(workspace.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -271,23 +263,13 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 		_spec.SetField(workspace.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   workspace.OwnerTable,
-			Columns: []string{workspace.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _c.schemaConfig.Workspace
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OwnerID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
+	if value, ok := _c.mutation.Name(); ok {
+		_spec.SetField(workspace.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(workspace.FieldDescription, field.TypeString, value)
+		_node.Description = value
 	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -325,6 +307,24 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 		_node.UpdatedByID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.OwnerTable,
+			Columns: []string{workspace.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _c.schemaConfig.Workspace
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.OwnerID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -332,7 +332,7 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Workspace.Create().
-//		SetName(v).
+//		SetCreatedByID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -341,7 +341,7 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.WorkspaceUpsert) {
-//			SetName(v+v).
+//			SetCreatedByID(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *WorkspaceCreate) OnConflict(opts ...sql.ConflictOption) *WorkspaceUpsertOne {
@@ -376,48 +376,6 @@ type (
 		*sql.UpdateSet
 	}
 )
-
-// SetName sets the "name" field.
-func (u *WorkspaceUpsert) SetName(v string) *WorkspaceUpsert {
-	u.Set(workspace.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *WorkspaceUpsert) UpdateName() *WorkspaceUpsert {
-	u.SetExcluded(workspace.FieldName)
-	return u
-}
-
-// SetDescription sets the "description" field.
-func (u *WorkspaceUpsert) SetDescription(v string) *WorkspaceUpsert {
-	u.Set(workspace.FieldDescription, v)
-	return u
-}
-
-// UpdateDescription sets the "description" field to the value that was provided on create.
-func (u *WorkspaceUpsert) UpdateDescription() *WorkspaceUpsert {
-	u.SetExcluded(workspace.FieldDescription)
-	return u
-}
-
-// ClearDescription clears the value of the "description" field.
-func (u *WorkspaceUpsert) ClearDescription() *WorkspaceUpsert {
-	u.SetNull(workspace.FieldDescription)
-	return u
-}
-
-// SetOwnerID sets the "owner_id" field.
-func (u *WorkspaceUpsert) SetOwnerID(v int64) *WorkspaceUpsert {
-	u.Set(workspace.FieldOwnerID, v)
-	return u
-}
-
-// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
-func (u *WorkspaceUpsert) UpdateOwnerID() *WorkspaceUpsert {
-	u.SetExcluded(workspace.FieldOwnerID)
-	return u
-}
 
 // SetCreatedByID sets the "created_by_id" field.
 func (u *WorkspaceUpsert) SetCreatedByID(v int64) *WorkspaceUpsert {
@@ -464,6 +422,48 @@ func (u *WorkspaceUpsert) SetUpdatedAt(v time.Time) *WorkspaceUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *WorkspaceUpsert) UpdateUpdatedAt() *WorkspaceUpsert {
 	u.SetExcluded(workspace.FieldUpdatedAt)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *WorkspaceUpsert) SetName(v string) *WorkspaceUpsert {
+	u.Set(workspace.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *WorkspaceUpsert) UpdateName() *WorkspaceUpsert {
+	u.SetExcluded(workspace.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *WorkspaceUpsert) SetDescription(v string) *WorkspaceUpsert {
+	u.Set(workspace.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *WorkspaceUpsert) UpdateDescription() *WorkspaceUpsert {
+	u.SetExcluded(workspace.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *WorkspaceUpsert) ClearDescription() *WorkspaceUpsert {
+	u.SetNull(workspace.FieldDescription)
+	return u
+}
+
+// SetOwnerID sets the "owner_id" field.
+func (u *WorkspaceUpsert) SetOwnerID(v int64) *WorkspaceUpsert {
+	u.Set(workspace.FieldOwnerID, v)
+	return u
+}
+
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *WorkspaceUpsert) UpdateOwnerID() *WorkspaceUpsert {
+	u.SetExcluded(workspace.FieldOwnerID)
 	return u
 }
 
@@ -516,55 +516,6 @@ func (u *WorkspaceUpsertOne) Update(set func(*WorkspaceUpsert)) *WorkspaceUpsert
 		set(&WorkspaceUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *WorkspaceUpsertOne) SetName(v string) *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *WorkspaceUpsertOne) UpdateName() *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateName()
-	})
-}
-
-// SetDescription sets the "description" field.
-func (u *WorkspaceUpsertOne) SetDescription(v string) *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetDescription(v)
-	})
-}
-
-// UpdateDescription sets the "description" field to the value that was provided on create.
-func (u *WorkspaceUpsertOne) UpdateDescription() *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateDescription()
-	})
-}
-
-// ClearDescription clears the value of the "description" field.
-func (u *WorkspaceUpsertOne) ClearDescription() *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.ClearDescription()
-	})
-}
-
-// SetOwnerID sets the "owner_id" field.
-func (u *WorkspaceUpsertOne) SetOwnerID(v int64) *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetOwnerID(v)
-	})
-}
-
-// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
-func (u *WorkspaceUpsertOne) UpdateOwnerID() *WorkspaceUpsertOne {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateOwnerID()
-	})
 }
 
 // SetCreatedByID sets the "created_by_id" field.
@@ -620,6 +571,55 @@ func (u *WorkspaceUpsertOne) SetUpdatedAt(v time.Time) *WorkspaceUpsertOne {
 func (u *WorkspaceUpsertOne) UpdateUpdatedAt() *WorkspaceUpsertOne {
 	return u.Update(func(s *WorkspaceUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *WorkspaceUpsertOne) SetName(v string) *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *WorkspaceUpsertOne) UpdateName() *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *WorkspaceUpsertOne) SetDescription(v string) *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *WorkspaceUpsertOne) UpdateDescription() *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *WorkspaceUpsertOne) ClearDescription() *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetOwnerID sets the "owner_id" field.
+func (u *WorkspaceUpsertOne) SetOwnerID(v int64) *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.SetOwnerID(v)
+	})
+}
+
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *WorkspaceUpsertOne) UpdateOwnerID() *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.UpdateOwnerID()
 	})
 }
 
@@ -758,7 +758,7 @@ func (_c *WorkspaceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.WorkspaceUpsert) {
-//			SetName(v+v).
+//			SetCreatedByID(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *WorkspaceCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkspaceUpsertBulk {
@@ -840,55 +840,6 @@ func (u *WorkspaceUpsertBulk) Update(set func(*WorkspaceUpsert)) *WorkspaceUpser
 	return u
 }
 
-// SetName sets the "name" field.
-func (u *WorkspaceUpsertBulk) SetName(v string) *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *WorkspaceUpsertBulk) UpdateName() *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateName()
-	})
-}
-
-// SetDescription sets the "description" field.
-func (u *WorkspaceUpsertBulk) SetDescription(v string) *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetDescription(v)
-	})
-}
-
-// UpdateDescription sets the "description" field to the value that was provided on create.
-func (u *WorkspaceUpsertBulk) UpdateDescription() *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateDescription()
-	})
-}
-
-// ClearDescription clears the value of the "description" field.
-func (u *WorkspaceUpsertBulk) ClearDescription() *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.ClearDescription()
-	})
-}
-
-// SetOwnerID sets the "owner_id" field.
-func (u *WorkspaceUpsertBulk) SetOwnerID(v int64) *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.SetOwnerID(v)
-	})
-}
-
-// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
-func (u *WorkspaceUpsertBulk) UpdateOwnerID() *WorkspaceUpsertBulk {
-	return u.Update(func(s *WorkspaceUpsert) {
-		s.UpdateOwnerID()
-	})
-}
-
 // SetCreatedByID sets the "created_by_id" field.
 func (u *WorkspaceUpsertBulk) SetCreatedByID(v int64) *WorkspaceUpsertBulk {
 	return u.Update(func(s *WorkspaceUpsert) {
@@ -942,6 +893,55 @@ func (u *WorkspaceUpsertBulk) SetUpdatedAt(v time.Time) *WorkspaceUpsertBulk {
 func (u *WorkspaceUpsertBulk) UpdateUpdatedAt() *WorkspaceUpsertBulk {
 	return u.Update(func(s *WorkspaceUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *WorkspaceUpsertBulk) SetName(v string) *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *WorkspaceUpsertBulk) UpdateName() *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *WorkspaceUpsertBulk) SetDescription(v string) *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *WorkspaceUpsertBulk) UpdateDescription() *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *WorkspaceUpsertBulk) ClearDescription() *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetOwnerID sets the "owner_id" field.
+func (u *WorkspaceUpsertBulk) SetOwnerID(v int64) *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.SetOwnerID(v)
+	})
+}
+
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *WorkspaceUpsertBulk) UpdateOwnerID() *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.UpdateOwnerID()
 	})
 }
 
