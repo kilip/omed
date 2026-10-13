@@ -63,7 +63,7 @@ func init() {
 		Level: slog.LevelDebug,
 	}))
 	api = app.GetFiber(cfg, logger)
-	entClient = createTestDB()
+	entClient = CreateTestDB()
 
 	// config.ConfigureEntCli(entClient)
 	// mockStorage := storage.NewMemoryStorage()
