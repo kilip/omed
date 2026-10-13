@@ -32,4 +32,10 @@ jobs:
 
       - name: Run API tests
         working-directory: apps/api
-        run: go test -v ./...
+        run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: apps/api/coverage.txt
