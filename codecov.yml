@@ -1,0 +1,17 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+
+ignore:
+  - "**/mock/**"
+  - "**/*mock*.go"
+  - "apps/api/ent/**"
+  - "apps/api/docs/**"
+  - "apps/api/testutil/**"
+
