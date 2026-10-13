@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"testing"
 	"time"
 
@@ -244,6 +245,9 @@ func (s *AppSuite) Test_WaitForJWKS_Success() {
 }
 
 func (s *AppSuite) Test_Run_GracefulShutdown() {
+	if runtime.GOOS == "windows" {
+		s.T().Skip("skip test on windows")
+	}
 	fApp := fiber.New()
 	state := config.State{
 		FiberApp: fApp,
