@@ -13,6 +13,7 @@ type Workspace struct {
 	Description string
 	OwnerID     int64
 	Owner       User
+	Personal    bool
 	CreatedByID *int64
 	CreatedBy   base.ByUser
 	UpdatedByID *int64

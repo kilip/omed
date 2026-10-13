@@ -33,6 +33,18 @@ func (f WorkspaceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WorkspaceMutation", m)
 }
 
+// The WorkspaceMemberFunc type is an adapter to allow the use of ordinary
+// function as WorkspaceMember mutator.
+type WorkspaceMemberFunc func(context.Context, *ent.WorkspaceMemberMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkspaceMemberFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.WorkspaceMemberMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WorkspaceMemberMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

@@ -91,6 +91,11 @@ func OwnerID(v int64) predicate.Workspace {
 	return predicate.Workspace(sql.FieldEQ(FieldOwnerID, v))
 }
 
+// Personal applies equality check predicate on the "personal" field. It's identical to PersonalEQ.
+func Personal(v bool) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldPersonal, v))
+}
+
 // CreatedByIDEQ applies the EQ predicate on the "created_by_id" field.
 func CreatedByIDEQ(v int64) predicate.Workspace {
 	return predicate.Workspace(sql.FieldEQ(FieldCreatedByID, v))
@@ -391,6 +396,16 @@ func OwnerIDNotIn(vs ...int64) predicate.Workspace {
 	return predicate.Workspace(sql.FieldNotIn(FieldOwnerID, vs...))
 }
 
+// PersonalEQ applies the EQ predicate on the "personal" field.
+func PersonalEQ(v bool) predicate.Workspace {
+	return predicate.Workspace(sql.FieldEQ(FieldPersonal, v))
+}
+
+// PersonalNEQ applies the NEQ predicate on the "personal" field.
+func PersonalNEQ(v bool) predicate.Workspace {
+	return predicate.Workspace(sql.FieldNEQ(FieldPersonal, v))
+}
+
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.Workspace {
 	return predicate.Workspace(func(s *sql.Selector) {
@@ -470,6 +485,35 @@ func HasOwnerWith(preds ...predicate.User) predicate.Workspace {
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.User
 		step.Edge.Schema = schemaConfig.Workspace
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMembers applies the HasEdge predicate on the "members" edge.
+func HasMembers() predicate.Workspace {
+	return predicate.Workspace(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MembersTable, MembersColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.WorkspaceMember
+		step.Edge.Schema = schemaConfig.WorkspaceMember
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMembersWith applies the HasEdge predicate on the "members" edge with a given conditions (other predicates).
+func HasMembersWith(preds ...predicate.WorkspaceMember) predicate.Workspace {
+	return predicate.Workspace(func(s *sql.Selector) {
+		step := newMembersStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.WorkspaceMember
+		step.Edge.Schema = schemaConfig.WorkspaceMember
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspacemember"
 )
 
 // WorkspaceCreate is the builder for creating a Workspace entity.
@@ -105,6 +106,20 @@ func (_c *WorkspaceCreate) SetOwnerID(v int64) *WorkspaceCreate {
 	return _c
 }
 
+// SetPersonal sets the "personal" field.
+func (_c *WorkspaceCreate) SetPersonal(v bool) *WorkspaceCreate {
+	_c.mutation.SetPersonal(v)
+	return _c
+}
+
+// SetNillablePersonal sets the "personal" field if the given value is not nil.
+func (_c *WorkspaceCreate) SetNillablePersonal(v *bool) *WorkspaceCreate {
+	if v != nil {
+		_c.SetPersonal(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *WorkspaceCreate) SetID(v int64) *WorkspaceCreate {
 	_c.mutation.SetID(v)
@@ -154,6 +169,21 @@ func (_c *WorkspaceCreate) SetOwner(v *User) *WorkspaceCreate {
 	return _c.SetOwnerID(v.ID)
 }
 
+// AddMemberIDs adds the "members" edge to the WorkspaceMember entity by IDs.
+func (_c *WorkspaceCreate) AddMemberIDs(ids ...int64) *WorkspaceCreate {
+	_c.mutation.AddMemberIDs(ids...)
+	return _c
+}
+
+// AddMembers adds the "members" edges to the WorkspaceMember entity.
+func (_c *WorkspaceCreate) AddMembers(v ...*WorkspaceMember) *WorkspaceCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddMemberIDs(ids...)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (_c *WorkspaceCreate) Mutation() *WorkspaceMutation {
 	return _c.mutation
@@ -197,6 +227,10 @@ func (_c *WorkspaceCreate) defaults() {
 		v := workspace.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Personal(); !ok {
+		v := workspace.DefaultPersonal
+		_c.mutation.SetPersonal(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -217,6 +251,9 @@ func (_c *WorkspaceCreate) check() error {
 	}
 	if _, ok := _c.mutation.OwnerID(); !ok {
 		return &ValidationError{Name: "owner_id", err: errors.New(`ent: missing required field "Workspace.owner_id"`)}
+	}
+	if _, ok := _c.mutation.Personal(); !ok {
+		return &ValidationError{Name: "personal", err: errors.New(`ent: missing required field "Workspace.personal"`)}
 	}
 	if len(_c.mutation.OwnerIDs()) == 0 {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Workspace.owner"`)}
@@ -271,6 +308,10 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 		_spec.SetField(workspace.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
+	if value, ok := _c.mutation.Personal(); ok {
+		_spec.SetField(workspace.FieldPersonal, field.TypeBool, value)
+		_node.Personal = value
+	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -323,6 +364,23 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OwnerID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.MembersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.MembersTable,
+			Columns: []string{workspace.MembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacemember.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _c.schemaConfig.WorkspaceMember
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -486,6 +544,9 @@ func (u *WorkspaceUpsertOne) UpdateNewValues() *WorkspaceUpsertOne {
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(workspace.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.Personal(); exists {
+			s.SetIgnore(workspace.FieldPersonal)
 		}
 	}))
 	return u
@@ -807,6 +868,9 @@ func (u *WorkspaceUpsertBulk) UpdateNewValues() *WorkspaceUpsertBulk {
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(workspace.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.Personal(); exists {
+				s.SetIgnore(workspace.FieldPersonal)
 			}
 		}
 	}))

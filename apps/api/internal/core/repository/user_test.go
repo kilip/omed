@@ -33,6 +33,8 @@ func (s *UserRepoSuite) TearDownSuite() {
 
 func (s *UserRepoSuite) SetupTest() {
 	ctx := context.Background()
+	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
+	_, _ = s.client.Workspace.Delete().Exec(ctx)
 	_, err := s.client.User.Delete().Exec(ctx)
 	s.Require().NoError(err)
 }

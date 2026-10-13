@@ -8,6 +8,7 @@ import (
 	"github.com/kilip/omed/api/ent/schema"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspacemember"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -53,4 +54,27 @@ func init() {
 	workspaceDescName := workspaceFields[1].Descriptor()
 	// workspace.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	workspace.NameValidator = workspaceDescName.Validators[0].(func(string) error)
+	// workspaceDescPersonal is the schema descriptor for personal field.
+	workspaceDescPersonal := workspaceFields[4].Descriptor()
+	// workspace.DefaultPersonal holds the default value on creation for the personal field.
+	workspace.DefaultPersonal = workspaceDescPersonal.Default.(bool)
+	workspacememberMixin := schema.WorkspaceMember{}.Mixin()
+	workspacememberMixinFields0 := workspacememberMixin[0].Fields()
+	_ = workspacememberMixinFields0
+	workspacememberFields := schema.WorkspaceMember{}.Fields()
+	_ = workspacememberFields
+	// workspacememberDescCreatedAt is the schema descriptor for created_at field.
+	workspacememberDescCreatedAt := workspacememberMixinFields0[2].Descriptor()
+	// workspacemember.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workspacemember.DefaultCreatedAt = workspacememberDescCreatedAt.Default.(func() time.Time)
+	// workspacememberDescUpdatedAt is the schema descriptor for updated_at field.
+	workspacememberDescUpdatedAt := workspacememberMixinFields0[3].Descriptor()
+	// workspacemember.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workspacemember.DefaultUpdatedAt = workspacememberDescUpdatedAt.Default.(func() time.Time)
+	// workspacemember.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workspacemember.UpdateDefaultUpdatedAt = workspacememberDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// workspacememberDescRoles is the schema descriptor for roles field.
+	workspacememberDescRoles := workspacememberFields[3].Descriptor()
+	// workspacemember.DefaultRoles holds the default value on creation for the roles field.
+	workspacemember.DefaultRoles = workspacememberDescRoles.Default.([]string)
 }

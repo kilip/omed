@@ -13,6 +13,7 @@ type WorkspaceResponse struct {
 	Name        string       `json:"name"`
 	Description string       `json:"description,omitempty"`
 	Owner       UserResponse `json:"owner"`
+	Personal    bool         `json:"personal"`
 	CreatedBy   base.ByUser  `json:"createdBy"`
 	CreatedAt   time.Time    `json:"createdAt"`
 	UpdatedBy   base.ByUser  `json:"updatedBy"`
@@ -23,7 +24,8 @@ type WorkspaceResponse struct {
 type CreateWorkspaceRequest struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description,omitempty"`
-	OwnerID     int64  `json:"ownerId,omitempty"`
+	// OwnerID is honored only for superadmin callers; otherwise the caller becomes the owner.
+	OwnerID int64 `json:"ownerId,omitempty"`
 }
 
 // UpdateWorkspaceRequest defines the payload required to update an existing workspace.
@@ -38,4 +40,7 @@ type SearchWorkspaceRequest struct {
 	OwnerID int64  `json:"ownerId,omitempty"`
 	Cursor  string `json:"cursor,omitempty"`
 	Limit   int    `json:"limit,omitempty" validate:"omitempty,min=1,max=100"`
+	// MemberID restricts results to workspaces owned by, or shared with, this user.
+	// It is set by the service from the authenticated user and never bound from JSON.
+	MemberID int64 `json:"-" swaggerignore:"true"`
 }

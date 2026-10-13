@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -30,6 +31,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "personal", Type: field.TypeBool, Default: false},
 		{Name: "created_by_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "updated_by_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "owner_id", Type: field.TypeInt64},
@@ -42,21 +44,86 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "workspaces_users_creator",
-				Columns:    []*schema.Column{WorkspacesColumns[5]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "workspaces_users_updater",
 				Columns:    []*schema.Column{WorkspacesColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "workspaces_users_owner",
+				Symbol:     "workspaces_users_updater",
 				Columns:    []*schema.Column{WorkspacesColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "workspaces_users_owner",
+				Columns:    []*schema.Column{WorkspacesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workspace_personal_owner",
+				Unique:  true,
+				Columns: []*schema.Column{WorkspacesColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "personal",
+				},
+			},
+		},
+	}
+	// WorkspaceMembersColumns holds the columns for the "workspace_members" table.
+	WorkspaceMembersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "roles", Type: field.TypeJSON},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "updated_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// WorkspaceMembersTable holds the schema information for the "workspace_members" table.
+	WorkspaceMembersTable = &schema.Table{
+		Name:       "workspace_members",
+		Columns:    WorkspaceMembersColumns,
+		PrimaryKey: []*schema.Column{WorkspaceMembersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspace_members_workspaces_members",
+				Columns:    []*schema.Column{WorkspaceMembersColumns[4]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "workspace_members_users_creator",
+				Columns:    []*schema.Column{WorkspaceMembersColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "workspace_members_users_updater",
+				Columns:    []*schema.Column{WorkspaceMembersColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "workspace_members_users_user",
+				Columns:    []*schema.Column{WorkspaceMembersColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workspacemember_workspace_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{WorkspaceMembersColumns[4], WorkspaceMembersColumns[7]},
+			},
+			{
+				Name:    "workspacemember_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceMembersColumns[7]},
 			},
 		},
 	}
@@ -64,6 +131,7 @@ var (
 	Tables = []*schema.Table{
 		UsersTable,
 		WorkspacesTable,
+		WorkspaceMembersTable,
 	}
 )
 
@@ -71,4 +139,8 @@ func init() {
 	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[1].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[2].RefTable = UsersTable
+	WorkspaceMembersTable.ForeignKeys[0].RefTable = WorkspacesTable
+	WorkspaceMembersTable.ForeignKeys[1].RefTable = UsersTable
+	WorkspaceMembersTable.ForeignKeys[2].RefTable = UsersTable
+	WorkspaceMembersTable.ForeignKeys[3].RefTable = UsersTable
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspacemember"
 )
 
 // WorkspaceUpdate is the builder for updating Workspace entities.
@@ -167,6 +168,21 @@ func (_u *WorkspaceUpdate) SetOwner(v *User) *WorkspaceUpdate {
 	return _u.SetOwnerID(v.ID)
 }
 
+// AddMemberIDs adds the "members" edge to the WorkspaceMember entity by IDs.
+func (_u *WorkspaceUpdate) AddMemberIDs(ids ...int64) *WorkspaceUpdate {
+	_u.mutation.AddMemberIDs(ids...)
+	return _u
+}
+
+// AddMembers adds the "members" edges to the WorkspaceMember entity.
+func (_u *WorkspaceUpdate) AddMembers(v ...*WorkspaceMember) *WorkspaceUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMemberIDs(ids...)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (_u *WorkspaceUpdate) Mutation() *WorkspaceMutation {
 	return _u.mutation
@@ -188,6 +204,27 @@ func (_u *WorkspaceUpdate) ClearUpdater() *WorkspaceUpdate {
 func (_u *WorkspaceUpdate) ClearOwner() *WorkspaceUpdate {
 	_u.mutation.ClearOwner()
 	return _u
+}
+
+// ClearMembers clears all "members" edges to the WorkspaceMember entity.
+func (_u *WorkspaceUpdate) ClearMembers() *WorkspaceUpdate {
+	_u.mutation.ClearMembers()
+	return _u
+}
+
+// RemoveMemberIDs removes the "members" edge to WorkspaceMember entities by IDs.
+func (_u *WorkspaceUpdate) RemoveMemberIDs(ids ...int64) *WorkspaceUpdate {
+	_u.mutation.RemoveMemberIDs(ids...)
+	return _u
+}
+
+// RemoveMembers removes "members" edges to WorkspaceMember entities.
+func (_u *WorkspaceUpdate) RemoveMembers(v ...*WorkspaceMember) *WorkspaceUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMemberIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -356,6 +393,54 @@ func (_u *WorkspaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.MembersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.MembersTable,
+			Columns: []string{workspace.MembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacemember.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.WorkspaceMember
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMembersIDs(); len(nodes) > 0 && !_u.mutation.MembersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.MembersTable,
+			Columns: []string{workspace.MembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacemember.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.WorkspaceMember
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MembersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.MembersTable,
+			Columns: []string{workspace.MembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacemember.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.WorkspaceMember
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Workspace
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -515,6 +600,21 @@ func (_u *WorkspaceUpdateOne) SetOwner(v *User) *WorkspaceUpdateOne {
 	return _u.SetOwnerID(v.ID)
 }
 
+// AddMemberIDs adds the "members" edge to the WorkspaceMember entity by IDs.
+func (_u *WorkspaceUpdateOne) AddMemberIDs(ids ...int64) *WorkspaceUpdateOne {
+	_u.mutation.AddMemberIDs(ids...)
+	return _u
+}
+
+// AddMembers adds the "members" edges to the WorkspaceMember entity.
+func (_u *WorkspaceUpdateOne) AddMembers(v ...*WorkspaceMember) *WorkspaceUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMemberIDs(ids...)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (_u *WorkspaceUpdateOne) Mutation() *WorkspaceMutation {
 	return _u.mutation
@@ -536,6 +636,27 @@ func (_u *WorkspaceUpdateOne) ClearUpdater() *WorkspaceUpdateOne {
 func (_u *WorkspaceUpdateOne) ClearOwner() *WorkspaceUpdateOne {
 	_u.mutation.ClearOwner()
 	return _u
+}
+
+// ClearMembers clears all "members" edges to the WorkspaceMember entity.
+func (_u *WorkspaceUpdateOne) ClearMembers() *WorkspaceUpdateOne {
+	_u.mutation.ClearMembers()
+	return _u
+}
+
+// RemoveMemberIDs removes the "members" edge to WorkspaceMember entities by IDs.
+func (_u *WorkspaceUpdateOne) RemoveMemberIDs(ids ...int64) *WorkspaceUpdateOne {
+	_u.mutation.RemoveMemberIDs(ids...)
+	return _u
+}
+
+// RemoveMembers removes "members" edges to WorkspaceMember entities.
+func (_u *WorkspaceUpdateOne) RemoveMembers(v ...*WorkspaceMember) *WorkspaceUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMemberIDs(ids...)
 }
 
 // Where appends a list predicates to the WorkspaceUpdate builder.
@@ -729,6 +850,54 @@ func (_u *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, er
 			},
 		}
 		edge.Schema = _u.schemaConfig.Workspace
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MembersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.MembersTable,
+			Columns: []string{workspace.MembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacemember.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.WorkspaceMember
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMembersIDs(); len(nodes) > 0 && !_u.mutation.MembersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.MembersTable,
+			Columns: []string{workspace.MembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacemember.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.WorkspaceMember
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MembersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.MembersTable,
+			Columns: []string{workspace.MembersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacemember.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.WorkspaceMember
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

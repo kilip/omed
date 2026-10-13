@@ -16,6 +16,7 @@ import (
 
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/platform/authz"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -28,14 +29,23 @@ type App struct {
 
 // New creates a new App instance populated with runtime state and registered modules.
 func New(state State) App {
+	coreMod := core.New(core.Config{
+		FiberApp: state.FiberApp,
+		Logger:   state.Logger,
+		EntCli:   state.EntCli,
+	})
+
+	az, err := authz.New(coreMod.MemberService)
+	if err != nil {
+		log.Fatalf("failed to initialize authz: %v", err)
+	}
+	coreMod.SetAuthorizer(az)
+	state.Authz = az
+
 	return App{
 		state: state,
 		modules: []Module{
-			core.New(core.Config{
-				FiberApp: state.FiberApp,
-				Logger:   state.Logger,
-				EntCli:   state.EntCli,
-			}),
+			coreMod,
 		},
 	}
 }

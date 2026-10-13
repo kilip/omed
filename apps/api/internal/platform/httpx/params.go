@@ -13,12 +13,11 @@ type IDType interface {
 	int64 | uuid.UUID
 }
 
-// GetID extracts and parses the "id" route parameter from the Fiber context into the target IDType.
-// It returns base.ErrInvalidID if the parameter is absent, undefined, or fails type parsing.
-func GetID[T IDType](c fiber.Ctx) (T, error) {
+// GetParamID extracts and parses the specified route parameter from the Fiber context into the target IDType.
+func GetParamID[T IDType](c fiber.Ctx, name string) (T, error) {
 	var zero T
 
-	raw := c.Params("id")
+	raw := c.Params(name)
 	if raw == "" || raw == "undefined" {
 		return zero, base.ErrInvalidID
 	}
@@ -40,4 +39,10 @@ func GetID[T IDType](c fiber.Ctx) (T, error) {
 	}
 
 	return res.(T), nil
+}
+
+// GetID extracts and parses the "id" route parameter from the Fiber context into the target IDType.
+// It returns base.ErrInvalidID if the parameter is absent, undefined, or fails type parsing.
+func GetID[T IDType](c fiber.Ctx) (T, error) {
+	return GetParamID[T](c, "id")
 }

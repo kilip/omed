@@ -48,6 +48,36 @@ func (s *ApiTestSuite[T]) SetupTest() {
 	s.Context = context.Background()
 }
 
+// AsUser switches the active test user to the specified email and optional global roles.
+func (s *ApiTestSuite[T]) AsUser(email, name string, globalRoles ...base.UserRole) *ent.User {
+	usr := s.EnsureUser(ent.User{
+		Name:  name,
+		Email: email,
+	})
+	roles := globalRoles
+	if len(roles) == 0 {
+		roles = []base.UserRole{base.UserRoleUser}
+	}
+	s.User = &base.UserContext{
+		ID:            usr.ID,
+		Name:          name,
+		EmailVerified: true,
+		Roles:         roles,
+	}
+	return usr
+}
+
+// AddMember adds a user as a member of a workspace with the given roles in the test DB.
+func (s *ApiTestSuite[T]) AddMember(wid, uid int64, roles ...string) {
+	ctx := context.Background()
+	_, err := entClient.WorkspaceMember.Create().
+		SetWorkspaceID(wid).
+		SetUserID(uid).
+		SetRoles(roles).
+		Save(ctx)
+	require.NoError(s.T(), err)
+}
+
 // SetCookie appends or updates an HTTP cookie to be sent with subsequent test requests.
 func (s *ApiTestSuite[T]) SetCookie(cookie *http.Cookie) {
 	for i, c := range s.Cookies {

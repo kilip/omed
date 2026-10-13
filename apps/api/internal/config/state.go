@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/platform/authz"
 )
 
 // State holds the shared dependencies and runtime components accessible across modules.
@@ -21,4 +22,6 @@ type State struct {
 	Public fiber.Router
 	// Secure is the authenticated route group router.
 	Secure fiber.Router
+	// Authz is the workspace authorization engine.
+	Authz *authz.Authorizer
 }

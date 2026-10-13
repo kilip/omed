@@ -52,6 +52,12 @@ func (s *ErrorMapSuite) Test_Map_PredefinedErrors() {
 			expectedMsg:    "unauthorized access",
 		},
 		{
+			err:            base.ErrForbidden,
+			expectedStatus: fiber.StatusForbidden,
+			expectedCode:   "FORBIDDEN",
+			expectedMsg:    "access forbidden",
+		},
+		{
 			err:            base.ErrNotFound,
 			expectedStatus: fiber.StatusNotFound,
 			expectedCode:   "NOT_FOUND",

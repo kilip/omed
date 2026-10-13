@@ -78,7 +78,10 @@ func (s *AppSuite) Test_New() {
 	}
 
 	app := config.New(state)
-	s.Equal(state, app.State())
+	s.NotNil(app.State().Authz)
+	s.Equal(state.FiberApp, app.State().FiberApp)
+	s.Equal(state.Logger, app.State().Logger)
+	s.Equal(state.Config, app.State().Config)
 	s.Require().Len(app.Modules(), 1)
 }
 

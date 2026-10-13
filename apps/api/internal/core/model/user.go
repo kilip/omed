@@ -7,6 +7,7 @@ import "time"
 type UserResponse struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
+	Email     string    `json:"email"`
 	Avatar    string    `json:"avatar,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/testutil"
@@ -253,6 +254,47 @@ func (s *WorkspaceSuite) Test_Search_ValidationError_InvalidLimit() {
 	s.Require().Len(errRes.Error.Fields, 1)
 	s.Equal("Limit", errRes.Error.Fields[0].Field)
 	s.Equal("max", errRes.Error.Fields[0].Rule)
+}
+
+func (s *WorkspaceSuite) Test_Delete_PersonalWorkspace_Forbidden() {
+	client := testutil.GetEntCli()
+	pw, err := client.Workspace.Create().
+		SetName("My Personal Workspace").
+		SetOwnerID(s.User.ID).
+		SetPersonal(true).
+		SetCreatedByID(s.User.ID).
+		SetUpdatedByID(s.User.ID).
+		Save(s.Context)
+	s.Require().NoError(err)
+
+	s.Request(fmt.Sprintf("/workspaces/%d", pw.ID), fiber.MethodDelete, nil)
+	s.AssertStatus(fiber.StatusConflict)
+}
+
+func (s *WorkspaceSuite) Test_Search_FilteredByMembershipForNonSuperadmin() {
+	otherUser := s.EnsureUser(ent.User{
+		Name:  "Bob",
+		Email: "bob@example.com",
+	})
+	// Workspace owned by Bob where s.User is NOT member
+	s.ensureWorkspace("Bob Private", "Private", otherUser.ID)
+
+	// Workspace owned by Bob where Alice is member
+	bobsShared := s.ensureWorkspace("Bob Shared", "Shared", otherUser.ID)
+
+	// Alice logs in (normal user)
+	alice := s.AsUser("alice@example.com", "Alice", base.UserRoleUser)
+	s.AddMember(bobsShared.ID, alice.ID, "core:member")
+	s.ensureWorkspace("Alice Workspace", "Alice's", alice.ID)
+
+	s.Request("/workspaces/search", fiber.MethodPost, model.SearchWorkspaceRequest{})
+	s.OK()
+
+	res := s.PagedResponse()
+	// Alice should only see "Alice Workspace" and "Bob Shared", NOT "Bob Private"
+	for _, ws := range res.Data {
+		s.NotEqual("Bob Private", ws.Name)
+	}
 }
 
 func TestWorkspaceSuite(t *testing.T) {

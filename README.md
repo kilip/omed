@@ -47,7 +47,8 @@ omed/
 
 - `apps/auth` issues JWTs. `apps/api` verifies them with the JWKS, matches `iss`/`aud` against `AUTH_URL`.
 - `apps/auth` only handles identity (credentials, sessions, JWT). `apps/api` is the source of truth for users, workspaces, and memberships.
-- Authorization in `apps/api` is **workspace based**: every user gets a personal workspace, can create more, and can invite other users. Roles are assigned per workspace membership, plus a global `superadmin`.
+- Authorization in `apps/api` is **workspace based**: every user gets a personal workspace, can create more, and can invite other users. Roles are assigned per workspace membership, plus a global `superadmin` (used for system-wide operations like `/users`). Global `superadmin` does not automatically bypass workspace access checks—a `superadmin` cannot access or read workspace resources unless explicitly added as a member or owner of that workspace.
+- Modules in `apps/api` register their roles & permissions in code via `authz.AddRole` in `init()` (e.g. `fin:accountant` -> `fin:invoice read`). Permissions are verified per-request using an in-memory Casbin enforcer based on resolved workspace membership.
 - The dashboard is split into modules (`sys`, `user`, `fin`, `web`), each under `apps/web/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
 
 ## Tech Stack

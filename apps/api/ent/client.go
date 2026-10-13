@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspacemember"
 
 	"github.com/kilip/omed/api/ent/internal"
 )
@@ -30,6 +31,8 @@ type Client struct {
 	User *UserClient
 	// Workspace is the client for interacting with the Workspace builders.
 	Workspace *WorkspaceClient
+	// WorkspaceMember is the client for interacting with the WorkspaceMember builders.
+	WorkspaceMember *WorkspaceMemberClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -43,6 +46,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.User = NewUserClient(c.config)
 	c.Workspace = NewWorkspaceClient(c.config)
+	c.WorkspaceMember = NewWorkspaceMemberClient(c.config)
 }
 
 type (
@@ -136,10 +140,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		User:      NewUserClient(cfg),
-		Workspace: NewWorkspaceClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		User:            NewUserClient(cfg),
+		Workspace:       NewWorkspaceClient(cfg),
+		WorkspaceMember: NewWorkspaceMemberClient(cfg),
 	}, nil
 }
 
@@ -157,10 +162,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		User:      NewUserClient(cfg),
-		Workspace: NewWorkspaceClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		User:            NewUserClient(cfg),
+		Workspace:       NewWorkspaceClient(cfg),
+		WorkspaceMember: NewWorkspaceMemberClient(cfg),
 	}, nil
 }
 
@@ -191,6 +197,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.User.Use(hooks...)
 	c.Workspace.Use(hooks...)
+	c.WorkspaceMember.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -198,6 +205,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.User.Intercept(interceptors...)
 	c.Workspace.Intercept(interceptors...)
+	c.WorkspaceMember.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -207,6 +215,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *WorkspaceMutation:
 		return c.Workspace.mutate(ctx, m)
+	case *WorkspaceMemberMutation:
+		return c.WorkspaceMember.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -510,6 +520,25 @@ func (c *WorkspaceClient) QueryOwner(_m *Workspace) *UserQuery {
 	return query
 }
 
+// QueryMembers queries the members edge of a Workspace.
+func (c *WorkspaceClient) QueryMembers(_m *Workspace) *WorkspaceMemberQuery {
+	query := (&WorkspaceMemberClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspace.Table, workspace.FieldID, id),
+			sqlgraph.To(workspacemember.Table, workspacemember.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workspace.MembersTable, workspace.MembersColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.WorkspaceMember
+		step.Edge.Schema = schemaConfig.WorkspaceMember
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *WorkspaceClient) Hooks() []Hook {
 	return c.hooks.Workspace
@@ -535,21 +564,231 @@ func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Val
 	}
 }
 
+// WorkspaceMemberClient is a client for the WorkspaceMember schema.
+type WorkspaceMemberClient struct {
+	config
+}
+
+// NewWorkspaceMemberClient returns a client for the WorkspaceMember from the given config.
+func NewWorkspaceMemberClient(c config) *WorkspaceMemberClient {
+	return &WorkspaceMemberClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workspacemember.Hooks(f(g(h())))`.
+func (c *WorkspaceMemberClient) Use(hooks ...Hook) {
+	c.hooks.WorkspaceMember = append(c.hooks.WorkspaceMember, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workspacemember.Intercept(f(g(h())))`.
+func (c *WorkspaceMemberClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WorkspaceMember = append(c.inters.WorkspaceMember, interceptors...)
+}
+
+// Create returns a builder for creating a WorkspaceMember entity.
+func (c *WorkspaceMemberClient) Create() *WorkspaceMemberCreate {
+	mutation := newWorkspaceMemberMutation(c.config, OpCreate)
+	return &WorkspaceMemberCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of WorkspaceMember entities.
+func (c *WorkspaceMemberClient) CreateBulk(builders ...*WorkspaceMemberCreate) *WorkspaceMemberCreateBulk {
+	return &WorkspaceMemberCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorkspaceMemberClient) MapCreateBulk(slice any, setFunc func(*WorkspaceMemberCreate, int)) *WorkspaceMemberCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorkspaceMemberCreateBulk{err: fmt.Errorf("calling to WorkspaceMemberClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorkspaceMemberCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WorkspaceMemberCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for WorkspaceMember.
+func (c *WorkspaceMemberClient) Update() *WorkspaceMemberUpdate {
+	mutation := newWorkspaceMemberMutation(c.config, OpUpdate)
+	return &WorkspaceMemberUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkspaceMemberClient) UpdateOne(_m *WorkspaceMember) *WorkspaceMemberUpdateOne {
+	mutation := newWorkspaceMemberMutation(c.config, OpUpdateOne, withWorkspaceMember(_m))
+	return &WorkspaceMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkspaceMemberClient) UpdateOneID(id int64) *WorkspaceMemberUpdateOne {
+	mutation := newWorkspaceMemberMutation(c.config, OpUpdateOne, withWorkspaceMemberID(id))
+	return &WorkspaceMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for WorkspaceMember.
+func (c *WorkspaceMemberClient) Delete() *WorkspaceMemberDelete {
+	mutation := newWorkspaceMemberMutation(c.config, OpDelete)
+	return &WorkspaceMemberDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorkspaceMemberClient) DeleteOne(_m *WorkspaceMember) *WorkspaceMemberDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorkspaceMemberClient) DeleteOneID(id int64) *WorkspaceMemberDeleteOne {
+	builder := c.Delete().Where(workspacemember.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkspaceMemberDeleteOne{builder}
+}
+
+// Query returns a query builder for WorkspaceMember.
+func (c *WorkspaceMemberClient) Query() *WorkspaceMemberQuery {
+	return &WorkspaceMemberQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkspaceMember},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a WorkspaceMember entity by its id.
+func (c *WorkspaceMemberClient) Get(ctx context.Context, id int64) (*WorkspaceMember, error) {
+	return c.Query().Where(workspacemember.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkspaceMemberClient) GetX(ctx context.Context, id int64) *WorkspaceMember {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCreator queries the creator edge of a WorkspaceMember.
+func (c *WorkspaceMemberClient) QueryCreator(_m *WorkspaceMember) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspacemember.Table, workspacemember.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspacemember.CreatorTable, workspacemember.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.WorkspaceMember
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a WorkspaceMember.
+func (c *WorkspaceMemberClient) QueryUpdater(_m *WorkspaceMember) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspacemember.Table, workspacemember.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspacemember.UpdaterTable, workspacemember.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.WorkspaceMember
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkspace queries the workspace edge of a WorkspaceMember.
+func (c *WorkspaceMemberClient) QueryWorkspace(_m *WorkspaceMember) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspacemember.Table, workspacemember.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, workspacemember.WorkspaceTable, workspacemember.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.WorkspaceMember
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a WorkspaceMember.
+func (c *WorkspaceMemberClient) QueryUser(_m *WorkspaceMember) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspacemember.Table, workspacemember.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspacemember.UserTable, workspacemember.UserColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.WorkspaceMember
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *WorkspaceMemberClient) Hooks() []Hook {
+	return c.hooks.WorkspaceMember
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkspaceMemberClient) Interceptors() []Interceptor {
+	return c.inters.WorkspaceMember
+}
+
+func (c *WorkspaceMemberClient) mutate(ctx context.Context, m *WorkspaceMemberMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkspaceMemberCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkspaceMemberUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkspaceMemberUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkspaceMemberDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown WorkspaceMember mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		User, Workspace []ent.Hook
+		User, Workspace, WorkspaceMember []ent.Hook
 	}
 	inters struct {
-		User, Workspace []ent.Interceptor
+		User, Workspace, WorkspaceMember []ent.Interceptor
 	}
 )
 
 var (
 	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
 	DefaultSchemaConfig = SchemaConfig{
-		User:      tableSchemas[0],
-		Workspace: tableSchemas[0],
+		User:            tableSchemas[0],
+		Workspace:       tableSchemas[0],
+		WorkspaceMember: tableSchemas[0],
 	}
 	tableSchemas = [...]string{"omed"}
 )

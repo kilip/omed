@@ -73,6 +73,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_MemberResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.MemberResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_UserResponse": {
                 "properties": {
                     "data": {
@@ -99,6 +116,32 @@ const docTemplate = `{
                         },
                         "type": "array",
                         "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_MemberResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.MemberResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_PermissionsResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.PermissionsResponse",
+                        "description": "Data contains the response payload."
                     },
                     "meta": {
                         "$ref": "#/components/schemas/httpx.Meta",
@@ -160,12 +203,109 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "ownerId": {
+                        "description": "OwnerID is honored only for superadmin callers; otherwise the caller becomes the owner.",
                         "type": "integer"
                     }
                 },
                 "required": [
                     "name"
                 ],
+                "type": "object"
+            },
+            "model.InviteMemberRequest": {
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "roles": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "required": [
+                    "email",
+                    "roles"
+                ],
+                "type": "object"
+            },
+            "model.MemberResponse": {
+                "properties": {
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "roles": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/model.UserResponse"
+                    },
+                    "workspaceId": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.PermissionItem": {
+                "properties": {
+                    "action": {
+                        "type": "string"
+                    },
+                    "object": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.PermissionsResponse": {
+                "properties": {
+                    "owner": {
+                        "type": "boolean"
+                    },
+                    "permissions": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.PermissionItem"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "roles": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "workspaceId": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SearchMemberRequest": {
+                "properties": {
+                    "cursor": {
+                        "type": "string"
+                    },
+                    "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
                 "type": "object"
             },
             "model.SearchRequest": {
@@ -201,6 +341,22 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
+                "type": "object"
+            },
+            "model.UpdateMemberRequest": {
+                "properties": {
+                    "roles": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "required": [
+                    "roles"
+                ],
                 "type": "object"
             },
             "model.UpdateUserRequest": {
@@ -239,6 +395,9 @@ const docTemplate = `{
                     "createdAt": {
                         "type": "string"
                     },
+                    "email": {
+                        "type": "string"
+                    },
                     "id": {
                         "type": "integer"
                     },
@@ -270,6 +429,9 @@ const docTemplate = `{
                     },
                     "owner": {
                         "$ref": "#/components/schemas/model.UserResponse"
+                    },
+                    "personal": {
+                        "type": "boolean"
                     },
                     "updatedAt": {
                         "type": "string"
@@ -804,14 +966,14 @@ const docTemplate = `{
                 ]
             }
         },
-        "/workspaces/{id}": {
+        "/workspaces/{wid}": {
             "delete": {
                 "description": "Delete a workspace by ID",
                 "parameters": [
                     {
                         "description": "Workspace ID",
                         "in": "path",
-                        "name": "id",
+                        "name": "wid",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -839,6 +1001,16 @@ const docTemplate = `{
                         },
                         "description": "Bad Request"
                     },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
                     "404": {
                         "content": {
                             "application/json": {
@@ -848,6 +1020,16 @@ const docTemplate = `{
                             }
                         },
                         "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
                     },
                     "500": {
                         "content": {
@@ -876,7 +1058,7 @@ const docTemplate = `{
                     {
                         "description": "Workspace ID",
                         "in": "path",
-                        "name": "id",
+                        "name": "wid",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -903,6 +1085,16 @@ const docTemplate = `{
                             }
                         },
                         "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
                     },
                     "404": {
                         "content": {
@@ -941,7 +1133,7 @@ const docTemplate = `{
                     {
                         "description": "Workspace ID",
                         "in": "path",
-                        "name": "id",
+                        "name": "wid",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -982,6 +1174,16 @@ const docTemplate = `{
                         },
                         "description": "Bad Request"
                     },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
                     "404": {
                         "content": {
                             "application/json": {
@@ -1021,6 +1223,486 @@ const docTemplate = `{
                 "summary": "Update workspace",
                 "tags": [
                     "Workspaces"
+                ]
+            }
+        },
+        "/workspaces/{wid}/members": {
+            "post": {
+                "description": "Add a user to the workspace by email (auto-creating the user if not registered)",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.InviteMemberRequest",
+                                "summary": "request",
+                                "description": "Invite payload"
+                            }
+                        }
+                    },
+                    "description": "Invite payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_MemberResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Invite workspace member",
+                "tags": [
+                    "Workspace Members"
+                ]
+            }
+        },
+        "/workspaces/{wid}/members/search": {
+            "post": {
+                "description": "List members of the workspace with pagination",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SearchMemberRequest",
+                                "summary": "request",
+                                "description": "Search criteria"
+                            }
+                        }
+                    },
+                    "description": "Search criteria",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_MemberResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Search workspace members",
+                "tags": [
+                    "Workspace Members"
+                ]
+            }
+        },
+        "/workspaces/{wid}/members/{id}": {
+            "delete": {
+                "description": "Remove a user from the workspace membership",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "User ID of the member",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Remove member from workspace",
+                "tags": [
+                    "Workspace Members"
+                ]
+            },
+            "put": {
+                "description": "Replace roles assigned to a workspace member",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "User ID of the member",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateMemberRequest",
+                                "summary": "request",
+                                "description": "Update payload"
+                            }
+                        }
+                    },
+                    "description": "Update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_MemberResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update member roles",
+                "tags": [
+                    "Workspace Members"
+                ]
+            }
+        },
+        "/workspaces/{wid}/permissions": {
+            "get": {
+                "description": "Returns effective permissions and roles in the active workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PermissionsResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get current user's workspace permissions",
+                "tags": [
+                    "Workspace Members"
                 ]
             }
         }

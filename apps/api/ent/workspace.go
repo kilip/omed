@@ -32,6 +32,8 @@ type Workspace struct {
 	Description string `json:"description,omitempty"`
 	// OwnerID holds the value of the "owner_id" field.
 	OwnerID int64 `json:"owner_id,omitempty"`
+	// Personal holds the value of the "personal" field.
+	Personal bool `json:"personal,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkspaceQuery when eager-loading is set.
 	Edges        WorkspaceEdges `json:"edges"`
@@ -46,9 +48,11 @@ type WorkspaceEdges struct {
 	Updater *User `json:"updater,omitempty"`
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
+	// Members holds the value of the members edge.
+	Members []*WorkspaceMember `json:"members,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -84,11 +88,22 @@ func (e WorkspaceEdges) OwnerOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "owner"}
 }
 
+// MembersOrErr returns the Members value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkspaceEdges) MembersOrErr() ([]*WorkspaceMember, error) {
+	if e.loadedTypes[3] {
+		return e.Members, nil
+	}
+	return nil, &NotLoadedError{edge: "members"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Workspace) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case workspace.FieldPersonal:
+			values[i] = new(sql.NullBool)
 		case workspace.FieldID, workspace.FieldCreatedByID, workspace.FieldUpdatedByID, workspace.FieldOwnerID:
 			values[i] = new(sql.NullInt64)
 		case workspace.FieldName, workspace.FieldDescription:
@@ -160,6 +175,12 @@ func (_m *Workspace) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.OwnerID = value.Int64
 			}
+		case workspace.FieldPersonal:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field personal", values[i])
+			} else if value.Valid {
+				_m.Personal = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -186,6 +207,11 @@ func (_m *Workspace) QueryUpdater() *UserQuery {
 // QueryOwner queries the "owner" edge of the Workspace entity.
 func (_m *Workspace) QueryOwner() *UserQuery {
 	return NewWorkspaceClient(_m.config).QueryOwner(_m)
+}
+
+// QueryMembers queries the "members" edge of the Workspace entity.
+func (_m *Workspace) QueryMembers() *WorkspaceMemberQuery {
+	return NewWorkspaceClient(_m.config).QueryMembers(_m)
 }
 
 // Update returns a builder for updating this Workspace.
@@ -235,6 +261,9 @@ func (_m *Workspace) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("owner_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OwnerID))
+	builder.WriteString(", ")
+	builder.WriteString("personal=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Personal))
 	builder.WriteByte(')')
 	return builder.String()
 }

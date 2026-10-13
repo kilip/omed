@@ -28,12 +28,16 @@ const (
 	FieldDescription = "description"
 	// FieldOwnerID holds the string denoting the owner_id field in the database.
 	FieldOwnerID = "owner_id"
+	// FieldPersonal holds the string denoting the personal field in the database.
+	FieldPersonal = "personal"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeUpdater holds the string denoting the updater edge name in mutations.
 	EdgeUpdater = "updater"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeMembers holds the string denoting the members edge name in mutations.
+	EdgeMembers = "members"
 	// Table holds the table name of the workspace in the database.
 	Table = "workspaces"
 	// CreatorTable is the table that holds the creator relation/edge.
@@ -57,6 +61,13 @@ const (
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "owner_id"
+	// MembersTable is the table that holds the members relation/edge.
+	MembersTable = "workspace_members"
+	// MembersInverseTable is the table name for the WorkspaceMember entity.
+	// It exists in this package in order to avoid circular dependency with the "workspacemember" package.
+	MembersInverseTable = "workspace_members"
+	// MembersColumn is the table column denoting the members relation/edge.
+	MembersColumn = "workspace_id"
 )
 
 // Columns holds all SQL columns for workspace fields.
@@ -69,6 +80,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldOwnerID,
+	FieldPersonal,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -90,6 +102,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DefaultPersonal holds the default value on creation for the "personal" field.
+	DefaultPersonal bool
 )
 
 // OrderOption defines the ordering options for the Workspace queries.
@@ -135,6 +149,11 @@ func ByOwnerID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOwnerID, opts...).ToFunc()
 }
 
+// ByPersonal orders the results by the personal field.
+func ByPersonal(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPersonal, opts...).ToFunc()
+}
+
 // ByCreatorField orders the results by creator field.
 func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -153,6 +172,20 @@ func ByUpdaterField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newOwnerStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByMembersCount orders the results by members count.
+func ByMembersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMembersStep(), opts...)
+	}
+}
+
+// ByMembers orders the results by members terms.
+func ByMembers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMembersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newCreatorStep() *sqlgraph.Step {
@@ -174,5 +207,12 @@ func newOwnerStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OwnerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, OwnerTable, OwnerColumn),
+	)
+}
+func newMembersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MembersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MembersTable, MembersColumn),
 	)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspacemember"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/core/model"
@@ -62,6 +63,12 @@ func (r WorkspaceRepository) Search(c context.Context, req model.SearchWorkspace
 	}
 	if req.OwnerID != 0 {
 		predicates = append(predicates, workspace.OwnerIDEQ(req.OwnerID))
+	}
+	if req.MemberID != 0 {
+		predicates = append(predicates, workspace.Or(
+			workspace.OwnerIDEQ(req.MemberID),
+			workspace.HasMembersWith(workspacemember.UserIDEQ(req.MemberID)),
+		))
 	}
 
 	if req.Cursor != "" {
@@ -144,6 +151,21 @@ func (r WorkspaceRepository) Create(c context.Context, req model.CreateWorkspace
 	return r.GetByID(c, w.ID)
 }
 
+// CreatePersonal creates a personal workspace for the given user, within the given transaction.
+func (r WorkspaceRepository) CreatePersonal(c context.Context, tx *ent.Tx, userID int64, name string) (domain.Workspace, error) {
+	w, err := tx.Workspace.Create().
+		SetName(name).
+		SetOwnerID(userID).
+		SetPersonal(true).
+		SetCreatedByID(userID).
+		SetUpdatedByID(userID).
+		Save(c)
+	if err != nil {
+		return domain.Workspace{}, err
+	}
+	return toWorkspaceDomain(w), nil
+}
+
 // Update modifies an existing workspace by ID within a transaction.
 func (r WorkspaceRepository) Update(c context.Context, id int64, req model.UpdateWorkspaceRequest) (domain.Workspace, error) {
 	var dom domain.Workspace
@@ -198,6 +220,7 @@ func toWorkspaceDomain(w *ent.Workspace) domain.Workspace {
 		Name:        w.Name,
 		Description: w.Description,
 		OwnerID:     w.OwnerID,
+		Personal:    w.Personal,
 		CreatedByID: w.CreatedByID,
 		UpdatedByID: w.UpdatedByID,
 		CreatedAt:   w.CreatedAt,

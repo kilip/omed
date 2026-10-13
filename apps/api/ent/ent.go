@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspacemember"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -74,8 +75,9 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			user.Table:      user.ValidColumn,
-			workspace.Table: workspace.ValidColumn,
+			user.Table:            user.ValidColumn,
+			workspace.Table:       workspace.ValidColumn,
+			workspacemember.Table: workspacemember.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

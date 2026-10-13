@@ -37,6 +37,8 @@ var (
 	ErrInvalidCursor = errors.New("INVALID_CURSOR")
 	// ErrUnauthorized indicates missing or invalid authentication credentials.
 	ErrUnauthorized = errors.New("UNAUTHORIZED")
+	// ErrForbidden indicates that the authenticated user lacks permission for the action.
+	ErrForbidden = errors.New("FORBIDDEN")
 	// ErrNotFound indicates that the requested resource could not be found.
 	ErrNotFound = errors.New("NOT_FOUND")
 )
@@ -47,6 +49,7 @@ func init() {
 	AddToErrorMap(ErrInvalidCursor, fiber.StatusBadRequest, "invalid cursor")
 	AddToErrorMap(ErrInvalidUUID, fiber.StatusBadRequest, "invalid uuid")
 	AddToErrorMap(ErrUnauthorized, fiber.StatusUnauthorized, "unauthorized access")
+	AddToErrorMap(ErrForbidden, fiber.StatusForbidden, "access forbidden")
 	AddToErrorMap(ErrNotFound, fiber.StatusNotFound, "not found")
 }
 

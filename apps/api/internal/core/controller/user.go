@@ -123,6 +123,7 @@ func toUserResponse(user domain.User) model.UserResponse {
 	return model.UserResponse{
 		ID:        user.ID,
 		Name:      user.Name,
+		Email:     user.Email,
 		Avatar:    user.Avatar,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,

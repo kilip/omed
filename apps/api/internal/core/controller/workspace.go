@@ -35,15 +35,16 @@ func NewWorkspaceController(workspaces WorkspaceService) WorkspaceController {
 //	@Description	Retrieve workspace detail by ID
 //	@Tags			Workspaces
 //	@Produce		json
-//	@Param			id	path		int	true	"Workspace ID"
+//	@Param			wid	path		int	true	"Workspace ID"
 //	@Success		200	{object}	httpx.WebResponse[model.WorkspaceResponse]
 //	@Failure		400	{object}	httpx.ErrorResponse
+//	@Failure		403	{object}	httpx.ErrorResponse
 //	@Failure		404	{object}	httpx.ErrorResponse
 //	@Failure		500	{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
-//	@Router			/workspaces/{id} [get]
+//	@Router			/workspaces/{wid} [get]
 func (w WorkspaceController) GetByID(c fiber.Ctx) error {
-	return httpx.DoGetByID(c, w.workspaces.GetByID, toWorkspaceResponse)
+	return httpx.DoGetByParamID(c, "wid", w.workspaces.GetByID, toWorkspaceResponse)
 }
 
 // Search searches workspaces based on query parameters.
@@ -89,17 +90,18 @@ func (w WorkspaceController) Create(c fiber.Ctx) error {
 //	@Tags			Workspaces
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path		int								true	"Workspace ID"
+//	@Param			wid		path		int								true	"Workspace ID"
 //	@Param			request	body		model.UpdateWorkspaceRequest	true	"Workspace update payload"
 //	@Success		200		{object}	httpx.WebResponse[model.WorkspaceResponse]
 //	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
 //	@Failure		404		{object}	httpx.ErrorResponse
 //	@Failure		422		{object}	httpx.ErrorResponse
 //	@Failure		500		{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
-//	@Router			/workspaces/{id} [put]
+//	@Router			/workspaces/{wid} [put]
 func (w WorkspaceController) Update(c fiber.Ctx) error {
-	return httpx.DoUpdate(c, w.workspaces.Update, toWorkspaceResponse)
+	return httpx.DoUpdateByParamID(c, "wid", w.workspaces.Update, toWorkspaceResponse)
 }
 
 // Delete deletes a workspace by ID.
@@ -108,15 +110,17 @@ func (w WorkspaceController) Update(c fiber.Ctx) error {
 //	@Description	Delete a workspace by ID
 //	@Tags			Workspaces
 //	@Produce		json
-//	@Param			id	path	int	true	"Workspace ID"
+//	@Param			wid	path	int	true	"Workspace ID"
 //	@Success		200
 //	@Failure		400	{object}	httpx.ErrorResponse
+//	@Failure		403	{object}	httpx.ErrorResponse
 //	@Failure		404	{object}	httpx.ErrorResponse
+//	@Failure		409	{object}	httpx.ErrorResponse
 //	@Failure		500	{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
-//	@Router			/workspaces/{id} [delete]
+//	@Router			/workspaces/{wid} [delete]
 func (w WorkspaceController) Delete(c fiber.Ctx) error {
-	return httpx.DoDelete(c, w.workspaces.Delete)
+	return httpx.DoDeleteByParamID[int64](c, "wid", w.workspaces.Delete)
 }
 
 func toWorkspaceResponse(ws domain.Workspace) model.WorkspaceResponse {
@@ -124,6 +128,7 @@ func toWorkspaceResponse(ws domain.Workspace) model.WorkspaceResponse {
 		ID:          ws.ID,
 		Name:        ws.Name,
 		Description: ws.Description,
+		Personal:    ws.Personal,
 		Owner: model.UserResponse{
 			ID:        ws.Owner.ID,
 			Name:      ws.Owner.Name,

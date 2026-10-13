@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspacemember"
 )
 
 // WorkspaceQuery is the builder for querying Workspace entities.
@@ -27,6 +29,7 @@ type WorkspaceQuery struct {
 	withCreator *UserQuery
 	withUpdater *UserQuery
 	withOwner   *UserQuery
+	withMembers *WorkspaceMemberQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -132,6 +135,31 @@ func (_q *WorkspaceQuery) QueryOwner() *UserQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.User
 		step.Edge.Schema = schemaConfig.Workspace
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMembers chains the current query on the "members" edge.
+func (_q *WorkspaceQuery) QueryMembers() *WorkspaceMemberQuery {
+	query := (&WorkspaceMemberClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspace.Table, workspace.FieldID, selector),
+			sqlgraph.To(workspacemember.Table, workspacemember.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workspace.MembersTable, workspace.MembersColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.WorkspaceMember
+		step.Edge.Schema = schemaConfig.WorkspaceMember
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -333,6 +361,7 @@ func (_q *WorkspaceQuery) Clone() *WorkspaceQuery {
 		withCreator: _q.withCreator.Clone(),
 		withUpdater: _q.withUpdater.Clone(),
 		withOwner:   _q.withOwner.Clone(),
+		withMembers: _q.withMembers.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -369,6 +398,17 @@ func (_q *WorkspaceQuery) WithOwner(opts ...func(*UserQuery)) *WorkspaceQuery {
 		opt(query)
 	}
 	_q.withOwner = query
+	return _q
+}
+
+// WithMembers tells the query-builder to eager-load the nodes that are connected to
+// the "members" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorkspaceQuery) WithMembers(opts ...func(*WorkspaceMemberQuery)) *WorkspaceQuery {
+	query := (&WorkspaceMemberClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withMembers = query
 	return _q
 }
 
@@ -450,10 +490,11 @@ func (_q *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 	var (
 		nodes       = []*Workspace{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withCreator != nil,
 			_q.withUpdater != nil,
 			_q.withOwner != nil,
+			_q.withMembers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -491,6 +532,13 @@ func (_q *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 	if query := _q.withOwner; query != nil {
 		if err := _q.loadOwner(ctx, query, nodes, nil,
 			func(n *Workspace, e *User) { n.Edges.Owner = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withMembers; query != nil {
+		if err := _q.loadMembers(ctx, query, nodes,
+			func(n *Workspace) { n.Edges.Members = []*WorkspaceMember{} },
+			func(n *Workspace, e *WorkspaceMember) { n.Edges.Members = append(n.Edges.Members, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -587,6 +635,36 @@ func (_q *WorkspaceQuery) loadOwner(ctx context.Context, query *UserQuery, nodes
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *WorkspaceQuery) loadMembers(ctx context.Context, query *WorkspaceMemberQuery, nodes []*Workspace, init func(*Workspace), assign func(*Workspace, *WorkspaceMember)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Workspace)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(workspacemember.FieldWorkspaceID)
+	}
+	query.Where(predicate.WorkspaceMember(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(workspace.MembersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.WorkspaceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "workspace_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

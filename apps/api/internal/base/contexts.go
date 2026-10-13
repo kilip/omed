@@ -27,6 +27,16 @@ type UserContext struct {
 	Roles         []UserRole `json:"roles"`
 }
 
+// HasRole reports whether the user has the given global role (from the JWT roles claim).
+func (u UserContext) HasRole(role UserRole) bool {
+	for _, r := range u.Roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
+}
+
 // UserFromContext retrieves the authenticated UserContext from a context.Context, if present.
 func UserFromContext(ctx context.Context) (UserContext, bool) {
 	if ctx == nil {

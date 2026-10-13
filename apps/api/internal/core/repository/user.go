@@ -8,6 +8,8 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspacemember"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/core/model"
@@ -40,6 +42,19 @@ func (r UserRepository) GetByID(c context.Context, id int64) (domain.User, error
 	}
 
 	return toDomain(user), nil
+}
+
+// FindByEmail retrieves a user domain entity by email. Returns base.ErrNotFound if not found.
+func (r UserRepository) FindByEmail(c context.Context, email string) (domain.User, error) {
+	var usr domain.User
+	u, err := r.cli.User.Query().Where(user.EmailEQ(email)).Only(c)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return usr, base.ErrNotFound
+		}
+		return usr, err
+	}
+	return toDomain(u), nil
 }
 
 // Search searches users matching the request filter with cursor pagination.
@@ -87,19 +102,34 @@ func (r UserRepository) Search(c context.Context, req model.SearchRequest) ([]do
 	return res, cursor, nil
 }
 
-// Create persists a new user in a database transaction.
+// Create persists a new user and creates their personal workspace in a database transaction.
 func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (domain.User, error) {
-	var user *ent.User
+	var usr *ent.User
 	var dom domain.User
 
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		var err error
-		user, err = tx.User.Create().
+		usr, err = tx.User.Create().
 			SetName(req.Name).
 			SetEmail(req.Email).
 			SetNillableAvatar(&req.Avatar).
 			Save(c)
+		if err != nil {
+			if ent.IsConstraintError(err) {
+				return domain.ErrEmailTaken
+			}
+			return err
+		}
 
+		// Auto-create personal workspace
+		wsName := req.Name + "'s Workspace"
+		_, err = tx.Workspace.Create().
+			SetName(wsName).
+			SetOwnerID(usr.ID).
+			SetPersonal(true).
+			SetCreatedByID(usr.ID).
+			SetUpdatedByID(usr.ID).
+			Save(c)
 		return err
 	})
 
@@ -107,7 +137,7 @@ func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (
 		return dom, err
 	}
 
-	return toDomain(user), nil
+	return toDomain(usr), nil
 }
 
 // Update modifies an existing user by ID within a transaction.
@@ -134,7 +164,18 @@ func (r UserRepository) Update(c context.Context, id int64, req model.UpdateUser
 // Delete removes a user by ID within a transaction.
 func (r UserRepository) Delete(c context.Context, id int64) error {
 	return entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
-		return tx.User.DeleteOneID(id).Exec(c)
+		// Clean up memberships and owned workspaces
+		_, _ = tx.WorkspaceMember.Delete().Where(workspacemember.UserIDEQ(id)).Exec(c)
+		_, _ = tx.Workspace.Delete().Where(workspace.OwnerIDEQ(id)).Exec(c)
+
+		err := tx.User.DeleteOneID(id).Exec(c)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return base.ErrNotFound
+			}
+			return err
+		}
+		return nil
 	})
 }
 

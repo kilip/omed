@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Workspace holds the schema definition for the Workspace entity.
@@ -35,6 +36,7 @@ func (Workspace) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("description").Optional(),
 		field.Int64("owner_id"),
+		field.Bool("personal").Default(false).Immutable(),
 	}
 }
 
@@ -45,5 +47,18 @@ func (Workspace) Edges() []ent.Edge {
 			Field("owner_id").
 			Unique().
 			Required(),
+		edge.To("members", WorkspaceMember.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+	}
+}
+
+// Indexes of the Workspace entity.
+func (Workspace) Indexes() []ent.Index {
+	return []ent.Index{
+		// Every user owns at most one personal workspace.
+		index.Fields("owner_id").
+			Unique().
+			Annotations(entsql.IndexWhere("personal")).
+			StorageKey("workspace_personal_owner"),
 	}
 }
