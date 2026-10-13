@@ -20,15 +20,15 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// App manages application modules and the HTTP server lifecycle.
-type App struct {
+// Omed manages application modules and the HTTP server lifecycle.
+type Omed struct {
 	cfg     Config
 	state   State
 	modules []Module
 }
 
-// New creates a new App instance populated with runtime state and registered modules.
-func New(state State) App {
+// New creates a new Omed instance populated with runtime state and registered modules.
+func New(state State) Omed {
 	coreMod := core.New(core.Config{
 		FiberApp: state.FiberApp,
 		Logger:   state.Logger,
@@ -42,7 +42,7 @@ func New(state State) App {
 	coreMod.SetAuthorizer(az)
 	state.Authz = az
 
-	return App{
+	return Omed{
 		state: state,
 		modules: []Module{
 			coreMod,
@@ -57,7 +57,7 @@ func initBaseMiddleware(state State) {
 
 // Boot initializes middlewares, sets up authentication firewalls, and triggers
 // PreBoot and Boot hooks across all registered modules.
-func (a *App) Boot() error {
+func (a *Omed) Boot() error {
 	initBaseMiddleware(a.state)
 	initFirewall(a.state)
 
@@ -82,7 +82,7 @@ func (a *App) Boot() error {
 
 // Run boots the application and starts the HTTP server listening on port 8002.
 // It listens for context cancellation to perform graceful shutdown.
-func (a *App) Run(ctx context.Context) error {
+func (a *Omed) Run(ctx context.Context) error {
 	a.Boot()
 
 	g, ctx := errgroup.WithContext(ctx)

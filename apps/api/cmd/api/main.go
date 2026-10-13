@@ -30,9 +30,9 @@ func main() {
 
 	config.WaitForJWKS(cfg, logger)
 
-	a := config.New(state)
+	omed := config.New(state)
 
-	if err := a.Run(ctx); err != nil {
+	if err := omed.Run(ctx); err != nil {
 		slog.Error("app stopped", "err", err)
 		os.Exit(1)
 	}

@@ -6,20 +6,20 @@ var (
 	CheckJWKS          = checkJWKS
 )
 
-// NewWithModules creates an App instance with explicit modules and state for testing.
-func NewWithModules(state State, modules []Module) App {
-	return App{
+// NewWithModules creates an Omed instance with explicit modules and state for testing.
+func NewWithModules(state State, modules []Module) Omed {
+	return Omed{
 		state:   state,
 		modules: modules,
 	}
 }
 
 // Modules returns the registered modules for testing assertions.
-func (a *App) Modules() []Module {
+func (a *Omed) Modules() []Module {
 	return a.modules
 }
 
-// State returns the App's runtime state for testing assertions.
-func (a *App) State() State {
+// State returns the Omed runtime state for testing assertions.
+func (a *Omed) State() State {
 	return a.state
 }
