@@ -7,13 +7,18 @@ import (
 	"github.com/kilip/omed/api/ent"
 )
 
+// State holds the shared dependencies and runtime components accessible across modules.
 type State struct {
-	Config   Config
+	// Config represents the application configuration.
+	Config Config
+	// FiberApp is the root Fiber HTTP application instance.
 	FiberApp *fiber.App
-	Logger   *slog.Logger
-	EntCli   *ent.Client
-	Public   fiber.Router
-
-	// Secured route group
+	// Logger is the application-wide structured logger.
+	Logger *slog.Logger
+	// EntCli is the database ORM client.
+	EntCli *ent.Client
+	// Public is the unauthenticated route group router.
+	Public fiber.Router
+	// Secure is the authenticated route group router.
 	Secure fiber.Router
 }

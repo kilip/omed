@@ -1,3 +1,4 @@
+// Package repository provides database access implementations for user entities using Ent.
 package repository
 
 import (
@@ -13,17 +14,20 @@ import (
 	"github.com/kilip/omed/api/internal/user/model"
 )
 
+// UserRepository handles user persistence operations against PostgreSQL via Ent ORM.
 type UserRepository struct {
 	core.ServiceRepository[int64, domain.User, model.CreateUserRequest, model.UpdateUserRequest, model.SearchRequest]
 	cli *ent.Client
 }
 
+// NewUserRepository constructs a new UserRepository instance backed by the given Ent client.
 func NewUserRepository(cli *ent.Client) UserRepository {
 	return UserRepository{
 		cli: cli,
 	}
 }
 
+// GetByID retrieves a user domain entity by ID. Returns core.ErrNotFound if the user does not exist.
 func (r UserRepository) GetByID(c context.Context, id int64) (domain.User, error) {
 	var usr domain.User
 
@@ -38,6 +42,7 @@ func (r UserRepository) GetByID(c context.Context, id int64) (domain.User, error
 	return toDomain(user), nil
 }
 
+// Search searches users matching the request filter with cursor pagination.
 func (r UserRepository) Search(c context.Context, req model.SearchRequest) ([]domain.User, string, error) {
 	limit := req.Limit
 	if limit <= 0 {
@@ -82,6 +87,7 @@ func (r UserRepository) Search(c context.Context, req model.SearchRequest) ([]do
 	return res, cursor, nil
 }
 
+// Create persists a new user in a database transaction.
 func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (domain.User, error) {
 	var user *ent.User
 	var dom domain.User
@@ -104,6 +110,7 @@ func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (
 	return toDomain(user), nil
 }
 
+// Update modifies an existing user by ID within a transaction.
 func (r UserRepository) Update(c context.Context, id int64, req model.UpdateUserRequest) (domain.User, error) {
 	var dom domain.User
 	var usr *ent.User
@@ -124,6 +131,7 @@ func (r UserRepository) Update(c context.Context, id int64, req model.UpdateUser
 	return toDomain(usr), nil
 }
 
+// Delete removes a user by ID within a transaction.
 func (r UserRepository) Delete(c context.Context, id int64) error {
 	return entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		return tx.User.DeleteOneID(id).Exec(c)

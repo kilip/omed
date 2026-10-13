@@ -6,6 +6,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+// DoGetByID coordinates extracting the ID parameter, invoking the entity lookup handler,
+// mapping the resulting entity to a response DTO, and rendering an OK response.
 func DoGetByID[E any, Res any, ID IDType](c fiber.Ctx, h func(c context.Context, id ID) (E, error), toRes func(E) Res) error {
 	id, err := GetID[ID](c)
 	if err != nil {
@@ -18,6 +20,8 @@ func DoGetByID[E any, Res any, ID IDType](c fiber.Ctx, h func(c context.Context,
 	return OK(c, toRes(e))
 }
 
+// DoCreate coordinates parsing and binding the request body, invoking the creation handler,
+// mapping the created entity to a response DTO, and rendering a Created response.
 func DoCreate[E, Req any, Res any](c fiber.Ctx, handler func(c context.Context, req Req) (E, error), toRes func(E) Res) error {
 	var err error
 	var req Req
@@ -34,6 +38,8 @@ func DoCreate[E, Req any, Res any](c fiber.Ctx, handler func(c context.Context, 
 	return Created(c, toRes(e))
 }
 
+// DoUpdate coordinates extracting the ID, binding the request payload, executing the update handler,
+// and rendering the mapped response DTO.
 func DoUpdate[E, Req any, Res any, ID IDType](c fiber.Ctx, handler func(c context.Context, id ID, req Req) (E, error), toRes func(E) Res) error {
 	var err error
 	var id ID
@@ -55,6 +61,7 @@ func DoUpdate[E, Req any, Res any, ID IDType](c fiber.Ctx, handler func(c contex
 	return OK(c, toRes(e))
 }
 
+// DoDelete coordinates extracting the ID and executing the deletion handler.
 func DoDelete[ID IDType](c fiber.Ctx, handler func(ctx context.Context, id ID) error) error {
 	var id ID
 	var err error
@@ -66,6 +73,8 @@ func DoDelete[ID IDType](c fiber.Ctx, handler func(ctx context.Context, id ID) e
 	return handler(c, id)
 }
 
+// DoSearch coordinates binding the search criteria payload, invoking the search handler,
+// mapping each entity to a response DTO, and rendering a cursor-paginated response.
 func DoSearch[E, Req, Res any](c fiber.Ctx, h func(context.Context, Req) ([]E, string, error), toRes func(E) Res) error {
 	var req Req
 	if err := c.Bind().Body(&req); err != nil {

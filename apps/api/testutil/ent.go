@@ -1,3 +1,4 @@
+// Package testutil provides common testing harnesses, in-memory databases, and HTTP suites.
 package testutil
 
 import (

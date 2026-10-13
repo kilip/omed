@@ -1,3 +1,4 @@
+// Package main serves as the documentation root for the OpenAPI spec generation.
 package main
 
 // @title           Omed API
@@ -18,6 +19,7 @@ package main
 // @name                        Authorization
 // @description                 Type "Bearer" followed by a space and JWT token.
 
+// main is an empty entrypoint reserved for swag CLI documentation generation.
 func main() {
 
 }

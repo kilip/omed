@@ -1,3 +1,4 @@
+// Package jwtx provides JSON Web Token (JWT) verification and user context extraction middlewares using JWKS.
 package jwtx
 
 import (
@@ -13,6 +14,8 @@ import (
 	"github.com/kilip/omed/api/internal/core"
 )
 
+// Handler initializes and returns a Fiber JWT authentication middleware backed by a remote JWKS endpoint.
+// It bypasses OPTIONS requests and paths starting with "/internal".
 func Handler(jwksUrl string, logger *slog.Logger) (fiber.Handler, error) {
 	jwks, err := keyfunc.NewDefaultCtx(context.Background(), []string{jwksUrl})
 	if err != nil {

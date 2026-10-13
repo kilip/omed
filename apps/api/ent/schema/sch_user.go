@@ -1,3 +1,4 @@
+// Package schema defines the Ent schema specifications for database entities.
 package schema
 
 import (
@@ -14,13 +15,14 @@ type User struct {
 	ent.Schema
 }
 
+// Annotations returns additional schema annotations for the User table.
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Schema("omed"),
 	}
 }
 
-// Fields of the User.
+// Fields of the User entity.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id"),

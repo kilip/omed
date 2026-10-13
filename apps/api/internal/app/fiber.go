@@ -17,6 +17,8 @@ type structValidator struct{ v *validator.Validate }
 
 func (s *structValidator) Validate(out any) error { return s.v.Struct(out) }
 
+// GetFiber creates and configures the root Fiber HTTP application instance,
+// including struct validation, custom error handling, CORS origins, recovery, and structured logging.
 func GetFiber(cfg core.Config, logger *slog.Logger) *fiber.App {
 	app := fiber.New(fiber.Config{
 		StructValidator: &structValidator{validator.New(validator.WithRequiredStructEnabled())},
@@ -36,6 +38,8 @@ func GetFiber(cfg core.Config, logger *slog.Logger) *fiber.App {
 	return app
 }
 
+// ErrorHandler returns a Fiber custom error handler that maps application and validation errors
+// to consistent JSON error responses, logging unknown errors.
 func ErrorHandler(log *slog.Logger) fiber.ErrorHandler {
 	return func(c fiber.Ctx, err error) error {
 		status, body := httpx.MapError(err)

@@ -1,3 +1,4 @@
+// Package controller provides HTTP handlers and endpoint bindings for user management.
 package controller
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/kilip/omed/api/internal/user/model"
 )
 
+// UserService defines the business logic operations required by UserController.
 type UserService interface {
 	GetByID(c context.Context, id int64) (domain.User, error)
 	Search(c context.Context, r model.SearchRequest) ([]domain.User, string, error)
@@ -17,10 +19,12 @@ type UserService interface {
 	Delete(c context.Context, id int64) error
 }
 
+// UserController handles HTTP requests for user CRUD operations and search.
 type UserController struct {
 	users UserService
 }
 
+// NewUserController constructs a new UserController backed by the specified UserService.
 func NewUserController(users UserService) UserController {
 	return UserController{users}
 }

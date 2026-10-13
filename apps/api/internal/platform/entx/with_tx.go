@@ -1,3 +1,4 @@
+// Package entx provides utilities and lifecycle wrappers for database transactions using the Ent ORM.
 package entx
 
 import (
@@ -7,7 +8,10 @@ import (
 	"github.com/kilip/omed/api/ent"
 )
 
-// WithTx runs your database operations within a managed transaction.
+// WithTx executes the provided function within a managed Ent database transaction.
+// If the function returns an error, the transaction is automatically rolled back.
+// If a panic occurs, the transaction is rolled back before re-panicking.
+// If the function completes successfully, the transaction is committed.
 func WithTx(ctx context.Context, client *ent.Client, fn func(tx *ent.Tx) error) error {
 	tx, err := client.Tx(ctx)
 	if err != nil {

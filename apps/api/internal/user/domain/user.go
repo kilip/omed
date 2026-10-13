@@ -2,6 +2,7 @@ package domain
 
 import "time"
 
+// User represents the domain entity for a registered user.
 type User struct {
 	ID        int64
 	Name      string
