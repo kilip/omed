@@ -9,7 +9,6 @@ import (
 	"github.com/kilip/omed/api/internal/user/model"
 )
 
-//go:generate go run go.uber.org/mock/mockgen -source=user.go -destination=mock/mock_user.go -package=mock
 type UserService interface {
 	GetByID(c context.Context, id int64) (domain.User, error)
 	Search(c context.Context, r model.SearchRequest) ([]domain.User, string, error)
