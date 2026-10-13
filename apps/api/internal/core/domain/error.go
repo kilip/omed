@@ -1,4 +1,4 @@
-// Package domain defines core domain entities and business errors for the user module.
+// Package domain defines core domain entities and business errors for the core module.
 package domain
 
 import (

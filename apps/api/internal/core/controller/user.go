@@ -5,9 +5,9 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/kilip/omed/api/internal/core/domain"
+	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
-	"github.com/kilip/omed/api/internal/user/domain"
-	"github.com/kilip/omed/api/internal/user/model"
 )
 
 // UserService defines the business logic operations required by UserController.

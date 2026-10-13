@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kilip/omed/api/internal/user/domain"
-	"github.com/kilip/omed/api/internal/user/model"
-	"github.com/kilip/omed/api/internal/user/service"
-	"github.com/kilip/omed/api/internal/user/service/mock"
+	"github.com/kilip/omed/api/internal/core/domain"
+	"github.com/kilip/omed/api/internal/core/model"
+	"github.com/kilip/omed/api/internal/core/service"
+	"github.com/kilip/omed/api/internal/core/service/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 )

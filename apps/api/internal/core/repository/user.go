@@ -9,9 +9,9 @@ import (
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/internal/base"
+	"github.com/kilip/omed/api/internal/core/domain"
+	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/entx"
-	"github.com/kilip/omed/api/internal/user/domain"
-	"github.com/kilip/omed/api/internal/user/model"
 )
 
 // UserRepository handles user persistence operations against PostgreSQL via Ent ORM.

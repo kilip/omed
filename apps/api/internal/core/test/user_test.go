@@ -9,8 +9,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
-	"github.com/kilip/omed/api/internal/user/model"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )

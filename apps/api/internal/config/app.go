@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3/middleware/requestid"
-	"github.com/kilip/omed/api/internal/user"
+	"github.com/kilip/omed/api/internal/core"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -31,7 +31,7 @@ func New(state State) App {
 	return App{
 		state: state,
 		modules: []Module{
-			user.New(user.Config{
+			core.New(core.Config{
 				FiberApp: state.FiberApp,
 				Logger:   state.Logger,
 				EntCli:   state.EntCli,

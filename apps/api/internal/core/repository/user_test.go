@@ -7,9 +7,9 @@ import (
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/base"
-	"github.com/kilip/omed/api/internal/user/domain"
-	"github.com/kilip/omed/api/internal/user/model"
-	"github.com/kilip/omed/api/internal/user/repository"
+	"github.com/kilip/omed/api/internal/core/domain"
+	"github.com/kilip/omed/api/internal/core/model"
+	"github.com/kilip/omed/api/internal/core/repository"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )

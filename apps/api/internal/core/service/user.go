@@ -3,8 +3,8 @@ package service
 
 import (
 	"github.com/kilip/omed/api/internal/base"
-	"github.com/kilip/omed/api/internal/user/domain"
-	"github.com/kilip/omed/api/internal/user/model"
+	"github.com/kilip/omed/api/internal/core/domain"
+	"github.com/kilip/omed/api/internal/core/model"
 )
 
 // UserRepository defines the persistence contract required by UserService.

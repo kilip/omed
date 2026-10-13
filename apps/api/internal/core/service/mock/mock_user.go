@@ -13,8 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	domain "github.com/kilip/omed/api/internal/user/domain"
-	model "github.com/kilip/omed/api/internal/user/model"
+	domain "github.com/kilip/omed/api/internal/core/domain"
+	model "github.com/kilip/omed/api/internal/core/model"
 	gomock "go.uber.org/mock/gomock"
 )
 
