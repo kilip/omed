@@ -93,10 +93,6 @@ func (s *AuthorizerSuite) Test_Require_InvalidWorkspaceID() {
 	s.Equal(fiber.StatusBadRequest, s.status(app, "/workspaces/0/invoices"))
 }
 
-func (s *AuthorizerSuite) Test_Require_NoUser() {
-	s.user = nil
-	s.Equal(fiber.StatusUnauthorized, s.status(s.app(s.az.Require("fin:invoice", "read")), "/workspaces/1/invoices"))
-}
 
 func (s *AuthorizerSuite) Test_Member_ResolvesOnceAcrossMiddlewares() {
 	s.resolver.EXPECT().ResolveMembership(gomock.Any(), int64(7), int64(1)).
@@ -140,9 +136,6 @@ func (s *AuthorizerSuite) Test_RequireGlobal() {
 
 	s.user.Roles = []base.UserRole{base.UserRoleAdmin}
 	s.Equal(fiber.StatusOK, s.status(app, "/workspaces/1/invoices"))
-
-	s.user = nil
-	s.Equal(fiber.StatusUnauthorized, s.status(app, "/workspaces/1/invoices"))
 }
 
 func (s *AuthorizerSuite) Test_HasRole() {

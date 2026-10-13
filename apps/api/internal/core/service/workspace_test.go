@@ -21,12 +21,14 @@ type WorkspaceSuite struct {
 	suite.Suite
 	mockRepo *mock.MockWorkspaceRepository
 	service  service.WorkspaceService
+	ctx      context.Context
 }
 
 func (s *WorkspaceSuite) SetupTest() {
 	ctl := gomock.NewController(s.T())
 	s.mockRepo = mock.NewMockWorkspaceRepository(ctl)
 	s.service = service.NewWorkspaceService(s.mockRepo)
+	s.ctx = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{})
 }
 
 func (s *WorkspaceSuite) Test_GetByID_Success() {
@@ -64,7 +66,7 @@ func (s *WorkspaceSuite) Test_GetByID_NotFound() {
 }
 
 func (s *WorkspaceSuite) Test_Search_Success() {
-	ctx := context.Background()
+	ctx := s.ctx
 	req := model.SearchWorkspaceRequest{
 		Name:  "Test",
 		Limit: 10,
@@ -88,7 +90,7 @@ func (s *WorkspaceSuite) Test_Search_Success() {
 }
 
 func (s *WorkspaceSuite) Test_Search_Error() {
-	ctx := context.Background()
+	ctx := s.ctx
 	req := model.SearchWorkspaceRequest{
 		Name: "NonExistent",
 	}
@@ -102,7 +104,7 @@ func (s *WorkspaceSuite) Test_Search_Error() {
 }
 
 func (s *WorkspaceSuite) Test_Create_Success() {
-	ctx := context.Background()
+	ctx := s.ctx
 	req := model.CreateWorkspaceRequest{
 		Name:        "New Workspace",
 		Description: "New Description",
@@ -124,7 +126,7 @@ func (s *WorkspaceSuite) Test_Create_Success() {
 }
 
 func (s *WorkspaceSuite) Test_Create_Error() {
-	ctx := context.Background()
+	ctx := s.ctx
 	req := model.CreateWorkspaceRequest{
 		Name: "New Workspace",
 	}

@@ -19,6 +19,8 @@ type Config struct {
 	JWKSUrl string `env:"OMED_JWKS_URL"`
 	// TrustedOrigins lists allowed CORS origins for browser clients.
 	TrustedOrigins []string `env:"OMED_TRUSTED_ORIGINS,separator=,default=http://localhost:3001"`
+	// DatabaseUrl database server to be use in omed
+	DatabaseUrl string `env:"OMED_DB_URL"`
 }
 
 // GetConfig reads environment variables and returns a populated Config instance.

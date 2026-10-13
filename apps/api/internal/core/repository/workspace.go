@@ -112,7 +112,7 @@ func (r WorkspaceRepository) Create(c context.Context, req model.CreateWorkspace
 
 	ownerID := req.OwnerID
 	var userID int64
-	if u, ok := base.UserFromContext(c); ok && u.ID != 0 {
+	if u := base.UserFromContext(c); u.ID != 0 {
 		userID = u.ID
 	}
 
@@ -170,7 +170,7 @@ func (r WorkspaceRepository) CreatePersonal(c context.Context, tx *ent.Tx, userI
 func (r WorkspaceRepository) Update(c context.Context, id int64, req model.UpdateWorkspaceRequest) (domain.Workspace, error) {
 	var dom domain.Workspace
 	var updatedByID *int64
-	if u, ok := base.UserFromContext(c); ok && u.ID != 0 {
+	if u := base.UserFromContext(c); u.ID != 0 {
 		updatedByID = &u.ID
 	}
 

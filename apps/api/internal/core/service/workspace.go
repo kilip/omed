@@ -22,7 +22,7 @@ type WorkspaceService struct {
 
 // Create enforces that non-superadmin users become the owner of the created workspace.
 func (s WorkspaceService) Create(c context.Context, req model.CreateWorkspaceRequest) (domain.Workspace, error) {
-	user, _ := base.UserFromContext(c)
+	user := base.UserFromContext(c)
 	if !user.HasRole(base.UserRoleAdmin) {
 		req.OwnerID = user.ID
 	}
@@ -31,7 +31,7 @@ func (s WorkspaceService) Create(c context.Context, req model.CreateWorkspaceReq
 
 // Search restricts results for non-superadmins to workspaces they own or belong to.
 func (s WorkspaceService) Search(c context.Context, req model.SearchWorkspaceRequest) ([]domain.Workspace, string, error) {
-	user, _ := base.UserFromContext(c)
+	user := base.UserFromContext(c)
 	if !user.HasRole(base.UserRoleAdmin) && user.ID != 0 {
 		req.MemberID = user.ID
 	}

@@ -91,7 +91,7 @@ func (r MemberRepository) Search(ctx context.Context, wid int64, req model.Searc
 func (r MemberRepository) Create(ctx context.Context, wid, uid int64, roles []string) (domain.Member, error) {
 	var dom domain.Member
 	var createdByID *int64
-	if u, ok := base.UserFromContext(ctx); ok && u.ID != 0 {
+	if u := base.UserFromContext(ctx); u.ID != 0 {
 		createdByID = &u.ID
 	}
 
@@ -120,7 +120,7 @@ func (r MemberRepository) Create(ctx context.Context, wid, uid int64, roles []st
 func (r MemberRepository) UpdateRoles(ctx context.Context, wid, uid int64, roles []string) (domain.Member, error) {
 	var dom domain.Member
 	var updatedByID *int64
-	if u, ok := base.UserFromContext(ctx); ok && u.ID != 0 {
+	if u := base.UserFromContext(ctx); u.ID != 0 {
 		updatedByID = &u.ID
 	}
 

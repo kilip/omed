@@ -49,8 +49,8 @@ func (a *Authorizer) resolve(c fiber.Ctx) (Membership, error) {
 		return m, nil
 	}
 
-	user, ok := base.UserFromContext(c)
-	if !ok || user.ID == 0 {
+	user := base.UserFromContext(c)
+	if user.ID == 0 {
 		return Membership{}, base.ErrUnauthorized
 	}
 
@@ -136,8 +136,8 @@ func (a *Authorizer) allowed(m Membership, obj, act string) bool {
 // such as base.UserRoleAdmin. It does not grant any workspace access.
 func RequireGlobal(role base.UserRole) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		user, ok := base.UserFromContext(c)
-		if !ok || user.ID == 0 {
+		user := base.UserFromContext(c)
+		if user.ID == 0 {
 			return base.ErrUnauthorized
 		}
 		if !user.HasRole(role) {

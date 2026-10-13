@@ -77,7 +77,7 @@ func (r AccountRepository) Create(c context.Context, workspaceID int64, req mode
 	var dom domain.Account
 
 	var userID int64
-	if u, ok := base.UserFromContext(c); ok && u.ID != 0 {
+	if u := base.UserFromContext(c); u.ID != 0 {
 		userID = u.ID
 	}
 
@@ -125,7 +125,7 @@ func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req 
 	var dom domain.Account
 
 	var userID int64
-	if u, ok := base.UserFromContext(c); ok && u.ID != 0 {
+	if u := base.UserFromContext(c); u.ID != 0 {
 		userID = u.ID
 	}
 
@@ -188,7 +188,7 @@ func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req 
 // Delete marks an existing account as soft-deleted.
 func (r AccountRepository) Delete(c context.Context, workspaceID, id int64) error {
 	var userID *int64
-	if u, ok := base.UserFromContext(c); ok && u.ID != 0 {
+	if u := base.UserFromContext(c); u.ID != 0 {
 		userID = &u.ID
 	}
 

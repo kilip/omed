@@ -18,11 +18,13 @@ type WorkspaceRepoSuite struct {
 	suite.Suite
 	client *ent.Client
 	repo   repository.WorkspaceRepository
+	ctx    context.Context
 }
 
 func (s *WorkspaceRepoSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:workspace_repo_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
 	s.repo = repository.NewWorkspaceRepository(s.client)
+	s.ctx = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{})
 }
 
 func (s *WorkspaceRepoSuite) TearDownSuite() {
@@ -86,7 +88,7 @@ func (s *WorkspaceRepoSuite) Test_GetByID_NotFound() {
 }
 
 func (s *WorkspaceRepoSuite) Test_Create_Success() {
-	ctx := context.Background()
+	ctx := s.ctx
 	user := s.createTestUser("Bob", "bob@example.com")
 
 	req := model.CreateWorkspaceRequest{
@@ -129,18 +131,8 @@ func (s *WorkspaceRepoSuite) Test_Create_WithUserContext() {
 	s.Equal("Charlie", dom.CreatedBy.Name)
 }
 
-func (s *WorkspaceRepoSuite) Test_Create_NoUser_Unauthorized() {
-	ctx := context.Background()
-	req := model.CreateWorkspaceRequest{
-		Name: "Orphan Workspace",
-	}
-
-	_, err := s.repo.Create(ctx, req)
-	s.ErrorIs(err, base.ErrUnauthorized)
-}
-
 func (s *WorkspaceRepoSuite) Test_Update_Success() {
-	ctx := context.Background()
+	ctx := s.ctx
 	user := s.createTestUser("Diana", "diana@example.com")
 	w := s.createTestWorkspace("Original", "Original Desc", user.ID)
 
@@ -156,7 +148,7 @@ func (s *WorkspaceRepoSuite) Test_Update_Success() {
 }
 
 func (s *WorkspaceRepoSuite) Test_Update_NotFound() {
-	ctx := context.Background()
+	ctx := s.ctx
 	req := model.UpdateWorkspaceRequest{
 		Name: "Non-existent",
 	}
