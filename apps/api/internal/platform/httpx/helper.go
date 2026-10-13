@@ -6,44 +6,39 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-func DoGetByID[Res any, ID IDType](c fiber.Ctx, handler func(c context.Context, id ID) (Res, error)) error {
-	var id ID
-	var res Res
-	var err error
-
-	if id, err = GetID[ID](c); err != nil {
-		return err
-	}
-
-	res, err = handler(c, id)
+func DoGetByID[E any, Res any, ID IDType](c fiber.Ctx, h func(c context.Context, id ID) (E, error), toRes func(E) Res) error {
+	id, err := GetID[ID](c)
 	if err != nil {
 		return err
 	}
-
-	return OK(c, res)
+	e, err := h(c, id)
+	if err != nil {
+		return err
+	}
+	return OK(c, toRes(e))
 }
 
-func DoCreate[Req any, Res any](c fiber.Ctx, handler func(c context.Context, req Req) (Res, error)) error {
+func DoCreate[E, Req any, Res any](c fiber.Ctx, handler func(c context.Context, req Req) (E, error), toRes func(E) Res) error {
 	var err error
 	var req Req
-	var res Res
+	var e E
 
 	if err = c.Bind().Body(&req); err != nil {
 		return err
 	}
 
-	if res, err = handler(c, req); err != nil {
+	if e, err = handler(c, req); err != nil {
 		return err
 	}
 
-	return Created(c, res)
+	return Created(c, toRes(e))
 }
 
-func DoUpdate[Req any, Res any, ID IDType](c fiber.Ctx, handler func(c context.Context, id ID, req Req) (Res, error)) error {
+func DoUpdate[E, Req any, Res any, ID IDType](c fiber.Ctx, handler func(c context.Context, id ID, req Req) (E, error), toRes func(E) Res) error {
 	var err error
 	var id ID
 	var req Req
-	var res Res
+	var e E
 
 	if id, err = GetID[ID](c); err != nil {
 		return err
@@ -53,11 +48,11 @@ func DoUpdate[Req any, Res any, ID IDType](c fiber.Ctx, handler func(c context.C
 		return err
 	}
 
-	if res, err = handler(c, id, req); err != nil {
+	if e, err = handler(c, id, req); err != nil {
 		return err
 	}
 
-	return OK(c, res)
+	return OK(c, toRes(e))
 }
 
 func DoDelete[ID IDType](c fiber.Ctx, handler func(ctx context.Context, id ID) error) error {
@@ -71,19 +66,18 @@ func DoDelete[ID IDType](c fiber.Ctx, handler func(ctx context.Context, id ID) e
 	return handler(c, id)
 }
 
-func DoSearch[Req any, Res any](c fiber.Ctx, handler func(ctx context.Context, req Req) (Res, string, error)) error {
-	var err error
+func DoSearch[E, Req, Res any](c fiber.Ctx, h func(context.Context, Req) ([]E, string, error), toRes func(E) Res) error {
 	var req Req
-	var res Res
-	var cursor string
-
-	if err = c.Bind().Body(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return err
 	}
-
-	if res, cursor, err = handler(c, req); err != nil {
+	items, cursor, err := h(c, req)
+	if err != nil {
 		return err
 	}
-
-	return WithCursor(c, res, cursor)
+	out := make([]Res, len(items))
+	for i, it := range items {
+		out[i] = toRes(it)
+	}
+	return WithCursor(c, out, cursor)
 }

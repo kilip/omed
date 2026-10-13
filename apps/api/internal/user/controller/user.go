@@ -5,15 +5,16 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/internal/platform/httpx"
+	"github.com/kilip/omed/api/internal/user/domain"
 	"github.com/kilip/omed/api/internal/user/model"
 )
 
 //go:generate go run go.uber.org/mock/mockgen -source=user.go -destination=mock/mock_user.go -package=mock
 type UserService interface {
-	GetByID(c context.Context, id int64) (model.UserResponse, error)
-	Search(c context.Context, r model.SearchRequest) ([]model.UserResponse, string, error)
-	Create(c context.Context, r model.CreateUserRequest) (model.UserResponse, error)
-	Update(c context.Context, id int64, r model.UpdateUserRequest) (model.UserResponse, error)
+	GetByID(c context.Context, id int64) (domain.User, error)
+	Search(c context.Context, r model.SearchRequest) ([]domain.User, string, error)
+	Create(c context.Context, r model.CreateUserRequest) (domain.User, error)
+	Update(c context.Context, id int64, r model.UpdateUserRequest) (domain.User, error)
 	Delete(c context.Context, id int64) error
 }
 
@@ -39,7 +40,7 @@ func NewUserController(users UserService) UserController {
 //	@Security		BearerAuth
 //	@Router			/users/{id} [get]
 func (u UserController) GetByID(c fiber.Ctx) error {
-	return httpx.DoGetByID(c, u.users.GetByID)
+	return httpx.DoGetByID(c, u.users.GetByID, toUserResponse)
 }
 
 // Search searches users based on query parameters.
@@ -57,7 +58,7 @@ func (u UserController) GetByID(c fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Router			/users/search [post]
 func (u UserController) Search(c fiber.Ctx) error {
-	return httpx.DoSearch(c, u.users.Search)
+	return httpx.DoSearch(c, u.users.Search, toUserResponse)
 }
 
 // Create creates a new user.
@@ -75,7 +76,7 @@ func (u UserController) Search(c fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Router			/users [post]
 func (u UserController) Create(c fiber.Ctx) error {
-	return httpx.DoCreate(c, u.users.Create)
+	return httpx.DoCreate(c, u.users.Create, toUserResponse)
 }
 
 // Update updates an existing user by ID.
@@ -95,7 +96,7 @@ func (u UserController) Create(c fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Router			/users/{id} [put]
 func (u UserController) Update(c fiber.Ctx) error {
-	return httpx.DoUpdate(c, u.users.Update)
+	return httpx.DoUpdate(c, u.users.Update, toUserResponse)
 }
 
 // Delete deletes a user by ID.
@@ -113,4 +114,14 @@ func (u UserController) Update(c fiber.Ctx) error {
 //	@Router			/users/{id} [delete]
 func (u UserController) Delete(c fiber.Ctx) error {
 	return httpx.DoDelete(c, u.users.Delete)
+}
+
+func toUserResponse(user domain.User) model.UserResponse {
+	return model.UserResponse{
+		ID:        user.ID,
+		Name:      user.Name,
+		Avatar:    user.Avatar,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
 }
