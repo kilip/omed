@@ -67,7 +67,7 @@ func (a *App) Boot() error {
 		}
 	}
 
-	return nil
+	return err
 }
 
 // Run boots the application and starts the HTTP server listening on port 8002.
