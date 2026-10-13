@@ -4,45 +4,60 @@ import (
 	"context"
 )
 
-type ServiceRepository[IDType any, Res any, CreateRequest any, UpdateRequest any, SearchRequest any] interface {
-	GetByID(c context.Context, id IDType) (Res, error)
-	Search(c context.Context, req SearchRequest) ([]Res, string, error)
-	Create(c context.Context, req CreateRequest) (Res, error)
-	Update(c context.Context, id IDType, req UpdateRequest) (Res, error)
-	Delete(c context.Context, id IDType) error
+// ServiceRepository defines generic data-access operations required by the generic Service.
+type ServiceRepository[ID, Entity, Create, Update, Search any] interface {
+	GetByID(c context.Context, id ID) (Entity, error)
+	Search(c context.Context, req Search) ([]Entity, string, error)
+	Create(c context.Context, req Create) (Entity, error)
+	Update(c context.Context, id ID, req Update) (Entity, error)
+	Delete(c context.Context, id ID) error
 }
 
-type Service[IDType any, Res, CreateRequest any, UpdateRequest any, SearchRequest any] struct {
-	repo ServiceRepository[IDType, Res, CreateRequest, UpdateRequest, SearchRequest]
+// Service provides a reusable generic CRUD implementation backed by a ServiceRepository.
+type Service[ID, Entity, Create, Update, Search any] struct {
+	repo ServiceRepository[ID, Entity, Create, Update, Search]
 }
 
-func (s *Service[IDType, Res, CreateRequest, UpdateRequest, SearchRequest]) SetRepository(repo ServiceRepository[IDType, Res, CreateRequest, UpdateRequest, SearchRequest]) {
+// SetRepository configures or replaces the underlying repository backing the service.
+func (s *Service[ID, E, C, U, S]) SetRepository(repo ServiceRepository[ID, E, C, U, S]) {
 	s.repo = repo
 }
 
-func (s Service[IDType, Res, CreateRequest, UpdateRequest, SearchRequest]) GetByID(c context.Context, id IDType) (Res, error) {
+// GetByID retrieves a single entity by its unique identifier.
+func (s Service[ID, E, C, U, S]) GetByID(c context.Context, id ID) (E, error) {
 	return s.repo.GetByID(c, id)
 }
 
-func (s Service[IDType, Res, CreateRequest, UpdateRequest, SearchRequest]) Search(c context.Context, req SearchRequest) ([]Res, string, error) {
+// Search queries entities based on search criteria and returns matching items along with a next page cursor.
+func (s Service[ID, E, C, U, S]) Search(c context.Context, req S) ([]E, string, error) {
 	return s.repo.Search(c, req)
 }
 
-func (s Service[IDType, Res, CreateRequest, UpdateRequest, SearchRequest]) Create(c context.Context, req CreateRequest) (Res, error) {
+// Create persists a new entity using the provided creation payload.
+func (s Service[ID, E, C, U, S]) Create(c context.Context, req C) (E, error) {
 	return s.repo.Create(c, req)
 }
 
-func (s Service[IDType, Res, CreateRequest, UpdateRequest, SearchRequest]) Update(c context.Context, id IDType, req UpdateRequest) (Res, error) {
-	var res Res
+// Update modifies an existing entity identified by id with the provided update payload.
+// It returns an error if the entity does not exist or if updating fails.
+func (s Service[ID, E, C, U, S]) Update(c context.Context, id ID, req U) (E, error) {
+	var entity E
 	if _, err := s.repo.GetByID(c, id); err != nil {
-		return res, err
+		return entity, err
 	}
 	return s.repo.Update(c, id, req)
 }
 
-func (s Service[IDType, Res, CreateRequest, UpdateRequest, SearchRequest]) Delete(c context.Context, id IDType) error {
+// Delete removes an existing entity identified by id.
+// It returns an error if the entity does not exist or if deletion fails.
+func (s Service[ID, E, C, U, S]) Delete(c context.Context, id ID) error {
 	if _, err := s.repo.GetByID(c, id); err != nil {
 		return err
 	}
 	return s.repo.Delete(c, id)
+}
+
+// NewService constructs a new generic Service instance backed by the given repository.
+func NewService[ID, E, C, U, S any](repo ServiceRepository[ID, E, C, U, S]) Service[ID, E, C, U, S] {
+	return Service[ID, E, C, U, S]{repo: repo}
 }

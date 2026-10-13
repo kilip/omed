@@ -1,0 +1,10 @@
+{
+  "name": "@omed/openapi",
+  "private": true,
+  "type": "module",
+  "main": "./src/api.ts",
+  "types": "./src/api.ts",
+  "exports": {
+    ".": "./src/api.ts"
+  }
+}

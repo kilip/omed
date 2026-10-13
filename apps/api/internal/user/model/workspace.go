@@ -6,6 +6,7 @@ import (
 	"github.com/kilip/omed/api/internal/core"
 )
 
+// WorkspaceResponse represents workspace metadata returned by workspace endpoints.
 type WorkspaceResponse struct {
 	ID          int64        `json:"id"`
 	Name        string       `json:"name"`
@@ -17,6 +18,7 @@ type WorkspaceResponse struct {
 	UpdatedAt   time.Time    `json:"updatedAt"`
 }
 
+// CreateWorkspaceRequest defines the payload required to create a new workspace.
 type CreateWorkspaceRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`

@@ -12,6 +12,9 @@ import (
 	"github.com/kilip/omed/api/internal/core"
 )
 
+// UserInjector returns a Fiber middleware that validates issuer and audience claims
+// on the verified JWT token, deserializes user information, and injects the resulting
+// core.UserContext into the Fiber request context locals.
 func UserInjector(issuer string, restAudience string) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		if c.Method() == fiber.MethodOptions || strings.HasPrefix(c.Path(), "/internal") {

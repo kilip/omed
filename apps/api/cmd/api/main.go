@@ -1,3 +1,4 @@
+// Package main provides the entry point for starting the Omed API HTTP service.
 package main
 
 import (
@@ -11,6 +12,7 @@ import (
 	"github.com/kilip/omed/api/internal/core"
 )
 
+// main initializes configuration, logging, fiber app state, and starts the server.
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

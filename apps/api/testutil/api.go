@@ -20,6 +20,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+// ApiTestSuite provides an end-to-end HTTP integration testing harness with embedded Fiber test client,
+// automatic test user provisioning, JWT signing, cookie management, and response assertions.
 type ApiTestSuite[T any] struct {
 	suite.Suite
 	HttpResponse *http.Response
@@ -28,6 +30,7 @@ type ApiTestSuite[T any] struct {
 	Context      context.Context
 }
 
+// SetupTest prepares test state before each test case runs, resetting cookies and provisioning a default test user.
 func (s *ApiTestSuite[T]) SetupTest() {
 	s.Cookies = nil
 	usr := s.EnsureUser(ent.User{
@@ -45,6 +48,7 @@ func (s *ApiTestSuite[T]) SetupTest() {
 	s.Context = context.Background()
 }
 
+// SetCookie appends or updates an HTTP cookie to be sent with subsequent test requests.
 func (s *ApiTestSuite[T]) SetCookie(cookie *http.Cookie) {
 	for i, c := range s.Cookies {
 		if c.Name == cookie.Name {
@@ -55,6 +59,7 @@ func (s *ApiTestSuite[T]) SetCookie(cookie *http.Cookie) {
 	s.Cookies = append(s.Cookies, cookie)
 }
 
+// EnsureUser creates or updates a user in the test database and returns the resulting user entity.
 func (s *ApiTestSuite[T]) EnsureUser(req ent.User) *ent.User {
 	ctx := context.Background()
 	id, err := entClient.User.Create().
@@ -77,6 +82,7 @@ func (s *ApiTestSuite[T]) EnsureUser(req ent.User) *ent.User {
 	return usr
 }
 
+// ClearCookies clears all stored cookies from the test suite.
 func (s *ApiTestSuite[T]) ClearCookies() {
 	s.Cookies = nil
 }
@@ -88,6 +94,7 @@ func (s *ApiTestSuite[T]) jsonBody(v any) io.Reader {
 	return bytes.NewReader(b)
 }
 
+// RequestWithToken sends an HTTP request with an explicit Bearer JWT token and request body.
 func (s *ApiTestSuite[T]) RequestWithToken(path string, method string, requestBody any, token string) {
 	s.T().Helper()
 
@@ -114,6 +121,7 @@ func (s *ApiTestSuite[T]) RequestWithToken(path string, method string, requestBo
 	require.NoError(s.T(), err)
 }
 
+// RequestWithClaims signs a JWT token with the current test user context and additional claims, then executes the request.
 func (s *ApiTestSuite[T]) RequestWithClaims(path string, method string, requestBody any, extraClaims jwt.MapClaims) {
 	s.T().Helper()
 
@@ -132,16 +140,19 @@ func (s *ApiTestSuite[T]) RequestWithClaims(path string, method string, requestB
 	s.RequestWithToken(path, method, requestBody, token)
 }
 
+// Request executes an authenticated HTTP request using the default test user credentials.
 func (s *ApiTestSuite[T]) Request(path string, method string, requestBody any) {
 	s.T().Helper()
 	s.RequestWithClaims(path, method, requestBody, nil)
 }
 
+// RequestMultipart sends a multipart/form-data upload request authenticated with the test user.
 func (s *ApiTestSuite[T]) RequestMultipart(path string, method string, fieldName string, filename string, content []byte) {
 	s.T().Helper()
 	s.RequestMultipartWithClaims(path, method, fieldName, filename, content, nil)
 }
 
+// RequestMultipartWithClaims sends a multipart/form-data request with custom claims.
 func (s *ApiTestSuite[T]) RequestMultipartWithClaims(path string, method string, fieldName string, filename string, content []byte, extraClaims jwt.MapClaims) {
 	s.T().Helper()
 	var b bytes.Buffer
@@ -180,6 +191,7 @@ func (s *ApiTestSuite[T]) RequestMultipartWithClaims(path string, method string,
 	require.NoError(s.T(), err)
 }
 
+// GetResponse decodes the HTTP response JSON body into a WebResponse[T].
 func (s *ApiTestSuite[T]) GetResponse() httpx.WebResponse[T] {
 	var env httpx.WebResponse[T]
 	s.T().Helper()
@@ -188,6 +200,7 @@ func (s *ApiTestSuite[T]) GetResponse() httpx.WebResponse[T] {
 	return env
 }
 
+// PagedResponse decodes the HTTP response JSON body into a cursor-paginated WebResponse[[]T].
 func (s *ApiTestSuite[T]) PagedResponse() httpx.WebResponse[[]T] {
 	var env httpx.WebResponse[[]T]
 	s.T().Helper()
@@ -196,6 +209,7 @@ func (s *ApiTestSuite[T]) PagedResponse() httpx.WebResponse[[]T] {
 	return env
 }
 
+// DecodeOther decodes the response body into an arbitrary WebResponse[R] envelope.
 func DecodeOther[R any](s interface{ GetHttpResponse() *http.Response }) httpx.WebResponse[R] {
 	var env httpx.WebResponse[R]
 	resp := s.GetHttpResponse()
@@ -204,25 +218,30 @@ func DecodeOther[R any](s interface{ GetHttpResponse() *http.Response }) httpx.W
 	return env
 }
 
+// GetHttpResponse returns the raw recorded *http.Response from the last executed request.
 func (s *ApiTestSuite[T]) GetHttpResponse() *http.Response {
 	return s.HttpResponse
 }
 
+// AssertStatus asserts that the recorded response status code matches the expected code.
 func (s *ApiTestSuite[T]) AssertStatus(code int) {
 	s.T().Helper()
 	s.Equal(code, s.HttpResponse.StatusCode)
 }
 
+// OK asserts that the recorded HTTP response has status 200 OK.
 func (s *ApiTestSuite[T]) OK() {
 	s.T().Helper()
 	s.AssertStatus(fiber.StatusOK)
 }
 
+// Created asserts that the recorded HTTP response has status 201 Created.
 func (s *ApiTestSuite[T]) Created() {
 	s.T().Helper()
 	s.AssertStatus(fiber.StatusCreated)
 }
 
+// NoContent asserts that the recorded HTTP response has status 204 No Content.
 func (s *ApiTestSuite[T]) NoContent() {
 	s.T().Helper()
 	s.AssertStatus(fiber.StatusNoContent)

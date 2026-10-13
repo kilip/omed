@@ -63,7 +63,7 @@ func init() {
 		Level: slog.LevelDebug,
 	}))
 	api = app.GetFiber(cfg, logger)
-	entClient = createTestDB()
+	entClient = CreateTestDB()
 
 	// config.ConfigureEntCli(entClient)
 	// mockStorage := storage.NewMemoryStorage()
@@ -81,10 +81,12 @@ func init() {
 
 }
 
+// GetState returns the global initialized testing State instance.
 func GetState() core.State {
 	return state
 }
 
+// GetEntCli returns the global in-memory test Ent client.
 func GetEntCli() *ent.Client {
 	return state.EntCli
 }

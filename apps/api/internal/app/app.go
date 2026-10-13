@@ -1,3 +1,5 @@
+// Package app orchestrates application initialization, module lifecycle, Fiber HTTP configuration,
+// authentication firewall setup, and graceful server shutdowns.
 package app
 
 import (
@@ -18,12 +20,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// App manages application modules and the HTTP server lifecycle.
 type App struct {
 	cfg     core.Config
 	state   core.State
 	modules []core.Module
 }
 
+// New creates a new App instance populated with runtime state and registered modules.
 func New(state core.State) App {
 	return App{
 		state: state,
@@ -38,6 +42,8 @@ func initBaseMiddleware(state core.State) {
 	app.Use(requestid.New())
 }
 
+// Boot initializes middlewares, sets up authentication firewalls, and triggers
+// PreBoot and Boot hooks across all registered modules.
 func (a *App) Boot() error {
 	initBaseMiddleware(a.state)
 	initFirewall(a.state)
@@ -61,7 +67,8 @@ func (a *App) Boot() error {
 	return nil
 }
 
-// internal/app/run.go
+// Run boots the application and starts the HTTP server listening on port 8002.
+// It listens for context cancellation to perform graceful shutdown.
 func (a *App) Run(ctx context.Context) error {
 	a.Boot()
 
@@ -124,6 +131,8 @@ func (a *App) Run(ctx context.Context) error {
 	*/
 }
 
+// WaitForJWKS blocks until the JWKS endpoint is reachable and returns HTTP 200,
+// or until an OS termination signal is received.
 func WaitForJWKS(cfg core.Config, logger *slog.Logger) {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

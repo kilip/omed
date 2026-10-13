@@ -8,7 +8,9 @@ import (
 	"github.com/kilip/omed/api/internal/core"
 )
 
-// MapError converts standard domain/validation/framework errors into an HTTP status and ErrorBody.
+// MapError converts standard domain, validation, or framework errors into an HTTP status code and ErrorBody.
+// If the error is a validator.ValidationErrors, StatusUnprocessableEntity is returned with field details.
+// Otherwise, it delegates to core.MapError.
 func MapError(err error) (int, ErrorBody) {
 	var ve validator.ValidationErrors
 

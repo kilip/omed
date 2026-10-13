@@ -9,13 +9,20 @@ import (
 	envconfig "github.com/sethvargo/go-envconfig"
 )
 
+// Config holds the application-level environment configuration settings.
 type Config struct {
-	AuthUrl        string   `env:"OMED_AUTH_URL"`
-	AuthPath       string   `env:"OMED_AUTH_PATH"`
-	JWKSUrl        string   `env:"OMED_JWKS_URL"`
+	// AuthUrl is the base URL for the authentication service.
+	AuthUrl string `env:"OMED_AUTH_URL"`
+	// AuthPath is the subpath mounted for authentication endpoints.
+	AuthPath string `env:"OMED_AUTH_PATH"`
+	// JWKSUrl is the JWKS endpoint used to verify signed JSON Web Tokens.
+	JWKSUrl string `env:"OMED_JWKS_URL"`
+	// TrustedOrigins lists allowed CORS origins for browser clients.
 	TrustedOrigins []string `env:"OMED_TRUSTED_ORIGINS,separator=,default=http://localhost:3001"`
 }
 
+// GetConfig reads environment variables and returns a populated Config instance.
+// It applies default fallback values for AuthPath and JWKSUrl if they are omitted.
 func GetConfig() Config {
 	var config Config
 
