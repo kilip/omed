@@ -11,13 +11,13 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/app"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 )
 
 //go:generate go run go.uber.org/mock/mockgen@latest -destination=cmocks/mock_slog_handler.go -package=cmocks log/slog Handler
 
-var cfg core.Config
-var state core.State
+var cfg base.Config
+var state base.State
 var api *fiber.App
 var logger *slog.Logger
 var entClient *ent.Client
@@ -41,7 +41,7 @@ func init() {
 		_ = os.Setenv("API_INTERNAL_KEY", "test-internal-key-for-domus-api-at-least-32-chars")
 	}
 
-	cfg = core.GetConfig()
+	cfg = base.GetConfig()
 
 	mock := NewJWKSMock()
 	jwksMock = *mock
@@ -67,7 +67,7 @@ func init() {
 
 	// config.ConfigureEntCli(entClient)
 	// mockStorage := storage.NewMemoryStorage()
-	state = core.State{
+	state = base.State{
 		FiberApp: api,
 		Config:   cfg,
 		Logger:   logger,
@@ -82,7 +82,7 @@ func init() {
 }
 
 // GetState returns the global initialized testing State instance.
-func GetState() core.State {
+func GetState() base.State {
 	return state
 }
 

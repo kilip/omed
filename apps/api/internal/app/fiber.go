@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/platform/httpx"
 	slogfiber "github.com/samber/slog-fiber"
 )
@@ -19,7 +19,7 @@ func (s *structValidator) Validate(out any) error { return s.v.Struct(out) }
 
 // GetFiber creates and configures the root Fiber HTTP application instance,
 // including struct validation, custom error handling, CORS origins, recovery, and structured logging.
-func GetFiber(cfg core.Config, logger *slog.Logger) *fiber.App {
+func GetFiber(cfg base.Config, logger *slog.Logger) *fiber.App {
 	app := fiber.New(fiber.Config{
 		StructValidator: &structValidator{validator.New(validator.WithRequiredStructEnabled())},
 		ErrorHandler:    ErrorHandler(logger),
@@ -43,7 +43,7 @@ func GetFiber(cfg core.Config, logger *slog.Logger) *fiber.App {
 func ErrorHandler(log *slog.Logger) fiber.ErrorHandler {
 	return func(c fiber.Ctx, err error) error {
 		status, body := httpx.MapError(err)
-		if body.Code == core.ErrUnknown.Error() {
+		if body.Code == base.ErrUnknown.Error() {
 			log.ErrorContext(c, "unknown error", "error", err.Error())
 		}
 		return c.Status(status).JSON(httpx.ErrorResponse{

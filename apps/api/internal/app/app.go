@@ -15,29 +15,29 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3/middleware/requestid"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/user"
 	"golang.org/x/sync/errgroup"
 )
 
 // App manages application modules and the HTTP server lifecycle.
 type App struct {
-	cfg     core.Config
-	state   core.State
-	modules []core.Module
+	cfg     base.Config
+	state   base.State
+	modules []base.Module
 }
 
 // New creates a new App instance populated with runtime state and registered modules.
-func New(state core.State) App {
+func New(state base.State) App {
 	return App{
 		state: state,
-		modules: []core.Module{
+		modules: []base.Module{
 			user.New(),
 		},
 	}
 }
 
-func initBaseMiddleware(state core.State) {
+func initBaseMiddleware(state base.State) {
 	app := state.FiberApp
 	app.Use(requestid.New())
 }
@@ -51,8 +51,8 @@ func (a *App) Boot() error {
 	var err error
 
 	for _, m := range a.modules {
-		if _, ok := m.(core.HasPreBoot); ok {
-			if preBootErr := m.(core.HasPreBoot).PreBoot(a.state); preBootErr != nil {
+		if _, ok := m.(base.HasPreBoot); ok {
+			if preBootErr := m.(base.HasPreBoot).PreBoot(a.state); preBootErr != nil {
 				err = errors.Join(preBootErr, err)
 			}
 		}
@@ -97,8 +97,8 @@ func (a *App) Run(ctx context.Context) error {
 		}
 		defer db.Close()
 
-		st := &core.State{
-			App:    fiber.New(fiber.Config{ErrorHandler: core.ErrorHandler(logger)}),
+		st := &base.State{
+			App:    fiber.New(fiber.Config{ErrorHandler: base.ErrorHandler(logger)}),
 			Logger: logger,
 			DB:     db,
 		}
@@ -133,7 +133,7 @@ func (a *App) Run(ctx context.Context) error {
 
 // WaitForJWKS blocks until the JWKS endpoint is reachable and returns HTTP 200,
 // or until an OS termination signal is received.
-func WaitForJWKS(cfg core.Config, logger *slog.Logger) {
+func WaitForJWKS(cfg base.Config, logger *slog.Logger) {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 

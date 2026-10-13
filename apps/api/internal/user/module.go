@@ -2,12 +2,12 @@
 package user
 
 import (
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/user/repository"
 	"github.com/kilip/omed/api/internal/user/service"
 )
 
-// UserModule represents the user management module implementing core.Module.
+// UserModule represents the user management module implementing base.Module.
 type UserModule struct {
 	// UserService handles user business logic.
 	UserService service.UserService
@@ -19,12 +19,12 @@ func New() UserModule {
 }
 
 // PreBoot executes pre-initialization tasks for the user module.
-func (u UserModule) PreBoot(state core.State) error {
+func (u UserModule) PreBoot(state base.State) error {
 	return nil
 }
 
 // Boot initializes repositories, services, and registers routes for the user module.
-func (u UserModule) Boot(state core.State) error {
+func (u UserModule) Boot(state base.State) error {
 	users := repository.NewUserRepository(state.EntCli)
 	u.UserService = service.NewUserService(users)
 

@@ -1,6 +1,6 @@
-// Package core provides foundational domain contracts, configuration,
+// Package base provides foundational domain contracts, configuration,
 // shared application state, common data models, error handling, and generic services.
-package core
+package base
 
 // Module defines the contract for self-contained application modules.
 // Modules register their routes, services, and event handlers during the boot phase.

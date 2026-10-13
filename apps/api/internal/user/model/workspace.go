@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 )
 
 // WorkspaceResponse represents workspace metadata returned by workspace endpoints.
@@ -12,9 +12,9 @@ type WorkspaceResponse struct {
 	Name        string       `json:"name"`
 	Description string       `json:"description,omitempty"`
 	Owner       UserResponse `json:"owner"`
-	CreatedBy   core.ByUser  `json:"createdBy"`
+	CreatedBy   base.ByUser  `json:"createdBy"`
 	CreatedAt   time.Time    `json:"createdAt"`
-	UpdatedBy   core.ByUser  `json:"updatedBy"`
+	UpdatedBy   base.ByUser  `json:"updatedBy"`
 	UpdatedAt   time.Time    `json:"updatedAt"`
 }
 

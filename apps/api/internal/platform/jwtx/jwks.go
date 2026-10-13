@@ -11,7 +11,7 @@ import (
 	jwtware "github.com/gofiber/contrib/v3/jwt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/extractors"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 )
 
 // Handler initializes and returns a Fiber JWT authentication middleware backed by a remote JWKS endpoint.
@@ -30,7 +30,7 @@ func Handler(jwksUrl string, logger *slog.Logger) (fiber.Handler, error) {
 		Extractor: extractors.FromAuthHeader("Bearer"),
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			logger.WarnContext(c, "JWKS Error", "error", err.Error())
-			return core.ErrUnauthorized
+			return base.ErrUnauthorized
 		},
 	}
 

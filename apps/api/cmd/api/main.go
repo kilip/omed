@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/kilip/omed/api/internal/app"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 )
 
 // main initializes configuration, logging, fiber app state, and starts the server.
@@ -17,11 +17,11 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cfg := core.GetConfig()
+	cfg := base.GetConfig()
 	logger := app.GetLogger()
 	fiber := app.GetFiber(cfg, logger)
 
-	state := core.State{
+	state := base.State{
 		Logger:   logger,
 		Config:   cfg,
 		FiberApp: fiber,

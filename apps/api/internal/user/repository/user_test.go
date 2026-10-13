@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/kilip/omed/api/ent"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/user/domain"
 	"github.com/kilip/omed/api/internal/user/model"
 	"github.com/kilip/omed/api/internal/user/repository"
@@ -67,7 +67,7 @@ func (s *UserRepoSuite) Test_GetByID_Success() {
 func (s *UserRepoSuite) Test_GetByID_NotFound() {
 	ctx := context.Background()
 	usr, err := s.repo.GetByID(ctx, 99999)
-	s.ErrorIs(err, core.ErrNotFound)
+	s.ErrorIs(err, base.ErrNotFound)
 	s.Equal(domain.User{}, usr)
 }
 
@@ -154,7 +154,7 @@ func (s *UserRepoSuite) Test_Delete_Success() {
 
 	// Verify deleted
 	_, err = s.repo.GetByID(ctx, created.ID)
-	s.ErrorIs(err, core.ErrNotFound)
+	s.ErrorIs(err, base.ErrNotFound)
 }
 
 func (s *UserRepoSuite) Test_Delete_NotFound() {
@@ -265,12 +265,12 @@ func (s *UserRepoSuite) Test_Search_InvalidCursor() {
 	_, _, err := s.repo.Search(ctx, model.SearchRequest{
 		Cursor: "invalid-cursor-value",
 	})
-	s.ErrorIs(err, core.ErrInvalidCursor)
+	s.ErrorIs(err, base.ErrInvalidCursor)
 
 	_, _, err = s.repo.Search(ctx, model.SearchRequest{
 		Cursor: "-10",
 	})
-	s.ErrorIs(err, core.ErrInvalidCursor)
+	s.ErrorIs(err, base.ErrInvalidCursor)
 }
 
 func (s *UserRepoSuite) Test_Search_NoResults() {
@@ -287,4 +287,3 @@ func (s *UserRepoSuite) Test_Search_NoResults() {
 func TestUserRepoSuite(t *testing.T) {
 	suite.Run(t, new(UserRepoSuite))
 }
-

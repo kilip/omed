@@ -8,7 +8,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/platform/entx"
 	"github.com/kilip/omed/api/internal/user/domain"
 	"github.com/kilip/omed/api/internal/user/model"
@@ -16,7 +16,7 @@ import (
 
 // UserRepository handles user persistence operations against PostgreSQL via Ent ORM.
 type UserRepository struct {
-	core.ServiceRepository[int64, domain.User, model.CreateUserRequest, model.UpdateUserRequest, model.SearchRequest]
+	base.ServiceRepository[int64, domain.User, model.CreateUserRequest, model.UpdateUserRequest, model.SearchRequest]
 	cli *ent.Client
 }
 
@@ -27,14 +27,14 @@ func NewUserRepository(cli *ent.Client) UserRepository {
 	}
 }
 
-// GetByID retrieves a user domain entity by ID. Returns core.ErrNotFound if the user does not exist.
+// GetByID retrieves a user domain entity by ID. Returns base.ErrNotFound if the user does not exist.
 func (r UserRepository) GetByID(c context.Context, id int64) (domain.User, error) {
 	var usr domain.User
 
 	user, err := r.cli.User.Get(c, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return usr, core.ErrNotFound
+			return usr, base.ErrNotFound
 		}
 		return usr, err
 	}
@@ -59,7 +59,7 @@ func (r UserRepository) Search(c context.Context, req model.SearchRequest) ([]do
 	if req.Cursor != "" {
 		cursorID, err := strconv.ParseInt(req.Cursor, 10, 64)
 		if err != nil || cursorID < 0 {
-			return nil, "", core.ErrInvalidCursor
+			return nil, "", base.ErrInvalidCursor
 		}
 		predicates = append(predicates, user.IDLT(cursorID))
 	}

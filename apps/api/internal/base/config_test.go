@@ -1,10 +1,10 @@
-package core_test
+package base_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -26,7 +26,7 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 		}
 	})
 
-	cfg := core.GetConfig()
+	cfg := base.GetConfig()
 	s.Equal("http://auth.local", cfg.AuthUrl)
 	s.Equal("/auth", cfg.AuthPath)
 	s.Equal("http://auth.local/auth/jwks", cfg.JWKSUrl)
@@ -39,7 +39,7 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_JWKS_URL", "https://custom-auth.example.com/oauth/keys")
 	s.T().Setenv("OMED_TRUSTED_ORIGINS", "https://app1.example.com,https://app2.example.com")
 
-	cfg := core.GetConfig()
+	cfg := base.GetConfig()
 	s.Equal("https://custom-auth.example.com", cfg.AuthUrl)
 	s.Equal("/api/v1/auth", cfg.AuthPath)
 	s.Equal("https://custom-auth.example.com/oauth/keys", cfg.JWKSUrl)

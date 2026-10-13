@@ -1,12 +1,12 @@
-package core_test
+package base_test
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"github.com/kilip/omed/api/internal/core"
-	"github.com/kilip/omed/api/internal/core/mock"
+	"github.com/kilip/omed/api/internal/base"
+	"github.com/kilip/omed/api/internal/base/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 )
@@ -34,13 +34,13 @@ type ServiceSuite struct {
 	suite.Suite
 	ctrl     *gomock.Controller
 	mockRepo *mock.MockServiceRepository[int64, dummyEntity, dummyCreateReq, dummyUpdateReq, dummySearchReq]
-	service  core.Service[int64, dummyEntity, dummyCreateReq, dummyUpdateReq, dummySearchReq]
+	service  base.Service[int64, dummyEntity, dummyCreateReq, dummyUpdateReq, dummySearchReq]
 }
 
 func (s *ServiceSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 	s.mockRepo = mock.NewMockServiceRepository[int64, dummyEntity, dummyCreateReq, dummyUpdateReq, dummySearchReq](s.ctrl)
-	s.service = core.NewService(s.mockRepo)
+	s.service = base.NewService(s.mockRepo)
 }
 
 func (s *ServiceSuite) Test_GetByID_Success() {

@@ -9,12 +9,12 @@ import (
 	jwtware "github.com/gofiber/contrib/v3/jwt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 )
 
 // UserInjector returns a Fiber middleware that validates issuer and audience claims
 // on the verified JWT token, deserializes user information, and injects the resulting
-// core.UserContext into the Fiber request context locals.
+// base.UserContext into the Fiber request context locals.
 func UserInjector(issuer string, restAudience string) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		if c.Method() == fiber.MethodOptions || strings.HasPrefix(c.Path(), "/internal") {
@@ -44,7 +44,7 @@ func UserInjector(issuer string, restAudience string) fiber.Handler {
 			return fiber.ErrUnauthorized
 		}
 
-		var user core.UserContext
+		var user base.UserContext
 		if err := json.Unmarshal(b, &user); err != nil {
 			return fiber.ErrInternalServerError
 		}
@@ -63,7 +63,7 @@ func UserInjector(issuer string, restAudience string) fiber.Handler {
 			user.EmailVerified = ev
 		}
 
-		c.Locals(core.USER_CONTEXT_KEY, user)
+		c.Locals(base.USER_CONTEXT_KEY, user)
 
 		return c.Next()
 	}

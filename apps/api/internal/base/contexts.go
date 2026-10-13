@@ -1,4 +1,4 @@
-package core
+package base
 
 // USER_CONTEXT_KEY is the context key used to store and retrieve authenticated user details.
 const USER_CONTEXT_KEY = "user"

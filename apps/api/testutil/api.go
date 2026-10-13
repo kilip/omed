@@ -14,7 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/user"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -25,7 +25,7 @@ import (
 type ApiTestSuite[T any] struct {
 	suite.Suite
 	HttpResponse *http.Response
-	User         *core.UserContext
+	User         *base.UserContext
 	Cookies      []*http.Cookie
 	Context      context.Context
 }
@@ -38,11 +38,11 @@ func (s *ApiTestSuite[T]) SetupTest() {
 		Email: "test@example.com",
 	})
 
-	s.User = &core.UserContext{
+	s.User = &base.UserContext{
 		ID:            usr.ID,
 		Name:          "Test User",
 		EmailVerified: true,
-		Roles:         []core.UserRole{core.UserRoleAdmin},
+		Roles:         []base.UserRole{base.UserRoleAdmin},
 	}
 
 	s.Context = context.Background()
