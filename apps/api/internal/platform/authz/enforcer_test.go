@@ -63,4 +63,3 @@ func TestEnforcer_EmptyRegistry(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, enf.Allowed([]string{"fin:accountant"}, "fin:invoice", "read"))
 }
-

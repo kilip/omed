@@ -65,4 +65,3 @@ func (WorkspaceMember) Indexes() []ent.Index {
 		index.Fields("user_id"),
 	}
 }
-

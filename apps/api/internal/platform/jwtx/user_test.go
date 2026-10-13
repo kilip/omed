@@ -476,4 +476,3 @@ func TestUserSuite(t *testing.T) {
 }
 
 var _ = io.Discard
-

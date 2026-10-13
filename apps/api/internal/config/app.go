@@ -16,6 +16,7 @@ import (
 
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/fin"
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"golang.org/x/sync/errgroup"
 )
@@ -42,10 +43,18 @@ func New(state State) Omed {
 	coreMod.SetAuthorizer(az)
 	state.Authz = az
 
+	finMod := fin.New(fin.Config{
+		FiberApp: state.FiberApp,
+		Logger:   state.Logger,
+		EntCli:   state.EntCli,
+	})
+	finMod.SetAuthorizer(az)
+
 	return Omed{
 		state: state,
 		modules: []Module{
 			coreMod,
+			finMod,
 		},
 	}
 }

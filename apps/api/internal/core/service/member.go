@@ -158,4 +158,3 @@ func (s MemberService) validateRoles(roles []string) error {
 	}
 	return nil
 }
-

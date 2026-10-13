@@ -39,4 +39,3 @@ func (AuditMixin) Edges() []ent.Edge {
 			Unique(),
 	}
 }
-

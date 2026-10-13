@@ -153,4 +153,3 @@ func (s *ResponseSuite) Test_WithCursor() {
 func TestResponseSuite(t *testing.T) {
 	suite.Run(t, &ResponseSuite{})
 }
-

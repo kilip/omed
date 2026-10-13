@@ -142,4 +142,3 @@ func toWorkspaceResponse(ws domain.Workspace) model.WorkspaceResponse {
 		UpdatedAt: ws.UpdatedAt,
 	}
 }
-

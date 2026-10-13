@@ -11,4 +11,3 @@ type Member struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
-

@@ -169,4 +169,3 @@ func Roles() []Role {
 func DefaultRegistry() *Registry {
 	return defaultRegistry
 }
-

@@ -223,4 +223,3 @@ func (s *WorkspaceRepoSuite) Test_Search_InvalidCursor() {
 func TestWorkspaceRepoSuite(t *testing.T) {
 	suite.Run(t, new(WorkspaceRepoSuite))
 }
-

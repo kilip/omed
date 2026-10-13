@@ -139,4 +139,3 @@ func (s *WithTxSuite) Test_WithTx_CommitError() {
 func TestWithTxSuite(t *testing.T) {
 	suite.Run(t, new(WithTxSuite))
 }
-

@@ -43,4 +43,3 @@ type PermissionsResponse struct {
 	Roles       []string         `json:"roles"`
 	Permissions []PermissionItem `json:"permissions"`
 }
-

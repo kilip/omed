@@ -164,4 +164,3 @@ func (s *ParamsSuite) Test_GetID_UUID_MissingParam() {
 func TestParamsSuite(t *testing.T) {
 	suite.Run(t, &ParamsSuite{})
 }
-

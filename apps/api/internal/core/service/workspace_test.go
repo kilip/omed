@@ -258,4 +258,3 @@ func (s *WorkspaceSuite) Test_SetRepository() {
 func TestWorkspaceSuite(t *testing.T) {
 	suite.Run(t, new(WorkspaceSuite))
 }
-

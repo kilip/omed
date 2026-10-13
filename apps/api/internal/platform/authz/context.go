@@ -50,4 +50,3 @@ func MembershipFromContext(ctx context.Context) (Membership, bool) {
 	}
 	return Membership{}, false
 }
-

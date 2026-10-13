@@ -66,6 +66,49 @@
         },
         "type": "object"
       },
+      "httpx.NoContent": {
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/httpx.Meta",
+            "description": "Meta contains request metadata."
+          }
+        },
+        "type": "object"
+      },
+      "httpx.WebResponse-array_model_AccountResponse": {
+        "properties": {
+          "data": {
+            "description": "Data contains the response payload.",
+            "items": {
+              "$ref": "#/components/schemas/model.AccountResponse"
+            },
+            "type": "array",
+            "uniqueItems": false
+          },
+          "meta": {
+            "$ref": "#/components/schemas/httpx.Meta",
+            "description": "Meta contains request metadata such as request ID and timestamps."
+          }
+        },
+        "type": "object"
+      },
+      "httpx.WebResponse-array_model_AccountTreeNodeResponse": {
+        "properties": {
+          "data": {
+            "description": "Data contains the response payload.",
+            "items": {
+              "$ref": "#/components/schemas/model.AccountTreeNodeResponse"
+            },
+            "type": "array",
+            "uniqueItems": false
+          },
+          "meta": {
+            "$ref": "#/components/schemas/httpx.Meta",
+            "description": "Meta contains request metadata such as request ID and timestamps."
+          }
+        },
+        "type": "object"
+      },
       "httpx.WebResponse-array_model_MemberResponse": {
         "properties": {
           "data": {
@@ -109,6 +152,32 @@
             },
             "type": "array",
             "uniqueItems": false
+          },
+          "meta": {
+            "$ref": "#/components/schemas/httpx.Meta",
+            "description": "Meta contains request metadata such as request ID and timestamps."
+          }
+        },
+        "type": "object"
+      },
+      "httpx.WebResponse-httpx_NoContent": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/httpx.NoContent",
+            "description": "Data contains the response payload."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/httpx.Meta",
+            "description": "Meta contains request metadata such as request ID and timestamps."
+          }
+        },
+        "type": "object"
+      },
+      "httpx.WebResponse-model_AccountResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/model.AccountResponse",
+            "description": "Data contains the response payload."
           },
           "meta": {
             "$ref": "#/components/schemas/httpx.Meta",
@@ -167,6 +236,145 @@
             "description": "Meta contains request metadata such as request ID and timestamps."
           }
         },
+        "type": "object"
+      },
+      "model.AccountResponse": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/base.ByUser"
+          },
+          "deletedAt": {
+            "type": "string"
+          },
+          "deletedBy": {
+            "$ref": "#/components/schemas/base.ByUser"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPostable": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "normalBalance": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "$ref": "#/components/schemas/base.ByUser"
+          },
+          "workspaceId": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "model.AccountTreeNodeResponse": {
+        "properties": {
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/model.AccountTreeNodeResponse"
+            },
+            "type": "array",
+            "uniqueItems": false
+          },
+          "code": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/base.ByUser"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPostable": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "normalBalance": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "$ref": "#/components/schemas/base.ByUser"
+          },
+          "workspaceId": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "model.CreateAccountRequest": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPostable": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "normalBalance": {
+            "enum": ["DEBIT", "CREDIT"],
+            "type": "string"
+          },
+          "parentId": {
+            "type": "integer"
+          },
+          "type": {
+            "enum": ["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"],
+            "type": "string"
+          }
+        },
+        "required": ["code", "name", "type"],
         "type": "object"
       },
       "model.CreateUserRequest": {
@@ -280,6 +488,40 @@
         },
         "type": "object"
       },
+      "model.SearchAccountRequest": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": "string"
+          },
+          "includeDeleted": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPostable": {
+            "type": "boolean"
+          },
+          "limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "parentId": {
+            "type": "integer"
+          },
+          "query": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "model.SearchMemberRequest": {
         "properties": {
           "cursor": {
@@ -326,6 +568,34 @@
             "type": "integer"
           }
         },
+        "type": "object"
+      },
+      "model.UpdateAccountRequest": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPostable": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "normalBalance": {
+            "enum": ["DEBIT", "CREDIT"],
+            "type": "string"
+          },
+          "parentId": {
+            "type": "integer"
+          }
+        },
+        "required": ["name"],
         "type": "object"
       },
       "model.UpdateMemberRequest": {
@@ -1183,6 +1453,558 @@
         ],
         "summary": "Update workspace",
         "tags": ["Workspaces"]
+      }
+    },
+    "/workspaces/{wid}/fin/accounts": {
+      "post": {
+        "description": "Create a new account entry in Chart of Accounts",
+        "parameters": [
+          {
+            "description": "Workspace ID",
+            "in": "path",
+            "name": "wid",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/model.CreateAccountRequest",
+                "summary": "request",
+                "description": "Account creation payload"
+              }
+            }
+          },
+          "description": "Account creation payload",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.WebResponse-model_AccountResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Create account",
+        "tags": ["Finance Accounts"]
+      }
+    },
+    "/workspaces/{wid}/fin/accounts/search": {
+      "post": {
+        "description": "Search Chart of Accounts with filters and cursor pagination",
+        "parameters": [
+          {
+            "description": "Workspace ID",
+            "in": "path",
+            "name": "wid",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/model.SearchAccountRequest",
+                "summary": "request",
+                "description": "Search filter criteria"
+              }
+            }
+          },
+          "description": "Search filter criteria",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.WebResponse-array_model_AccountResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Search accounts",
+        "tags": ["Finance Accounts"]
+      }
+    },
+    "/workspaces/{wid}/fin/accounts/tree": {
+      "get": {
+        "description": "Retrieve hierarchical tree structure of active accounts in the workspace",
+        "parameters": [
+          {
+            "description": "Workspace ID",
+            "in": "path",
+            "name": "wid",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.WebResponse-array_model_AccountTreeNodeResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Get accounts tree",
+        "tags": ["Finance Accounts"]
+      }
+    },
+    "/workspaces/{wid}/fin/accounts/{id}": {
+      "delete": {
+        "description": "Soft delete an account by ID within the workspace",
+        "parameters": [
+          {
+            "description": "Workspace ID",
+            "in": "path",
+            "name": "wid",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Account ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Delete account",
+        "tags": ["Finance Accounts"]
+      },
+      "get": {
+        "description": "Retrieve account detail by ID within the workspace",
+        "parameters": [
+          {
+            "description": "Workspace ID",
+            "in": "path",
+            "name": "wid",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Account ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.WebResponse-model_AccountResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Get account by ID",
+        "tags": ["Finance Accounts"]
+      },
+      "put": {
+        "description": "Update an existing account by ID within the workspace",
+        "parameters": [
+          {
+            "description": "Workspace ID",
+            "in": "path",
+            "name": "wid",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Account ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/model.UpdateAccountRequest",
+                "summary": "request",
+                "description": "Account update payload"
+              }
+            }
+          },
+          "description": "Account update payload",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.WebResponse-model_AccountResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Update account",
+        "tags": ["Finance Accounts"]
       }
     },
     "/workspaces/{wid}/members": {

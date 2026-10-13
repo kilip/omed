@@ -188,4 +188,3 @@ func (s *MemberSuite) Test_Superadmin_NonMember_Gets404() {
 func TestMemberSuite(t *testing.T) {
 	suite.Run(t, new(MemberSuite))
 }
-

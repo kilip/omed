@@ -136,4 +136,3 @@ func (s *ErrorSuite) Test_MapError_CustomRegisteredError() {
 func TestErrorSuite(t *testing.T) {
 	suite.Run(t, &ErrorSuite{})
 }
-

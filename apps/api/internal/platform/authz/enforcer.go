@@ -94,4 +94,3 @@ func (e *Enforcer) Permissions(roles []string) []Permission {
 	})
 	return out
 }
-

@@ -48,7 +48,6 @@ func TestUserFromContext(t *testing.T) {
 	})
 }
 
-
 func TestUserContext_HasRole(t *testing.T) {
 	u := base.UserContext{Roles: []base.UserRole{base.UserRoleUser, base.UserRoleAdmin}}
 	assert.True(t, u.HasRole(base.UserRoleAdmin))

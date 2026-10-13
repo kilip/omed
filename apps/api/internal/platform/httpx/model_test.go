@@ -99,4 +99,3 @@ func TestModel_ErrorResponseSerialization(t *testing.T) {
 	assert.Equal(t, "required", decoded.Error.Fields[0].Rule)
 	assert.Equal(t, "req-err-789", decoded.Meta.RequestID)
 }
-

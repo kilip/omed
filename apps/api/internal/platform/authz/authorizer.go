@@ -146,4 +146,3 @@ func RequireGlobal(role base.UserRole) fiber.Handler {
 		return c.Next()
 	}
 }
-
