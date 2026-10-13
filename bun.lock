@@ -58,6 +58,9 @@
         "vitest": "^5.0.3",
       },
     },
+    "packages/openapi": {
+      "name": "@omed/openapi",
+    },
     "packages/tsconfig": {
       "name": "@omed/tsconfig",
       "version": "0.0.0",
@@ -223,6 +226,8 @@
     "@omed/auth": ["@omed/auth@workspace:apps/auth"],
 
     "@omed/better-auth": ["@omed/better-auth@workspace:packages/better-auth"],
+
+    "@omed/openapi": ["@omed/openapi@workspace:packages/openapi"],
 
     "@omed/tsconfig": ["@omed/tsconfig@workspace:packages/tsconfig"],
 
