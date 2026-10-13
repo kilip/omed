@@ -23,11 +23,52 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// WorkspacesColumns holds the columns for the "workspaces" table.
+	WorkspacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "owner_id", Type: field.TypeInt64},
+		{Name: "created_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "updated_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// WorkspacesTable holds the schema information for the "workspaces" table.
+	WorkspacesTable = &schema.Table{
+		Name:       "workspaces",
+		Columns:    WorkspacesColumns,
+		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspaces_users_owner",
+				Columns:    []*schema.Column{WorkspacesColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspaces_users_creator",
+				Columns:    []*schema.Column{WorkspacesColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "workspaces_users_updater",
+				Columns:    []*schema.Column{WorkspacesColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		UsersTable,
+		WorkspacesTable,
 	}
 )
 
 func init() {
+	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
+	WorkspacesTable.ForeignKeys[1].RefTable = UsersTable
+	WorkspacesTable.ForeignKeys[2].RefTable = UsersTable
 }

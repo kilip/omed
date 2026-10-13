@@ -1,3 +1,4 @@
+// Package model provides Data Transfer Objects (DTOs) and request/response payloads for workspace endpoints.
 package model
 
 import (
@@ -20,6 +21,21 @@ type WorkspaceResponse struct {
 
 // CreateWorkspaceRequest defines the payload required to create a new workspace.
 type CreateWorkspaceRequest struct {
-	Name        string `json:"name"`
+	Name        string `json:"name" validate:"required"`
 	Description string `json:"description,omitempty"`
+	OwnerID     int64  `json:"ownerId,omitempty"`
+}
+
+// UpdateWorkspaceRequest defines the payload required to update an existing workspace.
+type UpdateWorkspaceRequest struct {
+	Name        string `json:"name,omitempty" validate:"required"`
+	Description string `json:"description,omitempty"`
+}
+
+// SearchWorkspaceRequest defines filter criteria and cursor pagination options for searching workspaces.
+type SearchWorkspaceRequest struct {
+	Name    string `json:"name,omitempty"`
+	OwnerID int64  `json:"ownerId,omitempty"`
+	Cursor  string `json:"cursor,omitempty"`
+	Limit   int    `json:"limit,omitempty" validate:"omitempty,min=1,max=100"`
 }

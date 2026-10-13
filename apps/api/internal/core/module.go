@@ -1,4 +1,4 @@
-// Package core provides user management endpoints, domain logic, and data persistence.
+// Package core provides user and workspace management endpoints, domain logic, and data persistence.
 package core
 
 import (
@@ -18,8 +18,11 @@ type Config struct {
 
 // CoreModule represents the core module implementing base.Module.
 type CoreModule struct {
+	cfg Config
 	// UserService handles user business logic.
 	UserService service.UserService
+	// WorkspaceService handles workspace business logic.
+	WorkspaceService service.WorkspaceService
 }
 
 // UserModule is an alias for CoreModule.
@@ -28,11 +31,12 @@ type UserModule = CoreModule
 // New constructs a new CoreModule instance.
 func New(cfg Config) CoreModule {
 	users := repository.NewUserRepository(cfg.EntCli)
-	g := cfg.FiberApp.Group("/users")
+	workspaces := repository.NewWorkspaceRepository(cfg.EntCli)
 	mod := CoreModule{
-		UserService: service.NewUserService(users),
+		cfg:              cfg,
+		UserService:      service.NewUserService(users),
+		WorkspaceService: service.NewWorkspaceService(workspaces),
 	}
-	initRoutes(mod, g)
 	return mod
 }
 
@@ -43,5 +47,6 @@ func (u CoreModule) PreBoot() error {
 
 // Boot initializes repositories, services, and registers routes for the core module.
 func (u CoreModule) Boot() error {
+	initRoutes(u, u.cfg.FiberApp)
 	return nil
 }
