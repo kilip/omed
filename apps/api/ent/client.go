@@ -378,6 +378,25 @@ func (c *AccountClient) QueryUpdater(_m *Account) *UserQuery {
 	return query
 }
 
+// QueryDeleter queries the deleter edge of a Account.
+func (c *AccountClient) QueryDeleter(_m *Account) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, account.DeleterTable, account.DeleterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryWorkspace queries the workspace edge of a Account.
 func (c *AccountClient) QueryWorkspace(_m *Account) *WorkspaceQuery {
 	query := (&WorkspaceClient{config: c.config}).Query()
@@ -428,25 +447,6 @@ func (c *AccountClient) QueryChildren(_m *Account) *AccountQuery {
 		)
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.Account
-		step.Edge.Schema = schemaConfig.Account
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryDeleter queries the deleter edge of a Account.
-func (c *AccountClient) QueryDeleter(_m *Account) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(account.Table, account.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, account.DeleterTable, account.DeleterColumn),
-		)
-		schemaConfig := _m.schemaConfig
-		step.To.Schema = schemaConfig.User
 		step.Edge.Schema = schemaConfig.Account
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

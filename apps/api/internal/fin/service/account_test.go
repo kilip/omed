@@ -106,7 +106,7 @@ func (s *AccountServiceSuite) Test_Create_ParentNotFound() {
 		Code:     "1100",
 		Name:     "Child",
 		Type:     domain.AccountTypeAsset,
-		ParentID: &invalidParentID,
+		ParentID: invalidParentID,
 	})
 	s.Equal(domain.ErrAccountParentNotFound, err)
 }
@@ -143,7 +143,7 @@ func (s *AccountServiceSuite) Test_Update_CyclePrevention() {
 		Code:     "1100",
 		Name:     "Current Assets",
 		Type:     domain.AccountTypeAsset,
-		ParentID: &root.ID,
+		ParentID: root.ID,
 	})
 	s.Require().NoError(err)
 
@@ -151,21 +151,21 @@ func (s *AccountServiceSuite) Test_Update_CyclePrevention() {
 		Code:     "1110",
 		Name:     "Cash and Bank",
 		Type:     domain.AccountTypeAsset,
-		ParentID: &child.ID,
+		ParentID: child.ID,
 	})
 	s.Require().NoError(err)
 
 	// Attempting to set root's parent to itself fails
 	_, err = s.svc.Update(ctx, s.workspaceID, root.ID, model.UpdateAccountRequest{
 		Name:     "Assets",
-		ParentID: &root.ID,
+		ParentID: root.ID,
 	})
 	s.Equal(domain.ErrAccountCyclicParent, err)
 
 	// Attempting to set root's parent to grandchild fails (creates cycle)
 	_, err = s.svc.Update(ctx, s.workspaceID, root.ID, model.UpdateAccountRequest{
 		Name:     "Assets",
-		ParentID: &grandchild.ID,
+		ParentID: grandchild.ID,
 	})
 	s.Equal(domain.ErrAccountCyclicParent, err)
 }
@@ -184,7 +184,7 @@ func (s *AccountServiceSuite) Test_Delete_BlockedWithChildren() {
 		Code:     "1100",
 		Name:     "Current Assets",
 		Type:     domain.AccountTypeAsset,
-		ParentID: &root.ID,
+		ParentID: root.ID,
 	})
 	s.Require().NoError(err)
 

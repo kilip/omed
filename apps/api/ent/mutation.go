@@ -41,6 +41,7 @@ type AccountMutation struct {
 	id               *int64
 	created_at       *time.Time
 	updated_at       *time.Time
+	deleted_at       *time.Time
 	code             *string
 	name             *string
 	_type            *account.Type
@@ -48,12 +49,13 @@ type AccountMutation struct {
 	description      *string
 	is_active        *bool
 	is_postable      *bool
-	deleted_at       *time.Time
 	clearedFields    map[string]struct{}
 	creator          *int64
 	clearedcreator   bool
 	updater          *int64
 	clearedupdater   bool
+	deleter          *int64
+	cleareddeleter   bool
 	workspace        *int64
 	clearedworkspace bool
 	parent           *int64
@@ -61,8 +63,6 @@ type AccountMutation struct {
 	children         map[int64]struct{}
 	removedchildren  map[int64]struct{}
 	clearedchildren  bool
-	deleter          *int64
-	cleareddeleter   bool
 	done             bool
 	oldValue         func(context.Context) (*Account, error)
 	predicates       []predicate.Account
@@ -340,6 +340,104 @@ func (m *AccountMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err er
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *AccountMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *AccountMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *AccountMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *AccountMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[account.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *AccountMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[account.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *AccountMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, account.FieldDeletedAt)
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (m *AccountMutation) SetDeletedByID(i int64) {
+	m.deleter = &i
+}
+
+// DeletedByID returns the value of the "deleted_by_id" field in the mutation.
+func (m *AccountMutation) DeletedByID() (r int64, exists bool) {
+	v := m.deleter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedByID returns the old "deleted_by_id" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldDeletedByID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedByID: %w", err)
+	}
+	return oldValue.DeletedByID, nil
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (m *AccountMutation) ClearDeletedByID() {
+	m.deleter = nil
+	m.clearedFields[account.FieldDeletedByID] = struct{}{}
+}
+
+// DeletedByIDCleared returns if the "deleted_by_id" field was cleared in this mutation.
+func (m *AccountMutation) DeletedByIDCleared() bool {
+	_, ok := m.clearedFields[account.FieldDeletedByID]
+	return ok
+}
+
+// ResetDeletedByID resets all changes to the "deleted_by_id" field.
+func (m *AccountMutation) ResetDeletedByID() {
+	m.deleter = nil
+	delete(m.clearedFields, account.FieldDeletedByID)
 }
 
 // SetWorkspaceID sets the "workspace_id" field.
@@ -692,104 +790,6 @@ func (m *AccountMutation) ResetIsPostable() {
 	m.is_postable = nil
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (m *AccountMutation) SetDeletedAt(t time.Time) {
-	m.deleted_at = &t
-}
-
-// DeletedAt returns the value of the "deleted_at" field in the mutation.
-func (m *AccountMutation) DeletedAt() (r time.Time, exists bool) {
-	v := m.deleted_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeletedAt returns the old "deleted_at" field's value of the Account entity.
-// If the Account object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
-	}
-	return oldValue.DeletedAt, nil
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (m *AccountMutation) ClearDeletedAt() {
-	m.deleted_at = nil
-	m.clearedFields[account.FieldDeletedAt] = struct{}{}
-}
-
-// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
-func (m *AccountMutation) DeletedAtCleared() bool {
-	_, ok := m.clearedFields[account.FieldDeletedAt]
-	return ok
-}
-
-// ResetDeletedAt resets all changes to the "deleted_at" field.
-func (m *AccountMutation) ResetDeletedAt() {
-	m.deleted_at = nil
-	delete(m.clearedFields, account.FieldDeletedAt)
-}
-
-// SetDeletedByID sets the "deleted_by_id" field.
-func (m *AccountMutation) SetDeletedByID(i int64) {
-	m.deleter = &i
-}
-
-// DeletedByID returns the value of the "deleted_by_id" field in the mutation.
-func (m *AccountMutation) DeletedByID() (r int64, exists bool) {
-	v := m.deleter
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeletedByID returns the old "deleted_by_id" field's value of the Account entity.
-// If the Account object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountMutation) OldDeletedByID(ctx context.Context) (v *int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeletedByID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeletedByID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeletedByID: %w", err)
-	}
-	return oldValue.DeletedByID, nil
-}
-
-// ClearDeletedByID clears the value of the "deleted_by_id" field.
-func (m *AccountMutation) ClearDeletedByID() {
-	m.deleter = nil
-	m.clearedFields[account.FieldDeletedByID] = struct{}{}
-}
-
-// DeletedByIDCleared returns if the "deleted_by_id" field was cleared in this mutation.
-func (m *AccountMutation) DeletedByIDCleared() bool {
-	_, ok := m.clearedFields[account.FieldDeletedByID]
-	return ok
-}
-
-// ResetDeletedByID resets all changes to the "deleted_by_id" field.
-func (m *AccountMutation) ResetDeletedByID() {
-	m.deleter = nil
-	delete(m.clearedFields, account.FieldDeletedByID)
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by id.
 func (m *AccountMutation) SetCreatorID(id int64) {
 	m.creator = &id
@@ -868,6 +868,46 @@ func (m *AccountMutation) UpdaterIDs() (ids []int64) {
 func (m *AccountMutation) ResetUpdater() {
 	m.updater = nil
 	m.clearedupdater = false
+}
+
+// SetDeleterID sets the "deleter" edge to the User entity by id.
+func (m *AccountMutation) SetDeleterID(id int64) {
+	m.deleter = &id
+}
+
+// ClearDeleter clears the "deleter" edge to the User entity.
+func (m *AccountMutation) ClearDeleter() {
+	m.cleareddeleter = true
+	m.clearedFields[account.FieldDeletedByID] = struct{}{}
+}
+
+// DeleterCleared reports if the "deleter" edge to the User entity was cleared.
+func (m *AccountMutation) DeleterCleared() bool {
+	return m.DeletedByIDCleared() || m.cleareddeleter
+}
+
+// DeleterID returns the "deleter" edge ID in the mutation.
+func (m *AccountMutation) DeleterID() (id int64, exists bool) {
+	if m.deleter != nil {
+		return *m.deleter, true
+	}
+	return
+}
+
+// DeleterIDs returns the "deleter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeleterID instead. It exists only for internal usage by the builders.
+func (m *AccountMutation) DeleterIDs() (ids []int64) {
+	if id := m.deleter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeleter resets all changes to the "deleter" edge.
+func (m *AccountMutation) ResetDeleter() {
+	m.deleter = nil
+	m.cleareddeleter = false
 }
 
 // ClearWorkspace clears the "workspace" edge to the Workspace entity.
@@ -978,46 +1018,6 @@ func (m *AccountMutation) ResetChildren() {
 	m.removedchildren = nil
 }
 
-// SetDeleterID sets the "deleter" edge to the User entity by id.
-func (m *AccountMutation) SetDeleterID(id int64) {
-	m.deleter = &id
-}
-
-// ClearDeleter clears the "deleter" edge to the User entity.
-func (m *AccountMutation) ClearDeleter() {
-	m.cleareddeleter = true
-	m.clearedFields[account.FieldDeletedByID] = struct{}{}
-}
-
-// DeleterCleared reports if the "deleter" edge to the User entity was cleared.
-func (m *AccountMutation) DeleterCleared() bool {
-	return m.DeletedByIDCleared() || m.cleareddeleter
-}
-
-// DeleterID returns the "deleter" edge ID in the mutation.
-func (m *AccountMutation) DeleterID() (id int64, exists bool) {
-	if m.deleter != nil {
-		return *m.deleter, true
-	}
-	return
-}
-
-// DeleterIDs returns the "deleter" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// DeleterID instead. It exists only for internal usage by the builders.
-func (m *AccountMutation) DeleterIDs() (ids []int64) {
-	if id := m.deleter; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetDeleter resets all changes to the "deleter" edge.
-func (m *AccountMutation) ResetDeleter() {
-	m.deleter = nil
-	m.cleareddeleter = false
-}
-
 // Where appends a list predicates to the AccountMutation builder.
 func (m *AccountMutation) Where(ps ...predicate.Account) {
 	m.predicates = append(m.predicates, ps...)
@@ -1065,6 +1065,12 @@ func (m *AccountMutation) Fields() []string {
 	if m.updated_at != nil {
 		fields = append(fields, account.FieldUpdatedAt)
 	}
+	if m.deleted_at != nil {
+		fields = append(fields, account.FieldDeletedAt)
+	}
+	if m.deleter != nil {
+		fields = append(fields, account.FieldDeletedByID)
+	}
 	if m.workspace != nil {
 		fields = append(fields, account.FieldWorkspaceID)
 	}
@@ -1092,12 +1098,6 @@ func (m *AccountMutation) Fields() []string {
 	if m.is_postable != nil {
 		fields = append(fields, account.FieldIsPostable)
 	}
-	if m.deleted_at != nil {
-		fields = append(fields, account.FieldDeletedAt)
-	}
-	if m.deleter != nil {
-		fields = append(fields, account.FieldDeletedByID)
-	}
 	return fields
 }
 
@@ -1114,6 +1114,10 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case account.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case account.FieldDeletedAt:
+		return m.DeletedAt()
+	case account.FieldDeletedByID:
+		return m.DeletedByID()
 	case account.FieldWorkspaceID:
 		return m.WorkspaceID()
 	case account.FieldCode:
@@ -1132,10 +1136,6 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 		return m.IsActive()
 	case account.FieldIsPostable:
 		return m.IsPostable()
-	case account.FieldDeletedAt:
-		return m.DeletedAt()
-	case account.FieldDeletedByID:
-		return m.DeletedByID()
 	}
 	return nil, false
 }
@@ -1153,6 +1153,10 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCreatedAt(ctx)
 	case account.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case account.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case account.FieldDeletedByID:
+		return m.OldDeletedByID(ctx)
 	case account.FieldWorkspaceID:
 		return m.OldWorkspaceID(ctx)
 	case account.FieldCode:
@@ -1171,10 +1175,6 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldIsActive(ctx)
 	case account.FieldIsPostable:
 		return m.OldIsPostable(ctx)
-	case account.FieldDeletedAt:
-		return m.OldDeletedAt(ctx)
-	case account.FieldDeletedByID:
-		return m.OldDeletedByID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Account field %s", name)
 }
@@ -1211,6 +1211,20 @@ func (m *AccountMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case account.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case account.FieldDeletedByID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedByID(v)
 		return nil
 	case account.FieldWorkspaceID:
 		v, ok := value.(int64)
@@ -1275,20 +1289,6 @@ func (m *AccountMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsPostable(v)
 		return nil
-	case account.FieldDeletedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeletedAt(v)
-		return nil
-	case account.FieldDeletedByID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeletedByID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Account field %s", name)
 }
@@ -1328,17 +1328,17 @@ func (m *AccountMutation) ClearedFields() []string {
 	if m.FieldCleared(account.FieldUpdatedByID) {
 		fields = append(fields, account.FieldUpdatedByID)
 	}
-	if m.FieldCleared(account.FieldParentID) {
-		fields = append(fields, account.FieldParentID)
-	}
-	if m.FieldCleared(account.FieldDescription) {
-		fields = append(fields, account.FieldDescription)
-	}
 	if m.FieldCleared(account.FieldDeletedAt) {
 		fields = append(fields, account.FieldDeletedAt)
 	}
 	if m.FieldCleared(account.FieldDeletedByID) {
 		fields = append(fields, account.FieldDeletedByID)
+	}
+	if m.FieldCleared(account.FieldParentID) {
+		fields = append(fields, account.FieldParentID)
+	}
+	if m.FieldCleared(account.FieldDescription) {
+		fields = append(fields, account.FieldDescription)
 	}
 	return fields
 }
@@ -1360,17 +1360,17 @@ func (m *AccountMutation) ClearField(name string) error {
 	case account.FieldUpdatedByID:
 		m.ClearUpdatedByID()
 		return nil
-	case account.FieldParentID:
-		m.ClearParentID()
-		return nil
-	case account.FieldDescription:
-		m.ClearDescription()
-		return nil
 	case account.FieldDeletedAt:
 		m.ClearDeletedAt()
 		return nil
 	case account.FieldDeletedByID:
 		m.ClearDeletedByID()
+		return nil
+	case account.FieldParentID:
+		m.ClearParentID()
+		return nil
+	case account.FieldDescription:
+		m.ClearDescription()
 		return nil
 	}
 	return fmt.Errorf("unknown Account nullable field %s", name)
@@ -1391,6 +1391,12 @@ func (m *AccountMutation) ResetField(name string) error {
 		return nil
 	case account.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case account.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case account.FieldDeletedByID:
+		m.ResetDeletedByID()
 		return nil
 	case account.FieldWorkspaceID:
 		m.ResetWorkspaceID()
@@ -1419,12 +1425,6 @@ func (m *AccountMutation) ResetField(name string) error {
 	case account.FieldIsPostable:
 		m.ResetIsPostable()
 		return nil
-	case account.FieldDeletedAt:
-		m.ResetDeletedAt()
-		return nil
-	case account.FieldDeletedByID:
-		m.ResetDeletedByID()
-		return nil
 	}
 	return fmt.Errorf("unknown Account field %s", name)
 }
@@ -1438,6 +1438,9 @@ func (m *AccountMutation) AddedEdges() []string {
 	if m.updater != nil {
 		edges = append(edges, account.EdgeUpdater)
 	}
+	if m.deleter != nil {
+		edges = append(edges, account.EdgeDeleter)
+	}
 	if m.workspace != nil {
 		edges = append(edges, account.EdgeWorkspace)
 	}
@@ -1446,9 +1449,6 @@ func (m *AccountMutation) AddedEdges() []string {
 	}
 	if m.children != nil {
 		edges = append(edges, account.EdgeChildren)
-	}
-	if m.deleter != nil {
-		edges = append(edges, account.EdgeDeleter)
 	}
 	return edges
 }
@@ -1465,6 +1465,10 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 		if id := m.updater; id != nil {
 			return []ent.Value{*id}
 		}
+	case account.EdgeDeleter:
+		if id := m.deleter; id != nil {
+			return []ent.Value{*id}
+		}
 	case account.EdgeWorkspace:
 		if id := m.workspace; id != nil {
 			return []ent.Value{*id}
@@ -1479,10 +1483,6 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case account.EdgeDeleter:
-		if id := m.deleter; id != nil {
-			return []ent.Value{*id}
-		}
 	}
 	return nil
 }
@@ -1519,6 +1519,9 @@ func (m *AccountMutation) ClearedEdges() []string {
 	if m.clearedupdater {
 		edges = append(edges, account.EdgeUpdater)
 	}
+	if m.cleareddeleter {
+		edges = append(edges, account.EdgeDeleter)
+	}
 	if m.clearedworkspace {
 		edges = append(edges, account.EdgeWorkspace)
 	}
@@ -1527,9 +1530,6 @@ func (m *AccountMutation) ClearedEdges() []string {
 	}
 	if m.clearedchildren {
 		edges = append(edges, account.EdgeChildren)
-	}
-	if m.cleareddeleter {
-		edges = append(edges, account.EdgeDeleter)
 	}
 	return edges
 }
@@ -1542,14 +1542,14 @@ func (m *AccountMutation) EdgeCleared(name string) bool {
 		return m.clearedcreator
 	case account.EdgeUpdater:
 		return m.clearedupdater
+	case account.EdgeDeleter:
+		return m.cleareddeleter
 	case account.EdgeWorkspace:
 		return m.clearedworkspace
 	case account.EdgeParent:
 		return m.clearedparent
 	case account.EdgeChildren:
 		return m.clearedchildren
-	case account.EdgeDeleter:
-		return m.cleareddeleter
 	}
 	return false
 }
@@ -1564,14 +1564,14 @@ func (m *AccountMutation) ClearEdge(name string) error {
 	case account.EdgeUpdater:
 		m.ClearUpdater()
 		return nil
+	case account.EdgeDeleter:
+		m.ClearDeleter()
+		return nil
 	case account.EdgeWorkspace:
 		m.ClearWorkspace()
 		return nil
 	case account.EdgeParent:
 		m.ClearParent()
-		return nil
-	case account.EdgeDeleter:
-		m.ClearDeleter()
 		return nil
 	}
 	return fmt.Errorf("unknown Account unique edge %s", name)
@@ -1587,6 +1587,9 @@ func (m *AccountMutation) ResetEdge(name string) error {
 	case account.EdgeUpdater:
 		m.ResetUpdater()
 		return nil
+	case account.EdgeDeleter:
+		m.ResetDeleter()
+		return nil
 	case account.EdgeWorkspace:
 		m.ResetWorkspace()
 		return nil
@@ -1595,9 +1598,6 @@ func (m *AccountMutation) ResetEdge(name string) error {
 		return nil
 	case account.EdgeChildren:
 		m.ResetChildren()
-		return nil
-	case account.EdgeDeleter:
-		m.ResetDeleter()
 		return nil
 	}
 	return fmt.Errorf("unknown Account edge %s", name)

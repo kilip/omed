@@ -814,7 +814,7 @@ export interface paths {
     put?: never;
     /**
      * Search accounts
-     * @description Search Chart of Accounts with filters and cursor pagination
+     * @description Search Chart of Accounts (returns all accounts in the workspace)
      */
     post: {
       parameters: {
@@ -826,7 +826,7 @@ export interface paths {
         };
         cookie?: never;
       };
-      /** @description Search filter criteria */
+      /** @description Search criteria */
       requestBody: {
         content: {
           "application/json": components["schemas"]["model.SearchAccountRequest"];
@@ -880,75 +880,6 @@ export interface paths {
         };
       };
     };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/workspaces/{wid}/fin/accounts/tree": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get accounts tree
-     * @description Retrieve hierarchical tree structure of active accounts in the workspace
-     */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description Workspace ID */
-          wid: number;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.WebResponse-array_model_AccountTreeNodeResponse"];
-          };
-        };
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Forbidden */
-        403: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Internal Server Error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1628,6 +1559,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    "base.AuditMeta": {
+      createdAt?: string;
+      createdBy?: components["schemas"]["base.ByUser"];
+      deletedAt?: string;
+      deletedBy?: components["schemas"]["base.ByUser"];
+      updatedAt?: string;
+      updatedBy?: components["schemas"]["base.ByUser"];
+    };
     "base.ByUser": {
       avatar?: string;
       name?: string;
@@ -1657,12 +1596,6 @@ export interface components {
     "httpx.WebResponse-array_model_AccountResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.AccountResponse"][];
-      /** @description Meta contains request metadata such as request ID and timestamps. */
-      meta?: components["schemas"]["httpx.Meta"];
-    };
-    "httpx.WebResponse-array_model_AccountTreeNodeResponse": {
-      /** @description Data contains the response payload. */
-      data?: components["schemas"]["model.AccountTreeNodeResponse"][];
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
@@ -1721,11 +1654,8 @@ export interface components {
       meta?: components["schemas"]["httpx.Meta"];
     };
     "model.AccountResponse": {
+      auditMeta?: components["schemas"]["base.AuditMeta"];
       code?: string;
-      createdAt?: string;
-      createdBy?: components["schemas"]["base.ByUser"];
-      deletedAt?: string;
-      deletedBy?: components["schemas"]["base.ByUser"];
       description?: string;
       id?: number;
       isActive?: boolean;
@@ -1734,25 +1664,6 @@ export interface components {
       normalBalance?: string;
       parentId?: number;
       type?: string;
-      updatedAt?: string;
-      updatedBy?: components["schemas"]["base.ByUser"];
-      workspaceId?: number;
-    };
-    "model.AccountTreeNodeResponse": {
-      children?: components["schemas"]["model.AccountTreeNodeResponse"][];
-      code?: string;
-      createdAt?: string;
-      createdBy?: components["schemas"]["base.ByUser"];
-      description?: string;
-      id?: number;
-      isActive?: boolean;
-      isPostable?: boolean;
-      name?: string;
-      normalBalance?: string;
-      parentId?: number;
-      type?: string;
-      updatedAt?: string;
-      updatedBy?: components["schemas"]["base.ByUser"];
       workspaceId?: number;
     };
     "model.CreateAccountRequest": {
@@ -1800,17 +1711,7 @@ export interface components {
       roles?: string[];
       workspaceId?: number;
     };
-    "model.SearchAccountRequest": {
-      code?: string;
-      cursor?: string;
-      includeDeleted?: boolean;
-      isActive?: boolean;
-      isPostable?: boolean;
-      limit?: number;
-      parentId?: number;
-      query?: string;
-      type?: string;
-    };
+    "model.SearchAccountRequest": Record<string, never>;
     "model.SearchMemberRequest": {
       cursor?: string;
       limit?: number;

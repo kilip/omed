@@ -8,10 +8,12 @@ type ByUser struct {
 	Avatar string `json:"avatar,omitempty"`
 }
 
-// AuditMeta encapsulates standard creation and modification audit timestamps and authors.
+// AuditMeta encapsulates standard creation, modification, and deletion audit timestamps and authors.
 type AuditMeta struct {
-	CreatedBy ByUser    `json:"createdBy"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedBy ByUser    `json:"updatedBy"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	CreatedBy ByUser     `json:"createdBy"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedBy ByUser     `json:"updatedBy"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	DeletedBy *ByUser    `json:"deletedBy,omitempty"`
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
 }

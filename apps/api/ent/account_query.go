@@ -28,10 +28,10 @@ type AccountQuery struct {
 	predicates    []predicate.Account
 	withCreator   *UserQuery
 	withUpdater   *UserQuery
+	withDeleter   *UserQuery
 	withWorkspace *WorkspaceQuery
 	withParent    *AccountQuery
 	withChildren  *AccountQuery
-	withDeleter   *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -118,6 +118,31 @@ func (_q *AccountQuery) QueryUpdater() *UserQuery {
 	return query
 }
 
+// QueryDeleter chains the current query on the "deleter" edge.
+func (_q *AccountQuery) QueryDeleter() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, account.DeleterTable, account.DeleterColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryWorkspace chains the current query on the "workspace" edge.
 func (_q *AccountQuery) QueryWorkspace() *WorkspaceQuery {
 	query := (&WorkspaceClient{config: _q.config}).Query()
@@ -186,31 +211,6 @@ func (_q *AccountQuery) QueryChildren() *AccountQuery {
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.Account
-		step.Edge.Schema = schemaConfig.Account
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryDeleter chains the current query on the "deleter" edge.
-func (_q *AccountQuery) QueryDeleter() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(account.Table, account.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, account.DeleterTable, account.DeleterColumn),
-		)
-		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.User
 		step.Edge.Schema = schemaConfig.Account
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -412,10 +412,10 @@ func (_q *AccountQuery) Clone() *AccountQuery {
 		predicates:    append([]predicate.Account{}, _q.predicates...),
 		withCreator:   _q.withCreator.Clone(),
 		withUpdater:   _q.withUpdater.Clone(),
+		withDeleter:   _q.withDeleter.Clone(),
 		withWorkspace: _q.withWorkspace.Clone(),
 		withParent:    _q.withParent.Clone(),
 		withChildren:  _q.withChildren.Clone(),
-		withDeleter:   _q.withDeleter.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -441,6 +441,17 @@ func (_q *AccountQuery) WithUpdater(opts ...func(*UserQuery)) *AccountQuery {
 		opt(query)
 	}
 	_q.withUpdater = query
+	return _q
+}
+
+// WithDeleter tells the query-builder to eager-load the nodes that are connected to
+// the "deleter" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithDeleter(opts ...func(*UserQuery)) *AccountQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDeleter = query
 	return _q
 }
 
@@ -474,17 +485,6 @@ func (_q *AccountQuery) WithChildren(opts ...func(*AccountQuery)) *AccountQuery 
 		opt(query)
 	}
 	_q.withChildren = query
-	return _q
-}
-
-// WithDeleter tells the query-builder to eager-load the nodes that are connected to
-// the "deleter" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *AccountQuery) WithDeleter(opts ...func(*UserQuery)) *AccountQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withDeleter = query
 	return _q
 }
 
@@ -569,10 +569,10 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 		loadedTypes = [6]bool{
 			_q.withCreator != nil,
 			_q.withUpdater != nil,
+			_q.withDeleter != nil,
 			_q.withWorkspace != nil,
 			_q.withParent != nil,
 			_q.withChildren != nil,
-			_q.withDeleter != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -607,6 +607,12 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 			return nil, err
 		}
 	}
+	if query := _q.withDeleter; query != nil {
+		if err := _q.loadDeleter(ctx, query, nodes, nil,
+			func(n *Account, e *User) { n.Edges.Deleter = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withWorkspace; query != nil {
 		if err := _q.loadWorkspace(ctx, query, nodes, nil,
 			func(n *Account, e *Workspace) { n.Edges.Workspace = e }); err != nil {
@@ -623,12 +629,6 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 		if err := _q.loadChildren(ctx, query, nodes,
 			func(n *Account) { n.Edges.Children = []*Account{} },
 			func(n *Account, e *Account) { n.Edges.Children = append(n.Edges.Children, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withDeleter; query != nil {
-		if err := _q.loadDeleter(ctx, query, nodes, nil,
-			func(n *Account, e *User) { n.Edges.Deleter = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -692,6 +692,38 @@ func (_q *AccountQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "updated_by_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *AccountQuery) loadDeleter(ctx context.Context, query *UserQuery, nodes []*Account, init func(*Account), assign func(*Account, *User)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*Account)
+	for i := range nodes {
+		if nodes[i].DeletedByID == nil {
+			continue
+		}
+		fk := *nodes[i].DeletedByID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "deleted_by_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -793,38 +825,6 @@ func (_q *AccountQuery) loadChildren(ctx context.Context, query *AccountQuery, n
 	}
 	return nil
 }
-func (_q *AccountQuery) loadDeleter(ctx context.Context, query *UserQuery, nodes []*Account, init func(*Account), assign func(*Account, *User)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*Account)
-	for i := range nodes {
-		if nodes[i].DeletedByID == nil {
-			continue
-		}
-		fk := *nodes[i].DeletedByID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "deleted_by_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 
 func (_q *AccountQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -859,14 +859,14 @@ func (_q *AccountQuery) querySpec() *sqlgraph.QuerySpec {
 		if _q.withUpdater != nil {
 			_spec.Node.AddColumnOnce(account.FieldUpdatedByID)
 		}
+		if _q.withDeleter != nil {
+			_spec.Node.AddColumnOnce(account.FieldDeletedByID)
+		}
 		if _q.withWorkspace != nil {
 			_spec.Node.AddColumnOnce(account.FieldWorkspaceID)
 		}
 		if _q.withParent != nil {
 			_spec.Node.AddColumnOnce(account.FieldParentID)
-		}
-		if _q.withDeleter != nil {
-			_spec.Node.AddColumnOnce(account.FieldDeletedByID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

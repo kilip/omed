@@ -76,6 +76,46 @@ func (_u *AccountUpdate) SetUpdatedAt(v time.Time) *AccountUpdate {
 	return _u
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (_u *AccountUpdate) SetDeletedAt(v time.Time) *AccountUpdate {
+	_u.mutation.SetDeletedAt(v)
+	return _u
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableDeletedAt(v *time.Time) *AccountUpdate {
+	if v != nil {
+		_u.SetDeletedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_u *AccountUpdate) ClearDeletedAt() *AccountUpdate {
+	_u.mutation.ClearDeletedAt()
+	return _u
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (_u *AccountUpdate) SetDeletedByID(v int64) *AccountUpdate {
+	_u.mutation.SetDeletedByID(v)
+	return _u
+}
+
+// SetNillableDeletedByID sets the "deleted_by_id" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableDeletedByID(v *int64) *AccountUpdate {
+	if v != nil {
+		_u.SetDeletedByID(*v)
+	}
+	return _u
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (_u *AccountUpdate) ClearDeletedByID() *AccountUpdate {
+	_u.mutation.ClearDeletedByID()
+	return _u
+}
+
 // SetCode sets the "code" field.
 func (_u *AccountUpdate) SetCode(v string) *AccountUpdate {
 	_u.mutation.SetCode(v)
@@ -200,46 +240,6 @@ func (_u *AccountUpdate) SetNillableIsPostable(v *bool) *AccountUpdate {
 	return _u
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (_u *AccountUpdate) SetDeletedAt(v time.Time) *AccountUpdate {
-	_u.mutation.SetDeletedAt(v)
-	return _u
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (_u *AccountUpdate) SetNillableDeletedAt(v *time.Time) *AccountUpdate {
-	if v != nil {
-		_u.SetDeletedAt(*v)
-	}
-	return _u
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (_u *AccountUpdate) ClearDeletedAt() *AccountUpdate {
-	_u.mutation.ClearDeletedAt()
-	return _u
-}
-
-// SetDeletedByID sets the "deleted_by_id" field.
-func (_u *AccountUpdate) SetDeletedByID(v int64) *AccountUpdate {
-	_u.mutation.SetDeletedByID(v)
-	return _u
-}
-
-// SetNillableDeletedByID sets the "deleted_by_id" field if the given value is not nil.
-func (_u *AccountUpdate) SetNillableDeletedByID(v *int64) *AccountUpdate {
-	if v != nil {
-		_u.SetDeletedByID(*v)
-	}
-	return _u
-}
-
-// ClearDeletedByID clears the value of the "deleted_by_id" field.
-func (_u *AccountUpdate) ClearDeletedByID() *AccountUpdate {
-	_u.mutation.ClearDeletedByID()
-	return _u
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_u *AccountUpdate) SetCreatorID(id int64) *AccountUpdate {
 	_u.mutation.SetCreatorID(id)
@@ -278,6 +278,25 @@ func (_u *AccountUpdate) SetUpdater(v *User) *AccountUpdate {
 	return _u.SetUpdaterID(v.ID)
 }
 
+// SetDeleterID sets the "deleter" edge to the User entity by ID.
+func (_u *AccountUpdate) SetDeleterID(id int64) *AccountUpdate {
+	_u.mutation.SetDeleterID(id)
+	return _u
+}
+
+// SetNillableDeleterID sets the "deleter" edge to the User entity by ID if the given value is not nil.
+func (_u *AccountUpdate) SetNillableDeleterID(id *int64) *AccountUpdate {
+	if id != nil {
+		_u = _u.SetDeleterID(*id)
+	}
+	return _u
+}
+
+// SetDeleter sets the "deleter" edge to the User entity.
+func (_u *AccountUpdate) SetDeleter(v *User) *AccountUpdate {
+	return _u.SetDeleterID(v.ID)
+}
+
 // SetParent sets the "parent" edge to the Account entity.
 func (_u *AccountUpdate) SetParent(v *Account) *AccountUpdate {
 	return _u.SetParentID(v.ID)
@@ -298,25 +317,6 @@ func (_u *AccountUpdate) AddChildren(v ...*Account) *AccountUpdate {
 	return _u.AddChildIDs(ids...)
 }
 
-// SetDeleterID sets the "deleter" edge to the User entity by ID.
-func (_u *AccountUpdate) SetDeleterID(id int64) *AccountUpdate {
-	_u.mutation.SetDeleterID(id)
-	return _u
-}
-
-// SetNillableDeleterID sets the "deleter" edge to the User entity by ID if the given value is not nil.
-func (_u *AccountUpdate) SetNillableDeleterID(id *int64) *AccountUpdate {
-	if id != nil {
-		_u = _u.SetDeleterID(*id)
-	}
-	return _u
-}
-
-// SetDeleter sets the "deleter" edge to the User entity.
-func (_u *AccountUpdate) SetDeleter(v *User) *AccountUpdate {
-	return _u.SetDeleterID(v.ID)
-}
-
 // Mutation returns the AccountMutation object of the builder.
 func (_u *AccountUpdate) Mutation() *AccountMutation {
 	return _u.mutation
@@ -331,6 +331,12 @@ func (_u *AccountUpdate) ClearCreator() *AccountUpdate {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (_u *AccountUpdate) ClearUpdater() *AccountUpdate {
 	_u.mutation.ClearUpdater()
+	return _u
+}
+
+// ClearDeleter clears the "deleter" edge to the User entity.
+func (_u *AccountUpdate) ClearDeleter() *AccountUpdate {
+	_u.mutation.ClearDeleter()
 	return _u
 }
 
@@ -359,12 +365,6 @@ func (_u *AccountUpdate) RemoveChildren(v ...*Account) *AccountUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveChildIDs(ids...)
-}
-
-// ClearDeleter clears the "deleter" edge to the User entity.
-func (_u *AccountUpdate) ClearDeleter() *AccountUpdate {
-	_u.mutation.ClearDeleter()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -446,6 +446,12 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(account.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.DeletedAt(); ok {
+		_spec.SetField(account.FieldDeletedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeletedAtCleared() {
+		_spec.ClearField(account.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(account.FieldCode, field.TypeString, value)
 	}
@@ -469,12 +475,6 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsPostable(); ok {
 		_spec.SetField(account.FieldIsPostable, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.DeletedAt(); ok {
-		_spec.SetField(account.FieldDeletedAt, field.TypeTime, value)
-	}
-	if _u.mutation.DeletedAtCleared() {
-		_spec.ClearField(account.FieldDeletedAt, field.TypeTime)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -527,6 +527,37 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Inverse: false,
 			Table:   account.UpdaterTable,
 			Columns: []string{account.UpdaterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DeleterCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.DeleterTable,
+			Columns: []string{account.DeleterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DeleterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.DeleterTable,
+			Columns: []string{account.DeleterColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
@@ -617,37 +648,6 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.DeleterCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   account.DeleterTable,
-			Columns: []string{account.DeleterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Account
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.DeleterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   account.DeleterTable,
-			Columns: []string{account.DeleterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Account
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	_spec.Node.Schema = _u.schemaConfig.Account
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -713,6 +713,46 @@ func (_u *AccountUpdateOne) ClearUpdatedByID() *AccountUpdateOne {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AccountUpdateOne) SetUpdatedAt(v time.Time) *AccountUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_u *AccountUpdateOne) SetDeletedAt(v time.Time) *AccountUpdateOne {
+	_u.mutation.SetDeletedAt(v)
+	return _u
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableDeletedAt(v *time.Time) *AccountUpdateOne {
+	if v != nil {
+		_u.SetDeletedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_u *AccountUpdateOne) ClearDeletedAt() *AccountUpdateOne {
+	_u.mutation.ClearDeletedAt()
+	return _u
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (_u *AccountUpdateOne) SetDeletedByID(v int64) *AccountUpdateOne {
+	_u.mutation.SetDeletedByID(v)
+	return _u
+}
+
+// SetNillableDeletedByID sets the "deleted_by_id" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableDeletedByID(v *int64) *AccountUpdateOne {
+	if v != nil {
+		_u.SetDeletedByID(*v)
+	}
+	return _u
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (_u *AccountUpdateOne) ClearDeletedByID() *AccountUpdateOne {
+	_u.mutation.ClearDeletedByID()
 	return _u
 }
 
@@ -840,46 +880,6 @@ func (_u *AccountUpdateOne) SetNillableIsPostable(v *bool) *AccountUpdateOne {
 	return _u
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (_u *AccountUpdateOne) SetDeletedAt(v time.Time) *AccountUpdateOne {
-	_u.mutation.SetDeletedAt(v)
-	return _u
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (_u *AccountUpdateOne) SetNillableDeletedAt(v *time.Time) *AccountUpdateOne {
-	if v != nil {
-		_u.SetDeletedAt(*v)
-	}
-	return _u
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (_u *AccountUpdateOne) ClearDeletedAt() *AccountUpdateOne {
-	_u.mutation.ClearDeletedAt()
-	return _u
-}
-
-// SetDeletedByID sets the "deleted_by_id" field.
-func (_u *AccountUpdateOne) SetDeletedByID(v int64) *AccountUpdateOne {
-	_u.mutation.SetDeletedByID(v)
-	return _u
-}
-
-// SetNillableDeletedByID sets the "deleted_by_id" field if the given value is not nil.
-func (_u *AccountUpdateOne) SetNillableDeletedByID(v *int64) *AccountUpdateOne {
-	if v != nil {
-		_u.SetDeletedByID(*v)
-	}
-	return _u
-}
-
-// ClearDeletedByID clears the value of the "deleted_by_id" field.
-func (_u *AccountUpdateOne) ClearDeletedByID() *AccountUpdateOne {
-	_u.mutation.ClearDeletedByID()
-	return _u
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_u *AccountUpdateOne) SetCreatorID(id int64) *AccountUpdateOne {
 	_u.mutation.SetCreatorID(id)
@@ -918,6 +918,25 @@ func (_u *AccountUpdateOne) SetUpdater(v *User) *AccountUpdateOne {
 	return _u.SetUpdaterID(v.ID)
 }
 
+// SetDeleterID sets the "deleter" edge to the User entity by ID.
+func (_u *AccountUpdateOne) SetDeleterID(id int64) *AccountUpdateOne {
+	_u.mutation.SetDeleterID(id)
+	return _u
+}
+
+// SetNillableDeleterID sets the "deleter" edge to the User entity by ID if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableDeleterID(id *int64) *AccountUpdateOne {
+	if id != nil {
+		_u = _u.SetDeleterID(*id)
+	}
+	return _u
+}
+
+// SetDeleter sets the "deleter" edge to the User entity.
+func (_u *AccountUpdateOne) SetDeleter(v *User) *AccountUpdateOne {
+	return _u.SetDeleterID(v.ID)
+}
+
 // SetParent sets the "parent" edge to the Account entity.
 func (_u *AccountUpdateOne) SetParent(v *Account) *AccountUpdateOne {
 	return _u.SetParentID(v.ID)
@@ -938,25 +957,6 @@ func (_u *AccountUpdateOne) AddChildren(v ...*Account) *AccountUpdateOne {
 	return _u.AddChildIDs(ids...)
 }
 
-// SetDeleterID sets the "deleter" edge to the User entity by ID.
-func (_u *AccountUpdateOne) SetDeleterID(id int64) *AccountUpdateOne {
-	_u.mutation.SetDeleterID(id)
-	return _u
-}
-
-// SetNillableDeleterID sets the "deleter" edge to the User entity by ID if the given value is not nil.
-func (_u *AccountUpdateOne) SetNillableDeleterID(id *int64) *AccountUpdateOne {
-	if id != nil {
-		_u = _u.SetDeleterID(*id)
-	}
-	return _u
-}
-
-// SetDeleter sets the "deleter" edge to the User entity.
-func (_u *AccountUpdateOne) SetDeleter(v *User) *AccountUpdateOne {
-	return _u.SetDeleterID(v.ID)
-}
-
 // Mutation returns the AccountMutation object of the builder.
 func (_u *AccountUpdateOne) Mutation() *AccountMutation {
 	return _u.mutation
@@ -971,6 +971,12 @@ func (_u *AccountUpdateOne) ClearCreator() *AccountUpdateOne {
 // ClearUpdater clears the "updater" edge to the User entity.
 func (_u *AccountUpdateOne) ClearUpdater() *AccountUpdateOne {
 	_u.mutation.ClearUpdater()
+	return _u
+}
+
+// ClearDeleter clears the "deleter" edge to the User entity.
+func (_u *AccountUpdateOne) ClearDeleter() *AccountUpdateOne {
+	_u.mutation.ClearDeleter()
 	return _u
 }
 
@@ -999,12 +1005,6 @@ func (_u *AccountUpdateOne) RemoveChildren(v ...*Account) *AccountUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveChildIDs(ids...)
-}
-
-// ClearDeleter clears the "deleter" edge to the User entity.
-func (_u *AccountUpdateOne) ClearDeleter() *AccountUpdateOne {
-	_u.mutation.ClearDeleter()
-	return _u
 }
 
 // Where appends a list predicates to the AccountUpdate builder.
@@ -1116,6 +1116,12 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(account.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.DeletedAt(); ok {
+		_spec.SetField(account.FieldDeletedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeletedAtCleared() {
+		_spec.ClearField(account.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(account.FieldCode, field.TypeString, value)
 	}
@@ -1139,12 +1145,6 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 	}
 	if value, ok := _u.mutation.IsPostable(); ok {
 		_spec.SetField(account.FieldIsPostable, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.DeletedAt(); ok {
-		_spec.SetField(account.FieldDeletedAt, field.TypeTime, value)
-	}
-	if _u.mutation.DeletedAtCleared() {
-		_spec.ClearField(account.FieldDeletedAt, field.TypeTime)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1197,6 +1197,37 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 			Inverse: false,
 			Table:   account.UpdaterTable,
 			Columns: []string{account.UpdaterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DeleterCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.DeleterTable,
+			Columns: []string{account.DeleterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Account
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DeleterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.DeleterTable,
+			Columns: []string{account.DeleterColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
@@ -1279,37 +1310,6 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Account
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.DeleterCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   account.DeleterTable,
-			Columns: []string{account.DeleterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Account
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.DeleterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   account.DeleterTable,
-			Columns: []string{account.DeleterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
 		edge.Schema = _u.schemaConfig.Account

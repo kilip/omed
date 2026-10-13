@@ -14,7 +14,6 @@ import (
 type AccountServiceContract interface {
 	GetByID(c context.Context, workspaceID, id int64) (domain.Account, error)
 	Search(c context.Context, workspaceID int64, req model.SearchAccountRequest) ([]domain.Account, string, error)
-	GetTree(c context.Context, workspaceID int64) ([]domain.AccountTreeNode, error)
 	Create(c context.Context, workspaceID int64, req model.CreateAccountRequest) (domain.Account, error)
 	Update(c context.Context, workspaceID, id int64, req model.UpdateAccountRequest) (domain.Account, error)
 	Delete(c context.Context, workspaceID, id int64) error
@@ -33,12 +32,12 @@ func NewAccountController(accounts AccountServiceContract) AccountController {
 // Search searches accounts within a workspace based on query parameters.
 //
 //	@Summary		Search accounts
-//	@Description	Search Chart of Accounts with filters and cursor pagination
+//	@Description	Search Chart of Accounts (returns all accounts in the workspace)
 //	@Tags			Finance Accounts
 //	@Accept			json
 //	@Produce		json
 //	@Param			wid		path		int							true	"Workspace ID"
-//	@Param			request	body		model.SearchAccountRequest	true	"Search filter criteria"
+//	@Param			request	body		model.SearchAccountRequest	true	"Search criteria"
 //	@Success		200		{object}	httpx.WebResponse[[]model.AccountResponse]
 //	@Failure		400		{object}	httpx.ErrorResponse
 //	@Failure		403		{object}	httpx.ErrorResponse
@@ -64,31 +63,6 @@ func (ctl AccountController) Search(c fiber.Ctx) error {
 		out[i] = toAccountResponse(it)
 	}
 	return httpx.WithCursor(c, out, cursor)
-}
-
-// GetTree retrieves the hierarchical tree of accounts in a workspace.
-//
-//	@Summary		Get accounts tree
-//	@Description	Retrieve hierarchical tree structure of active accounts in the workspace
-//	@Tags			Finance Accounts
-//	@Produce		json
-//	@Param			wid	path		int	true	"Workspace ID"
-//	@Success		200	{object}	httpx.WebResponse[[]model.AccountTreeNodeResponse]
-//	@Failure		400	{object}	httpx.ErrorResponse
-//	@Failure		403	{object}	httpx.ErrorResponse
-//	@Failure		500	{object}	httpx.ErrorResponse
-//	@Security		BearerAuth
-//	@Router			/workspaces/{wid}/fin/accounts/tree [get]
-func (ctl AccountController) GetTree(c fiber.Ctx) error {
-	wid, err := httpx.GetParamID[int64](c, "wid")
-	if err != nil {
-		return err
-	}
-	tree, err := ctl.accounts.GetTree(c, wid)
-	if err != nil {
-		return err
-	}
-	return httpx.OK(c, toAccountTreeResponses(tree))
 }
 
 // Create creates a new account in the workspace.
@@ -238,35 +212,6 @@ func toAccountResponse(a domain.Account) model.AccountResponse {
 		Description:   a.Description,
 		IsActive:      a.IsActive,
 		IsPostable:    a.IsPostable,
-		DeletedAt:     a.DeletedAt,
-		DeletedBy:     a.DeletedBy,
-		CreatedBy:     a.AuditMeta.CreatedBy,
-		CreatedAt:     a.AuditMeta.CreatedAt,
-		UpdatedBy:     a.AuditMeta.UpdatedBy,
-		UpdatedAt:     a.AuditMeta.UpdatedAt,
+		AuditMeta:     a.AuditMeta,
 	}
-}
-
-func toAccountTreeResponses(nodes []domain.AccountTreeNode) []model.AccountTreeNodeResponse {
-	out := make([]model.AccountTreeNodeResponse, len(nodes))
-	for i, n := range nodes {
-		out[i] = model.AccountTreeNodeResponse{
-			ID:            n.ID,
-			WorkspaceID:   n.WorkspaceID,
-			Code:          n.Code,
-			Name:          n.Name,
-			Type:          n.Type,
-			NormalBalance: n.NormalBalance,
-			ParentID:      n.ParentID,
-			Description:   n.Description,
-			IsActive:      n.IsActive,
-			IsPostable:    n.IsPostable,
-			Children:      toAccountTreeResponses(n.Children),
-			CreatedBy:     n.AuditMeta.CreatedBy,
-			CreatedAt:     n.AuditMeta.CreatedAt,
-			UpdatedBy:     n.AuditMeta.UpdatedBy,
-			UpdatedAt:     n.AuditMeta.UpdatedAt,
-		}
-	}
-	return out
 }

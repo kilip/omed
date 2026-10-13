@@ -3,12 +3,10 @@ package repository
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
-	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
@@ -49,60 +47,15 @@ func (r AccountRepository) GetByID(c context.Context, workspaceID, id int64) (do
 	return toAccountDomain(a), nil
 }
 
-// Search queries accounts matching the filter criteria with cursor pagination.
-func (r AccountRepository) Search(c context.Context, workspaceID int64, req model.SearchAccountRequest) ([]domain.Account, string, error) {
-	limit := req.Limit
-	if limit <= 0 {
-		limit = 20
-	} else if limit > 100 {
-		limit = 100
-	}
-
-	predicates := []predicate.Account{
-		account.WorkspaceID(workspaceID),
-	}
-
-	if !req.IncludeDeleted {
-		predicates = append(predicates, account.DeletedAtIsNil())
-	}
-
-	if req.Code != "" {
-		predicates = append(predicates, account.CodeContainsFold(req.Code))
-	}
-
-	if req.Query != "" {
-		predicates = append(predicates, account.Or(
-			account.CodeContainsFold(req.Query),
-			account.NameContainsFold(req.Query),
-		))
-	}
-
-	if req.Type != "" {
-		predicates = append(predicates, account.TypeEQ(account.Type(req.Type)))
-	}
-
-	if req.ParentID != nil {
-		predicates = append(predicates, account.ParentIDEQ(*req.ParentID))
-	}
-
-	if req.IsActive != nil {
-		predicates = append(predicates, account.IsActiveEQ(*req.IsActive))
-	}
-
-	if req.IsPostable != nil {
-		predicates = append(predicates, account.IsPostableEQ(*req.IsPostable))
-	}
-
-	if req.Cursor != "" {
-		if cursorID, err := strconv.ParseInt(req.Cursor, 10, 64); err == nil {
-			predicates = append(predicates, account.IDGT(cursorID))
-		}
-	}
-
+// Search returns all active accounts in the workspace without filtering,
+// allowing the client to filter, construct hierarchy trees, and paginate client-side.
+func (r AccountRepository) Search(c context.Context, workspaceID int64, _ model.SearchAccountRequest) ([]domain.Account, string, error) {
 	items, err := r.cli.Account.Query().
-		Where(predicates...).
-		Order(ent.Asc(account.FieldID)).
-		Limit(limit + 1).
+		Where(
+			account.WorkspaceID(workspaceID),
+			account.DeletedAtIsNil(),
+		).
+		Order(ent.Asc(account.FieldCode), ent.Asc(account.FieldID)).
 		WithCreator().
 		WithUpdater().
 		WithDeleter().
@@ -111,18 +64,12 @@ func (r AccountRepository) Search(c context.Context, workspaceID int64, req mode
 		return nil, "", err
 	}
 
-	var cursor string
-	if len(items) > limit {
-		cursor = strconv.FormatInt(items[limit-1].ID, 10)
-		items = items[:limit]
-	}
-
 	res := make([]domain.Account, len(items))
 	for i, it := range items {
 		res[i] = toAccountDomain(it)
 	}
 
-	return res, cursor, nil
+	return res, "", nil
 }
 
 // Create inserts a new account within a database transaction.
@@ -141,23 +88,15 @@ func (r AccountRepository) Create(c context.Context, workspaceID int64, req mode
 			SetCode(req.Code).
 			SetName(req.Name).
 			SetType(account.Type(req.Type)).
-			SetNormalBalance(account.NormalBalance(normalBalance))
+			SetNormalBalance(account.NormalBalance(normalBalance)).
+			SetNillableIsActive(req.IsActive).
+			SetNillableIsPostable(req.IsPostable)
 
-		if req.ParentID != nil && *req.ParentID > 0 {
-			builder.SetParentID(*req.ParentID)
+		if req.ParentID > 0 {
+			builder.SetParentID(req.ParentID)
 		}
 		if req.Description != "" {
 			builder.SetDescription(req.Description)
-		}
-		if req.IsActive != nil {
-			builder.SetIsActive(*req.IsActive)
-		} else {
-			builder.SetIsActive(true)
-		}
-		if req.IsPostable != nil {
-			builder.SetIsPostable(*req.IsPostable)
-		} else {
-			builder.SetIsPostable(true)
 		}
 		if userID != 0 {
 			builder.SetCreatedByID(userID).SetUpdatedByID(userID)
@@ -215,22 +154,16 @@ func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req 
 		if req.NormalBalance != "" {
 			builder.SetNormalBalance(account.NormalBalance(req.NormalBalance))
 		}
-		if req.ParentID != nil {
-			if *req.ParentID > 0 {
-				builder.SetParentID(*req.ParentID)
-			} else {
-				builder.ClearParent()
-			}
+		if req.ParentID > 0 {
+			builder.SetParentID(req.ParentID)
+		} else {
+			builder.ClearParent()
 		}
 		if req.Description != "" {
 			builder.SetDescription(req.Description)
 		}
-		if req.IsActive != nil {
-			builder.SetIsActive(*req.IsActive)
-		}
-		if req.IsPostable != nil {
-			builder.SetIsPostable(*req.IsPostable)
-		}
+		builder.SetNillableIsActive(req.IsActive)
+		builder.SetNillableIsPostable(req.IsPostable)
 		if userID != 0 {
 			builder.SetUpdatedByID(userID)
 		}
@@ -319,62 +252,6 @@ func (r AccountRepository) FindByCode(c context.Context, workspaceID int64, code
 	return toAccountDomain(a), nil
 }
 
-type treeBuilderNode struct {
-	account  domain.Account
-	children []*treeBuilderNode
-}
-
-func buildAccountTree(nodes []*treeBuilderNode) []domain.AccountTreeNode {
-	res := make([]domain.AccountTreeNode, len(nodes))
-	for i, n := range nodes {
-		res[i] = domain.AccountTreeNode{
-			Account:  n.account,
-			Children: buildAccountTree(n.children),
-		}
-	}
-	return res
-}
-
-// GetTree returns all active accounts in the workspace assembled into a hierarchy.
-func (r AccountRepository) GetTree(c context.Context, workspaceID int64) ([]domain.AccountTreeNode, error) {
-	items, err := r.cli.Account.Query().
-		Where(
-			account.WorkspaceID(workspaceID),
-			account.DeletedAtIsNil(),
-		).
-		Order(ent.Asc(account.FieldCode)).
-		WithCreator().
-		WithUpdater().
-		WithDeleter().
-		All(c)
-	if err != nil {
-		return nil, err
-	}
-
-	nodesMap := make(map[int64]*treeBuilderNode, len(items))
-	for _, it := range items {
-		dom := toAccountDomain(it)
-		nodesMap[dom.ID] = &treeBuilderNode{
-			account:  dom,
-			children: []*treeBuilderNode{},
-		}
-	}
-
-	var rootPointers []*treeBuilderNode
-	for _, it := range items {
-		node := nodesMap[it.ID]
-		if it.ParentID != nil && *it.ParentID > 0 {
-			if parentNode, exists := nodesMap[*it.ParentID]; exists {
-				parentNode.children = append(parentNode.children, node)
-				continue
-			}
-		}
-		rootPointers = append(rootPointers, node)
-	}
-
-	return buildAccountTree(rootPointers), nil
-}
-
 func toAccountDomain(a *ent.Account) domain.Account {
 	dom := domain.Account{
 		ID:            a.ID,
@@ -383,15 +260,18 @@ func toAccountDomain(a *ent.Account) domain.Account {
 		Name:          a.Name,
 		Type:          string(a.Type),
 		NormalBalance: string(a.NormalBalance),
-		ParentID:      a.ParentID,
 		Description:   a.Description,
 		IsActive:      a.IsActive,
 		IsPostable:    a.IsPostable,
-		DeletedAt:     a.DeletedAt,
 		AuditMeta: base.AuditMeta{
 			CreatedAt: a.CreatedAt,
 			UpdatedAt: a.UpdatedAt,
+			DeletedAt: a.DeletedAt,
 		},
+	}
+
+	if a.ParentID != nil {
+		dom.ParentID = *a.ParentID
 	}
 
 	if a.Edges.Creator != nil {
@@ -407,7 +287,7 @@ func toAccountDomain(a *ent.Account) domain.Account {
 		}
 	}
 	if a.Edges.Deleter != nil {
-		dom.DeletedBy = &base.ByUser{
+		dom.AuditMeta.DeletedBy = &base.ByUser{
 			Name:   a.Edges.Deleter.Name,
 			Avatar: a.Edges.Deleter.Avatar,
 		}

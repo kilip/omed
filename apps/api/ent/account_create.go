@@ -80,6 +80,34 @@ func (_c *AccountCreate) SetNillableUpdatedAt(v *time.Time) *AccountCreate {
 	return _c
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (_c *AccountCreate) SetDeletedAt(v time.Time) *AccountCreate {
+	_c.mutation.SetDeletedAt(v)
+	return _c
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableDeletedAt(v *time.Time) *AccountCreate {
+	if v != nil {
+		_c.SetDeletedAt(*v)
+	}
+	return _c
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (_c *AccountCreate) SetDeletedByID(v int64) *AccountCreate {
+	_c.mutation.SetDeletedByID(v)
+	return _c
+}
+
+// SetNillableDeletedByID sets the "deleted_by_id" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableDeletedByID(v *int64) *AccountCreate {
+	if v != nil {
+		_c.SetDeletedByID(*v)
+	}
+	return _c
+}
+
 // SetWorkspaceID sets the "workspace_id" field.
 func (_c *AccountCreate) SetWorkspaceID(v int64) *AccountCreate {
 	_c.mutation.SetWorkspaceID(v)
@@ -166,34 +194,6 @@ func (_c *AccountCreate) SetNillableIsPostable(v *bool) *AccountCreate {
 	return _c
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (_c *AccountCreate) SetDeletedAt(v time.Time) *AccountCreate {
-	_c.mutation.SetDeletedAt(v)
-	return _c
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (_c *AccountCreate) SetNillableDeletedAt(v *time.Time) *AccountCreate {
-	if v != nil {
-		_c.SetDeletedAt(*v)
-	}
-	return _c
-}
-
-// SetDeletedByID sets the "deleted_by_id" field.
-func (_c *AccountCreate) SetDeletedByID(v int64) *AccountCreate {
-	_c.mutation.SetDeletedByID(v)
-	return _c
-}
-
-// SetNillableDeletedByID sets the "deleted_by_id" field if the given value is not nil.
-func (_c *AccountCreate) SetNillableDeletedByID(v *int64) *AccountCreate {
-	if v != nil {
-		_c.SetDeletedByID(*v)
-	}
-	return _c
-}
-
 // SetID sets the "id" field.
 func (_c *AccountCreate) SetID(v int64) *AccountCreate {
 	_c.mutation.SetID(v)
@@ -238,6 +238,25 @@ func (_c *AccountCreate) SetUpdater(v *User) *AccountCreate {
 	return _c.SetUpdaterID(v.ID)
 }
 
+// SetDeleterID sets the "deleter" edge to the User entity by ID.
+func (_c *AccountCreate) SetDeleterID(id int64) *AccountCreate {
+	_c.mutation.SetDeleterID(id)
+	return _c
+}
+
+// SetNillableDeleterID sets the "deleter" edge to the User entity by ID if the given value is not nil.
+func (_c *AccountCreate) SetNillableDeleterID(id *int64) *AccountCreate {
+	if id != nil {
+		_c = _c.SetDeleterID(*id)
+	}
+	return _c
+}
+
+// SetDeleter sets the "deleter" edge to the User entity.
+func (_c *AccountCreate) SetDeleter(v *User) *AccountCreate {
+	return _c.SetDeleterID(v.ID)
+}
+
 // SetWorkspace sets the "workspace" edge to the Workspace entity.
 func (_c *AccountCreate) SetWorkspace(v *Workspace) *AccountCreate {
 	return _c.SetWorkspaceID(v.ID)
@@ -261,25 +280,6 @@ func (_c *AccountCreate) AddChildren(v ...*Account) *AccountCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddChildIDs(ids...)
-}
-
-// SetDeleterID sets the "deleter" edge to the User entity by ID.
-func (_c *AccountCreate) SetDeleterID(id int64) *AccountCreate {
-	_c.mutation.SetDeleterID(id)
-	return _c
-}
-
-// SetNillableDeleterID sets the "deleter" edge to the User entity by ID if the given value is not nil.
-func (_c *AccountCreate) SetNillableDeleterID(id *int64) *AccountCreate {
-	if id != nil {
-		_c = _c.SetDeleterID(*id)
-	}
-	return _c
-}
-
-// SetDeleter sets the "deleter" edge to the User entity.
-func (_c *AccountCreate) SetDeleter(v *User) *AccountCreate {
-	return _c.SetDeleterID(v.ID)
 }
 
 // Mutation returns the AccountMutation object of the builder.
@@ -429,6 +429,10 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		_spec.SetField(account.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.DeletedAt(); ok {
+		_spec.SetField(account.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = &value
+	}
 	if value, ok := _c.mutation.Code(); ok {
 		_spec.SetField(account.FieldCode, field.TypeString, value)
 		_node.Code = value
@@ -456,10 +460,6 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsPostable(); ok {
 		_spec.SetField(account.FieldIsPostable, field.TypeBool, value)
 		_node.IsPostable = value
-	}
-	if value, ok := _c.mutation.DeletedAt(); ok {
-		_spec.SetField(account.FieldDeletedAt, field.TypeTime, value)
-		_node.DeletedAt = &value
 	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -495,6 +495,24 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UpdatedByID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DeleterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.DeleterTable,
+			Columns: []string{account.DeleterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _c.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.DeletedByID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.WorkspaceIDs(); len(nodes) > 0 {
@@ -548,24 +566,6 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.DeleterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   account.DeleterTable,
-			Columns: []string{account.DeleterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _c.schemaConfig.Account
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.DeletedByID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -665,6 +665,42 @@ func (u *AccountUpsert) SetUpdatedAt(v time.Time) *AccountUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *AccountUpsert) UpdateUpdatedAt() *AccountUpsert {
 	u.SetExcluded(account.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *AccountUpsert) SetDeletedAt(v time.Time) *AccountUpsert {
+	u.Set(account.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateDeletedAt() *AccountUpsert {
+	u.SetExcluded(account.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *AccountUpsert) ClearDeletedAt() *AccountUpsert {
+	u.SetNull(account.FieldDeletedAt)
+	return u
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (u *AccountUpsert) SetDeletedByID(v int64) *AccountUpsert {
+	u.Set(account.FieldDeletedByID, v)
+	return u
+}
+
+// UpdateDeletedByID sets the "deleted_by_id" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateDeletedByID() *AccountUpsert {
+	u.SetExcluded(account.FieldDeletedByID)
+	return u
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (u *AccountUpsert) ClearDeletedByID() *AccountUpsert {
+	u.SetNull(account.FieldDeletedByID)
 	return u
 }
 
@@ -776,42 +812,6 @@ func (u *AccountUpsert) UpdateIsPostable() *AccountUpsert {
 	return u
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (u *AccountUpsert) SetDeletedAt(v time.Time) *AccountUpsert {
-	u.Set(account.FieldDeletedAt, v)
-	return u
-}
-
-// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
-func (u *AccountUpsert) UpdateDeletedAt() *AccountUpsert {
-	u.SetExcluded(account.FieldDeletedAt)
-	return u
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (u *AccountUpsert) ClearDeletedAt() *AccountUpsert {
-	u.SetNull(account.FieldDeletedAt)
-	return u
-}
-
-// SetDeletedByID sets the "deleted_by_id" field.
-func (u *AccountUpsert) SetDeletedByID(v int64) *AccountUpsert {
-	u.Set(account.FieldDeletedByID, v)
-	return u
-}
-
-// UpdateDeletedByID sets the "deleted_by_id" field to the value that was provided on create.
-func (u *AccountUpsert) UpdateDeletedByID() *AccountUpsert {
-	u.SetExcluded(account.FieldDeletedByID)
-	return u
-}
-
-// ClearDeletedByID clears the value of the "deleted_by_id" field.
-func (u *AccountUpsert) ClearDeletedByID() *AccountUpsert {
-	u.SetNull(account.FieldDeletedByID)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -919,6 +919,48 @@ func (u *AccountUpsertOne) SetUpdatedAt(v time.Time) *AccountUpsertOne {
 func (u *AccountUpsertOne) UpdateUpdatedAt() *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *AccountUpsertOne) SetDeletedAt(v time.Time) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateDeletedAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *AccountUpsertOne) ClearDeletedAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (u *AccountUpsertOne) SetDeletedByID(v int64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDeletedByID(v)
+	})
+}
+
+// UpdateDeletedByID sets the "deleted_by_id" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateDeletedByID() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDeletedByID()
+	})
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (u *AccountUpsertOne) ClearDeletedByID() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearDeletedByID()
 	})
 }
 
@@ -1045,48 +1087,6 @@ func (u *AccountUpsertOne) SetIsPostable(v bool) *AccountUpsertOne {
 func (u *AccountUpsertOne) UpdateIsPostable() *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
 		s.UpdateIsPostable()
-	})
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (u *AccountUpsertOne) SetDeletedAt(v time.Time) *AccountUpsertOne {
-	return u.Update(func(s *AccountUpsert) {
-		s.SetDeletedAt(v)
-	})
-}
-
-// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
-func (u *AccountUpsertOne) UpdateDeletedAt() *AccountUpsertOne {
-	return u.Update(func(s *AccountUpsert) {
-		s.UpdateDeletedAt()
-	})
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (u *AccountUpsertOne) ClearDeletedAt() *AccountUpsertOne {
-	return u.Update(func(s *AccountUpsert) {
-		s.ClearDeletedAt()
-	})
-}
-
-// SetDeletedByID sets the "deleted_by_id" field.
-func (u *AccountUpsertOne) SetDeletedByID(v int64) *AccountUpsertOne {
-	return u.Update(func(s *AccountUpsert) {
-		s.SetDeletedByID(v)
-	})
-}
-
-// UpdateDeletedByID sets the "deleted_by_id" field to the value that was provided on create.
-func (u *AccountUpsertOne) UpdateDeletedByID() *AccountUpsertOne {
-	return u.Update(func(s *AccountUpsert) {
-		s.UpdateDeletedByID()
-	})
-}
-
-// ClearDeletedByID clears the value of the "deleted_by_id" field.
-func (u *AccountUpsertOne) ClearDeletedByID() *AccountUpsertOne {
-	return u.Update(func(s *AccountUpsert) {
-		s.ClearDeletedByID()
 	})
 }
 
@@ -1366,6 +1366,48 @@ func (u *AccountUpsertBulk) UpdateUpdatedAt() *AccountUpsertBulk {
 	})
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (u *AccountUpsertBulk) SetDeletedAt(v time.Time) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateDeletedAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *AccountUpsertBulk) ClearDeletedAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (u *AccountUpsertBulk) SetDeletedByID(v int64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDeletedByID(v)
+	})
+}
+
+// UpdateDeletedByID sets the "deleted_by_id" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateDeletedByID() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDeletedByID()
+	})
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (u *AccountUpsertBulk) ClearDeletedByID() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearDeletedByID()
+	})
+}
+
 // SetCode sets the "code" field.
 func (u *AccountUpsertBulk) SetCode(v string) *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
@@ -1489,48 +1531,6 @@ func (u *AccountUpsertBulk) SetIsPostable(v bool) *AccountUpsertBulk {
 func (u *AccountUpsertBulk) UpdateIsPostable() *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
 		s.UpdateIsPostable()
-	})
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (u *AccountUpsertBulk) SetDeletedAt(v time.Time) *AccountUpsertBulk {
-	return u.Update(func(s *AccountUpsert) {
-		s.SetDeletedAt(v)
-	})
-}
-
-// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
-func (u *AccountUpsertBulk) UpdateDeletedAt() *AccountUpsertBulk {
-	return u.Update(func(s *AccountUpsert) {
-		s.UpdateDeletedAt()
-	})
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (u *AccountUpsertBulk) ClearDeletedAt() *AccountUpsertBulk {
-	return u.Update(func(s *AccountUpsert) {
-		s.ClearDeletedAt()
-	})
-}
-
-// SetDeletedByID sets the "deleted_by_id" field.
-func (u *AccountUpsertBulk) SetDeletedByID(v int64) *AccountUpsertBulk {
-	return u.Update(func(s *AccountUpsert) {
-		s.SetDeletedByID(v)
-	})
-}
-
-// UpdateDeletedByID sets the "deleted_by_id" field to the value that was provided on create.
-func (u *AccountUpsertBulk) UpdateDeletedByID() *AccountUpsertBulk {
-	return u.Update(func(s *AccountUpsert) {
-		s.UpdateDeletedByID()
-	})
-}
-
-// ClearDeletedByID clears the value of the "deleted_by_id" field.
-func (u *AccountUpsertBulk) ClearDeletedByID() *AccountUpsertBulk {
-	return u.Update(func(s *AccountUpsert) {
-		s.ClearDeletedByID()
 	})
 }
 

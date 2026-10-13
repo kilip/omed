@@ -76,6 +76,16 @@ func UpdatedAt(v time.Time) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
+func DeletedAt(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// DeletedByID applies equality check predicate on the "deleted_by_id" field. It's identical to DeletedByIDEQ.
+func DeletedByID(v int64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDeletedByID, v))
+}
+
 // WorkspaceID applies equality check predicate on the "workspace_id" field. It's identical to WorkspaceIDEQ.
 func WorkspaceID(v int64) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldWorkspaceID, v))
@@ -109,16 +119,6 @@ func IsActive(v bool) predicate.Account {
 // IsPostable applies equality check predicate on the "is_postable" field. It's identical to IsPostableEQ.
 func IsPostable(v bool) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldIsPostable, v))
-}
-
-// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
-func DeletedAt(v time.Time) predicate.Account {
-	return predicate.Account(sql.FieldEQ(FieldDeletedAt, v))
-}
-
-// DeletedByID applies equality check predicate on the "deleted_by_id" field. It's identical to DeletedByIDEQ.
-func DeletedByID(v int64) predicate.Account {
-	return predicate.Account(sql.FieldEQ(FieldDeletedByID, v))
 }
 
 // CreatedByIDEQ applies the EQ predicate on the "created_by_id" field.
@@ -259,6 +259,86 @@ func UpdatedAtLT(v time.Time) predicate.Account {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.Account {
 	return predicate.Account(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
+func DeletedAtEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
+func DeletedAtNEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtIn applies the In predicate on the "deleted_at" field.
+func DeletedAtIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
+func DeletedAtNotIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtGT applies the GT predicate on the "deleted_at" field.
+func DeletedAtGT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldDeletedAt, v))
+}
+
+// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
+func DeletedAtGTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldDeletedAt, v))
+}
+
+// DeletedAtLT applies the LT predicate on the "deleted_at" field.
+func DeletedAtLT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldDeletedAt, v))
+}
+
+// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
+func DeletedAtLTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldDeletedAt, v))
+}
+
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldDeletedAt))
+}
+
+// DeletedByIDEQ applies the EQ predicate on the "deleted_by_id" field.
+func DeletedByIDEQ(v int64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDeletedByID, v))
+}
+
+// DeletedByIDNEQ applies the NEQ predicate on the "deleted_by_id" field.
+func DeletedByIDNEQ(v int64) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldDeletedByID, v))
+}
+
+// DeletedByIDIn applies the In predicate on the "deleted_by_id" field.
+func DeletedByIDIn(vs ...int64) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldDeletedByID, vs...))
+}
+
+// DeletedByIDNotIn applies the NotIn predicate on the "deleted_by_id" field.
+func DeletedByIDNotIn(vs ...int64) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldDeletedByID, vs...))
+}
+
+// DeletedByIDIsNil applies the IsNil predicate on the "deleted_by_id" field.
+func DeletedByIDIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldDeletedByID))
+}
+
+// DeletedByIDNotNil applies the NotNil predicate on the "deleted_by_id" field.
+func DeletedByIDNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldDeletedByID))
 }
 
 // WorkspaceIDEQ applies the EQ predicate on the "workspace_id" field.
@@ -576,86 +656,6 @@ func IsPostableNEQ(v bool) predicate.Account {
 	return predicate.Account(sql.FieldNEQ(FieldIsPostable, v))
 }
 
-// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
-func DeletedAtEQ(v time.Time) predicate.Account {
-	return predicate.Account(sql.FieldEQ(FieldDeletedAt, v))
-}
-
-// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
-func DeletedAtNEQ(v time.Time) predicate.Account {
-	return predicate.Account(sql.FieldNEQ(FieldDeletedAt, v))
-}
-
-// DeletedAtIn applies the In predicate on the "deleted_at" field.
-func DeletedAtIn(vs ...time.Time) predicate.Account {
-	return predicate.Account(sql.FieldIn(FieldDeletedAt, vs...))
-}
-
-// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
-func DeletedAtNotIn(vs ...time.Time) predicate.Account {
-	return predicate.Account(sql.FieldNotIn(FieldDeletedAt, vs...))
-}
-
-// DeletedAtGT applies the GT predicate on the "deleted_at" field.
-func DeletedAtGT(v time.Time) predicate.Account {
-	return predicate.Account(sql.FieldGT(FieldDeletedAt, v))
-}
-
-// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
-func DeletedAtGTE(v time.Time) predicate.Account {
-	return predicate.Account(sql.FieldGTE(FieldDeletedAt, v))
-}
-
-// DeletedAtLT applies the LT predicate on the "deleted_at" field.
-func DeletedAtLT(v time.Time) predicate.Account {
-	return predicate.Account(sql.FieldLT(FieldDeletedAt, v))
-}
-
-// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
-func DeletedAtLTE(v time.Time) predicate.Account {
-	return predicate.Account(sql.FieldLTE(FieldDeletedAt, v))
-}
-
-// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
-func DeletedAtIsNil() predicate.Account {
-	return predicate.Account(sql.FieldIsNull(FieldDeletedAt))
-}
-
-// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
-func DeletedAtNotNil() predicate.Account {
-	return predicate.Account(sql.FieldNotNull(FieldDeletedAt))
-}
-
-// DeletedByIDEQ applies the EQ predicate on the "deleted_by_id" field.
-func DeletedByIDEQ(v int64) predicate.Account {
-	return predicate.Account(sql.FieldEQ(FieldDeletedByID, v))
-}
-
-// DeletedByIDNEQ applies the NEQ predicate on the "deleted_by_id" field.
-func DeletedByIDNEQ(v int64) predicate.Account {
-	return predicate.Account(sql.FieldNEQ(FieldDeletedByID, v))
-}
-
-// DeletedByIDIn applies the In predicate on the "deleted_by_id" field.
-func DeletedByIDIn(vs ...int64) predicate.Account {
-	return predicate.Account(sql.FieldIn(FieldDeletedByID, vs...))
-}
-
-// DeletedByIDNotIn applies the NotIn predicate on the "deleted_by_id" field.
-func DeletedByIDNotIn(vs ...int64) predicate.Account {
-	return predicate.Account(sql.FieldNotIn(FieldDeletedByID, vs...))
-}
-
-// DeletedByIDIsNil applies the IsNil predicate on the "deleted_by_id" field.
-func DeletedByIDIsNil() predicate.Account {
-	return predicate.Account(sql.FieldIsNull(FieldDeletedByID))
-}
-
-// DeletedByIDNotNil applies the NotNil predicate on the "deleted_by_id" field.
-func DeletedByIDNotNil() predicate.Account {
-	return predicate.Account(sql.FieldNotNull(FieldDeletedByID))
-}
-
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
@@ -703,6 +703,35 @@ func HasUpdater() predicate.Account {
 func HasUpdaterWith(preds ...predicate.User) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
 		step := newUpdaterStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDeleter applies the HasEdge predicate on the "deleter" edge.
+func HasDeleter() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, DeleterTable, DeleterColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDeleterWith applies the HasEdge predicate on the "deleter" edge with a given conditions (other predicates).
+func HasDeleterWith(preds ...predicate.User) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newDeleterStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.User
 		step.Edge.Schema = schemaConfig.Account
@@ -792,35 +821,6 @@ func HasChildrenWith(preds ...predicate.Account) predicate.Account {
 		step := newChildrenStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Account
-		step.Edge.Schema = schemaConfig.Account
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasDeleter applies the HasEdge predicate on the "deleter" edge.
-func HasDeleter() predicate.Account {
-	return predicate.Account(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, DeleterTable, DeleterColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.Account
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasDeleterWith applies the HasEdge predicate on the "deleter" edge with a given conditions (other predicates).
-func HasDeleterWith(preds ...predicate.User) predicate.Account {
-	return predicate.Account(func(s *sql.Selector) {
-		step := newDeleterStep()
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.User
 		step.Edge.Schema = schemaConfig.Account
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

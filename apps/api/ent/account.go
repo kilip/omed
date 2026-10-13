@@ -27,6 +27,10 @@ type Account struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	// DeletedByID holds the value of the "deleted_by_id" field.
+	DeletedByID *int64 `json:"deleted_by_id,omitempty"`
 	// WorkspaceID holds the value of the "workspace_id" field.
 	WorkspaceID int64 `json:"workspace_id,omitempty"`
 	// Code holds the value of the "code" field.
@@ -45,10 +49,6 @@ type Account struct {
 	IsActive bool `json:"is_active,omitempty"`
 	// IsPostable holds the value of the "is_postable" field.
 	IsPostable bool `json:"is_postable,omitempty"`
-	// DeletedAt holds the value of the "deleted_at" field.
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
-	// DeletedByID holds the value of the "deleted_by_id" field.
-	DeletedByID *int64 `json:"deleted_by_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AccountQuery when eager-loading is set.
 	Edges        AccountEdges `json:"edges"`
@@ -61,14 +61,14 @@ type AccountEdges struct {
 	Creator *User `json:"creator,omitempty"`
 	// Updater holds the value of the updater edge.
 	Updater *User `json:"updater,omitempty"`
+	// Deleter holds the value of the deleter edge.
+	Deleter *User `json:"deleter,omitempty"`
 	// Workspace holds the value of the workspace edge.
 	Workspace *Workspace `json:"workspace,omitempty"`
 	// Parent holds the value of the parent edge.
 	Parent *Account `json:"parent,omitempty"`
 	// Children holds the value of the children edge.
 	Children []*Account `json:"children,omitempty"`
-	// Deleter holds the value of the deleter edge.
-	Deleter *User `json:"deleter,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [6]bool
@@ -96,12 +96,23 @@ func (e AccountEdges) UpdaterOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "updater"}
 }
 
+// DeleterOrErr returns the Deleter value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) DeleterOrErr() (*User, error) {
+	if e.Deleter != nil {
+		return e.Deleter, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "deleter"}
+}
+
 // WorkspaceOrErr returns the Workspace value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e AccountEdges) WorkspaceOrErr() (*Workspace, error) {
 	if e.Workspace != nil {
 		return e.Workspace, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: workspace.Label}
 	}
 	return nil, &NotLoadedError{edge: "workspace"}
@@ -112,7 +123,7 @@ func (e AccountEdges) WorkspaceOrErr() (*Workspace, error) {
 func (e AccountEdges) ParentOrErr() (*Account, error) {
 	if e.Parent != nil {
 		return e.Parent, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: account.Label}
 	}
 	return nil, &NotLoadedError{edge: "parent"}
@@ -121,21 +132,10 @@ func (e AccountEdges) ParentOrErr() (*Account, error) {
 // ChildrenOrErr returns the Children value or an error if the edge
 // was not loaded in eager-loading.
 func (e AccountEdges) ChildrenOrErr() ([]*Account, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Children, nil
 	}
 	return nil, &NotLoadedError{edge: "children"}
-}
-
-// DeleterOrErr returns the Deleter value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AccountEdges) DeleterOrErr() (*User, error) {
-	if e.Deleter != nil {
-		return e.Deleter, nil
-	} else if e.loadedTypes[5] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "deleter"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -145,7 +145,7 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case account.FieldIsActive, account.FieldIsPostable:
 			values[i] = new(sql.NullBool)
-		case account.FieldID, account.FieldCreatedByID, account.FieldUpdatedByID, account.FieldWorkspaceID, account.FieldParentID, account.FieldDeletedByID:
+		case account.FieldID, account.FieldCreatedByID, account.FieldUpdatedByID, account.FieldDeletedByID, account.FieldWorkspaceID, account.FieldParentID:
 			values[i] = new(sql.NullInt64)
 		case account.FieldCode, account.FieldName, account.FieldType, account.FieldNormalBalance, account.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -197,6 +197,20 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case account.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				_m.DeletedAt = new(time.Time)
+				*_m.DeletedAt = value.Time
+			}
+		case account.FieldDeletedByID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_by_id", values[i])
+			} else if value.Valid {
+				_m.DeletedByID = new(int64)
+				*_m.DeletedByID = value.Int64
 			}
 		case account.FieldWorkspaceID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -253,20 +267,6 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsPostable = value.Bool
 			}
-		case account.FieldDeletedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
-			} else if value.Valid {
-				_m.DeletedAt = new(time.Time)
-				*_m.DeletedAt = value.Time
-			}
-		case account.FieldDeletedByID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field deleted_by_id", values[i])
-			} else if value.Valid {
-				_m.DeletedByID = new(int64)
-				*_m.DeletedByID = value.Int64
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -290,6 +290,11 @@ func (_m *Account) QueryUpdater() *UserQuery {
 	return NewAccountClient(_m.config).QueryUpdater(_m)
 }
 
+// QueryDeleter queries the "deleter" edge of the Account entity.
+func (_m *Account) QueryDeleter() *UserQuery {
+	return NewAccountClient(_m.config).QueryDeleter(_m)
+}
+
 // QueryWorkspace queries the "workspace" edge of the Account entity.
 func (_m *Account) QueryWorkspace() *WorkspaceQuery {
 	return NewAccountClient(_m.config).QueryWorkspace(_m)
@@ -303,11 +308,6 @@ func (_m *Account) QueryParent() *AccountQuery {
 // QueryChildren queries the "children" edge of the Account entity.
 func (_m *Account) QueryChildren() *AccountQuery {
 	return NewAccountClient(_m.config).QueryChildren(_m)
-}
-
-// QueryDeleter queries the "deleter" edge of the Account entity.
-func (_m *Account) QueryDeleter() *UserQuery {
-	return NewAccountClient(_m.config).QueryDeleter(_m)
 }
 
 // Update returns a builder for updating this Account.
@@ -349,6 +349,16 @@ func (_m *Account) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
+	if v := _m.DeletedAt; v != nil {
+		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.DeletedByID; v != nil {
+		builder.WriteString("deleted_by_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("workspace_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.WorkspaceID))
 	builder.WriteString(", ")
@@ -377,16 +387,6 @@ func (_m *Account) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_postable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsPostable))
-	builder.WriteString(", ")
-	if v := _m.DeletedAt; v != nil {
-		builder.WriteString("deleted_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	if v := _m.DeletedByID; v != nil {
-		builder.WriteString("deleted_by_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -8,6 +8,29 @@ const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
     "components": {
         "schemas": {
+            "base.AuditMeta": {
+                "properties": {
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "$ref": "#/components/schemas/base.ByUser"
+                    },
+                    "deletedAt": {
+                        "type": "string"
+                    },
+                    "deletedBy": {
+                        "$ref": "#/components/schemas/base.ByUser"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    },
+                    "updatedBy": {
+                        "$ref": "#/components/schemas/base.ByUser"
+                    }
+                },
+                "type": "object"
+            },
             "base.ByUser": {
                 "properties": {
                     "avatar": {
@@ -88,23 +111,6 @@ const docTemplate = `{
                         "description": "Data contains the response payload.",
                         "items": {
                             "$ref": "#/components/schemas/model.AccountResponse"
-                        },
-                        "type": "array",
-                        "uniqueItems": false
-                    },
-                    "meta": {
-                        "$ref": "#/components/schemas/httpx.Meta",
-                        "description": "Meta contains request metadata such as request ID and timestamps."
-                    }
-                },
-                "type": "object"
-            },
-            "httpx.WebResponse-array_model_AccountTreeNodeResponse": {
-                "properties": {
-                    "data": {
-                        "description": "Data contains the response payload.",
-                        "items": {
-                            "$ref": "#/components/schemas/model.AccountTreeNodeResponse"
                         },
                         "type": "array",
                         "uniqueItems": false
@@ -247,20 +253,11 @@ const docTemplate = `{
             },
             "model.AccountResponse": {
                 "properties": {
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
                     "code": {
                         "type": "string"
-                    },
-                    "createdAt": {
-                        "type": "string"
-                    },
-                    "createdBy": {
-                        "$ref": "#/components/schemas/base.ByUser"
-                    },
-                    "deletedAt": {
-                        "type": "string"
-                    },
-                    "deletedBy": {
-                        "$ref": "#/components/schemas/base.ByUser"
                     },
                     "description": {
                         "type": "string"
@@ -285,66 +282,6 @@ const docTemplate = `{
                     },
                     "type": {
                         "type": "string"
-                    },
-                    "updatedAt": {
-                        "type": "string"
-                    },
-                    "updatedBy": {
-                        "$ref": "#/components/schemas/base.ByUser"
-                    },
-                    "workspaceId": {
-                        "type": "integer"
-                    }
-                },
-                "type": "object"
-            },
-            "model.AccountTreeNodeResponse": {
-                "properties": {
-                    "children": {
-                        "items": {
-                            "$ref": "#/components/schemas/model.AccountTreeNodeResponse"
-                        },
-                        "type": "array",
-                        "uniqueItems": false
-                    },
-                    "code": {
-                        "type": "string"
-                    },
-                    "createdAt": {
-                        "type": "string"
-                    },
-                    "createdBy": {
-                        "$ref": "#/components/schemas/base.ByUser"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "id": {
-                        "type": "integer"
-                    },
-                    "isActive": {
-                        "type": "boolean"
-                    },
-                    "isPostable": {
-                        "type": "boolean"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "normalBalance": {
-                        "type": "string"
-                    },
-                    "parentId": {
-                        "type": "integer"
-                    },
-                    "type": {
-                        "type": "string"
-                    },
-                    "updatedAt": {
-                        "type": "string"
-                    },
-                    "updatedBy": {
-                        "$ref": "#/components/schemas/base.ByUser"
                     },
                     "workspaceId": {
                         "type": "integer"
@@ -517,37 +454,6 @@ const docTemplate = `{
                 "type": "object"
             },
             "model.SearchAccountRequest": {
-                "properties": {
-                    "code": {
-                        "type": "string"
-                    },
-                    "cursor": {
-                        "type": "string"
-                    },
-                    "includeDeleted": {
-                        "type": "boolean"
-                    },
-                    "isActive": {
-                        "type": "boolean"
-                    },
-                    "isPostable": {
-                        "type": "boolean"
-                    },
-                    "limit": {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer"
-                    },
-                    "parentId": {
-                        "type": "integer"
-                    },
-                    "query": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string"
-                    }
-                },
                 "type": "object"
             },
             "model.SearchMemberRequest": {
@@ -1626,7 +1532,7 @@ const docTemplate = `{
         },
         "/workspaces/{wid}/fin/accounts/search": {
             "post": {
-                "description": "Search Chart of Accounts with filters and cursor pagination",
+                "description": "Search Chart of Accounts (returns all accounts in the workspace)",
                 "parameters": [
                     {
                         "description": "Workspace ID",
@@ -1644,11 +1550,11 @@ const docTemplate = `{
                             "schema": {
                                 "$ref": "#/components/schemas/model.SearchAccountRequest",
                                 "summary": "request",
-                                "description": "Search filter criteria"
+                                "description": "Search criteria"
                             }
                         }
                     },
-                    "description": "Search filter criteria",
+                    "description": "Search criteria",
                     "required": true
                 },
                 "responses": {
@@ -1709,73 +1615,6 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Search accounts",
-                "tags": [
-                    "Finance Accounts"
-                ]
-            }
-        },
-        "/workspaces/{wid}/fin/accounts/tree": {
-            "get": {
-                "description": "Retrieve hierarchical tree structure of active accounts in the workspace",
-                "parameters": [
-                    {
-                        "description": "Workspace ID",
-                        "in": "path",
-                        "name": "wid",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_AccountTreeNodeResponse"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Forbidden"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Get accounts tree",
                 "tags": [
                     "Finance Accounts"
                 ]

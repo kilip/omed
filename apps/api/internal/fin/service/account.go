@@ -19,7 +19,6 @@ type AccountRepository interface {
 	Delete(c context.Context, workspaceID, id int64) error
 	HasActiveChildren(c context.Context, workspaceID, id int64) (bool, error)
 	FindByCode(c context.Context, workspaceID int64, code string) (domain.Account, error)
-	GetTree(c context.Context, workspaceID int64) ([]domain.AccountTreeNode, error)
 }
 
 // AccountService manages business logic and validation for Chart of Accounts.
@@ -42,11 +41,6 @@ func (s AccountService) Search(c context.Context, workspaceID int64, req model.S
 	return s.repo.Search(c, workspaceID, req)
 }
 
-// GetTree returns all accounts assembled into a hierarchical tree for the workspace.
-func (s AccountService) GetTree(c context.Context, workspaceID int64) ([]domain.AccountTreeNode, error) {
-	return s.repo.GetTree(c, workspaceID)
-}
-
 // Create validates and creates a new account in the workspace.
 func (s AccountService) Create(c context.Context, workspaceID int64, req model.CreateAccountRequest) (domain.Account, error) {
 	if !domain.ValidAccountTypes[req.Type] {
@@ -63,8 +57,8 @@ func (s AccountService) Create(c context.Context, workspaceID int64, req model.C
 	}
 
 	// Check if parent account exists and belongs to the workspace
-	if req.ParentID != nil && *req.ParentID > 0 {
-		_, err := s.repo.GetByID(c, workspaceID, *req.ParentID)
+	if req.ParentID > 0 {
+		_, err := s.repo.GetByID(c, workspaceID, req.ParentID)
 		if err != nil {
 			if errors.Is(err, base.ErrNotFound) {
 				return domain.Account{}, domain.ErrAccountParentNotFound
@@ -108,8 +102,8 @@ func (s AccountService) Update(c context.Context, workspaceID, id int64, req mod
 	}
 
 	// Cycle detection for parent account
-	if req.ParentID != nil && *req.ParentID > 0 {
-		targetParentID := *req.ParentID
+	if req.ParentID > 0 {
+		targetParentID := req.ParentID
 		if targetParentID == id {
 			return domain.Account{}, domain.ErrAccountCyclicParent
 		}
@@ -124,11 +118,11 @@ func (s AccountService) Update(c context.Context, workspaceID, id int64, req mod
 
 		// Traverse ancestors of target parent to make sure `id` is not among them
 		curr := parent.ParentID
-		for curr != nil && *curr > 0 {
-			if *curr == id {
+		for curr > 0 {
+			if curr == id {
 				return domain.Account{}, domain.ErrAccountCyclicParent
 			}
-			ancestor, err := s.repo.GetByID(c, workspaceID, *curr)
+			ancestor, err := s.repo.GetByID(c, workspaceID, curr)
 			if err != nil {
 				break
 			}

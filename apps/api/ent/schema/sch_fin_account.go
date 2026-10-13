@@ -26,6 +26,7 @@ func (Account) Annotations() []schema.Annotation {
 func (Account) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		AuditMixin{},
+		SoftDeleteMixin{},
 	}
 }
 
@@ -42,8 +43,6 @@ func (Account) Fields() []ent.Field {
 		field.String("description").Optional(),
 		field.Bool("is_active").Default(true),
 		field.Bool("is_postable").Default(true),
-		field.Time("deleted_at").Optional().Nillable(),
-		field.Int64("deleted_by_id").Optional().Nillable(),
 	}
 }
 
@@ -58,9 +57,6 @@ func (Account) Edges() []ent.Edge {
 		edge.To("children", Account.Type).
 			From("parent").
 			Field("parent_id").
-			Unique(),
-		edge.To("deleter", User.Type).
-			Field("deleted_by_id").
 			Unique(),
 	}
 }

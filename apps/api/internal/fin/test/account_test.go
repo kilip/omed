@@ -18,6 +18,10 @@ type AccountApiSuite struct {
 	testutil.ApiTestSuite[model.AccountResponse]
 }
 
+func ptr[T any](v T) *T {
+	return &v
+}
+
 func (s *AccountApiSuite) ensureWorkspace(name string, ownerID int64) *ent.Workspace {
 	client := testutil.GetEntCli()
 	w, err := client.Workspace.Create().
@@ -28,14 +32,6 @@ func (s *AccountApiSuite) ensureWorkspace(name string, ownerID int64) *ent.Works
 		Save(s.Context)
 	s.Require().NoError(err)
 	return w
-}
-
-func (s *AccountApiSuite) getTreeResponse() httpx.WebResponse[[]model.AccountTreeNodeResponse] {
-	var res httpx.WebResponse[[]model.AccountTreeNodeResponse]
-	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
-	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&res))
-	return res
 }
 
 func (s *AccountApiSuite) getListResponse() httpx.WebResponse[[]model.AccountResponse] {
@@ -49,13 +45,13 @@ func (s *AccountApiSuite) getListResponse() httpx.WebResponse[[]model.AccountRes
 func (s *AccountApiSuite) Test_Create_Successfully() {
 	ws := s.ensureWorkspace("Finance WS", s.User.ID)
 
-	isPostable := true
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
 		Code:        "1000",
 		Name:        "Cash and Bank",
 		Type:        domain.AccountTypeAsset,
 		Description: "Operating cash",
-		IsPostable:  &isPostable,
+		IsActive:    ptr(true),
+		IsPostable:  ptr(true),
 	})
 	s.Created()
 
@@ -66,8 +62,23 @@ func (s *AccountApiSuite) Test_Create_Successfully() {
 	s.Equal(domain.NormalBalanceDebit, res.Data.NormalBalance)
 	s.True(res.Data.IsPostable)
 	s.True(res.Data.IsActive)
-	s.Nil(res.Data.DeletedAt)
-	s.Equal(s.User.Name, res.Data.CreatedBy.Name)
+	s.Nil(res.Data.AuditMeta.DeletedAt)
+}
+
+func (s *AccountApiSuite) Test_Create_DefaultValues() {
+	ws := s.ensureWorkspace("Finance WS", s.User.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
+		Code: "1002",
+		Name: "Testing Defaults",
+		Type: domain.AccountTypeAsset,
+	})
+	s.Created()
+
+	res := s.GetResponse()
+	s.Equal("1002", res.Data.Code)
+	s.True(res.Data.IsActive, "expected IsActive to default to true")
+	s.True(res.Data.IsPostable, "expected IsPostable to default to true")
 }
 
 func (s *AccountApiSuite) Test_GetByID_Successfully() {
@@ -106,78 +117,75 @@ func (s *AccountApiSuite) Test_Search_Successfully() {
 	})
 	s.Created()
 
-	// Search by type ASSET
-	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/search", ws.ID), fiber.MethodPost, model.SearchAccountRequest{
-		Type: domain.AccountTypeAsset,
-	})
+	// Search returns all accounts in workspace without filtering
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/search", ws.ID), fiber.MethodPost, model.SearchAccountRequest{})
 	s.OK()
 
 	listRes := s.getListResponse()
-	s.Len(listRes.Data, 1)
+	s.Len(listRes.Data, 2)
 	s.Equal("1100", listRes.Data[0].Code)
-}
-
-func (s *AccountApiSuite) Test_GetTree_Successfully() {
-	ws := s.ensureWorkspace("Finance WS", s.User.ID)
-
-	headerPostable := false
-	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code:       "1000",
-		Name:       "Current Assets",
-		Type:       domain.AccountTypeAsset,
-		IsPostable: &headerPostable,
-	})
-	s.Created()
-	root := s.GetResponse().Data
-
-	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code:     "1001",
-		Name:     "Cash on Hand",
-		Type:     domain.AccountTypeAsset,
-		ParentID: &root.ID,
-	})
-	s.Created()
-
-	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/tree", ws.ID), fiber.MethodGet, nil)
-	s.OK()
-
-	treeRes := s.getTreeResponse()
-	s.Len(treeRes.Data, 1)
-	s.Equal("1000", treeRes.Data[0].Code)
-	s.Len(treeRes.Data[0].Children, 1)
-	s.Equal("1001", treeRes.Data[0].Children[0].Code)
+	s.Equal("2100", listRes.Data[1].Code)
 }
 
 func (s *AccountApiSuite) Test_Update_Successfully() {
 	ws := s.ensureWorkspace("Finance WS", s.User.ID)
 
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code: "3000",
-		Name: "Common Stock",
-		Type: domain.AccountTypeEquity,
+		Code:       "3000",
+		Name:       "Common Stock",
+		Type:       domain.AccountTypeEquity,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	})
 	s.Created()
 	created := s.GetResponse().Data
 
-	isPostable := false
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/%d", ws.ID, created.ID), fiber.MethodPut, model.UpdateAccountRequest{
 		Name:       "Capital Stock",
-		IsPostable: &isPostable,
+		IsPostable: ptr(false),
 	})
 	s.OK()
 
 	res := s.GetResponse()
 	s.Equal("Capital Stock", res.Data.Name)
 	s.False(res.Data.IsPostable)
+	s.True(res.Data.IsActive, "IsActive should remain untouched")
+}
+
+func (s *AccountApiSuite) Test_Update_PreserveFlagsWhenNotSpecified() {
+	ws := s.ensureWorkspace("Finance WS", s.User.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
+		Code: "3001",
+		Name: "Retained Earnings",
+		Type: domain.AccountTypeEquity,
+	})
+	s.Created()
+	created := s.GetResponse().Data
+	s.True(created.IsActive)
+	s.True(created.IsPostable)
+
+	// Update only name
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/%d", ws.ID, created.ID), fiber.MethodPut, model.UpdateAccountRequest{
+		Name: "Updated Retained Earnings",
+	})
+	s.OK()
+
+	res := s.GetResponse()
+	s.Equal("Updated Retained Earnings", res.Data.Name)
+	s.True(res.Data.IsActive, "IsActive should remain true")
+	s.True(res.Data.IsPostable, "IsPostable should remain true")
 }
 
 func (s *AccountApiSuite) Test_SoftDelete_Successfully() {
 	ws := s.ensureWorkspace("Finance WS", s.User.ID)
 
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code: "5000",
-		Name: "Office Supplies",
-		Type: domain.AccountTypeExpense,
+		Code:       "5000",
+		Name:       "Office Supplies",
+		Type:       domain.AccountTypeExpense,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	})
 	s.Created()
 	created := s.GetResponse().Data
@@ -195,18 +203,22 @@ func (s *AccountApiSuite) Test_SoftDelete_BlockedIfChildrenExist() {
 	ws := s.ensureWorkspace("Finance WS", s.User.ID)
 
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code: "6000",
-		Name: "Administrative Expense",
-		Type: domain.AccountTypeExpense,
+		Code:       "6000",
+		Name:       "Administrative Expense",
+		Type:       domain.AccountTypeExpense,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	})
 	s.Created()
 	root := s.GetResponse().Data
 
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code:     "6001",
-		Name:     "Salaries Expense",
-		Type:     domain.AccountTypeExpense,
-		ParentID: &root.ID,
+		Code:       "6001",
+		Name:       "Salaries Expense",
+		Type:       domain.AccountTypeExpense,
+		ParentID:   root.ID,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	})
 	s.Created()
 
@@ -220,9 +232,11 @@ func (s *AccountApiSuite) Test_RBAC_Viewer_Accountant_Admin() {
 
 	// Create an account as owner
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code: "7000",
-		Name: "Interest Income",
-		Type: domain.AccountTypeRevenue,
+		Code:       "7000",
+		Name:       "Interest Income",
+		Type:       domain.AccountTypeRevenue,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	})
 	s.Created()
 	acc := s.GetResponse().Data
@@ -237,9 +251,11 @@ func (s *AccountApiSuite) Test_RBAC_Viewer_Accountant_Admin() {
 
 	// Viewer cannot create -> 403 Forbidden
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code: "7001",
-		Name: "Dividend Income",
-		Type: domain.AccountTypeRevenue,
+		Code:       "7001",
+		Name:       "Dividend Income",
+		Type:       domain.AccountTypeRevenue,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	})
 	s.AssertStatus(fiber.StatusForbidden)
 
@@ -249,9 +265,11 @@ func (s *AccountApiSuite) Test_RBAC_Viewer_Accountant_Admin() {
 
 	// Accountant can create
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
-		Code: "7002",
-		Name: "Dividend Income",
-		Type: domain.AccountTypeRevenue,
+		Code:       "7002",
+		Name:       "Dividend Income",
+		Type:       domain.AccountTypeRevenue,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	})
 	s.Created()
 	createdAcc := s.GetResponse().Data

@@ -2,8 +2,6 @@
 package domain
 
 import (
-	"time"
-
 	"github.com/kilip/omed/api/internal/base"
 )
 
@@ -57,17 +55,9 @@ type Account struct {
 	Name          string         `json:"name"`
 	Type          string         `json:"type"`
 	NormalBalance string         `json:"normalBalance"`
-	ParentID      *int64         `json:"parentId,omitempty"`
+	ParentID      int64          `json:"parentId,omitempty"`
 	Description   string         `json:"description,omitempty"`
 	IsActive      bool           `json:"isActive"`
 	IsPostable    bool           `json:"isPostable"`
-	DeletedAt     *time.Time     `json:"deletedAt,omitempty"`
-	DeletedBy     *base.ByUser   `json:"deletedBy,omitempty"`
 	AuditMeta     base.AuditMeta `json:"auditMeta"`
-}
-
-// AccountTreeNode represents an account with nested hierarchical children.
-type AccountTreeNode struct {
-	Account
-	Children []AccountTreeNode `json:"children"`
 }

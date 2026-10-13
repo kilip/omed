@@ -64,17 +64,21 @@ func (s *AccountRepoSuite) ctx() context.Context {
 	})
 }
 
+func ptr[T any](v T) *T {
+	return &v
+}
+
 func (s *AccountRepoSuite) Test_CreateAndGetByID() {
 	ctx := s.ctx()
 
 	desc := "Cash account"
-	isPostable := true
 	acc, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
 		Code:        "1000",
 		Name:        "Cash",
 		Type:        domain.AccountTypeAsset,
 		Description: desc,
-		IsPostable:  &isPostable,
+		IsActive:    ptr(true),
+		IsPostable:  ptr(true),
 	}, domain.NormalBalanceDebit)
 	s.Require().NoError(err)
 	s.Equal("1000", acc.Code)
@@ -83,7 +87,7 @@ func (s *AccountRepoSuite) Test_CreateAndGetByID() {
 	s.Equal(domain.NormalBalanceDebit, acc.NormalBalance)
 	s.True(acc.IsActive)
 	s.True(acc.IsPostable)
-	s.Nil(acc.DeletedAt)
+	s.Nil(acc.AuditMeta.DeletedAt)
 
 	// Fetch via GetByID
 	fetched, err := s.repo.GetByID(ctx, s.workspaceID, acc.ID)
@@ -92,7 +96,7 @@ func (s *AccountRepoSuite) Test_CreateAndGetByID() {
 	s.Equal("Alice", fetched.AuditMeta.CreatedBy.Name)
 }
 
-func (s *AccountRepoSuite) Test_SearchAndCursorPagination() {
+func (s *AccountRepoSuite) Test_Search() {
 	ctx := s.ctx()
 
 	for i := 1; i <= 5; i++ {
@@ -106,36 +110,26 @@ func (s *AccountRepoSuite) Test_SearchAndCursorPagination() {
 		s.Require().NoError(err)
 	}
 
-	// Search limit 3
-	items, cursor, err := s.repo.Search(ctx, s.workspaceID, model.SearchAccountRequest{Limit: 3})
+	items, _, err := s.repo.Search(ctx, s.workspaceID, model.SearchAccountRequest{})
 	s.Require().NoError(err)
-	s.Len(items, 3)
-	s.NotEmpty(cursor)
-
-	// Fetch next page
-	nextItems, nextCursor, err := s.repo.Search(ctx, s.workspaceID, model.SearchAccountRequest{
-		Limit:  3,
-		Cursor: cursor,
-	})
-	s.Require().NoError(err)
-	s.Len(nextItems, 2)
-	s.Empty(nextCursor)
+	s.Len(items, 5)
 }
 
 func (s *AccountRepoSuite) Test_Update() {
 	ctx := s.ctx()
 
 	acc, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
-		Code: "2000",
-		Name: "Accounts Payable",
-		Type: domain.AccountTypeLiability,
+		Code:       "2000",
+		Name:       "Accounts Payable",
+		Type:       domain.AccountTypeLiability,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	}, domain.NormalBalanceCredit)
 	s.Require().NoError(err)
 
-	isPostable := false
 	updated, err := s.repo.Update(ctx, s.workspaceID, acc.ID, model.UpdateAccountRequest{
 		Name:       "AP Trade",
-		IsPostable: &isPostable,
+		IsPostable: ptr(false),
 	})
 	s.Require().NoError(err)
 	s.Equal("AP Trade", updated.Name)
@@ -146,9 +140,11 @@ func (s *AccountRepoSuite) Test_SoftDeleteAndCodeReuse() {
 	ctx := s.ctx()
 
 	acc, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
-		Code: "3000",
-		Name: "Retained Earnings",
-		Type: domain.AccountTypeEquity,
+		Code:       "3000",
+		Name:       "Retained Earnings",
+		Type:       domain.AccountTypeEquity,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	}, domain.NormalBalanceCredit)
 	s.Require().NoError(err)
 
@@ -161,51 +157,48 @@ func (s *AccountRepoSuite) Test_SoftDeleteAndCodeReuse() {
 	s.Equal(base.ErrNotFound, err)
 
 	// Search should not return soft deleted accounts by default
-	items, _, err := s.repo.Search(ctx, s.workspaceID, model.SearchAccountRequest{Code: "3000"})
+	items, _, err := s.repo.Search(ctx, s.workspaceID, model.SearchAccountRequest{})
 	s.Require().NoError(err)
 	s.Empty(items)
 
 	// Re-creating an account with the same code succeeds because the old one is soft-deleted
 	newAcc, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
-		Code: "3000",
-		Name: "New Retained Earnings",
-		Type: domain.AccountTypeEquity,
+		Code:       "3000",
+		Name:       "New Retained Earnings",
+		Type:       domain.AccountTypeEquity,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	}, domain.NormalBalanceCredit)
 	s.Require().NoError(err)
 	s.Equal("3000", newAcc.Code)
 }
 
-func (s *AccountRepoSuite) Test_HierarchyAndGetTree() {
+func (s *AccountRepoSuite) Test_HasActiveChildren() {
 	ctx := s.ctx()
 
-	headerPostable := false
 	root, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
 		Code:       "1000",
 		Name:       "Assets Header",
 		Type:       domain.AccountTypeAsset,
-		IsPostable: &headerPostable,
+		IsActive:   ptr(true),
+		IsPostable: ptr(false),
 	}, domain.NormalBalanceDebit)
 	s.Require().NoError(err)
 
 	child, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
-		Code:     "1100",
-		Name:     "Current Assets",
-		Type:     domain.AccountTypeAsset,
-		ParentID: &root.ID,
+		Code:       "1100",
+		Name:       "Current Assets",
+		Type:       domain.AccountTypeAsset,
+		ParentID:   root.ID,
+		IsActive:   ptr(true),
+		IsPostable: ptr(true),
 	}, domain.NormalBalanceDebit)
 	s.Require().NoError(err)
+	s.NotZero(child.ID)
 
 	hasChildren, err := s.repo.HasActiveChildren(ctx, s.workspaceID, root.ID)
 	s.Require().NoError(err)
 	s.True(hasChildren)
-
-	tree, err := s.repo.GetTree(ctx, s.workspaceID)
-	s.Require().NoError(err)
-	s.Len(tree, 1)
-	s.Equal("1000", tree[0].Code)
-	s.Len(tree[0].Children, 1)
-	s.Equal("1100", tree[0].Children[0].Code)
-	s.Equal(child.ID, tree[0].Children[0].ID)
 }
 
 func TestAccountRepoSuite(t *testing.T) {
