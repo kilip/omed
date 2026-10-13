@@ -20,6 +20,9 @@
       "cache": false,
       "persistent": true
     },
+    "oa:gen": {
+      "cache": false
+    },
     "@omed/better-auth#auth:schema": {
       "cache": false
     },
