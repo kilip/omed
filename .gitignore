@@ -25,6 +25,7 @@ apps/api/bin/
 *.test
 *.out
 coverage.out
+coverage.txt
 
 # Logs
 *.log
@@ -33,6 +34,7 @@ bun-debug.log*
 
 # Coverage
 coverage/
+**/coverage/
 
 # E2E reports and service logs
 e2e/reports/

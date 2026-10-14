@@ -166,6 +166,16 @@ export class TestClient {
 
     return { user, session, cookies };
   }
+
+  async flushCoverage(): Promise<void> {
+    try {
+      await this.request<{ success: boolean }>("/test/coverage/flush", {
+        method: "POST",
+      });
+    } catch {
+      // Best-effort: server may not be up or test routes disabled.
+    }
+  }
 }
 
 export const testClient = new TestClient();

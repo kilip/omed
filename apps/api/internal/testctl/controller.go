@@ -5,6 +5,8 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"os"
+	"runtime/coverage"
 	"strconv"
 	"time"
 
@@ -45,6 +47,7 @@ func (ctl Controller) RegisterRoutes(r fiber.Router) {
 	test.Post("/members", ctl.AddMember)
 	test.Delete("/users/:id", ctl.DeleteUser)
 	test.Post("/reset", ctl.Reset)
+	test.Post("/coverage/flush", ctl.FlushCoverage)
 }
 
 func adminCtx(ctx context.Context) context.Context {
@@ -294,4 +297,14 @@ func (ctl Controller) Reset(c fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"success": true, "deletedCount": len(testUsers)})
+}
+
+// FlushCoverage writes runtime coverage data to GOCOVERDIR if set.
+func (ctl Controller) FlushCoverage(c fiber.Ctx) error {
+	dir := os.Getenv("GOCOVERDIR")
+	if dir != "" {
+		_ = coverage.WriteMetaDir(dir)
+		_ = coverage.WriteCountersDir(dir)
+	}
+	return c.JSON(fiber.Map{"success": true, "dir": dir})
 }

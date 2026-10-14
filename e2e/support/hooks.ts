@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { After, AfterAll, Before, BeforeAll, Status } from "@cucumber/cucumber";
 import { type CoverageMapData, createCoverageMap } from "istanbul-lib-coverage";
@@ -5,7 +7,7 @@ import { createContext } from "istanbul-lib-report";
 import reports from "istanbul-reports";
 import { type Browser, chromium } from "playwright";
 import { config, repoRoot } from "./config";
-import { startServers, stopServers } from "./servers";
+import { apiCoverDir, startServers, stopServers } from "./servers";
 import { testClient } from "./test-client";
 import type { OmedWorld } from "./world";
 
@@ -17,7 +19,8 @@ BeforeAll({ timeout: config.startTimeoutMs * 2 }, async () => {
   browser = await chromium.launch({ headless: !config.headed });
 });
 
-AfterAll({ timeout: 30_000 }, async () => {
+AfterAll({ timeout: 60_000 }, async () => {
+  await testClient.flushCoverage();
   await browser?.close();
   await stopServers();
 
@@ -31,6 +34,31 @@ AfterAll({ timeout: 30_000 }, async () => {
 
     const e2eCtx = createContext({ dir: e2eReportDir, coverageMap });
     reports.create("html").execute(e2eCtx);
+  }
+
+  if (existsSync(apiCoverDir)) {
+    const rawFiles = readdirSync(apiCoverDir).filter(
+      (f) => f.startsWith("covcounters") || f.startsWith("covmeta"),
+    );
+    if (rawFiles.length > 0) {
+      const apiCoverOutput = path.join(repoRoot, "coverage", "api-e2e.txt");
+      try {
+        execFileSync(
+          "go",
+          [
+            "tool",
+            "covdata",
+            "textfmt",
+            `-i=${apiCoverDir}`,
+            `-o=${apiCoverOutput}`,
+          ],
+          { stdio: "inherit" },
+        );
+        console.log(`[e2e] Go API coverage written to ${apiCoverOutput}`);
+      } catch (err) {
+        console.warn("[e2e] failed to convert Go coverage data:", err);
+      }
+    }
   }
 });
 

@@ -118,6 +118,12 @@ func (s *TestControllerSuite) TestLifecycle() {
 	resp, err = s.app.Test(resetReq)
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	// 7. Flush coverage
+	flushReq := httptest.NewRequest(http.MethodPost, "/test/coverage/flush", nil)
+	resp, err = s.app.Test(flushReq)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
 }
 
 func TestController(t *testing.T) {

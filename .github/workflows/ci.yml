@@ -39,6 +39,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: apps/api/coverage.txt
+          flags: api
 
   e2e:
     name: E2E
@@ -96,7 +97,9 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/lcov.info
+          files: |
+            coverage/lcov.info
+            coverage/api-e2e.txt
           flags: e2e
 
       - name: Upload E2E report

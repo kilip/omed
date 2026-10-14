@@ -26,6 +26,7 @@ type Service = {
   readyWhen?: (status: number) => boolean;
 };
 
+export const apiCoverDir = path.join(repoRoot, "coverage", "api-raw");
 const logDir = path.join(repoRoot, "e2e", "reports", "logs");
 const children: { service: Service; process: ChildProcess }[] = [];
 
@@ -46,8 +47,16 @@ const services = (): Service[] => [
     name: "api",
     cwd: path.join(repoRoot, "apps/api"),
     command: "go",
-    args: ["run", "./cmd/api"],
-    env: sharedEnv(),
+    args: [
+      "run",
+      "-cover",
+      "-coverpkg=github.com/kilip/omed/api/...",
+      "./cmd/api",
+    ],
+    env: {
+      ...sharedEnv(),
+      GOCOVERDIR: apiCoverDir,
+    },
     url: config.apiUrl,
     // Every route sits behind the JWT firewall, so any non-5xx answer
     // (a 401 for an anonymous request) proves the server is up.
@@ -153,6 +162,8 @@ async function start(service: Service): Promise<void> {
 export async function startServers(): Promise<void> {
   if (!config.autoStart) return;
 
+  mkdirSync(apiCoverDir, { recursive: true });
+
   for (const service of services()) {
     await start(service);
   }
@@ -160,8 +171,15 @@ export async function startServers(): Promise<void> {
 
 /** Stops only the processes this runner started. */
 export async function stopServers(): Promise<void> {
+  const stopped: Promise<void>[] = [];
   for (const { process: child } of children.splice(0).reverse()) {
     if (child.pid === undefined || child.exitCode !== null) continue;
+    stopped.push(
+      new Promise<void>((resolve) => {
+        child.once("exit", () => resolve());
+        setTimeout(resolve, 5_000);
+      }),
+    );
     try {
       if (process.platform === "win32") {
         spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"]);
@@ -172,4 +190,5 @@ export async function stopServers(): Promise<void> {
       // Already gone.
     }
   }
+  await Promise.all(stopped);
 }
