@@ -132,7 +132,7 @@ End-to-end tests live under `e2e/` (Cucumber + Playwright).
 e2e/
 ├── features/{module}/   # Gherkin features, grouped by module
 ├── steps/
-│   ├── common.steps.ts  # Steps shared by every module
+│   ├── common/          # Steps shared by every module
 │   └── {module}/        # Step definitions of that module only
 ├── pages/
 │   ├── base.page.ts     # Base class for page objects
@@ -143,6 +143,6 @@ e2e/
 
 - Group names match the dashboard modules (`sys`, `user`, `fin`, `cms`). `dashboard` is the one extra group: it covers the shell itself (login, homepage, invitations), which lives in `apps/web/app/routes` and is not a module.
 - Use the Page Object Model: locators and `expect*` checks live in `pages/{module}/*.page.ts`; steps only call page objects through `this.pages.{module}`. Do not put selectors in steps.
-- Put a step in `steps/common.steps.ts` only when more than one module uses it.
+- Put a step in `steps/common/` only when more than one module uses it.
 - Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the API test endpoints (`support/test-client.ts`), and removes the user afterwards.
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { Then, When } from "@cucumber/cucumber";
-import type { OmedWorld } from "../support/world";
+import type { OmedWorld } from "../../support/world";
 
 When("I open {string}", async function (this: OmedWorld, path: string) {
   await this.page.goto(this.web(path));
