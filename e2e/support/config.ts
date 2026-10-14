@@ -1,5 +1,38 @@
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+export const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
+
+function loadEnvFile(filePath: string) {
+  if (!existsSync(filePath)) return;
+  const content = readFileSync(filePath, "utf-8");
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const eqIdx = line.indexOf("=");
+    if (eqIdx === -1) continue;
+    const key = line.slice(0, eqIdx).trim();
+    let val = line.slice(eqIdx + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (process.env[key] === undefined || process.env[key] === "") {
+      process.env[key] = val;
+    }
+  }
+}
+
+// Load envs from apps/auth and apps/api for e2e
+loadEnvFile(path.join(repoRoot, "apps/auth/.env"));
+loadEnvFile(path.join(repoRoot, "apps/api/.env"));
+loadEnvFile(path.join(repoRoot, "e2e/.env"));
 
 const env = (name: string, fallback: string): string => {
   const value = process.env[name];
@@ -11,11 +44,6 @@ const flag = (name: string, fallback: boolean): boolean => {
   if (value === undefined || value === "") return fallback;
   return value === "true" || value === "1";
 };
-
-export const repoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../..",
-);
 
 /**
  * Defaults mirror the `.env.example` files and `.devcontainer/compose.yaml`.

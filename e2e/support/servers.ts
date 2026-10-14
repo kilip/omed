@@ -1,8 +1,15 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import { mkdirSync, openSync } from "node:fs";
+import { createRequire } from "node:module";
 import net from "node:net";
 import path from "node:path";
 import { config, repoRoot } from "./config";
+
+const webRequire = createRequire(path.join(repoRoot, "apps/web/package.json"));
+const reactRouterBin = path.join(
+  path.dirname(webRequire.resolve("@react-router/dev/package.json")),
+  "bin.cjs",
+);
 
 type Service = {
   name: string;
@@ -60,10 +67,10 @@ const services = (): Service[] => [
   {
     name: "web",
     cwd: path.join(repoRoot, "apps/web"),
-    command: "bunx",
+    command: "bun",
     args: [
-      "--bun",
-      "react-router",
+      "--conditions=development",
+      reactRouterBin,
       "dev",
       "--port",
       String(port(config.webUrl)),
@@ -167,7 +174,11 @@ export async function stopServers(): Promise<void> {
   for (const { process: child } of children.splice(0).reverse()) {
     if (child.pid === undefined || child.exitCode !== null) continue;
     try {
-      process.kill(-child.pid, "SIGTERM");
+      if (process.platform === "win32") {
+        spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"]);
+      } else {
+        process.kill(-child.pid, "SIGTERM");
+      }
     } catch {
       // Already gone.
     }
