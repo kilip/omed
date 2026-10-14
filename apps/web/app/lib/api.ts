@@ -1,40 +1,11 @@
 import type { paths } from "@omed/openapi";
-import createClient, { type Middleware } from "openapi-fetch";
-import { authClient } from "./auth-client";
+import createClient from "openapi-fetch";
 import { env } from "./env";
 
-const TOKEN_TTL_MS = 4 * 60 * 1000;
-
-let cached: { token: string; expiresAt: number } | null = null;
-
-async function getToken(): Promise<string | null> {
-  if (cached && cached.expiresAt > Date.now()) return cached.token;
-  const { data } = await authClient.token();
-  if (!data?.token) {
-    cached = null;
-    return null;
-  }
-  cached = { token: data.token, expiresAt: Date.now() + TOKEN_TTL_MS };
-  return data.token;
-}
-
-export const clearApiToken = () => {
-  cached = null;
-};
-
-const bearer: Middleware = {
-  async onRequest({ request }) {
-    const token = await getToken();
-    if (token) request.headers.set("Authorization", `Bearer ${token}`);
-    return request;
-  },
-  onResponse({ response }) {
-    if (response.status === 401) cached = null;
-  },
-};
-
-export const api = createClient<paths>({ baseUrl: env.apiUrl });
-api.use(bearer);
+export const api = createClient<paths>({
+  baseUrl: env.apiUrl,
+  credentials: "include",
+});
 
 export class ApiError extends Error {
   readonly status: number;

@@ -11,7 +11,6 @@ import {
 } from "react-router";
 import { Logo } from "~/components/Logo";
 import { LanguageMenu, ThemeMenu } from "~/components/PreferenceMenus";
-import { clearApiToken } from "~/lib/api";
 import { authClient } from "~/lib/auth-client";
 import { findModule } from "~/lib/modules";
 import {
@@ -49,7 +48,6 @@ export default function Shell({ loaderData }: Route.ComponentProps) {
 
   const signOut = async () => {
     await authClient.signOut();
-    clearApiToken();
     navigate("/login");
   };
 

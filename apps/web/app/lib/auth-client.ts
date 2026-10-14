@@ -46,25 +46,6 @@ export const authClient = {
     }
   },
 
-  async token(): Promise<{
-    data: { token: string } | null;
-    error: Error | null;
-  }> {
-    try {
-      const res = await fetch(`${env.apiUrl}/auth/token`, {
-        credentials: "include",
-      });
-      if (!res.ok) return { data: null, error: null };
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: err instanceof Error ? err : new Error(String(err)),
-      };
-    }
-  },
-
   signIn: {
     async social({
       provider,
