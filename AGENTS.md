@@ -122,7 +122,7 @@ apps/web/app/modules/{module_name}/
 End-to-end tests live under `e2e/` (Cucumber + Playwright).
 
 - Run tests with `bun run e2e`.
-- The runner starts `auth`, `web`, and `api` automatically if they are not already running (disable with `E2E_AUTO_START=false`).
+- The runner starts `api` and `web` automatically if they are not already running (disable with `E2E_AUTO_START=false`).
 - Add `HEADED=true` to watch the browser.
 - Run `bunx playwright install chromium` once beforehand.
 
@@ -138,11 +138,11 @@ e2e/
 │   ├── base.page.ts     # Base class for page objects
 │   ├── index.ts         # createPages(): page objects grouped by module
 │   └── {module}/        # Page objects (POM) of that module
-└── support/             # World, hooks, config, server runner, auth helper
+└── support/             # World, hooks, config, server runner, test client
 ```
 
 - Group names match the dashboard modules (`sys`, `user`, `fin`, `cms`). `dashboard` is the one extra group: it covers the shell itself (login, homepage, invitations), which lives in `apps/web/app/routes` and is not a module.
 - Use the Page Object Model: locators and `expect*` checks live in `pages/{module}/*.page.ts`; steps only call page objects through `this.pages.{module}`. Do not put selectors in steps.
 - Put a step in `steps/common.steps.ts` only when more than one module uses it.
-- Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the Better Auth `testUtils` plugin (`support/auth.ts`), and removes the user afterwards. The plugin lives in a test-only auth instance, never in `packages/better-auth`.
+- Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the API test endpoints (`support/test-client.ts`), and removes the user afterwards.
 
