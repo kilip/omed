@@ -180,7 +180,6 @@ func (ctl AccountController) Delete(c fiber.Ctx) error {
 	return httpx.OK(c, httpx.NoContent{})
 }
 
-
 func toAccountResponse(a domain.Account) model.AccountResponse {
 	return model.AccountResponse{
 		ID:            a.ID,

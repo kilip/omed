@@ -90,4 +90,3 @@ func (s *sessionService) RevokeSession(ctx context.Context, token string) error 
 func (s *sessionService) RevokeAllUserSessions(ctx context.Context, userID int64) error {
 	return s.sessions.DeleteByUserID(ctx, userID)
 }
-

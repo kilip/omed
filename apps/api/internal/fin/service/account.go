@@ -150,4 +150,3 @@ func (s AccountService) Delete(c context.Context, id int64) error {
 
 	return s.repo.Delete(c, id)
 }
-

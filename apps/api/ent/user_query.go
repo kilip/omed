@@ -12,11 +12,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 )
 
 // UserQuery is the builder for querying User entities.
@@ -26,7 +26,7 @@ type UserQuery struct {
 	order        []user.OrderOption
 	inters       []Interceptor
 	predicates   []predicate.User
-	withAccounts *CoreAccountQuery
+	withAccounts *UserAccountQuery
 	withSessions *SessionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -65,8 +65,8 @@ func (_q *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 }
 
 // QueryAccounts chains the current query on the "accounts" edge.
-func (_q *UserQuery) QueryAccounts() *CoreAccountQuery {
-	query := (&CoreAccountClient{config: _q.config}).Query()
+func (_q *UserQuery) QueryAccounts() *UserAccountQuery {
+	query := (&UserAccountClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -77,12 +77,12 @@ func (_q *UserQuery) QueryAccounts() *CoreAccountQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(coreaccount.Table, coreaccount.FieldID),
+			sqlgraph.To(useraccount.Table, useraccount.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.AccountsTable, user.AccountsColumn),
 		)
 		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.CoreAccount
-		step.Edge.Schema = schemaConfig.CoreAccount
+		step.To.Schema = schemaConfig.UserAccount
+		step.Edge.Schema = schemaConfig.UserAccount
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -316,8 +316,8 @@ func (_q *UserQuery) Clone() *UserQuery {
 
 // WithAccounts tells the query-builder to eager-load the nodes that are connected to
 // the "accounts" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithAccounts(opts ...func(*CoreAccountQuery)) *UserQuery {
-	query := (&CoreAccountClient{config: _q.config}).Query()
+func (_q *UserQuery) WithAccounts(opts ...func(*UserAccountQuery)) *UserQuery {
+	query := (&UserAccountClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -441,8 +441,8 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	}
 	if query := _q.withAccounts; query != nil {
 		if err := _q.loadAccounts(ctx, query, nodes,
-			func(n *User) { n.Edges.Accounts = []*CoreAccount{} },
-			func(n *User, e *CoreAccount) { n.Edges.Accounts = append(n.Edges.Accounts, e) }); err != nil {
+			func(n *User) { n.Edges.Accounts = []*UserAccount{} },
+			func(n *User, e *UserAccount) { n.Edges.Accounts = append(n.Edges.Accounts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -456,7 +456,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	return nodes, nil
 }
 
-func (_q *UserQuery) loadAccounts(ctx context.Context, query *CoreAccountQuery, nodes []*User, init func(*User), assign func(*User, *CoreAccount)) error {
+func (_q *UserQuery) loadAccounts(ctx context.Context, query *UserAccountQuery, nodes []*User, init func(*User), assign func(*User, *UserAccount)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int64]*User)
 	for i := range nodes {
@@ -467,9 +467,9 @@ func (_q *UserQuery) loadAccounts(ctx context.Context, query *CoreAccountQuery, 
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(coreaccount.FieldUserID)
+		query.ctx.AppendFieldOnce(useraccount.FieldUserID)
 	}
-	query.Where(predicate.CoreAccount(func(s *sql.Selector) {
+	query.Where(predicate.UserAccount(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.AccountsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)

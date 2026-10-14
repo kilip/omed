@@ -13,15 +13,21 @@ import (
 
 // AuthController handles social sign-in, OAuth callback, session retrieval, and logout.
 type AuthController struct {
-	oauth    service.OAuthService
-	sessions service.SessionService
+	oauth      service.OAuthService
+	sessions   service.SessionService
+	cookieName string
 }
 
 // NewAuthController creates a new AuthController.
-func NewAuthController(oauth service.OAuthService, sessions service.SessionService) AuthController {
+func NewAuthController(oauth service.OAuthService, sessions service.SessionService, cookieName ...string) AuthController {
+	cn := "token"
+	if len(cookieName) > 0 && cookieName[0] != "" {
+		cn = cookieName[0]
+	}
 	return AuthController{
-		oauth:    oauth,
-		sessions: sessions,
+		oauth:      oauth,
+		sessions:   sessions,
+		cookieName: cn,
 	}
 }
 
@@ -110,7 +116,7 @@ func (a AuthController) Callback(c fiber.Ctx) error {
 
 	// Set HttpOnly session cookie
 	c.Cookie(&fiber.Cookie{
-		Name:     "token",
+		Name:     a.cookieName,
 		Value:    sess.Token,
 		Path:     "/",
 		Expires:  sess.ExpiresAt,
@@ -136,7 +142,7 @@ func (a AuthController) Callback(c fiber.Ctx) error {
 //	@Failure		401	{object}	httpx.ErrorResponse
 //	@Router			/auth/get-session [get]
 func (a AuthController) GetSession(c fiber.Ctx) error {
-	token := extractToken(c)
+	token := a.extractToken(c)
 	if token == "" {
 		return fiber.NewError(fiber.StatusUnauthorized, "missing session token")
 	}
@@ -158,13 +164,13 @@ func (a AuthController) GetSession(c fiber.Ctx) error {
 //	@Success		200	{object}	map[string]bool
 //	@Router			/auth/sign-out [post]
 func (a AuthController) SignOut(c fiber.Ctx) error {
-	token := extractToken(c)
+	token := a.extractToken(c)
 	if token != "" {
 		_ = a.sessions.RevokeSession(c.Context(), token)
 	}
 
 	c.Cookie(&fiber.Cookie{
-		Name:     "token",
+		Name:     a.cookieName,
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
@@ -176,16 +182,25 @@ func (a AuthController) SignOut(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true})
 }
 
-func extractToken(c fiber.Ctx) string {
+func (a AuthController) extractToken(c fiber.Ctx) string {
 	authHeader := c.Get(fiber.HeaderAuthorization)
 	if strings.HasPrefix(authHeader, "Bearer ") {
 		return strings.TrimPrefix(authHeader, "Bearer ")
 	}
-	cookie := c.Cookies("token")
-	if cookie != "" {
+	if cookie := c.Cookies(a.cookieName); cookie != "" {
 		return cookie
 	}
-	return c.Cookies("omed_session")
+	if a.cookieName != "token" {
+		if cookie := c.Cookies("token"); cookie != "" {
+			return cookie
+		}
+	}
+	if a.cookieName != "omed_session" {
+		if cookie := c.Cookies("omed_session"); cookie != "" {
+			return cookie
+		}
+	}
+	return ""
 }
 
 func toSessionResponse(s domain.Session, u domain.User) model.SessionResponse {

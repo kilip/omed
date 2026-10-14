@@ -9,10 +9,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 	"github.com/kilip/omed/api/ent/workspace"
 	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
@@ -101,33 +101,6 @@ func (f TraverseAccount) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.AccountQuery", q)
 }
 
-// The CoreAccountFunc type is an adapter to allow the use of ordinary function as a Querier.
-type CoreAccountFunc func(context.Context, *ent.CoreAccountQuery) (ent.Value, error)
-
-// Query calls f(ctx, q).
-func (f CoreAccountFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
-	if q, ok := q.(*ent.CoreAccountQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CoreAccountQuery", q)
-}
-
-// The TraverseCoreAccount type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseCoreAccount func(context.Context, *ent.CoreAccountQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseCoreAccount) Intercept(next ent.Querier) ent.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseCoreAccount) Traverse(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.CoreAccountQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *ent.CoreAccountQuery", q)
-}
-
 // The SessionFunc type is an adapter to allow the use of ordinary function as a Querier.
 type SessionFunc func(context.Context, *ent.SessionQuery) (ent.Value, error)
 
@@ -180,6 +153,33 @@ func (f TraverseUser) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.UserQuery", q)
+}
+
+// The UserAccountFunc type is an adapter to allow the use of ordinary function as a Querier.
+type UserAccountFunc func(context.Context, *ent.UserAccountQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f UserAccountFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.UserAccountQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.UserAccountQuery", q)
+}
+
+// The TraverseUserAccount type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseUserAccount func(context.Context, *ent.UserAccountQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseUserAccount) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseUserAccount) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.UserAccountQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.UserAccountQuery", q)
 }
 
 // The WorkspaceFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -268,12 +268,12 @@ func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
 	case *ent.AccountQuery:
 		return &query[*ent.AccountQuery, predicate.Account, account.OrderOption]{typ: ent.TypeAccount, tq: q}, nil
-	case *ent.CoreAccountQuery:
-		return &query[*ent.CoreAccountQuery, predicate.CoreAccount, coreaccount.OrderOption]{typ: ent.TypeCoreAccount, tq: q}, nil
 	case *ent.SessionQuery:
 		return &query[*ent.SessionQuery, predicate.Session, session.OrderOption]{typ: ent.TypeSession, tq: q}, nil
 	case *ent.UserQuery:
 		return &query[*ent.UserQuery, predicate.User, user.OrderOption]{typ: ent.TypeUser, tq: q}, nil
+	case *ent.UserAccountQuery:
+		return &query[*ent.UserAccountQuery, predicate.UserAccount, useraccount.OrderOption]{typ: ent.TypeUserAccount, tq: q}, nil
 	case *ent.WorkspaceQuery:
 		return &query[*ent.WorkspaceQuery, predicate.Workspace, workspace.OrderOption]{typ: ent.TypeWorkspace, tq: q}, nil
 	case *ent.WorkspaceInvitationQuery:

@@ -11,11 +11,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -85,14 +85,14 @@ func (_u *UserUpdate) SetUpdatedAt(v time.Time) *UserUpdate {
 	return _u
 }
 
-// AddAccountIDs adds the "accounts" edge to the CoreAccount entity by IDs.
+// AddAccountIDs adds the "accounts" edge to the UserAccount entity by IDs.
 func (_u *UserUpdate) AddAccountIDs(ids ...int64) *UserUpdate {
 	_u.mutation.AddAccountIDs(ids...)
 	return _u
 }
 
-// AddAccounts adds the "accounts" edges to the CoreAccount entity.
-func (_u *UserUpdate) AddAccounts(v ...*CoreAccount) *UserUpdate {
+// AddAccounts adds the "accounts" edges to the UserAccount entity.
+func (_u *UserUpdate) AddAccounts(v ...*UserAccount) *UserUpdate {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -120,20 +120,20 @@ func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearAccounts clears all "accounts" edges to the CoreAccount entity.
+// ClearAccounts clears all "accounts" edges to the UserAccount entity.
 func (_u *UserUpdate) ClearAccounts() *UserUpdate {
 	_u.mutation.ClearAccounts()
 	return _u
 }
 
-// RemoveAccountIDs removes the "accounts" edge to CoreAccount entities by IDs.
+// RemoveAccountIDs removes the "accounts" edge to UserAccount entities by IDs.
 func (_u *UserUpdate) RemoveAccountIDs(ids ...int64) *UserUpdate {
 	_u.mutation.RemoveAccountIDs(ids...)
 	return _u
 }
 
-// RemoveAccounts removes "accounts" edges to CoreAccount entities.
-func (_u *UserUpdate) RemoveAccounts(v ...*CoreAccount) *UserUpdate {
+// RemoveAccounts removes "accounts" edges to UserAccount entities.
+func (_u *UserUpdate) RemoveAccounts(v ...*UserAccount) *UserUpdate {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -248,10 +248,10 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := _u.mutation.RemovedAccountsIDs(); len(nodes) > 0 && !_u.mutation.AccountsCleared() {
@@ -262,10 +262,10 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -279,10 +279,10 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -412,14 +412,14 @@ func (_u *UserUpdateOne) SetUpdatedAt(v time.Time) *UserUpdateOne {
 	return _u
 }
 
-// AddAccountIDs adds the "accounts" edge to the CoreAccount entity by IDs.
+// AddAccountIDs adds the "accounts" edge to the UserAccount entity by IDs.
 func (_u *UserUpdateOne) AddAccountIDs(ids ...int64) *UserUpdateOne {
 	_u.mutation.AddAccountIDs(ids...)
 	return _u
 }
 
-// AddAccounts adds the "accounts" edges to the CoreAccount entity.
-func (_u *UserUpdateOne) AddAccounts(v ...*CoreAccount) *UserUpdateOne {
+// AddAccounts adds the "accounts" edges to the UserAccount entity.
+func (_u *UserUpdateOne) AddAccounts(v ...*UserAccount) *UserUpdateOne {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -447,20 +447,20 @@ func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearAccounts clears all "accounts" edges to the CoreAccount entity.
+// ClearAccounts clears all "accounts" edges to the UserAccount entity.
 func (_u *UserUpdateOne) ClearAccounts() *UserUpdateOne {
 	_u.mutation.ClearAccounts()
 	return _u
 }
 
-// RemoveAccountIDs removes the "accounts" edge to CoreAccount entities by IDs.
+// RemoveAccountIDs removes the "accounts" edge to UserAccount entities by IDs.
 func (_u *UserUpdateOne) RemoveAccountIDs(ids ...int64) *UserUpdateOne {
 	_u.mutation.RemoveAccountIDs(ids...)
 	return _u
 }
 
-// RemoveAccounts removes "accounts" edges to CoreAccount entities.
-func (_u *UserUpdateOne) RemoveAccounts(v ...*CoreAccount) *UserUpdateOne {
+// RemoveAccounts removes "accounts" edges to UserAccount entities.
+func (_u *UserUpdateOne) RemoveAccounts(v ...*UserAccount) *UserUpdateOne {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -605,10 +605,10 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := _u.mutation.RemovedAccountsIDs(); len(nodes) > 0 && !_u.mutation.AccountsCleared() {
@@ -619,10 +619,10 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -636,10 +636,10 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

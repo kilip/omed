@@ -36,7 +36,7 @@ type User struct {
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
 	// Accounts holds the value of the accounts edge.
-	Accounts []*CoreAccount `json:"accounts,omitempty"`
+	Accounts []*UserAccount `json:"accounts,omitempty"`
 	// Sessions holds the value of the sessions edge.
 	Sessions []*Session `json:"sessions,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -46,7 +46,7 @@ type UserEdges struct {
 
 // AccountsOrErr returns the Accounts value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) AccountsOrErr() ([]*CoreAccount, error) {
+func (e UserEdges) AccountsOrErr() ([]*UserAccount, error) {
 	if e.loadedTypes[0] {
 		return e.Accounts, nil
 	}
@@ -138,7 +138,7 @@ func (_m *User) Value(name string) (ent.Value, error) {
 }
 
 // QueryAccounts queries the "accounts" edge of the User entity.
-func (_m *User) QueryAccounts() *CoreAccountQuery {
+func (_m *User) QueryAccounts() *UserAccountQuery {
 	return NewUserClient(_m.config).QueryAccounts(_m)
 }
 

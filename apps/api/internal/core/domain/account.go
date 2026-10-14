@@ -68,4 +68,3 @@ type Session struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
-

@@ -108,4 +108,3 @@ func toSessionDomain(s *ent.Session) domain.Session {
 		UpdatedAt: s.UpdatedAt,
 	}
 }
-

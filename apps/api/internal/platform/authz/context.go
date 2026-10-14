@@ -43,7 +43,6 @@ func ContextWithMembership(ctx context.Context, m Membership) context.Context {
 	return ctx
 }
 
-
 // MembershipFromContext retrieves the Membership resolved by the authz middleware, if present.
 func MembershipFromContext(ctx context.Context) (Membership, bool) {
 	if ctx == nil {

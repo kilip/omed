@@ -91,48 +91,6 @@ var (
 			},
 		},
 	}
-	// CoreAccountsColumns holds the columns for the "core_accounts" table.
-	CoreAccountsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "provider_id", Type: field.TypeString},
-		{Name: "account_id", Type: field.TypeString},
-		{Name: "access_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "refresh_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "id_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "access_token_expires_at", Type: field.TypeTime, Nullable: true},
-		{Name: "refresh_token_expires_at", Type: field.TypeTime, Nullable: true},
-		{Name: "scope", Type: field.TypeString, Nullable: true},
-		{Name: "password", Type: field.TypeString, Nullable: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_id", Type: field.TypeInt64},
-	}
-	// CoreAccountsTable holds the schema information for the "core_accounts" table.
-	CoreAccountsTable = &schema.Table{
-		Name:       "core_accounts",
-		Columns:    CoreAccountsColumns,
-		PrimaryKey: []*schema.Column{CoreAccountsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "core_accounts_users_user",
-				Columns:    []*schema.Column{CoreAccountsColumns[12]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "coreaccount_provider_id_account_id",
-				Unique:  true,
-				Columns: []*schema.Column{CoreAccountsColumns[1], CoreAccountsColumns[2]},
-			},
-			{
-				Name:    "coreaccount_user_id",
-				Unique:  false,
-				Columns: []*schema.Column{CoreAccountsColumns[12]},
-			},
-		},
-	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -184,6 +142,48 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
+	// UserAccountsColumns holds the columns for the "user_accounts" table.
+	UserAccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "provider_id", Type: field.TypeString},
+		{Name: "account_id", Type: field.TypeString},
+		{Name: "access_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "refresh_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "id_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "access_token_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "refresh_token_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "scope", Type: field.TypeString, Nullable: true},
+		{Name: "password", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// UserAccountsTable holds the schema information for the "user_accounts" table.
+	UserAccountsTable = &schema.Table{
+		Name:       "user_accounts",
+		Columns:    UserAccountsColumns,
+		PrimaryKey: []*schema.Column{UserAccountsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_accounts_users_user",
+				Columns:    []*schema.Column{UserAccountsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "useraccount_provider_id_account_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserAccountsColumns[1], UserAccountsColumns[2]},
+			},
+			{
+				Name:    "useraccount_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserAccountsColumns[12]},
+			},
+		},
 	}
 	// WorkspacesColumns holds the columns for the "workspaces" table.
 	WorkspacesColumns = []*schema.Column{
@@ -344,9 +344,9 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
-		CoreAccountsTable,
 		SessionsTable,
 		UsersTable,
+		UserAccountsTable,
 		WorkspacesTable,
 		WorkspaceInvitationsTable,
 		WorkspaceMembersTable,
@@ -359,8 +359,8 @@ func init() {
 	AccountsTable.ForeignKeys[2].RefTable = UsersTable
 	AccountsTable.ForeignKeys[3].RefTable = UsersTable
 	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
-	CoreAccountsTable.ForeignKeys[0].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
+	UserAccountsTable.ForeignKeys[0].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[1].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[2].RefTable = UsersTable

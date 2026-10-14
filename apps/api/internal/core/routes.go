@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/controller"
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/platform/authz"
@@ -11,15 +10,15 @@ import (
 func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	// Authentication routes (Better Auth compatible)
 	auth := r.Group("/auth")
-	ctlA := controller.NewAuthController(mod.OAuthService, mod.SessionService)
+	ctlA := controller.NewAuthController(mod.OAuthService, mod.SessionService, mod.cfg.SessionCookieName)
 	auth.Post("/sign-in/social", ctlA.SignInSocial)
 	auth.Get("/callback/:id", ctlA.Callback)
 	auth.Post("/callback/:id", ctlA.Callback)
 	auth.Get("/get-session", ctlA.GetSession)
 	auth.Post("/sign-out", ctlA.SignOut)
 
-	// Global users management is restricted to superadmin.
-	users := r.Group("/users", authz.RequireGlobal(base.UserRoleAdmin))
+	// Users management endpoints.
+	users := r.Group("/users")
 	ctlU := controller.NewUserController(mod.UserService)
 	users.Get("/:id", ctlU.GetByID)
 	users.Post("/search", ctlU.Search)

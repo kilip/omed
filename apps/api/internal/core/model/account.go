@@ -61,4 +61,3 @@ type OAuthStateClaims struct {
 	ErrorCallbackURL string `json:"errorCallbackURL,omitempty"`
 	ExpiresAt        int64  `json:"exp"`
 }
-

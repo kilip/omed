@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent/account"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/schema"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 	"github.com/kilip/omed/api/ent/workspace"
 	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
@@ -50,26 +50,6 @@ func init() {
 	accountDescIsPostable := accountFields[8].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
-	coreaccountFields := schema.CoreAccount{}.Fields()
-	_ = coreaccountFields
-	// coreaccountDescProviderID is the schema descriptor for provider_id field.
-	coreaccountDescProviderID := coreaccountFields[2].Descriptor()
-	// coreaccount.ProviderIDValidator is a validator for the "provider_id" field. It is called by the builders before save.
-	coreaccount.ProviderIDValidator = coreaccountDescProviderID.Validators[0].(func(string) error)
-	// coreaccountDescAccountID is the schema descriptor for account_id field.
-	coreaccountDescAccountID := coreaccountFields[3].Descriptor()
-	// coreaccount.AccountIDValidator is a validator for the "account_id" field. It is called by the builders before save.
-	coreaccount.AccountIDValidator = coreaccountDescAccountID.Validators[0].(func(string) error)
-	// coreaccountDescCreatedAt is the schema descriptor for created_at field.
-	coreaccountDescCreatedAt := coreaccountFields[11].Descriptor()
-	// coreaccount.DefaultCreatedAt holds the default value on creation for the created_at field.
-	coreaccount.DefaultCreatedAt = coreaccountDescCreatedAt.Default.(func() time.Time)
-	// coreaccountDescUpdatedAt is the schema descriptor for updated_at field.
-	coreaccountDescUpdatedAt := coreaccountFields[12].Descriptor()
-	// coreaccount.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	coreaccount.DefaultUpdatedAt = coreaccountDescUpdatedAt.Default.(func() time.Time)
-	// coreaccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	coreaccount.UpdateDefaultUpdatedAt = coreaccountDescUpdatedAt.UpdateDefault.(func() time.Time)
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescToken is the schema descriptor for token field.
@@ -106,6 +86,26 @@ func init() {
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
+	useraccountFields := schema.UserAccount{}.Fields()
+	_ = useraccountFields
+	// useraccountDescProviderID is the schema descriptor for provider_id field.
+	useraccountDescProviderID := useraccountFields[2].Descriptor()
+	// useraccount.ProviderIDValidator is a validator for the "provider_id" field. It is called by the builders before save.
+	useraccount.ProviderIDValidator = useraccountDescProviderID.Validators[0].(func(string) error)
+	// useraccountDescAccountID is the schema descriptor for account_id field.
+	useraccountDescAccountID := useraccountFields[3].Descriptor()
+	// useraccount.AccountIDValidator is a validator for the "account_id" field. It is called by the builders before save.
+	useraccount.AccountIDValidator = useraccountDescAccountID.Validators[0].(func(string) error)
+	// useraccountDescCreatedAt is the schema descriptor for created_at field.
+	useraccountDescCreatedAt := useraccountFields[11].Descriptor()
+	// useraccount.DefaultCreatedAt holds the default value on creation for the created_at field.
+	useraccount.DefaultCreatedAt = useraccountDescCreatedAt.Default.(func() time.Time)
+	// useraccountDescUpdatedAt is the schema descriptor for updated_at field.
+	useraccountDescUpdatedAt := useraccountFields[12].Descriptor()
+	// useraccount.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	useraccount.DefaultUpdatedAt = useraccountDescUpdatedAt.Default.(func() time.Time)
+	// useraccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	useraccount.UpdateDefaultUpdatedAt = useraccountDescUpdatedAt.UpdateDefault.(func() time.Time)
 	workspaceMixin := schema.Workspace{}.Mixin()
 	workspaceMixinFields0 := workspaceMixin[0].Fields()
 	_ = workspaceMixinFields0

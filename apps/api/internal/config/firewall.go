@@ -1,19 +1,17 @@
 package config
 
 import (
-	"log"
-
-	"github.com/kilip/omed/api/internal/platform/jwtx"
+	"github.com/kilip/omed/api/internal/core/middleware"
+	"github.com/kilip/omed/api/internal/core/service"
 )
 
-func initFirewall(state State) {
+func initFirewall(state State, sessions service.SessionService) {
 	app := state.FiberApp
 	cfg := state.Config
 
-	handler, err := jwtx.Handler(cfg.JWKSUrl, state.Logger)
-	if err != nil {
-		log.Fatalf("Can't init firewall %+v", err)
-	}
-	app.Use(handler)
-	app.Use(jwtx.UserInjector(cfg.AuthUrl, cfg.AuthUrl))
+	app.Use(middleware.NewAuthMiddleware(middleware.AuthConfig{
+		SessionService: sessions,
+		Logger:         state.Logger,
+		CookieName:     cfg.SessionCookieName,
+	}))
 }

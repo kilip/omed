@@ -11,33 +11,33 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 )
 
-// CoreAccountUpdate is the builder for updating CoreAccount entities.
-type CoreAccountUpdate struct {
+// UserAccountUpdate is the builder for updating UserAccount entities.
+type UserAccountUpdate struct {
 	config
 	hooks    []Hook
-	mutation *CoreAccountMutation
+	mutation *UserAccountMutation
 }
 
-// Where appends a list predicates to the CoreAccountUpdate builder.
-func (_u *CoreAccountUpdate) Where(ps ...predicate.CoreAccount) *CoreAccountUpdate {
+// Where appends a list predicates to the UserAccountUpdate builder.
+func (_u *UserAccountUpdate) Where(ps ...predicate.UserAccount) *UserAccountUpdate {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
 // SetUserID sets the "user_id" field.
-func (_u *CoreAccountUpdate) SetUserID(v int64) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetUserID(v int64) *UserAccountUpdate {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableUserID(v *int64) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableUserID(v *int64) *UserAccountUpdate {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -45,13 +45,13 @@ func (_u *CoreAccountUpdate) SetNillableUserID(v *int64) *CoreAccountUpdate {
 }
 
 // SetProviderID sets the "provider_id" field.
-func (_u *CoreAccountUpdate) SetProviderID(v string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetProviderID(v string) *UserAccountUpdate {
 	_u.mutation.SetProviderID(v)
 	return _u
 }
 
 // SetNillableProviderID sets the "provider_id" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableProviderID(v *string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableProviderID(v *string) *UserAccountUpdate {
 	if v != nil {
 		_u.SetProviderID(*v)
 	}
@@ -59,13 +59,13 @@ func (_u *CoreAccountUpdate) SetNillableProviderID(v *string) *CoreAccountUpdate
 }
 
 // SetAccountID sets the "account_id" field.
-func (_u *CoreAccountUpdate) SetAccountID(v string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetAccountID(v string) *UserAccountUpdate {
 	_u.mutation.SetAccountID(v)
 	return _u
 }
 
 // SetNillableAccountID sets the "account_id" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableAccountID(v *string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableAccountID(v *string) *UserAccountUpdate {
 	if v != nil {
 		_u.SetAccountID(*v)
 	}
@@ -73,13 +73,13 @@ func (_u *CoreAccountUpdate) SetNillableAccountID(v *string) *CoreAccountUpdate 
 }
 
 // SetAccessToken sets the "access_token" field.
-func (_u *CoreAccountUpdate) SetAccessToken(v string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetAccessToken(v string) *UserAccountUpdate {
 	_u.mutation.SetAccessToken(v)
 	return _u
 }
 
 // SetNillableAccessToken sets the "access_token" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableAccessToken(v *string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableAccessToken(v *string) *UserAccountUpdate {
 	if v != nil {
 		_u.SetAccessToken(*v)
 	}
@@ -87,19 +87,19 @@ func (_u *CoreAccountUpdate) SetNillableAccessToken(v *string) *CoreAccountUpdat
 }
 
 // ClearAccessToken clears the value of the "access_token" field.
-func (_u *CoreAccountUpdate) ClearAccessToken() *CoreAccountUpdate {
+func (_u *UserAccountUpdate) ClearAccessToken() *UserAccountUpdate {
 	_u.mutation.ClearAccessToken()
 	return _u
 }
 
 // SetRefreshToken sets the "refresh_token" field.
-func (_u *CoreAccountUpdate) SetRefreshToken(v string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetRefreshToken(v string) *UserAccountUpdate {
 	_u.mutation.SetRefreshToken(v)
 	return _u
 }
 
 // SetNillableRefreshToken sets the "refresh_token" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableRefreshToken(v *string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableRefreshToken(v *string) *UserAccountUpdate {
 	if v != nil {
 		_u.SetRefreshToken(*v)
 	}
@@ -107,19 +107,19 @@ func (_u *CoreAccountUpdate) SetNillableRefreshToken(v *string) *CoreAccountUpda
 }
 
 // ClearRefreshToken clears the value of the "refresh_token" field.
-func (_u *CoreAccountUpdate) ClearRefreshToken() *CoreAccountUpdate {
+func (_u *UserAccountUpdate) ClearRefreshToken() *UserAccountUpdate {
 	_u.mutation.ClearRefreshToken()
 	return _u
 }
 
 // SetIDToken sets the "id_token" field.
-func (_u *CoreAccountUpdate) SetIDToken(v string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetIDToken(v string) *UserAccountUpdate {
 	_u.mutation.SetIDToken(v)
 	return _u
 }
 
 // SetNillableIDToken sets the "id_token" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableIDToken(v *string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableIDToken(v *string) *UserAccountUpdate {
 	if v != nil {
 		_u.SetIDToken(*v)
 	}
@@ -127,19 +127,19 @@ func (_u *CoreAccountUpdate) SetNillableIDToken(v *string) *CoreAccountUpdate {
 }
 
 // ClearIDToken clears the value of the "id_token" field.
-func (_u *CoreAccountUpdate) ClearIDToken() *CoreAccountUpdate {
+func (_u *UserAccountUpdate) ClearIDToken() *UserAccountUpdate {
 	_u.mutation.ClearIDToken()
 	return _u
 }
 
 // SetAccessTokenExpiresAt sets the "access_token_expires_at" field.
-func (_u *CoreAccountUpdate) SetAccessTokenExpiresAt(v time.Time) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetAccessTokenExpiresAt(v time.Time) *UserAccountUpdate {
 	_u.mutation.SetAccessTokenExpiresAt(v)
 	return _u
 }
 
 // SetNillableAccessTokenExpiresAt sets the "access_token_expires_at" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableAccessTokenExpiresAt(v *time.Time) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableAccessTokenExpiresAt(v *time.Time) *UserAccountUpdate {
 	if v != nil {
 		_u.SetAccessTokenExpiresAt(*v)
 	}
@@ -147,19 +147,19 @@ func (_u *CoreAccountUpdate) SetNillableAccessTokenExpiresAt(v *time.Time) *Core
 }
 
 // ClearAccessTokenExpiresAt clears the value of the "access_token_expires_at" field.
-func (_u *CoreAccountUpdate) ClearAccessTokenExpiresAt() *CoreAccountUpdate {
+func (_u *UserAccountUpdate) ClearAccessTokenExpiresAt() *UserAccountUpdate {
 	_u.mutation.ClearAccessTokenExpiresAt()
 	return _u
 }
 
 // SetRefreshTokenExpiresAt sets the "refresh_token_expires_at" field.
-func (_u *CoreAccountUpdate) SetRefreshTokenExpiresAt(v time.Time) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetRefreshTokenExpiresAt(v time.Time) *UserAccountUpdate {
 	_u.mutation.SetRefreshTokenExpiresAt(v)
 	return _u
 }
 
 // SetNillableRefreshTokenExpiresAt sets the "refresh_token_expires_at" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableRefreshTokenExpiresAt(v *time.Time) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableRefreshTokenExpiresAt(v *time.Time) *UserAccountUpdate {
 	if v != nil {
 		_u.SetRefreshTokenExpiresAt(*v)
 	}
@@ -167,19 +167,19 @@ func (_u *CoreAccountUpdate) SetNillableRefreshTokenExpiresAt(v *time.Time) *Cor
 }
 
 // ClearRefreshTokenExpiresAt clears the value of the "refresh_token_expires_at" field.
-func (_u *CoreAccountUpdate) ClearRefreshTokenExpiresAt() *CoreAccountUpdate {
+func (_u *UserAccountUpdate) ClearRefreshTokenExpiresAt() *UserAccountUpdate {
 	_u.mutation.ClearRefreshTokenExpiresAt()
 	return _u
 }
 
 // SetScope sets the "scope" field.
-func (_u *CoreAccountUpdate) SetScope(v string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetScope(v string) *UserAccountUpdate {
 	_u.mutation.SetScope(v)
 	return _u
 }
 
 // SetNillableScope sets the "scope" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillableScope(v *string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillableScope(v *string) *UserAccountUpdate {
 	if v != nil {
 		_u.SetScope(*v)
 	}
@@ -187,19 +187,19 @@ func (_u *CoreAccountUpdate) SetNillableScope(v *string) *CoreAccountUpdate {
 }
 
 // ClearScope clears the value of the "scope" field.
-func (_u *CoreAccountUpdate) ClearScope() *CoreAccountUpdate {
+func (_u *UserAccountUpdate) ClearScope() *UserAccountUpdate {
 	_u.mutation.ClearScope()
 	return _u
 }
 
 // SetPassword sets the "password" field.
-func (_u *CoreAccountUpdate) SetPassword(v string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetPassword(v string) *UserAccountUpdate {
 	_u.mutation.SetPassword(v)
 	return _u
 }
 
 // SetNillablePassword sets the "password" field if the given value is not nil.
-func (_u *CoreAccountUpdate) SetNillablePassword(v *string) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetNillablePassword(v *string) *UserAccountUpdate {
 	if v != nil {
 		_u.SetPassword(*v)
 	}
@@ -207,41 +207,41 @@ func (_u *CoreAccountUpdate) SetNillablePassword(v *string) *CoreAccountUpdate {
 }
 
 // ClearPassword clears the value of the "password" field.
-func (_u *CoreAccountUpdate) ClearPassword() *CoreAccountUpdate {
+func (_u *UserAccountUpdate) ClearPassword() *UserAccountUpdate {
 	_u.mutation.ClearPassword()
 	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_u *CoreAccountUpdate) SetUpdatedAt(v time.Time) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetUpdatedAt(v time.Time) *UserAccountUpdate {
 	_u.mutation.SetUpdatedAt(v)
 	return _u
 }
 
 // SetUser sets the "user" edge to the User entity.
-func (_u *CoreAccountUpdate) SetUser(v *User) *CoreAccountUpdate {
+func (_u *UserAccountUpdate) SetUser(v *User) *UserAccountUpdate {
 	return _u.SetUserID(v.ID)
 }
 
-// Mutation returns the CoreAccountMutation object of the builder.
-func (_u *CoreAccountUpdate) Mutation() *CoreAccountMutation {
+// Mutation returns the UserAccountMutation object of the builder.
+func (_u *UserAccountUpdate) Mutation() *UserAccountMutation {
 	return _u.mutation
 }
 
 // ClearUser clears the "user" edge to the User entity.
-func (_u *CoreAccountUpdate) ClearUser() *CoreAccountUpdate {
+func (_u *UserAccountUpdate) ClearUser() *UserAccountUpdate {
 	_u.mutation.ClearUser()
 	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (_u *CoreAccountUpdate) Save(ctx context.Context) (int, error) {
+func (_u *UserAccountUpdate) Save(ctx context.Context) (int, error) {
 	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *CoreAccountUpdate) SaveX(ctx context.Context) int {
+func (_u *UserAccountUpdate) SaveX(ctx context.Context) int {
 	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -250,49 +250,49 @@ func (_u *CoreAccountUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (_u *CoreAccountUpdate) Exec(ctx context.Context) error {
+func (_u *UserAccountUpdate) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *CoreAccountUpdate) ExecX(ctx context.Context) {
+func (_u *UserAccountUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *CoreAccountUpdate) defaults() {
+func (_u *UserAccountUpdate) defaults() {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := coreaccount.UpdateDefaultUpdatedAt()
+		v := useraccount.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_u *CoreAccountUpdate) check() error {
+func (_u *UserAccountUpdate) check() error {
 	if v, ok := _u.mutation.ProviderID(); ok {
-		if err := coreaccount.ProviderIDValidator(v); err != nil {
-			return &ValidationError{Name: "provider_id", err: fmt.Errorf(`ent: validator failed for field "CoreAccount.provider_id": %w`, err)}
+		if err := useraccount.ProviderIDValidator(v); err != nil {
+			return &ValidationError{Name: "provider_id", err: fmt.Errorf(`ent: validator failed for field "UserAccount.provider_id": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.AccountID(); ok {
-		if err := coreaccount.AccountIDValidator(v); err != nil {
-			return &ValidationError{Name: "account_id", err: fmt.Errorf(`ent: validator failed for field "CoreAccount.account_id": %w`, err)}
+		if err := useraccount.AccountIDValidator(v); err != nil {
+			return &ValidationError{Name: "account_id", err: fmt.Errorf(`ent: validator failed for field "UserAccount.account_id": %w`, err)}
 		}
 	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "CoreAccount.user"`)
+		return errors.New(`ent: clearing a required unique edge "UserAccount.user"`)
 	}
 	return nil
 }
 
-func (_u *CoreAccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+func (_u *UserAccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(coreaccount.Table, coreaccount.Columns, sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(useraccount.Table, useraccount.Columns, sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -301,92 +301,92 @@ func (_u *CoreAccountUpdate) sqlSave(ctx context.Context) (_node int, err error)
 		}
 	}
 	if value, ok := _u.mutation.ProviderID(); ok {
-		_spec.SetField(coreaccount.FieldProviderID, field.TypeString, value)
+		_spec.SetField(useraccount.FieldProviderID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.AccountID(); ok {
-		_spec.SetField(coreaccount.FieldAccountID, field.TypeString, value)
+		_spec.SetField(useraccount.FieldAccountID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.AccessToken(); ok {
-		_spec.SetField(coreaccount.FieldAccessToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldAccessToken, field.TypeString, value)
 	}
 	if _u.mutation.AccessTokenCleared() {
-		_spec.ClearField(coreaccount.FieldAccessToken, field.TypeString)
+		_spec.ClearField(useraccount.FieldAccessToken, field.TypeString)
 	}
 	if value, ok := _u.mutation.RefreshToken(); ok {
-		_spec.SetField(coreaccount.FieldRefreshToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldRefreshToken, field.TypeString, value)
 	}
 	if _u.mutation.RefreshTokenCleared() {
-		_spec.ClearField(coreaccount.FieldRefreshToken, field.TypeString)
+		_spec.ClearField(useraccount.FieldRefreshToken, field.TypeString)
 	}
 	if value, ok := _u.mutation.IDToken(); ok {
-		_spec.SetField(coreaccount.FieldIDToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldIDToken, field.TypeString, value)
 	}
 	if _u.mutation.IDTokenCleared() {
-		_spec.ClearField(coreaccount.FieldIDToken, field.TypeString)
+		_spec.ClearField(useraccount.FieldIDToken, field.TypeString)
 	}
 	if value, ok := _u.mutation.AccessTokenExpiresAt(); ok {
-		_spec.SetField(coreaccount.FieldAccessTokenExpiresAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldAccessTokenExpiresAt, field.TypeTime, value)
 	}
 	if _u.mutation.AccessTokenExpiresAtCleared() {
-		_spec.ClearField(coreaccount.FieldAccessTokenExpiresAt, field.TypeTime)
+		_spec.ClearField(useraccount.FieldAccessTokenExpiresAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.RefreshTokenExpiresAt(); ok {
-		_spec.SetField(coreaccount.FieldRefreshTokenExpiresAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldRefreshTokenExpiresAt, field.TypeTime, value)
 	}
 	if _u.mutation.RefreshTokenExpiresAtCleared() {
-		_spec.ClearField(coreaccount.FieldRefreshTokenExpiresAt, field.TypeTime)
+		_spec.ClearField(useraccount.FieldRefreshTokenExpiresAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Scope(); ok {
-		_spec.SetField(coreaccount.FieldScope, field.TypeString, value)
+		_spec.SetField(useraccount.FieldScope, field.TypeString, value)
 	}
 	if _u.mutation.ScopeCleared() {
-		_spec.ClearField(coreaccount.FieldScope, field.TypeString)
+		_spec.ClearField(useraccount.FieldScope, field.TypeString)
 	}
 	if value, ok := _u.mutation.Password(); ok {
-		_spec.SetField(coreaccount.FieldPassword, field.TypeString, value)
+		_spec.SetField(useraccount.FieldPassword, field.TypeString, value)
 	}
 	if _u.mutation.PasswordCleared() {
-		_spec.ClearField(coreaccount.FieldPassword, field.TypeString)
+		_spec.ClearField(useraccount.FieldPassword, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(coreaccount.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   coreaccount.UserTable,
-			Columns: []string{coreaccount.UserColumn},
+			Table:   useraccount.UserTable,
+			Columns: []string{useraccount.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   coreaccount.UserTable,
-			Columns: []string{coreaccount.UserColumn},
+			Table:   useraccount.UserTable,
+			Columns: []string{useraccount.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_spec.Node.Schema = _u.schemaConfig.CoreAccount
+	_spec.Node.Schema = _u.schemaConfig.UserAccount
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{coreaccount.Label}
+			err = &NotFoundError{useraccount.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -396,22 +396,22 @@ func (_u *CoreAccountUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	return _node, nil
 }
 
-// CoreAccountUpdateOne is the builder for updating a single CoreAccount entity.
-type CoreAccountUpdateOne struct {
+// UserAccountUpdateOne is the builder for updating a single UserAccount entity.
+type UserAccountUpdateOne struct {
 	config
 	fields   []string
 	hooks    []Hook
-	mutation *CoreAccountMutation
+	mutation *UserAccountMutation
 }
 
 // SetUserID sets the "user_id" field.
-func (_u *CoreAccountUpdateOne) SetUserID(v int64) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetUserID(v int64) *UserAccountUpdateOne {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableUserID(v *int64) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableUserID(v *int64) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -419,13 +419,13 @@ func (_u *CoreAccountUpdateOne) SetNillableUserID(v *int64) *CoreAccountUpdateOn
 }
 
 // SetProviderID sets the "provider_id" field.
-func (_u *CoreAccountUpdateOne) SetProviderID(v string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetProviderID(v string) *UserAccountUpdateOne {
 	_u.mutation.SetProviderID(v)
 	return _u
 }
 
 // SetNillableProviderID sets the "provider_id" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableProviderID(v *string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableProviderID(v *string) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetProviderID(*v)
 	}
@@ -433,13 +433,13 @@ func (_u *CoreAccountUpdateOne) SetNillableProviderID(v *string) *CoreAccountUpd
 }
 
 // SetAccountID sets the "account_id" field.
-func (_u *CoreAccountUpdateOne) SetAccountID(v string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetAccountID(v string) *UserAccountUpdateOne {
 	_u.mutation.SetAccountID(v)
 	return _u
 }
 
 // SetNillableAccountID sets the "account_id" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableAccountID(v *string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableAccountID(v *string) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetAccountID(*v)
 	}
@@ -447,13 +447,13 @@ func (_u *CoreAccountUpdateOne) SetNillableAccountID(v *string) *CoreAccountUpda
 }
 
 // SetAccessToken sets the "access_token" field.
-func (_u *CoreAccountUpdateOne) SetAccessToken(v string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetAccessToken(v string) *UserAccountUpdateOne {
 	_u.mutation.SetAccessToken(v)
 	return _u
 }
 
 // SetNillableAccessToken sets the "access_token" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableAccessToken(v *string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableAccessToken(v *string) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetAccessToken(*v)
 	}
@@ -461,19 +461,19 @@ func (_u *CoreAccountUpdateOne) SetNillableAccessToken(v *string) *CoreAccountUp
 }
 
 // ClearAccessToken clears the value of the "access_token" field.
-func (_u *CoreAccountUpdateOne) ClearAccessToken() *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) ClearAccessToken() *UserAccountUpdateOne {
 	_u.mutation.ClearAccessToken()
 	return _u
 }
 
 // SetRefreshToken sets the "refresh_token" field.
-func (_u *CoreAccountUpdateOne) SetRefreshToken(v string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetRefreshToken(v string) *UserAccountUpdateOne {
 	_u.mutation.SetRefreshToken(v)
 	return _u
 }
 
 // SetNillableRefreshToken sets the "refresh_token" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableRefreshToken(v *string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableRefreshToken(v *string) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetRefreshToken(*v)
 	}
@@ -481,19 +481,19 @@ func (_u *CoreAccountUpdateOne) SetNillableRefreshToken(v *string) *CoreAccountU
 }
 
 // ClearRefreshToken clears the value of the "refresh_token" field.
-func (_u *CoreAccountUpdateOne) ClearRefreshToken() *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) ClearRefreshToken() *UserAccountUpdateOne {
 	_u.mutation.ClearRefreshToken()
 	return _u
 }
 
 // SetIDToken sets the "id_token" field.
-func (_u *CoreAccountUpdateOne) SetIDToken(v string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetIDToken(v string) *UserAccountUpdateOne {
 	_u.mutation.SetIDToken(v)
 	return _u
 }
 
 // SetNillableIDToken sets the "id_token" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableIDToken(v *string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableIDToken(v *string) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetIDToken(*v)
 	}
@@ -501,19 +501,19 @@ func (_u *CoreAccountUpdateOne) SetNillableIDToken(v *string) *CoreAccountUpdate
 }
 
 // ClearIDToken clears the value of the "id_token" field.
-func (_u *CoreAccountUpdateOne) ClearIDToken() *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) ClearIDToken() *UserAccountUpdateOne {
 	_u.mutation.ClearIDToken()
 	return _u
 }
 
 // SetAccessTokenExpiresAt sets the "access_token_expires_at" field.
-func (_u *CoreAccountUpdateOne) SetAccessTokenExpiresAt(v time.Time) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetAccessTokenExpiresAt(v time.Time) *UserAccountUpdateOne {
 	_u.mutation.SetAccessTokenExpiresAt(v)
 	return _u
 }
 
 // SetNillableAccessTokenExpiresAt sets the "access_token_expires_at" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableAccessTokenExpiresAt(v *time.Time) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableAccessTokenExpiresAt(v *time.Time) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetAccessTokenExpiresAt(*v)
 	}
@@ -521,19 +521,19 @@ func (_u *CoreAccountUpdateOne) SetNillableAccessTokenExpiresAt(v *time.Time) *C
 }
 
 // ClearAccessTokenExpiresAt clears the value of the "access_token_expires_at" field.
-func (_u *CoreAccountUpdateOne) ClearAccessTokenExpiresAt() *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) ClearAccessTokenExpiresAt() *UserAccountUpdateOne {
 	_u.mutation.ClearAccessTokenExpiresAt()
 	return _u
 }
 
 // SetRefreshTokenExpiresAt sets the "refresh_token_expires_at" field.
-func (_u *CoreAccountUpdateOne) SetRefreshTokenExpiresAt(v time.Time) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetRefreshTokenExpiresAt(v time.Time) *UserAccountUpdateOne {
 	_u.mutation.SetRefreshTokenExpiresAt(v)
 	return _u
 }
 
 // SetNillableRefreshTokenExpiresAt sets the "refresh_token_expires_at" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableRefreshTokenExpiresAt(v *time.Time) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableRefreshTokenExpiresAt(v *time.Time) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetRefreshTokenExpiresAt(*v)
 	}
@@ -541,19 +541,19 @@ func (_u *CoreAccountUpdateOne) SetNillableRefreshTokenExpiresAt(v *time.Time) *
 }
 
 // ClearRefreshTokenExpiresAt clears the value of the "refresh_token_expires_at" field.
-func (_u *CoreAccountUpdateOne) ClearRefreshTokenExpiresAt() *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) ClearRefreshTokenExpiresAt() *UserAccountUpdateOne {
 	_u.mutation.ClearRefreshTokenExpiresAt()
 	return _u
 }
 
 // SetScope sets the "scope" field.
-func (_u *CoreAccountUpdateOne) SetScope(v string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetScope(v string) *UserAccountUpdateOne {
 	_u.mutation.SetScope(v)
 	return _u
 }
 
 // SetNillableScope sets the "scope" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillableScope(v *string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillableScope(v *string) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetScope(*v)
 	}
@@ -561,19 +561,19 @@ func (_u *CoreAccountUpdateOne) SetNillableScope(v *string) *CoreAccountUpdateOn
 }
 
 // ClearScope clears the value of the "scope" field.
-func (_u *CoreAccountUpdateOne) ClearScope() *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) ClearScope() *UserAccountUpdateOne {
 	_u.mutation.ClearScope()
 	return _u
 }
 
 // SetPassword sets the "password" field.
-func (_u *CoreAccountUpdateOne) SetPassword(v string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetPassword(v string) *UserAccountUpdateOne {
 	_u.mutation.SetPassword(v)
 	return _u
 }
 
 // SetNillablePassword sets the "password" field if the given value is not nil.
-func (_u *CoreAccountUpdateOne) SetNillablePassword(v *string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetNillablePassword(v *string) *UserAccountUpdateOne {
 	if v != nil {
 		_u.SetPassword(*v)
 	}
@@ -581,54 +581,54 @@ func (_u *CoreAccountUpdateOne) SetNillablePassword(v *string) *CoreAccountUpdat
 }
 
 // ClearPassword clears the value of the "password" field.
-func (_u *CoreAccountUpdateOne) ClearPassword() *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) ClearPassword() *UserAccountUpdateOne {
 	_u.mutation.ClearPassword()
 	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_u *CoreAccountUpdateOne) SetUpdatedAt(v time.Time) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetUpdatedAt(v time.Time) *UserAccountUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
 	return _u
 }
 
 // SetUser sets the "user" edge to the User entity.
-func (_u *CoreAccountUpdateOne) SetUser(v *User) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) SetUser(v *User) *UserAccountUpdateOne {
 	return _u.SetUserID(v.ID)
 }
 
-// Mutation returns the CoreAccountMutation object of the builder.
-func (_u *CoreAccountUpdateOne) Mutation() *CoreAccountMutation {
+// Mutation returns the UserAccountMutation object of the builder.
+func (_u *UserAccountUpdateOne) Mutation() *UserAccountMutation {
 	return _u.mutation
 }
 
 // ClearUser clears the "user" edge to the User entity.
-func (_u *CoreAccountUpdateOne) ClearUser() *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) ClearUser() *UserAccountUpdateOne {
 	_u.mutation.ClearUser()
 	return _u
 }
 
-// Where appends a list predicates to the CoreAccountUpdate builder.
-func (_u *CoreAccountUpdateOne) Where(ps ...predicate.CoreAccount) *CoreAccountUpdateOne {
+// Where appends a list predicates to the UserAccountUpdate builder.
+func (_u *UserAccountUpdateOne) Where(ps ...predicate.UserAccount) *UserAccountUpdateOne {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (_u *CoreAccountUpdateOne) Select(field string, fields ...string) *CoreAccountUpdateOne {
+func (_u *UserAccountUpdateOne) Select(field string, fields ...string) *UserAccountUpdateOne {
 	_u.fields = append([]string{field}, fields...)
 	return _u
 }
 
-// Save executes the query and returns the updated CoreAccount entity.
-func (_u *CoreAccountUpdateOne) Save(ctx context.Context) (*CoreAccount, error) {
+// Save executes the query and returns the updated UserAccount entity.
+func (_u *UserAccountUpdateOne) Save(ctx context.Context) (*UserAccount, error) {
 	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *CoreAccountUpdateOne) SaveX(ctx context.Context) *CoreAccount {
+func (_u *UserAccountUpdateOne) SaveX(ctx context.Context) *UserAccount {
 	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -637,62 +637,62 @@ func (_u *CoreAccountUpdateOne) SaveX(ctx context.Context) *CoreAccount {
 }
 
 // Exec executes the query on the entity.
-func (_u *CoreAccountUpdateOne) Exec(ctx context.Context) error {
+func (_u *UserAccountUpdateOne) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *CoreAccountUpdateOne) ExecX(ctx context.Context) {
+func (_u *UserAccountUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *CoreAccountUpdateOne) defaults() {
+func (_u *UserAccountUpdateOne) defaults() {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := coreaccount.UpdateDefaultUpdatedAt()
+		v := useraccount.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_u *CoreAccountUpdateOne) check() error {
+func (_u *UserAccountUpdateOne) check() error {
 	if v, ok := _u.mutation.ProviderID(); ok {
-		if err := coreaccount.ProviderIDValidator(v); err != nil {
-			return &ValidationError{Name: "provider_id", err: fmt.Errorf(`ent: validator failed for field "CoreAccount.provider_id": %w`, err)}
+		if err := useraccount.ProviderIDValidator(v); err != nil {
+			return &ValidationError{Name: "provider_id", err: fmt.Errorf(`ent: validator failed for field "UserAccount.provider_id": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.AccountID(); ok {
-		if err := coreaccount.AccountIDValidator(v); err != nil {
-			return &ValidationError{Name: "account_id", err: fmt.Errorf(`ent: validator failed for field "CoreAccount.account_id": %w`, err)}
+		if err := useraccount.AccountIDValidator(v); err != nil {
+			return &ValidationError{Name: "account_id", err: fmt.Errorf(`ent: validator failed for field "UserAccount.account_id": %w`, err)}
 		}
 	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "CoreAccount.user"`)
+		return errors.New(`ent: clearing a required unique edge "UserAccount.user"`)
 	}
 	return nil
 }
 
-func (_u *CoreAccountUpdateOne) sqlSave(ctx context.Context) (_node *CoreAccount, err error) {
+func (_u *UserAccountUpdateOne) sqlSave(ctx context.Context) (_node *UserAccount, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(coreaccount.Table, coreaccount.Columns, sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(useraccount.Table, useraccount.Columns, sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64))
 	id, ok := _u.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "CoreAccount.id" for update`)}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "UserAccount.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, coreaccount.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, useraccount.FieldID)
 		for _, f := range fields {
-			if !coreaccount.ValidColumn(f) {
+			if !useraccount.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 			}
-			if f != coreaccount.FieldID {
+			if f != useraccount.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -705,95 +705,95 @@ func (_u *CoreAccountUpdateOne) sqlSave(ctx context.Context) (_node *CoreAccount
 		}
 	}
 	if value, ok := _u.mutation.ProviderID(); ok {
-		_spec.SetField(coreaccount.FieldProviderID, field.TypeString, value)
+		_spec.SetField(useraccount.FieldProviderID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.AccountID(); ok {
-		_spec.SetField(coreaccount.FieldAccountID, field.TypeString, value)
+		_spec.SetField(useraccount.FieldAccountID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.AccessToken(); ok {
-		_spec.SetField(coreaccount.FieldAccessToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldAccessToken, field.TypeString, value)
 	}
 	if _u.mutation.AccessTokenCleared() {
-		_spec.ClearField(coreaccount.FieldAccessToken, field.TypeString)
+		_spec.ClearField(useraccount.FieldAccessToken, field.TypeString)
 	}
 	if value, ok := _u.mutation.RefreshToken(); ok {
-		_spec.SetField(coreaccount.FieldRefreshToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldRefreshToken, field.TypeString, value)
 	}
 	if _u.mutation.RefreshTokenCleared() {
-		_spec.ClearField(coreaccount.FieldRefreshToken, field.TypeString)
+		_spec.ClearField(useraccount.FieldRefreshToken, field.TypeString)
 	}
 	if value, ok := _u.mutation.IDToken(); ok {
-		_spec.SetField(coreaccount.FieldIDToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldIDToken, field.TypeString, value)
 	}
 	if _u.mutation.IDTokenCleared() {
-		_spec.ClearField(coreaccount.FieldIDToken, field.TypeString)
+		_spec.ClearField(useraccount.FieldIDToken, field.TypeString)
 	}
 	if value, ok := _u.mutation.AccessTokenExpiresAt(); ok {
-		_spec.SetField(coreaccount.FieldAccessTokenExpiresAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldAccessTokenExpiresAt, field.TypeTime, value)
 	}
 	if _u.mutation.AccessTokenExpiresAtCleared() {
-		_spec.ClearField(coreaccount.FieldAccessTokenExpiresAt, field.TypeTime)
+		_spec.ClearField(useraccount.FieldAccessTokenExpiresAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.RefreshTokenExpiresAt(); ok {
-		_spec.SetField(coreaccount.FieldRefreshTokenExpiresAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldRefreshTokenExpiresAt, field.TypeTime, value)
 	}
 	if _u.mutation.RefreshTokenExpiresAtCleared() {
-		_spec.ClearField(coreaccount.FieldRefreshTokenExpiresAt, field.TypeTime)
+		_spec.ClearField(useraccount.FieldRefreshTokenExpiresAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Scope(); ok {
-		_spec.SetField(coreaccount.FieldScope, field.TypeString, value)
+		_spec.SetField(useraccount.FieldScope, field.TypeString, value)
 	}
 	if _u.mutation.ScopeCleared() {
-		_spec.ClearField(coreaccount.FieldScope, field.TypeString)
+		_spec.ClearField(useraccount.FieldScope, field.TypeString)
 	}
 	if value, ok := _u.mutation.Password(); ok {
-		_spec.SetField(coreaccount.FieldPassword, field.TypeString, value)
+		_spec.SetField(useraccount.FieldPassword, field.TypeString, value)
 	}
 	if _u.mutation.PasswordCleared() {
-		_spec.ClearField(coreaccount.FieldPassword, field.TypeString)
+		_spec.ClearField(useraccount.FieldPassword, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(coreaccount.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   coreaccount.UserTable,
-			Columns: []string{coreaccount.UserColumn},
+			Table:   useraccount.UserTable,
+			Columns: []string{useraccount.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   coreaccount.UserTable,
-			Columns: []string{coreaccount.UserColumn},
+			Table:   useraccount.UserTable,
+			Columns: []string{useraccount.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _u.schemaConfig.CoreAccount
+		edge.Schema = _u.schemaConfig.UserAccount
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_spec.Node.Schema = _u.schemaConfig.CoreAccount
+	_spec.Node.Schema = _u.schemaConfig.UserAccount
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
-	_node = &CoreAccount{config: _u.config}
+	_node = &UserAccount{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{coreaccount.Label}
+			err = &NotFoundError{useraccount.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}

@@ -3,7 +3,6 @@ package config
 var (
 	InitBaseMiddleware = initBaseMiddleware
 	InitFirewall       = initFirewall
-	CheckJWKS          = checkJWKS
 )
 
 // NewWithModules creates an Omed instance with explicit modules and state for testing.

@@ -171,4 +171,3 @@ func toInvitationDomain(inv *ent.WorkspaceInvitation) domain.Invitation {
 		UpdatedAt:   inv.UpdatedAt,
 	}
 }
-

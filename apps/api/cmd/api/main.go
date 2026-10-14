@@ -30,8 +30,6 @@ func main() {
 		EntCli:   entcli,
 	}
 
-	config.WaitForJWKS(cfg, logger)
-
 	omed := config.New(state)
 
 	if err := omed.Run(ctx); err != nil {

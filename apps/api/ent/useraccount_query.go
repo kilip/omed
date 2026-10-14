@@ -11,58 +11,58 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 )
 
-// CoreAccountQuery is the builder for querying CoreAccount entities.
-type CoreAccountQuery struct {
+// UserAccountQuery is the builder for querying UserAccount entities.
+type UserAccountQuery struct {
 	config
 	ctx        *QueryContext
-	order      []coreaccount.OrderOption
+	order      []useraccount.OrderOption
 	inters     []Interceptor
-	predicates []predicate.CoreAccount
+	predicates []predicate.UserAccount
 	withUser   *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the CoreAccountQuery builder.
-func (_q *CoreAccountQuery) Where(ps ...predicate.CoreAccount) *CoreAccountQuery {
+// Where adds a new predicate for the UserAccountQuery builder.
+func (_q *UserAccountQuery) Where(ps ...predicate.UserAccount) *UserAccountQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *CoreAccountQuery) Limit(limit int) *CoreAccountQuery {
+func (_q *UserAccountQuery) Limit(limit int) *UserAccountQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *CoreAccountQuery) Offset(offset int) *CoreAccountQuery {
+func (_q *UserAccountQuery) Offset(offset int) *UserAccountQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *CoreAccountQuery) Unique(unique bool) *CoreAccountQuery {
+func (_q *UserAccountQuery) Unique(unique bool) *UserAccountQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *CoreAccountQuery) Order(o ...coreaccount.OrderOption) *CoreAccountQuery {
+func (_q *UserAccountQuery) Order(o ...useraccount.OrderOption) *UserAccountQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
 // QueryUser chains the current query on the "user" edge.
-func (_q *CoreAccountQuery) QueryUser() *UserQuery {
+func (_q *UserAccountQuery) QueryUser() *UserQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -73,34 +73,34 @@ func (_q *CoreAccountQuery) QueryUser() *UserQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(coreaccount.Table, coreaccount.FieldID, selector),
+			sqlgraph.From(useraccount.Table, useraccount.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, coreaccount.UserTable, coreaccount.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, useraccount.UserTable, useraccount.UserColumn),
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.CoreAccount
+		step.Edge.Schema = schemaConfig.UserAccount
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// First returns the first CoreAccount entity from the query.
-// Returns a *NotFoundError when no CoreAccount was found.
-func (_q *CoreAccountQuery) First(ctx context.Context) (*CoreAccount, error) {
+// First returns the first UserAccount entity from the query.
+// Returns a *NotFoundError when no UserAccount was found.
+func (_q *UserAccountQuery) First(ctx context.Context) (*UserAccount, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{coreaccount.Label}
+		return nil, &NotFoundError{useraccount.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *CoreAccountQuery) FirstX(ctx context.Context) *CoreAccount {
+func (_q *UserAccountQuery) FirstX(ctx context.Context) *UserAccount {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -108,22 +108,22 @@ func (_q *CoreAccountQuery) FirstX(ctx context.Context) *CoreAccount {
 	return node
 }
 
-// FirstID returns the first CoreAccount ID from the query.
-// Returns a *NotFoundError when no CoreAccount ID was found.
-func (_q *CoreAccountQuery) FirstID(ctx context.Context) (id int64, err error) {
+// FirstID returns the first UserAccount ID from the query.
+// Returns a *NotFoundError when no UserAccount ID was found.
+func (_q *UserAccountQuery) FirstID(ctx context.Context) (id int64, err error) {
 	var ids []int64
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{coreaccount.Label}
+		err = &NotFoundError{useraccount.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *CoreAccountQuery) FirstIDX(ctx context.Context) int64 {
+func (_q *UserAccountQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -131,10 +131,10 @@ func (_q *CoreAccountQuery) FirstIDX(ctx context.Context) int64 {
 	return id
 }
 
-// Only returns a single CoreAccount entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one CoreAccount entity is found.
-// Returns a *NotFoundError when no CoreAccount entities are found.
-func (_q *CoreAccountQuery) Only(ctx context.Context) (*CoreAccount, error) {
+// Only returns a single UserAccount entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one UserAccount entity is found.
+// Returns a *NotFoundError when no UserAccount entities are found.
+func (_q *UserAccountQuery) Only(ctx context.Context) (*UserAccount, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -143,14 +143,14 @@ func (_q *CoreAccountQuery) Only(ctx context.Context) (*CoreAccount, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{coreaccount.Label}
+		return nil, &NotFoundError{useraccount.Label}
 	default:
-		return nil, &NotSingularError{coreaccount.Label}
+		return nil, &NotSingularError{useraccount.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *CoreAccountQuery) OnlyX(ctx context.Context) *CoreAccount {
+func (_q *UserAccountQuery) OnlyX(ctx context.Context) *UserAccount {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -158,10 +158,10 @@ func (_q *CoreAccountQuery) OnlyX(ctx context.Context) *CoreAccount {
 	return node
 }
 
-// OnlyID is like Only, but returns the only CoreAccount ID in the query.
-// Returns a *NotSingularError when more than one CoreAccount ID is found.
+// OnlyID is like Only, but returns the only UserAccount ID in the query.
+// Returns a *NotSingularError when more than one UserAccount ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *CoreAccountQuery) OnlyID(ctx context.Context) (id int64, err error) {
+func (_q *UserAccountQuery) OnlyID(ctx context.Context) (id int64, err error) {
 	var ids []int64
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -170,15 +170,15 @@ func (_q *CoreAccountQuery) OnlyID(ctx context.Context) (id int64, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{coreaccount.Label}
+		err = &NotFoundError{useraccount.Label}
 	default:
-		err = &NotSingularError{coreaccount.Label}
+		err = &NotSingularError{useraccount.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *CoreAccountQuery) OnlyIDX(ctx context.Context) int64 {
+func (_q *UserAccountQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -186,18 +186,18 @@ func (_q *CoreAccountQuery) OnlyIDX(ctx context.Context) int64 {
 	return id
 }
 
-// All executes the query and returns a list of CoreAccounts.
-func (_q *CoreAccountQuery) All(ctx context.Context) ([]*CoreAccount, error) {
+// All executes the query and returns a list of UserAccounts.
+func (_q *UserAccountQuery) All(ctx context.Context) ([]*UserAccount, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*CoreAccount, *CoreAccountQuery]()
-	return withInterceptors[[]*CoreAccount](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*UserAccount, *UserAccountQuery]()
+	return withInterceptors[[]*UserAccount](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *CoreAccountQuery) AllX(ctx context.Context) []*CoreAccount {
+func (_q *UserAccountQuery) AllX(ctx context.Context) []*UserAccount {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -205,20 +205,20 @@ func (_q *CoreAccountQuery) AllX(ctx context.Context) []*CoreAccount {
 	return nodes
 }
 
-// IDs executes the query and returns a list of CoreAccount IDs.
-func (_q *CoreAccountQuery) IDs(ctx context.Context) (ids []int64, err error) {
+// IDs executes the query and returns a list of UserAccount IDs.
+func (_q *UserAccountQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(coreaccount.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(useraccount.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *CoreAccountQuery) IDsX(ctx context.Context) []int64 {
+func (_q *UserAccountQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -227,16 +227,16 @@ func (_q *CoreAccountQuery) IDsX(ctx context.Context) []int64 {
 }
 
 // Count returns the count of the given query.
-func (_q *CoreAccountQuery) Count(ctx context.Context) (int, error) {
+func (_q *UserAccountQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*CoreAccountQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*UserAccountQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *CoreAccountQuery) CountX(ctx context.Context) int {
+func (_q *UserAccountQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -245,7 +245,7 @@ func (_q *CoreAccountQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *CoreAccountQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *UserAccountQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -258,7 +258,7 @@ func (_q *CoreAccountQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *CoreAccountQuery) ExistX(ctx context.Context) bool {
+func (_q *UserAccountQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -266,18 +266,18 @@ func (_q *CoreAccountQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the CoreAccountQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the UserAccountQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *CoreAccountQuery) Clone() *CoreAccountQuery {
+func (_q *UserAccountQuery) Clone() *UserAccountQuery {
 	if _q == nil {
 		return nil
 	}
-	return &CoreAccountQuery{
+	return &UserAccountQuery{
 		config:     _q.config,
 		ctx:        _q.ctx.Clone(),
-		order:      append([]coreaccount.OrderOption{}, _q.order...),
+		order:      append([]useraccount.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.CoreAccount{}, _q.predicates...),
+		predicates: append([]predicate.UserAccount{}, _q.predicates...),
 		withUser:   _q.withUser.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -287,7 +287,7 @@ func (_q *CoreAccountQuery) Clone() *CoreAccountQuery {
 
 // WithUser tells the query-builder to eager-load the nodes that are connected to
 // the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CoreAccountQuery) WithUser(opts ...func(*UserQuery)) *CoreAccountQuery {
+func (_q *UserAccountQuery) WithUser(opts ...func(*UserQuery)) *UserAccountQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -306,15 +306,15 @@ func (_q *CoreAccountQuery) WithUser(opts ...func(*UserQuery)) *CoreAccountQuery
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.CoreAccount.Query().
-//		GroupBy(coreaccount.FieldUserID).
+//	client.UserAccount.Query().
+//		GroupBy(useraccount.FieldUserID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *CoreAccountQuery) GroupBy(field string, fields ...string) *CoreAccountGroupBy {
+func (_q *UserAccountQuery) GroupBy(field string, fields ...string) *UserAccountGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &CoreAccountGroupBy{build: _q}
+	grbuild := &UserAccountGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = coreaccount.Label
+	grbuild.label = useraccount.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -328,23 +328,23 @@ func (_q *CoreAccountQuery) GroupBy(field string, fields ...string) *CoreAccount
 //		UserID int64 `json:"user_id,omitempty"`
 //	}
 //
-//	client.CoreAccount.Query().
-//		Select(coreaccount.FieldUserID).
+//	client.UserAccount.Query().
+//		Select(useraccount.FieldUserID).
 //		Scan(ctx, &v)
-func (_q *CoreAccountQuery) Select(fields ...string) *CoreAccountSelect {
+func (_q *UserAccountQuery) Select(fields ...string) *UserAccountSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &CoreAccountSelect{CoreAccountQuery: _q}
-	sbuild.label = coreaccount.Label
+	sbuild := &UserAccountSelect{UserAccountQuery: _q}
+	sbuild.label = useraccount.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a CoreAccountSelect configured with the given aggregations.
-func (_q *CoreAccountQuery) Aggregate(fns ...AggregateFunc) *CoreAccountSelect {
+// Aggregate returns a UserAccountSelect configured with the given aggregations.
+func (_q *UserAccountQuery) Aggregate(fns ...AggregateFunc) *UserAccountSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *CoreAccountQuery) prepareQuery(ctx context.Context) error {
+func (_q *UserAccountQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -356,7 +356,7 @@ func (_q *CoreAccountQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !coreaccount.ValidColumn(f) {
+		if !useraccount.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -370,24 +370,24 @@ func (_q *CoreAccountQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *CoreAccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CoreAccount, error) {
+func (_q *UserAccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UserAccount, error) {
 	var (
-		nodes       = []*CoreAccount{}
+		nodes       = []*UserAccount{}
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
 			_q.withUser != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*CoreAccount).scanValues(nil, columns)
+		return (*UserAccount).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &CoreAccount{config: _q.config}
+		node := &UserAccount{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
-	_spec.Node.Schema = _q.schemaConfig.CoreAccount
+	_spec.Node.Schema = _q.schemaConfig.UserAccount
 	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
 	for i := range hooks {
 		hooks[i](ctx, _spec)
@@ -400,16 +400,16 @@ func (_q *CoreAccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	}
 	if query := _q.withUser; query != nil {
 		if err := _q.loadUser(ctx, query, nodes, nil,
-			func(n *CoreAccount, e *User) { n.Edges.User = e }); err != nil {
+			func(n *UserAccount, e *User) { n.Edges.User = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *CoreAccountQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*CoreAccount, init func(*CoreAccount), assign func(*CoreAccount, *User)) error {
+func (_q *UserAccountQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*UserAccount, init func(*UserAccount), assign func(*UserAccount, *User)) error {
 	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*CoreAccount)
+	nodeids := make(map[int64][]*UserAccount)
 	for i := range nodes {
 		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
@@ -437,9 +437,9 @@ func (_q *CoreAccountQuery) loadUser(ctx context.Context, query *UserQuery, node
 	return nil
 }
 
-func (_q *CoreAccountQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *UserAccountQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
-	_spec.Node.Schema = _q.schemaConfig.CoreAccount
+	_spec.Node.Schema = _q.schemaConfig.UserAccount
 	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -448,8 +448,8 @@ func (_q *CoreAccountQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *CoreAccountQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(coreaccount.Table, coreaccount.Columns, sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64))
+func (_q *UserAccountQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(useraccount.Table, useraccount.Columns, sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -458,14 +458,14 @@ func (_q *CoreAccountQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, coreaccount.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, useraccount.FieldID)
 		for i := range fields {
-			if fields[i] != coreaccount.FieldID {
+			if fields[i] != useraccount.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if _q.withUser != nil {
-			_spec.Node.AddColumnOnce(coreaccount.FieldUserID)
+			_spec.Node.AddColumnOnce(useraccount.FieldUserID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -491,12 +491,12 @@ func (_q *CoreAccountQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *CoreAccountQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *UserAccountQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(coreaccount.Table)
+	t1 := builder.Table(useraccount.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = coreaccount.Columns
+		columns = useraccount.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -506,7 +506,7 @@ func (_q *CoreAccountQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	t1.Schema(_q.schemaConfig.CoreAccount)
+	t1.Schema(_q.schemaConfig.UserAccount)
 	ctx = internal.NewSchemaConfigContext(ctx, _q.schemaConfig)
 	selector.WithContext(ctx)
 	for _, p := range _q.predicates {
@@ -526,28 +526,28 @@ func (_q *CoreAccountQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// CoreAccountGroupBy is the group-by builder for CoreAccount entities.
-type CoreAccountGroupBy struct {
+// UserAccountGroupBy is the group-by builder for UserAccount entities.
+type UserAccountGroupBy struct {
 	selector
-	build *CoreAccountQuery
+	build *UserAccountQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *CoreAccountGroupBy) Aggregate(fns ...AggregateFunc) *CoreAccountGroupBy {
+func (_g *UserAccountGroupBy) Aggregate(fns ...AggregateFunc) *UserAccountGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *CoreAccountGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *UserAccountGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*CoreAccountQuery, *CoreAccountGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*UserAccountQuery, *UserAccountGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *CoreAccountGroupBy) sqlScan(ctx context.Context, root *CoreAccountQuery, v any) error {
+func (_g *UserAccountGroupBy) sqlScan(ctx context.Context, root *UserAccountQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -574,28 +574,28 @@ func (_g *CoreAccountGroupBy) sqlScan(ctx context.Context, root *CoreAccountQuer
 	return sql.ScanSlice(rows, v)
 }
 
-// CoreAccountSelect is the builder for selecting fields of CoreAccount entities.
-type CoreAccountSelect struct {
-	*CoreAccountQuery
+// UserAccountSelect is the builder for selecting fields of UserAccount entities.
+type UserAccountSelect struct {
+	*UserAccountQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *CoreAccountSelect) Aggregate(fns ...AggregateFunc) *CoreAccountSelect {
+func (_s *UserAccountSelect) Aggregate(fns ...AggregateFunc) *UserAccountSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *CoreAccountSelect) Scan(ctx context.Context, v any) error {
+func (_s *UserAccountSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*CoreAccountQuery, *CoreAccountSelect](ctx, _s.CoreAccountQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*UserAccountQuery, *UserAccountSelect](ctx, _s.UserAccountQuery, _s, _s.inters, v)
 }
 
-func (_s *CoreAccountSelect) sqlScan(ctx context.Context, root *CoreAccountQuery, v any) error {
+func (_s *UserAccountSelect) sqlScan(ctx context.Context, root *UserAccountQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

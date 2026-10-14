@@ -5,7 +5,7 @@ import (
 	"context"
 
 	"github.com/kilip/omed/api/ent"
-	"github.com/kilip/omed/api/ent/coreaccount"
+	"github.com/kilip/omed/api/ent/useraccount"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
 )
@@ -23,10 +23,10 @@ func NewAccountRepository(cli *ent.Client) AccountRepository {
 // FindByProviderAndAccountID retrieves an account by provider ID and external account ID.
 func (r AccountRepository) FindByProviderAndAccountID(ctx context.Context, providerID, accountID string) (domain.Account, error) {
 	var acc domain.Account
-	a, err := r.cli.CoreAccount.Query().
+	a, err := r.cli.UserAccount.Query().
 		Where(
-			coreaccount.ProviderIDEQ(providerID),
-			coreaccount.AccountIDEQ(accountID),
+			useraccount.ProviderIDEQ(providerID),
+			useraccount.AccountIDEQ(accountID),
 		).
 		Only(ctx)
 	if err != nil {
@@ -40,8 +40,8 @@ func (r AccountRepository) FindByProviderAndAccountID(ctx context.Context, provi
 
 // FindByUserID retrieves all accounts linked to a given user ID.
 func (r AccountRepository) FindByUserID(ctx context.Context, userID int64) ([]domain.Account, error) {
-	accounts, err := r.cli.CoreAccount.Query().
-		Where(coreaccount.UserIDEQ(userID)).
+	accounts, err := r.cli.UserAccount.Query().
+		Where(useraccount.UserIDEQ(userID)).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (r AccountRepository) FindByUserID(ctx context.Context, userID int64) ([]do
 
 // Upsert inserts a new account or updates an existing account with latest token data.
 func (r AccountRepository) Upsert(ctx context.Context, a domain.Account) (domain.Account, error) {
-	builder := r.cli.CoreAccount.Create().
+	builder := r.cli.UserAccount.Create().
 		SetUserID(a.UserID).
 		SetProviderID(a.ProviderID).
 		SetAccountID(a.AccountID)
@@ -82,7 +82,7 @@ func (r AccountRepository) Upsert(ctx context.Context, a domain.Account) (domain
 		builder.SetPassword(a.Password)
 	}
 
-	err := builder.OnConflictColumns(coreaccount.FieldProviderID, coreaccount.FieldAccountID).
+	err := builder.OnConflictColumns(useraccount.FieldProviderID, useraccount.FieldAccountID).
 		UpdateNewValues().
 		Exec(ctx)
 	if err != nil {
@@ -94,13 +94,13 @@ func (r AccountRepository) Upsert(ctx context.Context, a domain.Account) (domain
 
 // DeleteByUserID deletes all accounts associated with a user ID.
 func (r AccountRepository) DeleteByUserID(ctx context.Context, userID int64) error {
-	_, err := r.cli.CoreAccount.Delete().
-		Where(coreaccount.UserIDEQ(userID)).
+	_, err := r.cli.UserAccount.Delete().
+		Where(useraccount.UserIDEQ(userID)).
 		Exec(ctx)
 	return err
 }
 
-func toAccountDomain(a *ent.CoreAccount) domain.Account {
+func toAccountDomain(a *ent.UserAccount) domain.Account {
 	acc := domain.Account{
 		ID:           a.ID,
 		UserID:       a.UserID,
@@ -122,4 +122,3 @@ func toAccountDomain(a *ent.CoreAccount) domain.Account {
 	}
 	return acc
 }
-

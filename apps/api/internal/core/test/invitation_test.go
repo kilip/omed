@@ -232,4 +232,3 @@ func (s *InvitationSuite) Test_Revoke_Successfully() {
 func TestInvitationSuite(t *testing.T) {
 	suite.Run(t, new(InvitationSuite))
 }
-

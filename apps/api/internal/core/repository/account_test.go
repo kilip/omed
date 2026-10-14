@@ -34,7 +34,7 @@ func (s *AccountRepoSuite) TearDownSuite() {
 
 func (s *AccountRepoSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(context.Background())
-	_, _ = s.client.CoreAccount.Delete().Exec(ctx)
+	_, _ = s.client.UserAccount.Delete().Exec(ctx)
 	_, _ = s.client.User.Delete().Exec(ctx)
 }
 
@@ -110,4 +110,3 @@ func (s *AccountRepoSuite) Test_FindByUserID() {
 func TestAccountRepoSuite(t *testing.T) {
 	suite.Run(t, new(AccountRepoSuite))
 }
-

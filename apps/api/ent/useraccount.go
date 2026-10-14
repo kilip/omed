@@ -9,12 +9,12 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 )
 
-// CoreAccount is the model entity for the CoreAccount schema.
-type CoreAccount struct {
+// UserAccount is the model entity for the UserAccount schema.
+type UserAccount struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
@@ -43,13 +43,13 @@ type CoreAccount struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the CoreAccountQuery when eager-loading is set.
-	Edges        CoreAccountEdges `json:"edges"`
+	// The values are being populated by the UserAccountQuery when eager-loading is set.
+	Edges        UserAccountEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
-// CoreAccountEdges holds the relations/edges for other nodes in the graph.
-type CoreAccountEdges struct {
+// UserAccountEdges holds the relations/edges for other nodes in the graph.
+type UserAccountEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -59,7 +59,7 @@ type CoreAccountEdges struct {
 
 // UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e CoreAccountEdges) UserOrErr() (*User, error) {
+func (e UserAccountEdges) UserOrErr() (*User, error) {
 	if e.User != nil {
 		return e.User, nil
 	} else if e.loadedTypes[0] {
@@ -69,15 +69,15 @@ func (e CoreAccountEdges) UserOrErr() (*User, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*CoreAccount) scanValues(columns []string) ([]any, error) {
+func (*UserAccount) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case coreaccount.FieldID, coreaccount.FieldUserID:
+		case useraccount.FieldID, useraccount.FieldUserID:
 			values[i] = new(sql.NullInt64)
-		case coreaccount.FieldProviderID, coreaccount.FieldAccountID, coreaccount.FieldAccessToken, coreaccount.FieldRefreshToken, coreaccount.FieldIDToken, coreaccount.FieldScope, coreaccount.FieldPassword:
+		case useraccount.FieldProviderID, useraccount.FieldAccountID, useraccount.FieldAccessToken, useraccount.FieldRefreshToken, useraccount.FieldIDToken, useraccount.FieldScope, useraccount.FieldPassword:
 			values[i] = new(sql.NullString)
-		case coreaccount.FieldAccessTokenExpiresAt, coreaccount.FieldRefreshTokenExpiresAt, coreaccount.FieldCreatedAt, coreaccount.FieldUpdatedAt:
+		case useraccount.FieldAccessTokenExpiresAt, useraccount.FieldRefreshTokenExpiresAt, useraccount.FieldCreatedAt, useraccount.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -87,86 +87,86 @@ func (*CoreAccount) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the CoreAccount fields.
-func (_m *CoreAccount) assignValues(columns []string, values []any) error {
+// to the UserAccount fields.
+func (_m *UserAccount) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case coreaccount.FieldID:
+		case useraccount.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int64(value.Int64)
-		case coreaccount.FieldUserID:
+		case useraccount.FieldUserID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
 				_m.UserID = value.Int64
 			}
-		case coreaccount.FieldProviderID:
+		case useraccount.FieldProviderID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field provider_id", values[i])
 			} else if value.Valid {
 				_m.ProviderID = value.String
 			}
-		case coreaccount.FieldAccountID:
+		case useraccount.FieldAccountID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field account_id", values[i])
 			} else if value.Valid {
 				_m.AccountID = value.String
 			}
-		case coreaccount.FieldAccessToken:
+		case useraccount.FieldAccessToken:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field access_token", values[i])
 			} else if value.Valid {
 				_m.AccessToken = value.String
 			}
-		case coreaccount.FieldRefreshToken:
+		case useraccount.FieldRefreshToken:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field refresh_token", values[i])
 			} else if value.Valid {
 				_m.RefreshToken = value.String
 			}
-		case coreaccount.FieldIDToken:
+		case useraccount.FieldIDToken:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id_token", values[i])
 			} else if value.Valid {
 				_m.IDToken = value.String
 			}
-		case coreaccount.FieldAccessTokenExpiresAt:
+		case useraccount.FieldAccessTokenExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field access_token_expires_at", values[i])
 			} else if value.Valid {
 				_m.AccessTokenExpiresAt = value.Time
 			}
-		case coreaccount.FieldRefreshTokenExpiresAt:
+		case useraccount.FieldRefreshTokenExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field refresh_token_expires_at", values[i])
 			} else if value.Valid {
 				_m.RefreshTokenExpiresAt = value.Time
 			}
-		case coreaccount.FieldScope:
+		case useraccount.FieldScope:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field scope", values[i])
 			} else if value.Valid {
 				_m.Scope = value.String
 			}
-		case coreaccount.FieldPassword:
+		case useraccount.FieldPassword:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field password", values[i])
 			} else if value.Valid {
 				_m.Password = value.String
 			}
-		case coreaccount.FieldCreatedAt:
+		case useraccount.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case coreaccount.FieldUpdatedAt:
+		case useraccount.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
@@ -179,39 +179,39 @@ func (_m *CoreAccount) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the CoreAccount.
+// Value returns the ent.Value that was dynamically selected and assigned to the UserAccount.
 // This includes values selected through modifiers, order, etc.
-func (_m *CoreAccount) Value(name string) (ent.Value, error) {
+func (_m *UserAccount) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryUser queries the "user" edge of the CoreAccount entity.
-func (_m *CoreAccount) QueryUser() *UserQuery {
-	return NewCoreAccountClient(_m.config).QueryUser(_m)
+// QueryUser queries the "user" edge of the UserAccount entity.
+func (_m *UserAccount) QueryUser() *UserQuery {
+	return NewUserAccountClient(_m.config).QueryUser(_m)
 }
 
-// Update returns a builder for updating this CoreAccount.
-// Note that you need to call CoreAccount.Unwrap() before calling this method if this CoreAccount
+// Update returns a builder for updating this UserAccount.
+// Note that you need to call UserAccount.Unwrap() before calling this method if this UserAccount
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *CoreAccount) Update() *CoreAccountUpdateOne {
-	return NewCoreAccountClient(_m.config).UpdateOne(_m)
+func (_m *UserAccount) Update() *UserAccountUpdateOne {
+	return NewUserAccountClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the CoreAccount entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the UserAccount entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *CoreAccount) Unwrap() *CoreAccount {
+func (_m *UserAccount) Unwrap() *UserAccount {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: CoreAccount is not a transactional entity")
+		panic("ent: UserAccount is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *CoreAccount) String() string {
+func (_m *UserAccount) String() string {
 	var builder strings.Builder
-	builder.WriteString("CoreAccount(")
+	builder.WriteString("UserAccount(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
@@ -252,5 +252,5 @@ func (_m *CoreAccount) String() string {
 	return builder.String()
 }
 
-// CoreAccounts is a parsable slice of CoreAccount.
-type CoreAccounts []*CoreAccount
+// UserAccounts is a parsable slice of UserAccount.
+type UserAccounts []*UserAccount

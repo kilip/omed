@@ -374,19 +374,19 @@ func HasAccounts() predicate.User {
 			sqlgraph.Edge(sqlgraph.O2M, true, AccountsTable, AccountsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.CoreAccount
-		step.Edge.Schema = schemaConfig.CoreAccount
+		step.To.Schema = schemaConfig.UserAccount
+		step.Edge.Schema = schemaConfig.UserAccount
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
 // HasAccountsWith applies the HasEdge predicate on the "accounts" edge with a given conditions (other predicates).
-func HasAccountsWith(preds ...predicate.CoreAccount) predicate.User {
+func HasAccountsWith(preds ...predicate.UserAccount) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newAccountsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.CoreAccount
-		step.Edge.Schema = schemaConfig.CoreAccount
+		step.To.Schema = schemaConfig.UserAccount
+		step.Edge.Schema = schemaConfig.UserAccount
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

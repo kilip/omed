@@ -11,44 +11,44 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 )
 
-// CoreAccountCreate is the builder for creating a CoreAccount entity.
-type CoreAccountCreate struct {
+// UserAccountCreate is the builder for creating a UserAccount entity.
+type UserAccountCreate struct {
 	config
-	mutation *CoreAccountMutation
+	mutation *UserAccountMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
 }
 
 // SetUserID sets the "user_id" field.
-func (_c *CoreAccountCreate) SetUserID(v int64) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetUserID(v int64) *UserAccountCreate {
 	_c.mutation.SetUserID(v)
 	return _c
 }
 
 // SetProviderID sets the "provider_id" field.
-func (_c *CoreAccountCreate) SetProviderID(v string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetProviderID(v string) *UserAccountCreate {
 	_c.mutation.SetProviderID(v)
 	return _c
 }
 
 // SetAccountID sets the "account_id" field.
-func (_c *CoreAccountCreate) SetAccountID(v string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetAccountID(v string) *UserAccountCreate {
 	_c.mutation.SetAccountID(v)
 	return _c
 }
 
 // SetAccessToken sets the "access_token" field.
-func (_c *CoreAccountCreate) SetAccessToken(v string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetAccessToken(v string) *UserAccountCreate {
 	_c.mutation.SetAccessToken(v)
 	return _c
 }
 
 // SetNillableAccessToken sets the "access_token" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillableAccessToken(v *string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillableAccessToken(v *string) *UserAccountCreate {
 	if v != nil {
 		_c.SetAccessToken(*v)
 	}
@@ -56,13 +56,13 @@ func (_c *CoreAccountCreate) SetNillableAccessToken(v *string) *CoreAccountCreat
 }
 
 // SetRefreshToken sets the "refresh_token" field.
-func (_c *CoreAccountCreate) SetRefreshToken(v string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetRefreshToken(v string) *UserAccountCreate {
 	_c.mutation.SetRefreshToken(v)
 	return _c
 }
 
 // SetNillableRefreshToken sets the "refresh_token" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillableRefreshToken(v *string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillableRefreshToken(v *string) *UserAccountCreate {
 	if v != nil {
 		_c.SetRefreshToken(*v)
 	}
@@ -70,13 +70,13 @@ func (_c *CoreAccountCreate) SetNillableRefreshToken(v *string) *CoreAccountCrea
 }
 
 // SetIDToken sets the "id_token" field.
-func (_c *CoreAccountCreate) SetIDToken(v string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetIDToken(v string) *UserAccountCreate {
 	_c.mutation.SetIDToken(v)
 	return _c
 }
 
 // SetNillableIDToken sets the "id_token" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillableIDToken(v *string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillableIDToken(v *string) *UserAccountCreate {
 	if v != nil {
 		_c.SetIDToken(*v)
 	}
@@ -84,13 +84,13 @@ func (_c *CoreAccountCreate) SetNillableIDToken(v *string) *CoreAccountCreate {
 }
 
 // SetAccessTokenExpiresAt sets the "access_token_expires_at" field.
-func (_c *CoreAccountCreate) SetAccessTokenExpiresAt(v time.Time) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetAccessTokenExpiresAt(v time.Time) *UserAccountCreate {
 	_c.mutation.SetAccessTokenExpiresAt(v)
 	return _c
 }
 
 // SetNillableAccessTokenExpiresAt sets the "access_token_expires_at" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillableAccessTokenExpiresAt(v *time.Time) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillableAccessTokenExpiresAt(v *time.Time) *UserAccountCreate {
 	if v != nil {
 		_c.SetAccessTokenExpiresAt(*v)
 	}
@@ -98,13 +98,13 @@ func (_c *CoreAccountCreate) SetNillableAccessTokenExpiresAt(v *time.Time) *Core
 }
 
 // SetRefreshTokenExpiresAt sets the "refresh_token_expires_at" field.
-func (_c *CoreAccountCreate) SetRefreshTokenExpiresAt(v time.Time) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetRefreshTokenExpiresAt(v time.Time) *UserAccountCreate {
 	_c.mutation.SetRefreshTokenExpiresAt(v)
 	return _c
 }
 
 // SetNillableRefreshTokenExpiresAt sets the "refresh_token_expires_at" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillableRefreshTokenExpiresAt(v *time.Time) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillableRefreshTokenExpiresAt(v *time.Time) *UserAccountCreate {
 	if v != nil {
 		_c.SetRefreshTokenExpiresAt(*v)
 	}
@@ -112,13 +112,13 @@ func (_c *CoreAccountCreate) SetNillableRefreshTokenExpiresAt(v *time.Time) *Cor
 }
 
 // SetScope sets the "scope" field.
-func (_c *CoreAccountCreate) SetScope(v string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetScope(v string) *UserAccountCreate {
 	_c.mutation.SetScope(v)
 	return _c
 }
 
 // SetNillableScope sets the "scope" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillableScope(v *string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillableScope(v *string) *UserAccountCreate {
 	if v != nil {
 		_c.SetScope(*v)
 	}
@@ -126,13 +126,13 @@ func (_c *CoreAccountCreate) SetNillableScope(v *string) *CoreAccountCreate {
 }
 
 // SetPassword sets the "password" field.
-func (_c *CoreAccountCreate) SetPassword(v string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetPassword(v string) *UserAccountCreate {
 	_c.mutation.SetPassword(v)
 	return _c
 }
 
 // SetNillablePassword sets the "password" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillablePassword(v *string) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillablePassword(v *string) *UserAccountCreate {
 	if v != nil {
 		_c.SetPassword(*v)
 	}
@@ -140,13 +140,13 @@ func (_c *CoreAccountCreate) SetNillablePassword(v *string) *CoreAccountCreate {
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (_c *CoreAccountCreate) SetCreatedAt(v time.Time) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetCreatedAt(v time.Time) *UserAccountCreate {
 	_c.mutation.SetCreatedAt(v)
 	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillableCreatedAt(v *time.Time) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillableCreatedAt(v *time.Time) *UserAccountCreate {
 	if v != nil {
 		_c.SetCreatedAt(*v)
 	}
@@ -154,13 +154,13 @@ func (_c *CoreAccountCreate) SetNillableCreatedAt(v *time.Time) *CoreAccountCrea
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_c *CoreAccountCreate) SetUpdatedAt(v time.Time) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetUpdatedAt(v time.Time) *UserAccountCreate {
 	_c.mutation.SetUpdatedAt(v)
 	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_c *CoreAccountCreate) SetNillableUpdatedAt(v *time.Time) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetNillableUpdatedAt(v *time.Time) *UserAccountCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
@@ -168,29 +168,29 @@ func (_c *CoreAccountCreate) SetNillableUpdatedAt(v *time.Time) *CoreAccountCrea
 }
 
 // SetID sets the "id" field.
-func (_c *CoreAccountCreate) SetID(v int64) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetID(v int64) *UserAccountCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
 
 // SetUser sets the "user" edge to the User entity.
-func (_c *CoreAccountCreate) SetUser(v *User) *CoreAccountCreate {
+func (_c *UserAccountCreate) SetUser(v *User) *UserAccountCreate {
 	return _c.SetUserID(v.ID)
 }
 
-// Mutation returns the CoreAccountMutation object of the builder.
-func (_c *CoreAccountCreate) Mutation() *CoreAccountMutation {
+// Mutation returns the UserAccountMutation object of the builder.
+func (_c *UserAccountCreate) Mutation() *UserAccountMutation {
 	return _c.mutation
 }
 
-// Save creates the CoreAccount in the database.
-func (_c *CoreAccountCreate) Save(ctx context.Context) (*CoreAccount, error) {
+// Save creates the UserAccount in the database.
+func (_c *UserAccountCreate) Save(ctx context.Context) (*UserAccount, error) {
 	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *CoreAccountCreate) SaveX(ctx context.Context) *CoreAccount {
+func (_c *UserAccountCreate) SaveX(ctx context.Context) *UserAccount {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -199,64 +199,64 @@ func (_c *CoreAccountCreate) SaveX(ctx context.Context) *CoreAccount {
 }
 
 // Exec executes the query.
-func (_c *CoreAccountCreate) Exec(ctx context.Context) error {
+func (_c *UserAccountCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *CoreAccountCreate) ExecX(ctx context.Context) {
+func (_c *UserAccountCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *CoreAccountCreate) defaults() {
+func (_c *UserAccountCreate) defaults() {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := coreaccount.DefaultCreatedAt()
+		v := useraccount.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		v := coreaccount.DefaultUpdatedAt()
+		v := useraccount.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *CoreAccountCreate) check() error {
+func (_c *UserAccountCreate) check() error {
 	if _, ok := _c.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "CoreAccount.user_id"`)}
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "UserAccount.user_id"`)}
 	}
 	if _, ok := _c.mutation.ProviderID(); !ok {
-		return &ValidationError{Name: "provider_id", err: errors.New(`ent: missing required field "CoreAccount.provider_id"`)}
+		return &ValidationError{Name: "provider_id", err: errors.New(`ent: missing required field "UserAccount.provider_id"`)}
 	}
 	if v, ok := _c.mutation.ProviderID(); ok {
-		if err := coreaccount.ProviderIDValidator(v); err != nil {
-			return &ValidationError{Name: "provider_id", err: fmt.Errorf(`ent: validator failed for field "CoreAccount.provider_id": %w`, err)}
+		if err := useraccount.ProviderIDValidator(v); err != nil {
+			return &ValidationError{Name: "provider_id", err: fmt.Errorf(`ent: validator failed for field "UserAccount.provider_id": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.AccountID(); !ok {
-		return &ValidationError{Name: "account_id", err: errors.New(`ent: missing required field "CoreAccount.account_id"`)}
+		return &ValidationError{Name: "account_id", err: errors.New(`ent: missing required field "UserAccount.account_id"`)}
 	}
 	if v, ok := _c.mutation.AccountID(); ok {
-		if err := coreaccount.AccountIDValidator(v); err != nil {
-			return &ValidationError{Name: "account_id", err: fmt.Errorf(`ent: validator failed for field "CoreAccount.account_id": %w`, err)}
+		if err := useraccount.AccountIDValidator(v); err != nil {
+			return &ValidationError{Name: "account_id", err: fmt.Errorf(`ent: validator failed for field "UserAccount.account_id": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CoreAccount.created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "UserAccount.created_at"`)}
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "CoreAccount.updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "UserAccount.updated_at"`)}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
-		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "CoreAccount.user"`)}
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "UserAccount.user"`)}
 	}
 	return nil
 }
 
-func (_c *CoreAccountCreate) sqlSave(ctx context.Context) (*CoreAccount, error) {
+func (_c *UserAccountCreate) sqlSave(ctx context.Context) (*UserAccount, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -276,73 +276,73 @@ func (_c *CoreAccountCreate) sqlSave(ctx context.Context) (*CoreAccount, error) 
 	return _node, nil
 }
 
-func (_c *CoreAccountCreate) createSpec() (*CoreAccount, *sqlgraph.CreateSpec) {
+func (_c *UserAccountCreate) createSpec() (*UserAccount, *sqlgraph.CreateSpec) {
 	var (
-		_node = &CoreAccount{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(coreaccount.Table, sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64))
+		_node = &UserAccount{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(useraccount.Table, sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64))
 	)
-	_spec.Schema = _c.schemaConfig.CoreAccount
+	_spec.Schema = _c.schemaConfig.UserAccount
 	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
 	if value, ok := _c.mutation.ProviderID(); ok {
-		_spec.SetField(coreaccount.FieldProviderID, field.TypeString, value)
+		_spec.SetField(useraccount.FieldProviderID, field.TypeString, value)
 		_node.ProviderID = value
 	}
 	if value, ok := _c.mutation.AccountID(); ok {
-		_spec.SetField(coreaccount.FieldAccountID, field.TypeString, value)
+		_spec.SetField(useraccount.FieldAccountID, field.TypeString, value)
 		_node.AccountID = value
 	}
 	if value, ok := _c.mutation.AccessToken(); ok {
-		_spec.SetField(coreaccount.FieldAccessToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldAccessToken, field.TypeString, value)
 		_node.AccessToken = value
 	}
 	if value, ok := _c.mutation.RefreshToken(); ok {
-		_spec.SetField(coreaccount.FieldRefreshToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldRefreshToken, field.TypeString, value)
 		_node.RefreshToken = value
 	}
 	if value, ok := _c.mutation.IDToken(); ok {
-		_spec.SetField(coreaccount.FieldIDToken, field.TypeString, value)
+		_spec.SetField(useraccount.FieldIDToken, field.TypeString, value)
 		_node.IDToken = value
 	}
 	if value, ok := _c.mutation.AccessTokenExpiresAt(); ok {
-		_spec.SetField(coreaccount.FieldAccessTokenExpiresAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldAccessTokenExpiresAt, field.TypeTime, value)
 		_node.AccessTokenExpiresAt = value
 	}
 	if value, ok := _c.mutation.RefreshTokenExpiresAt(); ok {
-		_spec.SetField(coreaccount.FieldRefreshTokenExpiresAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldRefreshTokenExpiresAt, field.TypeTime, value)
 		_node.RefreshTokenExpiresAt = value
 	}
 	if value, ok := _c.mutation.Scope(); ok {
-		_spec.SetField(coreaccount.FieldScope, field.TypeString, value)
+		_spec.SetField(useraccount.FieldScope, field.TypeString, value)
 		_node.Scope = value
 	}
 	if value, ok := _c.mutation.Password(); ok {
-		_spec.SetField(coreaccount.FieldPassword, field.TypeString, value)
+		_spec.SetField(useraccount.FieldPassword, field.TypeString, value)
 		_node.Password = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
-		_spec.SetField(coreaccount.FieldCreatedAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := _c.mutation.UpdatedAt(); ok {
-		_spec.SetField(coreaccount.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(useraccount.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   coreaccount.UserTable,
-			Columns: []string{coreaccount.UserColumn},
+			Table:   useraccount.UserTable,
+			Columns: []string{useraccount.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _c.schemaConfig.CoreAccount
+		edge.Schema = _c.schemaConfig.UserAccount
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -355,7 +355,7 @@ func (_c *CoreAccountCreate) createSpec() (*CoreAccount, *sqlgraph.CreateSpec) {
 // OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
 // of the `INSERT` statement. For example:
 //
-//	client.CoreAccount.Create().
+//	client.UserAccount.Create().
 //		SetUserID(v).
 //		OnConflict(
 //			// Update the row with the new values
@@ -364,13 +364,13 @@ func (_c *CoreAccountCreate) createSpec() (*CoreAccount, *sqlgraph.CreateSpec) {
 //		).
 //		// Override some of the fields with custom
 //		// update values.
-//		Update(func(u *ent.CoreAccountUpsert) {
+//		Update(func(u *ent.UserAccountUpsert) {
 //			SetUserID(v+v).
 //		}).
 //		Exec(ctx)
-func (_c *CoreAccountCreate) OnConflict(opts ...sql.ConflictOption) *CoreAccountUpsertOne {
+func (_c *UserAccountCreate) OnConflict(opts ...sql.ConflictOption) *UserAccountUpsertOne {
 	_c.conflict = opts
-	return &CoreAccountUpsertOne{
+	return &UserAccountUpsertOne{
 		create: _c,
 	}
 }
@@ -378,222 +378,222 @@ func (_c *CoreAccountCreate) OnConflict(opts ...sql.ConflictOption) *CoreAccount
 // OnConflictColumns calls `OnConflict` and configures the columns
 // as conflict target. Using this option is equivalent to using:
 //
-//	client.CoreAccount.Create().
+//	client.UserAccount.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (_c *CoreAccountCreate) OnConflictColumns(columns ...string) *CoreAccountUpsertOne {
+func (_c *UserAccountCreate) OnConflictColumns(columns ...string) *UserAccountUpsertOne {
 	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
-	return &CoreAccountUpsertOne{
+	return &UserAccountUpsertOne{
 		create: _c,
 	}
 }
 
 type (
-	// CoreAccountUpsertOne is the builder for "upsert"-ing
-	//  one CoreAccount node.
-	CoreAccountUpsertOne struct {
-		create *CoreAccountCreate
+	// UserAccountUpsertOne is the builder for "upsert"-ing
+	//  one UserAccount node.
+	UserAccountUpsertOne struct {
+		create *UserAccountCreate
 	}
 
-	// CoreAccountUpsert is the "OnConflict" setter.
-	CoreAccountUpsert struct {
+	// UserAccountUpsert is the "OnConflict" setter.
+	UserAccountUpsert struct {
 		*sql.UpdateSet
 	}
 )
 
 // SetUserID sets the "user_id" field.
-func (u *CoreAccountUpsert) SetUserID(v int64) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldUserID, v)
+func (u *UserAccountUpsert) SetUserID(v int64) *UserAccountUpsert {
+	u.Set(useraccount.FieldUserID, v)
 	return u
 }
 
 // UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateUserID() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldUserID)
+func (u *UserAccountUpsert) UpdateUserID() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldUserID)
 	return u
 }
 
 // SetProviderID sets the "provider_id" field.
-func (u *CoreAccountUpsert) SetProviderID(v string) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldProviderID, v)
+func (u *UserAccountUpsert) SetProviderID(v string) *UserAccountUpsert {
+	u.Set(useraccount.FieldProviderID, v)
 	return u
 }
 
 // UpdateProviderID sets the "provider_id" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateProviderID() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldProviderID)
+func (u *UserAccountUpsert) UpdateProviderID() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldProviderID)
 	return u
 }
 
 // SetAccountID sets the "account_id" field.
-func (u *CoreAccountUpsert) SetAccountID(v string) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldAccountID, v)
+func (u *UserAccountUpsert) SetAccountID(v string) *UserAccountUpsert {
+	u.Set(useraccount.FieldAccountID, v)
 	return u
 }
 
 // UpdateAccountID sets the "account_id" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateAccountID() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldAccountID)
+func (u *UserAccountUpsert) UpdateAccountID() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldAccountID)
 	return u
 }
 
 // SetAccessToken sets the "access_token" field.
-func (u *CoreAccountUpsert) SetAccessToken(v string) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldAccessToken, v)
+func (u *UserAccountUpsert) SetAccessToken(v string) *UserAccountUpsert {
+	u.Set(useraccount.FieldAccessToken, v)
 	return u
 }
 
 // UpdateAccessToken sets the "access_token" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateAccessToken() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldAccessToken)
+func (u *UserAccountUpsert) UpdateAccessToken() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldAccessToken)
 	return u
 }
 
 // ClearAccessToken clears the value of the "access_token" field.
-func (u *CoreAccountUpsert) ClearAccessToken() *CoreAccountUpsert {
-	u.SetNull(coreaccount.FieldAccessToken)
+func (u *UserAccountUpsert) ClearAccessToken() *UserAccountUpsert {
+	u.SetNull(useraccount.FieldAccessToken)
 	return u
 }
 
 // SetRefreshToken sets the "refresh_token" field.
-func (u *CoreAccountUpsert) SetRefreshToken(v string) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldRefreshToken, v)
+func (u *UserAccountUpsert) SetRefreshToken(v string) *UserAccountUpsert {
+	u.Set(useraccount.FieldRefreshToken, v)
 	return u
 }
 
 // UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateRefreshToken() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldRefreshToken)
+func (u *UserAccountUpsert) UpdateRefreshToken() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldRefreshToken)
 	return u
 }
 
 // ClearRefreshToken clears the value of the "refresh_token" field.
-func (u *CoreAccountUpsert) ClearRefreshToken() *CoreAccountUpsert {
-	u.SetNull(coreaccount.FieldRefreshToken)
+func (u *UserAccountUpsert) ClearRefreshToken() *UserAccountUpsert {
+	u.SetNull(useraccount.FieldRefreshToken)
 	return u
 }
 
 // SetIDToken sets the "id_token" field.
-func (u *CoreAccountUpsert) SetIDToken(v string) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldIDToken, v)
+func (u *UserAccountUpsert) SetIDToken(v string) *UserAccountUpsert {
+	u.Set(useraccount.FieldIDToken, v)
 	return u
 }
 
 // UpdateIDToken sets the "id_token" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateIDToken() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldIDToken)
+func (u *UserAccountUpsert) UpdateIDToken() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldIDToken)
 	return u
 }
 
 // ClearIDToken clears the value of the "id_token" field.
-func (u *CoreAccountUpsert) ClearIDToken() *CoreAccountUpsert {
-	u.SetNull(coreaccount.FieldIDToken)
+func (u *UserAccountUpsert) ClearIDToken() *UserAccountUpsert {
+	u.SetNull(useraccount.FieldIDToken)
 	return u
 }
 
 // SetAccessTokenExpiresAt sets the "access_token_expires_at" field.
-func (u *CoreAccountUpsert) SetAccessTokenExpiresAt(v time.Time) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldAccessTokenExpiresAt, v)
+func (u *UserAccountUpsert) SetAccessTokenExpiresAt(v time.Time) *UserAccountUpsert {
+	u.Set(useraccount.FieldAccessTokenExpiresAt, v)
 	return u
 }
 
 // UpdateAccessTokenExpiresAt sets the "access_token_expires_at" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateAccessTokenExpiresAt() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldAccessTokenExpiresAt)
+func (u *UserAccountUpsert) UpdateAccessTokenExpiresAt() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldAccessTokenExpiresAt)
 	return u
 }
 
 // ClearAccessTokenExpiresAt clears the value of the "access_token_expires_at" field.
-func (u *CoreAccountUpsert) ClearAccessTokenExpiresAt() *CoreAccountUpsert {
-	u.SetNull(coreaccount.FieldAccessTokenExpiresAt)
+func (u *UserAccountUpsert) ClearAccessTokenExpiresAt() *UserAccountUpsert {
+	u.SetNull(useraccount.FieldAccessTokenExpiresAt)
 	return u
 }
 
 // SetRefreshTokenExpiresAt sets the "refresh_token_expires_at" field.
-func (u *CoreAccountUpsert) SetRefreshTokenExpiresAt(v time.Time) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldRefreshTokenExpiresAt, v)
+func (u *UserAccountUpsert) SetRefreshTokenExpiresAt(v time.Time) *UserAccountUpsert {
+	u.Set(useraccount.FieldRefreshTokenExpiresAt, v)
 	return u
 }
 
 // UpdateRefreshTokenExpiresAt sets the "refresh_token_expires_at" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateRefreshTokenExpiresAt() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldRefreshTokenExpiresAt)
+func (u *UserAccountUpsert) UpdateRefreshTokenExpiresAt() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldRefreshTokenExpiresAt)
 	return u
 }
 
 // ClearRefreshTokenExpiresAt clears the value of the "refresh_token_expires_at" field.
-func (u *CoreAccountUpsert) ClearRefreshTokenExpiresAt() *CoreAccountUpsert {
-	u.SetNull(coreaccount.FieldRefreshTokenExpiresAt)
+func (u *UserAccountUpsert) ClearRefreshTokenExpiresAt() *UserAccountUpsert {
+	u.SetNull(useraccount.FieldRefreshTokenExpiresAt)
 	return u
 }
 
 // SetScope sets the "scope" field.
-func (u *CoreAccountUpsert) SetScope(v string) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldScope, v)
+func (u *UserAccountUpsert) SetScope(v string) *UserAccountUpsert {
+	u.Set(useraccount.FieldScope, v)
 	return u
 }
 
 // UpdateScope sets the "scope" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateScope() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldScope)
+func (u *UserAccountUpsert) UpdateScope() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldScope)
 	return u
 }
 
 // ClearScope clears the value of the "scope" field.
-func (u *CoreAccountUpsert) ClearScope() *CoreAccountUpsert {
-	u.SetNull(coreaccount.FieldScope)
+func (u *UserAccountUpsert) ClearScope() *UserAccountUpsert {
+	u.SetNull(useraccount.FieldScope)
 	return u
 }
 
 // SetPassword sets the "password" field.
-func (u *CoreAccountUpsert) SetPassword(v string) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldPassword, v)
+func (u *UserAccountUpsert) SetPassword(v string) *UserAccountUpsert {
+	u.Set(useraccount.FieldPassword, v)
 	return u
 }
 
 // UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdatePassword() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldPassword)
+func (u *UserAccountUpsert) UpdatePassword() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldPassword)
 	return u
 }
 
 // ClearPassword clears the value of the "password" field.
-func (u *CoreAccountUpsert) ClearPassword() *CoreAccountUpsert {
-	u.SetNull(coreaccount.FieldPassword)
+func (u *UserAccountUpsert) ClearPassword() *UserAccountUpsert {
+	u.SetNull(useraccount.FieldPassword)
 	return u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (u *CoreAccountUpsert) SetUpdatedAt(v time.Time) *CoreAccountUpsert {
-	u.Set(coreaccount.FieldUpdatedAt, v)
+func (u *UserAccountUpsert) SetUpdatedAt(v time.Time) *UserAccountUpsert {
+	u.Set(useraccount.FieldUpdatedAt, v)
 	return u
 }
 
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *CoreAccountUpsert) UpdateUpdatedAt() *CoreAccountUpsert {
-	u.SetExcluded(coreaccount.FieldUpdatedAt)
+func (u *UserAccountUpsert) UpdateUpdatedAt() *UserAccountUpsert {
+	u.SetExcluded(useraccount.FieldUpdatedAt)
 	return u
 }
 
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
-//	client.CoreAccount.Create().
+//	client.UserAccount.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
 //			sql.ResolveWith(func(u *sql.UpdateSet) {
-//				u.SetIgnore(coreaccount.FieldID)
+//				u.SetIgnore(useraccount.FieldID)
 //			}),
 //		).
 //		Exec(ctx)
-func (u *CoreAccountUpsertOne) UpdateNewValues() *CoreAccountUpsertOne {
+func (u *UserAccountUpsertOne) UpdateNewValues() *UserAccountUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
-			s.SetIgnore(coreaccount.FieldID)
+			s.SetIgnore(useraccount.FieldID)
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
-			s.SetIgnore(coreaccount.FieldCreatedAt)
+			s.SetIgnore(useraccount.FieldCreatedAt)
 		}
 	}))
 	return u
@@ -602,250 +602,250 @@ func (u *CoreAccountUpsertOne) UpdateNewValues() *CoreAccountUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.CoreAccount.Create().
+//	client.UserAccount.Create().
 //	    OnConflict(sql.ResolveWithIgnore()).
 //	    Exec(ctx)
-func (u *CoreAccountUpsertOne) Ignore() *CoreAccountUpsertOne {
+func (u *UserAccountUpsertOne) Ignore() *UserAccountUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
 }
 
 // DoNothing configures the conflict_action to `DO NOTHING`.
 // Supported only by SQLite and PostgreSQL.
-func (u *CoreAccountUpsertOne) DoNothing() *CoreAccountUpsertOne {
+func (u *UserAccountUpsertOne) DoNothing() *UserAccountUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.DoNothing())
 	return u
 }
 
-// Update allows overriding fields `UPDATE` values. See the CoreAccountCreate.OnConflict
+// Update allows overriding fields `UPDATE` values. See the UserAccountCreate.OnConflict
 // documentation for more info.
-func (u *CoreAccountUpsertOne) Update(set func(*CoreAccountUpsert)) *CoreAccountUpsertOne {
+func (u *UserAccountUpsertOne) Update(set func(*UserAccountUpsert)) *UserAccountUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&CoreAccountUpsert{UpdateSet: update})
+		set(&UserAccountUpsert{UpdateSet: update})
 	}))
 	return u
 }
 
 // SetUserID sets the "user_id" field.
-func (u *CoreAccountUpsertOne) SetUserID(v int64) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetUserID(v int64) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetUserID(v)
 	})
 }
 
 // UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateUserID() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateUserID() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateUserID()
 	})
 }
 
 // SetProviderID sets the "provider_id" field.
-func (u *CoreAccountUpsertOne) SetProviderID(v string) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetProviderID(v string) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetProviderID(v)
 	})
 }
 
 // UpdateProviderID sets the "provider_id" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateProviderID() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateProviderID() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateProviderID()
 	})
 }
 
 // SetAccountID sets the "account_id" field.
-func (u *CoreAccountUpsertOne) SetAccountID(v string) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetAccountID(v string) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetAccountID(v)
 	})
 }
 
 // UpdateAccountID sets the "account_id" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateAccountID() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateAccountID() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateAccountID()
 	})
 }
 
 // SetAccessToken sets the "access_token" field.
-func (u *CoreAccountUpsertOne) SetAccessToken(v string) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetAccessToken(v string) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetAccessToken(v)
 	})
 }
 
 // UpdateAccessToken sets the "access_token" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateAccessToken() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateAccessToken() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateAccessToken()
 	})
 }
 
 // ClearAccessToken clears the value of the "access_token" field.
-func (u *CoreAccountUpsertOne) ClearAccessToken() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) ClearAccessToken() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearAccessToken()
 	})
 }
 
 // SetRefreshToken sets the "refresh_token" field.
-func (u *CoreAccountUpsertOne) SetRefreshToken(v string) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetRefreshToken(v string) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetRefreshToken(v)
 	})
 }
 
 // UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateRefreshToken() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateRefreshToken() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateRefreshToken()
 	})
 }
 
 // ClearRefreshToken clears the value of the "refresh_token" field.
-func (u *CoreAccountUpsertOne) ClearRefreshToken() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) ClearRefreshToken() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearRefreshToken()
 	})
 }
 
 // SetIDToken sets the "id_token" field.
-func (u *CoreAccountUpsertOne) SetIDToken(v string) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetIDToken(v string) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetIDToken(v)
 	})
 }
 
 // UpdateIDToken sets the "id_token" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateIDToken() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateIDToken() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateIDToken()
 	})
 }
 
 // ClearIDToken clears the value of the "id_token" field.
-func (u *CoreAccountUpsertOne) ClearIDToken() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) ClearIDToken() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearIDToken()
 	})
 }
 
 // SetAccessTokenExpiresAt sets the "access_token_expires_at" field.
-func (u *CoreAccountUpsertOne) SetAccessTokenExpiresAt(v time.Time) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetAccessTokenExpiresAt(v time.Time) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetAccessTokenExpiresAt(v)
 	})
 }
 
 // UpdateAccessTokenExpiresAt sets the "access_token_expires_at" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateAccessTokenExpiresAt() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateAccessTokenExpiresAt() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateAccessTokenExpiresAt()
 	})
 }
 
 // ClearAccessTokenExpiresAt clears the value of the "access_token_expires_at" field.
-func (u *CoreAccountUpsertOne) ClearAccessTokenExpiresAt() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) ClearAccessTokenExpiresAt() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearAccessTokenExpiresAt()
 	})
 }
 
 // SetRefreshTokenExpiresAt sets the "refresh_token_expires_at" field.
-func (u *CoreAccountUpsertOne) SetRefreshTokenExpiresAt(v time.Time) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetRefreshTokenExpiresAt(v time.Time) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetRefreshTokenExpiresAt(v)
 	})
 }
 
 // UpdateRefreshTokenExpiresAt sets the "refresh_token_expires_at" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateRefreshTokenExpiresAt() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateRefreshTokenExpiresAt() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateRefreshTokenExpiresAt()
 	})
 }
 
 // ClearRefreshTokenExpiresAt clears the value of the "refresh_token_expires_at" field.
-func (u *CoreAccountUpsertOne) ClearRefreshTokenExpiresAt() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) ClearRefreshTokenExpiresAt() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearRefreshTokenExpiresAt()
 	})
 }
 
 // SetScope sets the "scope" field.
-func (u *CoreAccountUpsertOne) SetScope(v string) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetScope(v string) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetScope(v)
 	})
 }
 
 // UpdateScope sets the "scope" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateScope() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateScope() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateScope()
 	})
 }
 
 // ClearScope clears the value of the "scope" field.
-func (u *CoreAccountUpsertOne) ClearScope() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) ClearScope() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearScope()
 	})
 }
 
 // SetPassword sets the "password" field.
-func (u *CoreAccountUpsertOne) SetPassword(v string) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetPassword(v string) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetPassword(v)
 	})
 }
 
 // UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdatePassword() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdatePassword() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdatePassword()
 	})
 }
 
 // ClearPassword clears the value of the "password" field.
-func (u *CoreAccountUpsertOne) ClearPassword() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) ClearPassword() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearPassword()
 	})
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (u *CoreAccountUpsertOne) SetUpdatedAt(v time.Time) *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) SetUpdatedAt(v time.Time) *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetUpdatedAt(v)
 	})
 }
 
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *CoreAccountUpsertOne) UpdateUpdatedAt() *CoreAccountUpsertOne {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertOne) UpdateUpdatedAt() *UserAccountUpsertOne {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateUpdatedAt()
 	})
 }
 
 // Exec executes the query.
-func (u *CoreAccountUpsertOne) Exec(ctx context.Context) error {
+func (u *UserAccountUpsertOne) Exec(ctx context.Context) error {
 	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for CoreAccountCreate.OnConflict")
+		return errors.New("ent: missing options for UserAccountCreate.OnConflict")
 	}
 	return u.create.Exec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (u *CoreAccountUpsertOne) ExecX(ctx context.Context) {
+func (u *UserAccountUpsertOne) ExecX(ctx context.Context) {
 	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *CoreAccountUpsertOne) ID(ctx context.Context) (id int64, err error) {
+func (u *UserAccountUpsertOne) ID(ctx context.Context) (id int64, err error) {
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -854,7 +854,7 @@ func (u *CoreAccountUpsertOne) ID(ctx context.Context) (id int64, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *CoreAccountUpsertOne) IDX(ctx context.Context) int64 {
+func (u *UserAccountUpsertOne) IDX(ctx context.Context) int64 {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -862,28 +862,28 @@ func (u *CoreAccountUpsertOne) IDX(ctx context.Context) int64 {
 	return id
 }
 
-// CoreAccountCreateBulk is the builder for creating many CoreAccount entities in bulk.
-type CoreAccountCreateBulk struct {
+// UserAccountCreateBulk is the builder for creating many UserAccount entities in bulk.
+type UserAccountCreateBulk struct {
 	config
 	err      error
-	builders []*CoreAccountCreate
+	builders []*UserAccountCreate
 	conflict []sql.ConflictOption
 }
 
-// Save creates the CoreAccount entities in the database.
-func (_c *CoreAccountCreateBulk) Save(ctx context.Context) ([]*CoreAccount, error) {
+// Save creates the UserAccount entities in the database.
+func (_c *UserAccountCreateBulk) Save(ctx context.Context) ([]*UserAccount, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*CoreAccount, len(_c.builders))
+	nodes := make([]*UserAccount, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*CoreAccountMutation)
+				mutation, ok := m.(*UserAccountMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -931,7 +931,7 @@ func (_c *CoreAccountCreateBulk) Save(ctx context.Context) ([]*CoreAccount, erro
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *CoreAccountCreateBulk) SaveX(ctx context.Context) []*CoreAccount {
+func (_c *UserAccountCreateBulk) SaveX(ctx context.Context) []*UserAccount {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -940,13 +940,13 @@ func (_c *CoreAccountCreateBulk) SaveX(ctx context.Context) []*CoreAccount {
 }
 
 // Exec executes the query.
-func (_c *CoreAccountCreateBulk) Exec(ctx context.Context) error {
+func (_c *UserAccountCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *CoreAccountCreateBulk) ExecX(ctx context.Context) {
+func (_c *UserAccountCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
@@ -955,7 +955,7 @@ func (_c *CoreAccountCreateBulk) ExecX(ctx context.Context) {
 // OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
 // of the `INSERT` statement. For example:
 //
-//	client.CoreAccount.CreateBulk(builders...).
+//	client.UserAccount.CreateBulk(builders...).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -963,13 +963,13 @@ func (_c *CoreAccountCreateBulk) ExecX(ctx context.Context) {
 //		).
 //		// Override some of the fields with custom
 //		// update values.
-//		Update(func(u *ent.CoreAccountUpsert) {
+//		Update(func(u *ent.UserAccountUpsert) {
 //			SetUserID(v+v).
 //		}).
 //		Exec(ctx)
-func (_c *CoreAccountCreateBulk) OnConflict(opts ...sql.ConflictOption) *CoreAccountUpsertBulk {
+func (_c *UserAccountCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserAccountUpsertBulk {
 	_c.conflict = opts
-	return &CoreAccountUpsertBulk{
+	return &UserAccountUpsertBulk{
 		create: _c,
 	}
 }
@@ -977,42 +977,42 @@ func (_c *CoreAccountCreateBulk) OnConflict(opts ...sql.ConflictOption) *CoreAcc
 // OnConflictColumns calls `OnConflict` and configures the columns
 // as conflict target. Using this option is equivalent to using:
 //
-//	client.CoreAccount.Create().
+//	client.UserAccount.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (_c *CoreAccountCreateBulk) OnConflictColumns(columns ...string) *CoreAccountUpsertBulk {
+func (_c *UserAccountCreateBulk) OnConflictColumns(columns ...string) *UserAccountUpsertBulk {
 	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
-	return &CoreAccountUpsertBulk{
+	return &UserAccountUpsertBulk{
 		create: _c,
 	}
 }
 
-// CoreAccountUpsertBulk is the builder for "upsert"-ing
-// a bulk of CoreAccount nodes.
-type CoreAccountUpsertBulk struct {
-	create *CoreAccountCreateBulk
+// UserAccountUpsertBulk is the builder for "upsert"-ing
+// a bulk of UserAccount nodes.
+type UserAccountUpsertBulk struct {
+	create *UserAccountCreateBulk
 }
 
 // UpdateNewValues updates the mutable fields using the new values that
 // were set on create. Using this option is equivalent to using:
 //
-//	client.CoreAccount.Create().
+//	client.UserAccount.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
 //			sql.ResolveWith(func(u *sql.UpdateSet) {
-//				u.SetIgnore(coreaccount.FieldID)
+//				u.SetIgnore(useraccount.FieldID)
 //			}),
 //		).
 //		Exec(ctx)
-func (u *CoreAccountUpsertBulk) UpdateNewValues() *CoreAccountUpsertBulk {
+func (u *UserAccountUpsertBulk) UpdateNewValues() *UserAccountUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
-				s.SetIgnore(coreaccount.FieldID)
+				s.SetIgnore(useraccount.FieldID)
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
-				s.SetIgnore(coreaccount.FieldCreatedAt)
+				s.SetIgnore(useraccount.FieldCreatedAt)
 			}
 		}
 	}))
@@ -1022,251 +1022,251 @@ func (u *CoreAccountUpsertBulk) UpdateNewValues() *CoreAccountUpsertBulk {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.CoreAccount.Create().
+//	client.UserAccount.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-func (u *CoreAccountUpsertBulk) Ignore() *CoreAccountUpsertBulk {
+func (u *UserAccountUpsertBulk) Ignore() *UserAccountUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
 }
 
 // DoNothing configures the conflict_action to `DO NOTHING`.
 // Supported only by SQLite and PostgreSQL.
-func (u *CoreAccountUpsertBulk) DoNothing() *CoreAccountUpsertBulk {
+func (u *UserAccountUpsertBulk) DoNothing() *UserAccountUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.DoNothing())
 	return u
 }
 
-// Update allows overriding fields `UPDATE` values. See the CoreAccountCreateBulk.OnConflict
+// Update allows overriding fields `UPDATE` values. See the UserAccountCreateBulk.OnConflict
 // documentation for more info.
-func (u *CoreAccountUpsertBulk) Update(set func(*CoreAccountUpsert)) *CoreAccountUpsertBulk {
+func (u *UserAccountUpsertBulk) Update(set func(*UserAccountUpsert)) *UserAccountUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&CoreAccountUpsert{UpdateSet: update})
+		set(&UserAccountUpsert{UpdateSet: update})
 	}))
 	return u
 }
 
 // SetUserID sets the "user_id" field.
-func (u *CoreAccountUpsertBulk) SetUserID(v int64) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetUserID(v int64) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetUserID(v)
 	})
 }
 
 // UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateUserID() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateUserID() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateUserID()
 	})
 }
 
 // SetProviderID sets the "provider_id" field.
-func (u *CoreAccountUpsertBulk) SetProviderID(v string) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetProviderID(v string) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetProviderID(v)
 	})
 }
 
 // UpdateProviderID sets the "provider_id" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateProviderID() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateProviderID() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateProviderID()
 	})
 }
 
 // SetAccountID sets the "account_id" field.
-func (u *CoreAccountUpsertBulk) SetAccountID(v string) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetAccountID(v string) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetAccountID(v)
 	})
 }
 
 // UpdateAccountID sets the "account_id" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateAccountID() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateAccountID() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateAccountID()
 	})
 }
 
 // SetAccessToken sets the "access_token" field.
-func (u *CoreAccountUpsertBulk) SetAccessToken(v string) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetAccessToken(v string) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetAccessToken(v)
 	})
 }
 
 // UpdateAccessToken sets the "access_token" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateAccessToken() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateAccessToken() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateAccessToken()
 	})
 }
 
 // ClearAccessToken clears the value of the "access_token" field.
-func (u *CoreAccountUpsertBulk) ClearAccessToken() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) ClearAccessToken() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearAccessToken()
 	})
 }
 
 // SetRefreshToken sets the "refresh_token" field.
-func (u *CoreAccountUpsertBulk) SetRefreshToken(v string) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetRefreshToken(v string) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetRefreshToken(v)
 	})
 }
 
 // UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateRefreshToken() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateRefreshToken() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateRefreshToken()
 	})
 }
 
 // ClearRefreshToken clears the value of the "refresh_token" field.
-func (u *CoreAccountUpsertBulk) ClearRefreshToken() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) ClearRefreshToken() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearRefreshToken()
 	})
 }
 
 // SetIDToken sets the "id_token" field.
-func (u *CoreAccountUpsertBulk) SetIDToken(v string) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetIDToken(v string) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetIDToken(v)
 	})
 }
 
 // UpdateIDToken sets the "id_token" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateIDToken() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateIDToken() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateIDToken()
 	})
 }
 
 // ClearIDToken clears the value of the "id_token" field.
-func (u *CoreAccountUpsertBulk) ClearIDToken() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) ClearIDToken() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearIDToken()
 	})
 }
 
 // SetAccessTokenExpiresAt sets the "access_token_expires_at" field.
-func (u *CoreAccountUpsertBulk) SetAccessTokenExpiresAt(v time.Time) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetAccessTokenExpiresAt(v time.Time) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetAccessTokenExpiresAt(v)
 	})
 }
 
 // UpdateAccessTokenExpiresAt sets the "access_token_expires_at" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateAccessTokenExpiresAt() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateAccessTokenExpiresAt() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateAccessTokenExpiresAt()
 	})
 }
 
 // ClearAccessTokenExpiresAt clears the value of the "access_token_expires_at" field.
-func (u *CoreAccountUpsertBulk) ClearAccessTokenExpiresAt() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) ClearAccessTokenExpiresAt() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearAccessTokenExpiresAt()
 	})
 }
 
 // SetRefreshTokenExpiresAt sets the "refresh_token_expires_at" field.
-func (u *CoreAccountUpsertBulk) SetRefreshTokenExpiresAt(v time.Time) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetRefreshTokenExpiresAt(v time.Time) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetRefreshTokenExpiresAt(v)
 	})
 }
 
 // UpdateRefreshTokenExpiresAt sets the "refresh_token_expires_at" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateRefreshTokenExpiresAt() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateRefreshTokenExpiresAt() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateRefreshTokenExpiresAt()
 	})
 }
 
 // ClearRefreshTokenExpiresAt clears the value of the "refresh_token_expires_at" field.
-func (u *CoreAccountUpsertBulk) ClearRefreshTokenExpiresAt() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) ClearRefreshTokenExpiresAt() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearRefreshTokenExpiresAt()
 	})
 }
 
 // SetScope sets the "scope" field.
-func (u *CoreAccountUpsertBulk) SetScope(v string) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetScope(v string) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetScope(v)
 	})
 }
 
 // UpdateScope sets the "scope" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateScope() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateScope() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateScope()
 	})
 }
 
 // ClearScope clears the value of the "scope" field.
-func (u *CoreAccountUpsertBulk) ClearScope() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) ClearScope() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearScope()
 	})
 }
 
 // SetPassword sets the "password" field.
-func (u *CoreAccountUpsertBulk) SetPassword(v string) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetPassword(v string) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetPassword(v)
 	})
 }
 
 // UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdatePassword() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdatePassword() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdatePassword()
 	})
 }
 
 // ClearPassword clears the value of the "password" field.
-func (u *CoreAccountUpsertBulk) ClearPassword() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) ClearPassword() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.ClearPassword()
 	})
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (u *CoreAccountUpsertBulk) SetUpdatedAt(v time.Time) *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) SetUpdatedAt(v time.Time) *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.SetUpdatedAt(v)
 	})
 }
 
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *CoreAccountUpsertBulk) UpdateUpdatedAt() *CoreAccountUpsertBulk {
-	return u.Update(func(s *CoreAccountUpsert) {
+func (u *UserAccountUpsertBulk) UpdateUpdatedAt() *UserAccountUpsertBulk {
+	return u.Update(func(s *UserAccountUpsert) {
 		s.UpdateUpdatedAt()
 	})
 }
 
 // Exec executes the query.
-func (u *CoreAccountUpsertBulk) Exec(ctx context.Context) error {
+func (u *UserAccountUpsertBulk) Exec(ctx context.Context) error {
 	if u.create.err != nil {
 		return u.create.err
 	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
-			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the CoreAccountCreateBulk instead", i)
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UserAccountCreateBulk instead", i)
 		}
 	}
 	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for CoreAccountCreateBulk.OnConflict")
+		return errors.New("ent: missing options for UserAccountCreateBulk.OnConflict")
 	}
 	return u.create.Exec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (u *CoreAccountUpsertBulk) ExecX(ctx context.Context) {
+func (u *UserAccountUpsertBulk) ExecX(ctx context.Context) {
 	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}

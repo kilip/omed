@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"log/slog"
-	"net/http"
 	"net/http/httptest"
 	"runtime"
 	"testing"
@@ -21,21 +20,16 @@ import (
 
 type AppSuite struct {
 	suite.Suite
-	mockAuth *testAuthMock
-	logger   *slog.Logger
-	entCli   *ent.Client
+	logger *slog.Logger
+	entCli *ent.Client
 }
 
 func (s *AppSuite) SetupSuite() {
-	s.mockAuth = newTestAuthMock(s.T())
 	s.logger = slog.New(slog.NewTextHandler(io.Discard, nil))
 	s.entCli = testutil.CreateTestDB("file:config_app_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
 }
 
 func (s *AppSuite) TearDownSuite() {
-	if s.mockAuth != nil && s.mockAuth.server != nil {
-		s.mockAuth.server.Close()
-	}
 	if s.entCli != nil {
 		_ = s.entCli.Close()
 	}
@@ -82,7 +76,6 @@ func (s *AppSuite) Test_New() {
 		Logger:   s.logger,
 		EntCli:   s.entCli,
 		Config: config.Config{
-			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
 		},
 	}
@@ -102,7 +95,6 @@ func (s *AppSuite) Test_Boot_DefaultApp_WithBaseMiddleware() {
 		Logger:   s.logger,
 		EntCli:   s.entCli,
 		Config: config.Config{
-			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
 		},
 	}
@@ -133,7 +125,6 @@ func (s *AppSuite) Test_Boot_LifecycleOrder() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		Config: config.Config{
-			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
 		},
 	}
@@ -163,7 +154,6 @@ func (s *AppSuite) Test_Boot_PreBootError() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		Config: config.Config{
-			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
 		},
 	}
@@ -184,7 +174,6 @@ func (s *AppSuite) Test_Boot_BootError() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		Config: config.Config{
-			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
 		},
 	}
@@ -205,7 +194,6 @@ func (s *AppSuite) Test_Boot_PreBootAndBootErrorsJoined() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		Config: config.Config{
-			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
 		},
 	}
@@ -221,45 +209,6 @@ func (s *AppSuite) Test_Boot_PreBootAndBootErrorsJoined() {
 	s.True(errors.Is(err, errBoot))
 }
 
-func (s *AppSuite) Test_CheckJWKS_Success() {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-	defer srv.Close()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	err := config.CheckJWKS(ctx, srv.URL, s.logger)
-	s.Require().NoError(err)
-}
-
-func (s *AppSuite) Test_CheckJWKS_RetryAndContextCancelled() {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	}))
-	defer srv.Close()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	defer cancel()
-
-	err := config.CheckJWKS(ctx, srv.URL, s.logger)
-	s.Require().Error(err)
-	s.True(errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled))
-}
-
-func (s *AppSuite) Test_WaitForJWKS_Success() {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-	defer srv.Close()
-
-	cfg := config.Config{JWKSUrl: srv.URL}
-	s.NotPanics(func() {
-		config.WaitForJWKS(cfg, s.logger)
-	})
-}
-
 func (s *AppSuite) Test_Run_GracefulShutdown() {
 	if runtime.GOOS == "windows" {
 		s.T().Skip("skip test on windows")
@@ -270,7 +219,6 @@ func (s *AppSuite) Test_Run_GracefulShutdown() {
 		Logger:   s.logger,
 		EntCli:   s.entCli,
 		Config: config.Config{
-			JWKSUrl: s.mockAuth.url,
 			AuthUrl: "http://auth.local",
 		},
 	}

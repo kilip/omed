@@ -31,10 +31,10 @@ const (
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// AccountsTable is the table that holds the accounts relation/edge.
-	AccountsTable = "core_accounts"
-	// AccountsInverseTable is the table name for the CoreAccount entity.
-	// It exists in this package in order to avoid circular dependency with the "coreaccount" package.
-	AccountsInverseTable = "core_accounts"
+	AccountsTable = "user_accounts"
+	// AccountsInverseTable is the table name for the UserAccount entity.
+	// It exists in this package in order to avoid circular dependency with the "useraccount" package.
+	AccountsInverseTable = "user_accounts"
 	// AccountsColumn is the table column denoting the accounts relation/edge.
 	AccountsColumn = "user_id"
 	// SessionsTable is the table that holds the sessions relation/edge.

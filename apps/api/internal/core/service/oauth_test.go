@@ -117,7 +117,7 @@ func (s *OAuthServiceSuite) TearDownSuite() {
 func (s *OAuthServiceSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(context.Background())
 	_, _ = s.client.Session.Delete().Exec(ctx)
-	_, _ = s.client.CoreAccount.Delete().Exec(ctx)
+	_, _ = s.client.UserAccount.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
 	_, _ = s.client.User.Delete().Exec(ctx)
 }

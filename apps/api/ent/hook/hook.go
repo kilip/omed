@@ -21,18 +21,6 @@ func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
 }
 
-// The CoreAccountFunc type is an adapter to allow the use of ordinary
-// function as CoreAccount mutator.
-type CoreAccountFunc func(context.Context, *ent.CoreAccountMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f CoreAccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.CoreAccountMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CoreAccountMutation", m)
-}
-
 // The SessionFunc type is an adapter to allow the use of ordinary
 // function as Session mutator.
 type SessionFunc func(context.Context, *ent.SessionMutation) (ent.Value, error)
@@ -55,6 +43,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserAccountFunc type is an adapter to allow the use of ordinary
+// function as UserAccount mutator.
+type UserAccountFunc func(context.Context, *ent.UserAccountMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserAccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserAccountMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserAccountMutation", m)
 }
 
 // The WorkspaceFunc type is an adapter to allow the use of ordinary

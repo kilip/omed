@@ -3,11 +3,14 @@ package testutil
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/gofiber/fiber/v3"
@@ -21,11 +24,12 @@ import (
 )
 
 // ApiTestSuite provides an end-to-end HTTP integration testing harness with embedded Fiber test client,
-// automatic test user provisioning, JWT signing, cookie management, and response assertions.
+// automatic test user provisioning, session token management, cookie management, and response assertions.
 type ApiTestSuite[T any] struct {
 	suite.Suite
 	HttpResponse *http.Response
 	User         *base.UserContext
+	SessionToken string
 	Cookies      []*http.Cookie
 	Context      context.Context
 }
@@ -60,6 +64,7 @@ func (s *ApiTestSuite[T]) SetupSuite() {
 	}
 
 	s.Context = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, *s.User)
+	s.SessionToken = s.EnsureSession(usr.ID)
 }
 
 // SetupTest prepares test state before each test case runs, resetting cookies and provisioning a default test user.
@@ -82,6 +87,7 @@ func (s *ApiTestSuite[T]) SetupTest() {
 	}
 
 	s.Context = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, *s.User)
+	s.SessionToken = s.EnsureSession(usr.ID)
 }
 
 // AsUser switches the active test user to the specified email and optional global roles.
@@ -101,7 +107,29 @@ func (s *ApiTestSuite[T]) AsUser(email, name string, globalRoles ...base.UserRol
 		Roles:         roles,
 	}
 	s.Context = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, *s.User)
+	s.SessionToken = s.EnsureSession(usr.ID)
 	return usr
+}
+
+// EnsureSession creates an active session in the test DB for the given user ID.
+func (s *ApiTestSuite[T]) EnsureSession(userID int64) string {
+	bytes := make([]byte, 32)
+	_, err := rand.Read(bytes)
+	require.NoError(s.T(), err)
+	token := hex.EncodeToString(bytes)
+
+	ctx := s.Context
+	if ctx == nil || ctx.Value(base.USER_CONTEXT_KEY) == nil {
+		ctx = NewAdminContext()
+	}
+
+	_, err = entClient.Session.Create().
+		SetUserID(userID).
+		SetToken(token).
+		SetExpiresAt(time.Now().Add(24 * time.Hour)).
+		Save(ctx)
+	require.NoError(s.T(), err)
+	return token
 }
 
 // AddMember adds a user as a member of a workspace with the given roles in the test DB.
@@ -194,29 +222,16 @@ func (s *ApiTestSuite[T]) RequestWithToken(path string, method string, requestBo
 	require.NoError(s.T(), err)
 }
 
-// RequestWithClaims signs a JWT token with the current test user context and additional claims, then executes the request.
+// RequestWithClaims is kept for backward compatibility and executes with the active session token.
 func (s *ApiTestSuite[T]) RequestWithClaims(path string, method string, requestBody any, extraClaims jwt.MapClaims) {
 	s.T().Helper()
-
-	claims := jwt.MapClaims{
-		"id":             s.User.ID,
-		"sub":            s.User.ID,
-		"name":           s.User.Name,
-		"email_verified": true,
-		"roles":          s.User.Roles,
-	}
-	for k, v := range extraClaims {
-		claims[k] = v
-	}
-
-	token := SignToken(s.T(), claims)
-	s.RequestWithToken(path, method, requestBody, token)
+	s.RequestWithToken(path, method, requestBody, s.SessionToken)
 }
 
-// Request executes an authenticated HTTP request using the default test user credentials.
+// Request executes an authenticated HTTP request using the default test user session token.
 func (s *ApiTestSuite[T]) Request(path string, method string, requestBody any) {
 	s.T().Helper()
-	s.RequestWithClaims(path, method, requestBody, nil)
+	s.RequestWithToken(path, method, requestBody, s.SessionToken)
 }
 
 // RequestMultipart sends a multipart/form-data upload request authenticated with the test user.
@@ -241,19 +256,9 @@ func (s *ApiTestSuite[T]) RequestMultipartWithClaims(path string, method string,
 	req := httptest.NewRequest(method, path, &b)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
-	claims := jwt.MapClaims{
-		"id":             s.User.ID,
-		"sub":            s.User.ID,
-		"name":           s.User.Name,
-		"email_verified": true,
-		"roles":          s.User.Roles,
+	if s.SessionToken != "" {
+		req.Header.Set("Authorization", "Bearer "+s.SessionToken)
 	}
-	for k, v := range extraClaims {
-		claims[k] = v
-	}
-
-	token := SignToken(s.T(), claims)
-	req.Header.Set("Authorization", "Bearer "+token)
 	for _, c := range s.Cookies {
 		req.AddCookie(c)
 	}

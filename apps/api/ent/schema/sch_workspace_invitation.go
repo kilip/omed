@@ -49,4 +49,3 @@ func (WorkspaceInvitation) Indexes() []ent.Index {
 		index.Fields("workspace_id", "is_revoked"),
 	}
 }
-

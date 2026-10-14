@@ -14,12 +14,12 @@ type Tx struct {
 	config
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
-	// CoreAccount is the client for interacting with the CoreAccount builders.
-	CoreAccount *CoreAccountClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserAccount is the client for interacting with the UserAccount builders.
+	UserAccount *UserAccountClient
 	// Workspace is the client for interacting with the Workspace builders.
 	Workspace *WorkspaceClient
 	// WorkspaceInvitation is the client for interacting with the WorkspaceInvitation builders.
@@ -158,9 +158,9 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
-	tx.CoreAccount = NewCoreAccountClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserAccount = NewUserAccountClient(tx.config)
 	tx.Workspace = NewWorkspaceClient(tx.config)
 	tx.WorkspaceInvitation = NewWorkspaceInvitationClient(tx.config)
 	tx.WorkspaceMember = NewWorkspaceMemberClient(tx.config)

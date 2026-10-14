@@ -125,4 +125,3 @@ func (s *SessionServiceSuite) Test_RevokeAllUserSessions() {
 func TestSessionServiceSuite(t *testing.T) {
 	suite.Run(t, new(SessionServiceSuite))
 }
-

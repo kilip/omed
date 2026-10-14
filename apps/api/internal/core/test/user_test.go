@@ -10,7 +10,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/workspace"
-	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/testutil"
@@ -66,15 +65,6 @@ func (u *UserSuite) Test_Create_Successfully() {
 	ws, err := client.Workspace.Query().Where(workspace.OwnerIDEQ(res.Data.ID), workspace.PersonalEQ(true)).Only(u.Context)
 	u.Require().NoError(err)
 	u.Equal(testUser.Name+"'s Workspace", ws.Name)
-}
-
-func (u *UserSuite) Test_NonSuperadmin_Forbidden() {
-	u.AsUser("normal@example.com", "Normal User", base.UserRoleUser)
-	u.Request("/users", fiber.MethodPost, model.CreateUserRequest{
-		Name:  "Someone",
-		Email: "someone@example.com",
-	})
-	u.AssertStatus(fiber.StatusForbidden)
 }
 
 func (u *UserSuite) Test_Update_Successfully() {

@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -15,8 +14,8 @@ type Config struct {
 	AuthUrl string `env:"OMED_AUTH_URL"`
 	// AuthPath is the subpath mounted for authentication endpoints.
 	AuthPath string `env:"OMED_AUTH_PATH"`
-	// JWKSUrl is the JWKS endpoint used to verify signed JSON Web Tokens.
-	JWKSUrl string `env:"OMED_JWKS_URL"`
+	// SessionCookieName is the cookie name used to store and retrieve the session token.
+	SessionCookieName string `env:"OMED_SESSION_COOKIE_NAME,default=token"`
 	// TrustedOrigins lists allowed CORS origins for browser clients.
 	TrustedOrigins []string `env:"OMED_TRUSTED_ORIGINS,separator=,default=http://localhost:3001"`
 	// DatabaseUrl database server to be use in omed
@@ -36,7 +35,7 @@ type Config struct {
 }
 
 // GetConfig reads environment variables and returns a populated Config instance.
-// It applies default fallback values for AuthPath and JWKSUrl if they are omitted.
+// It applies default fallback values for AuthPath and SessionCookieName if they are omitted.
 func GetConfig() Config {
 	var config Config
 
@@ -48,8 +47,8 @@ func GetConfig() Config {
 		config.AuthPath = "/auth"
 	}
 
-	if config.JWKSUrl == "" {
-		config.JWKSUrl = fmt.Sprintf("%s%s/jwks", config.AuthUrl, config.AuthPath)
+	if config.SessionCookieName == "" {
+		config.SessionCookieName = "token"
 	}
 
 	return config

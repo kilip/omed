@@ -8,31 +8,31 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
+	"github.com/kilip/omed/api/ent/useraccount"
 )
 
-// CoreAccountDelete is the builder for deleting a CoreAccount entity.
-type CoreAccountDelete struct {
+// UserAccountDelete is the builder for deleting a UserAccount entity.
+type UserAccountDelete struct {
 	config
 	hooks    []Hook
-	mutation *CoreAccountMutation
+	mutation *UserAccountMutation
 }
 
-// Where appends a list predicates to the CoreAccountDelete builder.
-func (_d *CoreAccountDelete) Where(ps ...predicate.CoreAccount) *CoreAccountDelete {
+// Where appends a list predicates to the UserAccountDelete builder.
+func (_d *UserAccountDelete) Where(ps ...predicate.UserAccount) *UserAccountDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *CoreAccountDelete) Exec(ctx context.Context) (int, error) {
+func (_d *UserAccountDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *CoreAccountDelete) ExecX(ctx context.Context) int {
+func (_d *UserAccountDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -40,9 +40,9 @@ func (_d *CoreAccountDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *CoreAccountDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(coreaccount.Table, sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64))
-	_spec.Node.Schema = _d.schemaConfig.CoreAccount
+func (_d *UserAccountDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(useraccount.Table, sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64))
+	_spec.Node.Schema = _d.schemaConfig.UserAccount
 	ctx = internal.NewSchemaConfigContext(ctx, _d.schemaConfig)
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -59,32 +59,32 @@ func (_d *CoreAccountDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// CoreAccountDeleteOne is the builder for deleting a single CoreAccount entity.
-type CoreAccountDeleteOne struct {
-	_d *CoreAccountDelete
+// UserAccountDeleteOne is the builder for deleting a single UserAccount entity.
+type UserAccountDeleteOne struct {
+	_d *UserAccountDelete
 }
 
-// Where appends a list predicates to the CoreAccountDelete builder.
-func (_d *CoreAccountDeleteOne) Where(ps ...predicate.CoreAccount) *CoreAccountDeleteOne {
+// Where appends a list predicates to the UserAccountDelete builder.
+func (_d *UserAccountDeleteOne) Where(ps ...predicate.UserAccount) *UserAccountDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *CoreAccountDeleteOne) Exec(ctx context.Context) error {
+func (_d *UserAccountDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{coreaccount.Label}
+		return &NotFoundError{useraccount.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *CoreAccountDeleteOne) ExecX(ctx context.Context) {
+func (_d *UserAccountDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

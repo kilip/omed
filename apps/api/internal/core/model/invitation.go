@@ -38,4 +38,3 @@ type PublicInvitationResponse struct {
 	ExpiresAt            *time.Time `json:"expiresAt,omitempty"`
 	IsValid              bool       `json:"isValid"`
 }
-

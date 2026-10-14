@@ -12,20 +12,20 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// CoreAccount holds the schema definition for external OAuth accounts associated with a User.
-type CoreAccount struct {
+// UserAccount holds the schema definition for external OAuth accounts associated with a User.
+type UserAccount struct {
 	ent.Schema
 }
 
-// Annotations returns additional schema annotations for the CoreAccount table.
-func (CoreAccount) Annotations() []schema.Annotation {
+// Annotations returns additional schema annotations for the UserAccount table.
+func (UserAccount) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Schema("omed"),
 	}
 }
 
-// Fields of the CoreAccount entity.
-func (CoreAccount) Fields() []ent.Field {
+// Fields of the UserAccount entity.
+func (UserAccount) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id"),
 		field.Int64("user_id"),
@@ -43,8 +43,8 @@ func (CoreAccount) Fields() []ent.Field {
 	}
 }
 
-// Edges of the CoreAccount entity.
-func (CoreAccount) Edges() []ent.Edge {
+// Edges of the UserAccount entity.
+func (UserAccount) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("user", User.Type).
 			Field("user_id").
@@ -54,11 +54,10 @@ func (CoreAccount) Edges() []ent.Edge {
 	}
 }
 
-// Indexes of the CoreAccount entity.
-func (CoreAccount) Indexes() []ent.Index {
+// Indexes of the UserAccount entity.
+func (UserAccount) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("provider_id", "account_id").Unique(),
 		index.Fields("user_id"),
 	}
 }
-

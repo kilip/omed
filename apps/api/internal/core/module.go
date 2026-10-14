@@ -13,17 +13,18 @@ import (
 )
 
 type Config struct {
-	FiberApp       *fiber.App
-	Logger         *slog.Logger
-	EntCli         *ent.Client
-	AuthSecret     string
-	ApiURL         string
-	TrustedOrigins []string
-	GoogleID       string
-	GoogleSecret   string
-	GithubID       string
-	GithubSecret   string
-	SessionTTL     time.Duration
+	FiberApp          *fiber.App
+	Logger            *slog.Logger
+	EntCli            *ent.Client
+	AuthSecret        string
+	ApiURL            string
+	TrustedOrigins    []string
+	GoogleID          string
+	GoogleSecret      string
+	GithubID          string
+	GithubSecret      string
+	SessionTTL        time.Duration
+	SessionCookieName string
 }
 
 // CoreModule represents the core module implementing base.Module.

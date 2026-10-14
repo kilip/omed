@@ -179,4 +179,3 @@ func generateInvitationToken() (string, error) {
 	}
 	return hex.EncodeToString(b), nil
 }
-

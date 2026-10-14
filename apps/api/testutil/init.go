@@ -20,7 +20,6 @@ var state config.State
 var api *fiber.App
 var logger *slog.Logger
 var entClient *ent.Client
-var jwksMock JWKSMock
 
 func loadEnvForTest() {
 	// _, b, _, _ returns the absolute path of the current file
@@ -41,12 +40,6 @@ func init() {
 	}
 
 	cfg = config.GetConfig()
-
-	mock := NewJWKSMock()
-	jwksMock = *mock
-
-	// force test environment config
-	cfg.JWKSUrl = mock.URL
 
 	_, b, _, _ := runtime.Caller(0)
 	logPath := filepath.Join(filepath.Dir(b), "../tmp/test.log")

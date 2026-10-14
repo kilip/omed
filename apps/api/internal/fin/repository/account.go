@@ -219,7 +219,6 @@ func (r AccountRepository) FindByCode(c context.Context, code string) (domain.Ac
 	return toAccountDomain(a), nil
 }
 
-
 func toAccountDomain(a *ent.Account) domain.Account {
 	dom := domain.Account{
 		ID:            a.ID,

@@ -16,4 +16,3 @@ type Invitation struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
-

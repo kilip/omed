@@ -56,4 +56,3 @@ func (Session) Indexes() []ent.Index {
 		index.Fields("user_id"),
 	}
 }
-

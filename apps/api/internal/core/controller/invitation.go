@@ -195,4 +195,3 @@ func toInvitationResponse(inv domain.Invitation) model.InvitationResponse {
 		CreatedAt:   inv.CreatedAt,
 	}
 }
-

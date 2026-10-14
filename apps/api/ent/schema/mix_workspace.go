@@ -30,4 +30,3 @@ func (WorkspaceMixin) Edges() []ent.Edge {
 			Immutable(),
 	}
 }
-

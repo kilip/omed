@@ -38,7 +38,7 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("accounts", CoreAccount.Type).Ref("user"),
+		edge.From("accounts", UserAccount.Type).Ref("user"),
 		edge.From("sessions", Session.Type).Ref("user"),
 	}
 }

@@ -146,4 +146,3 @@ func (s *SessionRepoSuite) Test_DeleteExpired() {
 func TestSessionRepoSuite(t *testing.T) {
 	suite.Run(t, new(SessionRepoSuite))
 }
-

@@ -67,4 +67,3 @@ func TestWorkspaceContext(t *testing.T) {
 	assert.Equal(t, int64(456), base.WorkspaceIDFromContext(fctx))
 	assert.True(t, base.SkipWorkspaceFilterFromContext(fctx))
 }
-

@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -84,14 +84,14 @@ func (_c *UserCreate) SetID(v int64) *UserCreate {
 	return _c
 }
 
-// AddAccountIDs adds the "accounts" edge to the CoreAccount entity by IDs.
+// AddAccountIDs adds the "accounts" edge to the UserAccount entity by IDs.
 func (_c *UserCreate) AddAccountIDs(ids ...int64) *UserCreate {
 	_c.mutation.AddAccountIDs(ids...)
 	return _c
 }
 
-// AddAccounts adds the "accounts" edges to the CoreAccount entity.
-func (_c *UserCreate) AddAccounts(v ...*CoreAccount) *UserCreate {
+// AddAccounts adds the "accounts" edges to the UserAccount entity.
+func (_c *UserCreate) AddAccounts(v ...*UserAccount) *UserCreate {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -245,10 +245,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(coreaccount.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(useraccount.FieldID, field.TypeInt64),
 			},
 		}
-		edge.Schema = _c.schemaConfig.CoreAccount
+		edge.Schema = _c.schemaConfig.UserAccount
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

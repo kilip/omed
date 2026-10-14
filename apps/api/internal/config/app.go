@@ -5,17 +5,12 @@ package config
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
-	"log/slog"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/fin"
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"golang.org/x/sync/errgroup"
@@ -23,24 +18,26 @@ import (
 
 // Omed manages application modules and the HTTP server lifecycle.
 type Omed struct {
-	cfg     Config
-	state   State
-	modules []Module
+	cfg            Config
+	state          State
+	modules        []Module
+	sessionService service.SessionService
 }
 
 // New creates a new Omed instance populated with runtime state and registered modules.
 func New(state State) Omed {
 	coreMod := core.New(core.Config{
-		FiberApp:       state.FiberApp,
-		Logger:         state.Logger,
-		EntCli:         state.EntCli,
-		AuthSecret:     state.Config.AuthSecret,
-		ApiURL:         state.Config.ApiUrl,
-		TrustedOrigins: state.Config.TrustedOrigins,
-		GoogleID:       state.Config.GoogleClientID,
-		GoogleSecret:   state.Config.GoogleClientSecret,
-		GithubID:       state.Config.GithubClientID,
-		GithubSecret:   state.Config.GithubClientSecret,
+		FiberApp:          state.FiberApp,
+		Logger:            state.Logger,
+		EntCli:            state.EntCli,
+		AuthSecret:        state.Config.AuthSecret,
+		ApiURL:            state.Config.ApiUrl,
+		TrustedOrigins:    state.Config.TrustedOrigins,
+		GoogleID:          state.Config.GoogleClientID,
+		GoogleSecret:      state.Config.GoogleClientSecret,
+		GithubID:          state.Config.GithubClientID,
+		GithubSecret:      state.Config.GithubClientSecret,
+		SessionCookieName: state.Config.SessionCookieName,
 	})
 
 	az, err := authz.New(coreMod.MemberService)
@@ -63,6 +60,7 @@ func New(state State) Omed {
 			coreMod,
 			finMod,
 		},
+		sessionService: coreMod.SessionService,
 	}
 }
 
@@ -75,7 +73,7 @@ func initBaseMiddleware(state State) {
 // PreBoot and Boot hooks across all registered modules.
 func (a *Omed) Boot() error {
 	initBaseMiddleware(a.state)
-	initFirewall(a.state)
+	initFirewall(a.state, a.sessionService)
 
 	var err error
 
@@ -117,38 +115,4 @@ func (a *Omed) Run(ctx context.Context) error {
 	})
 
 	return g.Wait()
-}
-
-// WaitForJWKS blocks until the JWKS endpoint is reachable and returns HTTP 200,
-// or until an OS termination signal is received.
-func WaitForJWKS(cfg Config, logger *slog.Logger) {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	if err := checkJWKS(ctx, cfg.JWKSUrl, logger); err != nil {
-		log.Fatalf("auth not ready: %v", err)
-	}
-}
-
-func checkJWKS(ctx context.Context, url string, log *slog.Logger) error {
-	client := &http.Client{Timeout: 3 * time.Second}
-	for i := 0; ; i++ {
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-		resp, err := client.Do(req)
-		if err == nil {
-			ok := resp.StatusCode == http.StatusOK
-			resp.Body.Close()
-			if ok {
-				return nil
-			}
-			err = fmt.Errorf("status %d", resp.StatusCode)
-		}
-		wait := time.Duration(1<<min(i, 4)) * time.Second
-		log.Warn("waiting for auth JWKS", "url", url, "in", wait, "error", err)
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(wait):
-		}
-	}
 }
