@@ -22,6 +22,11 @@ func MapError(err error) (int, ErrorBody) {
 		return fiber.StatusUnprocessableEntity, ErrorBody{Code: "VALIDATION_FAILED", Message: "validation failed", Fields: fields}
 	}
 
+	var fe *fiber.Error
+	if errors.As(err, &fe) {
+		return fe.Code, ErrorBody{Code: base.ErrUnknown.Error(), Message: fe.Message}
+	}
+
 	item := base.MapError(err)
 	return item.Status, ErrorBody{Code: item.Code, Message: item.Message}
 }

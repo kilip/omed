@@ -3,6 +3,7 @@ package core
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
@@ -12,9 +13,17 @@ import (
 )
 
 type Config struct {
-	FiberApp *fiber.App
-	Logger   *slog.Logger
-	EntCli   *ent.Client
+	FiberApp       *fiber.App
+	Logger         *slog.Logger
+	EntCli         *ent.Client
+	AuthSecret     string
+	ApiURL         string
+	TrustedOrigins []string
+	GoogleID       string
+	GoogleSecret   string
+	GithubID       string
+	GithubSecret   string
+	SessionTTL     time.Duration
 }
 
 // CoreModule represents the core module implementing base.Module.
@@ -28,6 +37,10 @@ type CoreModule struct {
 	MemberService service.MemberService
 	// InvitationService handles workspace invitation business logic.
 	InvitationService service.InvitationService
+	// SessionService handles session business logic.
+	SessionService service.SessionService
+	// OAuthService handles third-party OAuth2 authentication.
+	OAuthService service.OAuthService
 	// Authorizer handles workspace-scoped authorization checks.
 	Authorizer *authz.Authorizer
 }
@@ -41,11 +54,26 @@ func New(cfg Config) *CoreModule {
 	workspaces := repository.NewWorkspaceRepository(cfg.EntCli)
 	members := repository.NewMemberRepository(cfg.EntCli)
 	invitations := repository.NewInvitationRepository(cfg.EntCli)
+	accounts := repository.NewAccountRepository(cfg.EntCli)
+	sessions := repository.NewSessionRepository(cfg.EntCli)
 
 	userSvc := service.NewUserService(users)
 	workspaceSvc := service.NewWorkspaceService(workspaces)
 	memberSvc := service.NewMemberService(members, workspaceSvc, userSvc)
 	invitationSvc := service.NewInvitationService(invitations, workspaceSvc, members, userSvc)
+	sessionSvc := service.NewSessionService(sessions, users, cfg.SessionTTL)
+	oauthSvc := service.NewOAuthService(service.OAuthServiceParams{
+		Accounts:       accounts,
+		Users:          users,
+		Sessions:       sessionSvc,
+		AuthSecret:     cfg.AuthSecret,
+		ApiURL:         cfg.ApiURL,
+		TrustedOrigins: cfg.TrustedOrigins,
+		GoogleID:       cfg.GoogleID,
+		GoogleSecret:   cfg.GoogleSecret,
+		GithubID:       cfg.GithubID,
+		GithubSecret:   cfg.GithubSecret,
+	})
 
 	mod := &CoreModule{
 		cfg:               cfg,
@@ -53,6 +81,8 @@ func New(cfg Config) *CoreModule {
 		WorkspaceService:  workspaceSvc,
 		MemberService:     memberSvc,
 		InvitationService: invitationSvc,
+		SessionService:    sessionSvc,
+		OAuthService:      oauthSvc,
 	}
 
 	InitEntCli(cfg.EntCli)

@@ -4,6 +4,224 @@
  */
 
 export interface paths {
+  "/auth/callback/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * OAuth2 callback
+     * @description Handle authorization code callback from OAuth provider and establish session
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Authorization code */
+          code?: string;
+          /** @description CSRF state token */
+          state?: string;
+          /** @description Error reason from provider */
+          error?: string;
+        };
+        header?: never;
+        path: {
+          /** @description OAuth Provider (e.g. google, github) */
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Redirects to frontend callback URL */
+        302: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": string;
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/get-session": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get current session
+     * @description Retrieve authenticated session and user details
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.SessionResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/sign-in/social": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Sign in with social provider
+     * @description Initiate OAuth2 social login (Google, GitHub) and get authorization URL
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description Sign-in payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SignInSocialRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.SignInSocialResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/sign-out": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Sign out
+     * @description Revoke current session from database and clear session cookie
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              [key: string]: boolean;
+            };
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/invitations/{token}": {
     parameters: {
       query?: never;
@@ -2176,6 +2394,30 @@ export interface components {
       name?: string;
       ownerId?: number;
     };
+    "model.SessionData": {
+      createdAt?: string;
+      expiresAt?: string;
+      id?: number;
+      ipAddress?: string;
+      token?: string;
+      updatedAt?: string;
+      userAgent?: string;
+      userId?: number;
+    };
+    "model.SessionResponse": {
+      session?: components["schemas"]["model.SessionData"];
+      user?: components["schemas"]["model.UserData"];
+    };
+    "model.SignInSocialRequest": {
+      callbackURL?: string;
+      errorCallbackURL?: string;
+      newUserCallbackURL?: string;
+      provider: string;
+    };
+    "model.SignInSocialResponse": {
+      redirect?: boolean;
+      url?: string;
+    };
     "model.UpdateAccountRequest": {
       code?: string;
       description?: string;
@@ -2196,6 +2438,13 @@ export interface components {
     "model.UpdateWorkspaceRequest": {
       description?: string;
       name: string;
+    };
+    "model.UserData": {
+      email?: string;
+      emailVerified?: boolean;
+      id?: number;
+      image?: string;
+      name?: string;
     };
     "model.UserResponse": {
       avatar?: string;

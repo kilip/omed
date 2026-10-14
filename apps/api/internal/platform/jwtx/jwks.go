@@ -24,7 +24,10 @@ func Handler(jwksUrl string, logger *slog.Logger) (fiber.Handler, error) {
 
 	config := jwtware.Config{
 		Next: func(c fiber.Ctx) bool {
-			return c.Method() == fiber.MethodOptions || strings.HasPrefix(c.Path(), "/internal")
+			return c.Method() == fiber.MethodOptions ||
+				strings.HasPrefix(c.Path(), "/internal") ||
+				strings.HasPrefix(c.Path(), "/auth/") ||
+				c.Path() == "/auth"
 		},
 		KeyFunc:   jwks.KeyfuncCtx(context.Background()),
 		Extractor: extractors.FromAuthHeader("Bearer"),

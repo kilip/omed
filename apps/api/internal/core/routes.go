@@ -9,6 +9,15 @@ import (
 )
 
 func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
+	// Authentication routes (Better Auth compatible)
+	auth := r.Group("/auth")
+	ctlA := controller.NewAuthController(mod.OAuthService, mod.SessionService)
+	auth.Post("/sign-in/social", ctlA.SignInSocial)
+	auth.Get("/callback/:id", ctlA.Callback)
+	auth.Post("/callback/:id", ctlA.Callback)
+	auth.Get("/get-session", ctlA.GetSession)
+	auth.Post("/sign-out", ctlA.SignOut)
+
 	// Global users management is restricted to superadmin.
 	users := r.Group("/users", authz.RequireGlobal(base.UserRoleAdmin))
 	ctlU := controller.NewUserController(mod.UserService)

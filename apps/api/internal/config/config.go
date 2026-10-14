@@ -21,6 +21,18 @@ type Config struct {
 	TrustedOrigins []string `env:"OMED_TRUSTED_ORIGINS,separator=,default=http://localhost:3001"`
 	// DatabaseUrl database server to be use in omed
 	DatabaseUrl string `env:"OMED_DB_URL"`
+	// AuthSecret is used to sign/verify tokens and OAuth state.
+	AuthSecret string `env:"OMED_AUTH_SECRET"`
+	// GoogleClientID is the OAuth2 client ID for Google authentication.
+	GoogleClientID string `env:"OMED_GOOGLE_ID"`
+	// GoogleClientSecret is the OAuth2 client secret for Google authentication.
+	GoogleClientSecret string `env:"OMED_GOOGLE_SECRET"`
+	// GithubClientID is the OAuth2 client ID for GitHub authentication.
+	GithubClientID string `env:"OMED_GITHUB_ID"`
+	// GithubClientSecret is the OAuth2 client secret for GitHub authentication.
+	GithubClientSecret string `env:"OMED_GITHUB_SECRET"`
+	// ApiUrl is the base URL for the API service.
+	ApiUrl string `env:"OMED_API_URL,default=http://localhost:8002"`
 }
 
 // GetConfig reads environment variables and returns a populated Config instance.

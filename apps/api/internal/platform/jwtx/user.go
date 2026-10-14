@@ -17,7 +17,10 @@ import (
 // base.UserContext into the Fiber request context locals.
 func UserInjector(issuer string, restAudience string) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		if c.Method() == fiber.MethodOptions || strings.HasPrefix(c.Path(), "/internal") {
+		if c.Method() == fiber.MethodOptions ||
+			strings.HasPrefix(c.Path(), "/internal") ||
+			strings.HasPrefix(c.Path(), "/auth/") ||
+			c.Path() == "/auth" {
 			return c.Next()
 		}
 		token := jwtware.FromContext(c)

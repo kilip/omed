@@ -31,9 +31,16 @@ type Omed struct {
 // New creates a new Omed instance populated with runtime state and registered modules.
 func New(state State) Omed {
 	coreMod := core.New(core.Config{
-		FiberApp: state.FiberApp,
-		Logger:   state.Logger,
-		EntCli:   state.EntCli,
+		FiberApp:       state.FiberApp,
+		Logger:         state.Logger,
+		EntCli:         state.EntCli,
+		AuthSecret:     state.Config.AuthSecret,
+		ApiURL:         state.Config.ApiUrl,
+		TrustedOrigins: state.Config.TrustedOrigins,
+		GoogleID:       state.Config.GoogleClientID,
+		GoogleSecret:   state.Config.GoogleClientSecret,
+		GithubID:       state.Config.GithubClientID,
+		GithubSecret:   state.Config.GithubClientSecret,
 	})
 
 	az, err := authz.New(coreMod.MemberService)

@@ -619,6 +619,75 @@
         },
         "type": "object"
       },
+      "model.SessionData": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "ipAddress": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "model.SessionResponse": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/model.SessionData"
+          },
+          "user": {
+            "$ref": "#/components/schemas/model.UserData"
+          }
+        },
+        "type": "object"
+      },
+      "model.SignInSocialRequest": {
+        "properties": {
+          "callbackURL": {
+            "type": "string"
+          },
+          "errorCallbackURL": {
+            "type": "string"
+          },
+          "newUserCallbackURL": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          }
+        },
+        "required": ["provider"],
+        "type": "object"
+      },
+      "model.SignInSocialResponse": {
+        "properties": {
+          "redirect": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "model.UpdateAccountRequest": {
         "properties": {
           "code": {
@@ -683,6 +752,26 @@
           }
         },
         "required": ["name"],
+        "type": "object"
+      },
+      "model.UserData": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "image": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "model.UserResponse": {
@@ -768,6 +857,183 @@
     "url": ""
   },
   "paths": {
+    "/auth/callback/{id}": {
+      "get": {
+        "description": "Handle authorization code callback from OAuth provider and establish session",
+        "parameters": [
+          {
+            "description": "OAuth Provider (e.g. google, github)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Authorization code",
+            "in": "query",
+            "name": "code",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "CSRF state token",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Error reason from provider",
+            "in": "query",
+            "name": "error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Redirects to frontend callback URL"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "OAuth2 callback",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/get-session": {
+      "get": {
+        "description": "Retrieve authenticated session and user details",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/model.SessionResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Get current session",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/sign-in/social": {
+      "post": {
+        "description": "Initiate OAuth2 social login (Google, GitHub) and get authorization URL",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/model.SignInSocialRequest",
+                "summary": "request",
+                "description": "Sign-in payload"
+              }
+            }
+          },
+          "description": "Sign-in payload",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/model.SignInSocialResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Sign in with social provider",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/sign-out": {
+      "post": {
+        "description": "Revoke current session from database and clear session cookie",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Sign out",
+        "tags": ["Authentication"]
+      }
+    },
     "/invitations/{token}": {
       "get": {
         "description": "Returns workspace details, inviter name, and token validity for previewing an invitation",

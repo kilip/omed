@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/coreaccount"
 	"github.com/kilip/omed/api/ent/schema"
+	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
 	"github.com/kilip/omed/api/ent/workspaceinvitation"
@@ -48,6 +50,42 @@ func init() {
 	accountDescIsPostable := accountFields[8].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
+	coreaccountFields := schema.CoreAccount{}.Fields()
+	_ = coreaccountFields
+	// coreaccountDescProviderID is the schema descriptor for provider_id field.
+	coreaccountDescProviderID := coreaccountFields[2].Descriptor()
+	// coreaccount.ProviderIDValidator is a validator for the "provider_id" field. It is called by the builders before save.
+	coreaccount.ProviderIDValidator = coreaccountDescProviderID.Validators[0].(func(string) error)
+	// coreaccountDescAccountID is the schema descriptor for account_id field.
+	coreaccountDescAccountID := coreaccountFields[3].Descriptor()
+	// coreaccount.AccountIDValidator is a validator for the "account_id" field. It is called by the builders before save.
+	coreaccount.AccountIDValidator = coreaccountDescAccountID.Validators[0].(func(string) error)
+	// coreaccountDescCreatedAt is the schema descriptor for created_at field.
+	coreaccountDescCreatedAt := coreaccountFields[11].Descriptor()
+	// coreaccount.DefaultCreatedAt holds the default value on creation for the created_at field.
+	coreaccount.DefaultCreatedAt = coreaccountDescCreatedAt.Default.(func() time.Time)
+	// coreaccountDescUpdatedAt is the schema descriptor for updated_at field.
+	coreaccountDescUpdatedAt := coreaccountFields[12].Descriptor()
+	// coreaccount.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	coreaccount.DefaultUpdatedAt = coreaccountDescUpdatedAt.Default.(func() time.Time)
+	// coreaccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	coreaccount.UpdateDefaultUpdatedAt = coreaccountDescUpdatedAt.UpdateDefault.(func() time.Time)
+	sessionFields := schema.Session{}.Fields()
+	_ = sessionFields
+	// sessionDescToken is the schema descriptor for token field.
+	sessionDescToken := sessionFields[2].Descriptor()
+	// session.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	session.TokenValidator = sessionDescToken.Validators[0].(func(string) error)
+	// sessionDescCreatedAt is the schema descriptor for created_at field.
+	sessionDescCreatedAt := sessionFields[6].Descriptor()
+	// session.DefaultCreatedAt holds the default value on creation for the created_at field.
+	session.DefaultCreatedAt = sessionDescCreatedAt.Default.(func() time.Time)
+	// sessionDescUpdatedAt is the schema descriptor for updated_at field.
+	sessionDescUpdatedAt := sessionFields[7].Descriptor()
+	// session.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	session.DefaultUpdatedAt = sessionDescUpdatedAt.Default.(func() time.Time)
+	// session.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	session.UpdateDefaultUpdatedAt = sessionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.
