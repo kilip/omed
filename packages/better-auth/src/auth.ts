@@ -4,7 +4,7 @@ import {
   betterAuth,
   type SocialProviders,
 } from "better-auth";
-import { admin, jwt, openAPI } from "better-auth/plugins";
+import { jwt, openAPI } from "better-auth/plugins";
 import { authEnv } from "./authEnv";
 import { authDb } from "./drizzle/db";
 import * as schema from "./drizzle/schema/better-auth";
@@ -38,7 +38,7 @@ export const options = {
     schema,
   }),
   socialProviders,
-  plugins: [admin(), jwt(), openAPI()],
+  plugins: [jwt(), openAPI()],
 } satisfies BetterAuthOptions;
 
 export const auth = betterAuth(options);
