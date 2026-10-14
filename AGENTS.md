@@ -110,7 +110,7 @@ apps/web/app/modules/{module_name}/
 └── ...            # Other module-local code (components, utils, types)
 ```
 
-- Module names match the Go modules: `sys`, `user`, `fin`, `web`.
+- Module names match the Go modules: `sys`, `user`, `fin`, `cms`.
 - A module registers itself through its own files: `route.ts` for routes and `module.ts` for launcher metadata. There is no central registry file: adding a module means adding `app/modules/{module_name}/` with both files.
 - The launcher discovers modules with Vite's `import.meta.glob("./modules/*/module.ts")`. Do not import modules into a hand-maintained list.
 - API types come from `@omed/openapi` and are consumed through `openapi-fetch`. Do not hand-write types for API responses.
@@ -141,7 +141,7 @@ e2e/
 └── support/             # World, hooks, config, server runner, auth helper
 ```
 
-- Group names match the dashboard modules (`sys`, `user`, `fin`, `web` for the CMS). `dashboard` is the one extra group: it covers the shell itself (login, homepage, invitations), which lives in `apps/web/app/routes` and is not a module.
+- Group names match the dashboard modules (`sys`, `user`, `fin`, `cms`). `dashboard` is the one extra group: it covers the shell itself (login, homepage, invitations), which lives in `apps/web/app/routes` and is not a module.
 - Use the Page Object Model: locators and `expect*` checks live in `pages/{module}/*.page.ts`; steps only call page objects through `this.pages.{module}`. Do not put selectors in steps.
 - Put a step in `steps/common.steps.ts` only when more than one module uses it.
 - Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the Better Auth `testUtils` plugin (`support/auth.ts`), and removes the user afterwards. The plugin lives in a test-only auth instance, never in `packages/better-auth`.
