@@ -6,6 +6,7 @@ import (
 	"log"
 
 	entsql "entgo.io/ent/dialect/sql"
+	_ "github.com/jackc/pgx/v5/stdlib" // Registers the "pgx" driver
 
 	"entgo.io/ent/dialect"
 	"github.com/kilip/omed/api/ent"

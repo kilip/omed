@@ -19,6 +19,7 @@ func main() {
 	cfg := config.GetConfig()
 	logger := config.GetLogger()
 	fiber := config.GetFiber(cfg, logger)
+	entcli := config.GetEntClient(cfg)
 
 	state := config.State{
 		Logger:   logger,
@@ -26,6 +27,7 @@ func main() {
 		FiberApp: fiber,
 		Public:   fiber.Group("/"),
 		Secure:   fiber.Group("/"),
+		EntCli:   entcli,
 	}
 
 	config.WaitForJWKS(cfg, logger)
