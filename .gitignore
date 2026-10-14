@@ -34,6 +34,9 @@ bun-debug.log*
 # Coverage
 coverage/
 
+# E2E reports and service logs
+e2e/reports/
+
 # PWA / service worker
 dev-dist/
 

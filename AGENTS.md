@@ -126,3 +126,23 @@ End-to-end tests live under `e2e/` (Cucumber + Playwright).
 - Add `HEADED=true` to watch the browser.
 - Run `bunx playwright install chromium` once beforehand.
 
+### Structure
+
+```
+e2e/
+├── features/{module}/   # Gherkin features, grouped by module
+├── steps/
+│   ├── common.steps.ts  # Steps shared by every module
+│   └── {module}/        # Step definitions of that module only
+├── pages/
+│   ├── base.page.ts     # Base class for page objects
+│   ├── index.ts         # createPages(): page objects grouped by module
+│   └── {module}/        # Page objects (POM) of that module
+└── support/             # World, hooks, config, server runner, auth helper
+```
+
+- Module names match the dashboard modules (`sys`, `user`, `fin`, `web`). `web` holds the shell itself: login and the homepage.
+- Use the Page Object Model: locators and `expect*` checks live in `pages/{module}/*.page.ts`; steps only call page objects through `this.pages.{module}`. Do not put selectors in steps.
+- Put a step in `steps/common.steps.ts` only when more than one module uses it.
+- Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the Better Auth `testUtils` plugin (`support/auth.ts`), and removes the user afterwards. The plugin lives in a test-only auth instance, never in `packages/better-auth`.
+

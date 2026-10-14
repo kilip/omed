@@ -1,5 +1,22 @@
 {
   "name": "e2e",
   "private": true,
-  "description": "Omed E2E testing"
+  "type": "module",
+  "description": "Omed E2E testing",
+  "scripts": {
+    "e2e": "bunx --bun cucumber-js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cucumber/cucumber": "^13.3.0",
+    "@omed/better-auth": "workspace:*",
+    "better-auth": "^1.7.7",
+    "playwright": "^1.64.0"
+  },
+  "devDependencies": {
+    "@omed/tsconfig": "workspace:*",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.4",
+    "typescript": "6.x"
+  }
 }
