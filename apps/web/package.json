@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.4",
-    "@omed/better-auth": "workspace:*",
     "@omed/openapi": "workspace:*",
     "@react-router/node": "^8.4.0",
     "@react-router/serve": "^8.4.0",
