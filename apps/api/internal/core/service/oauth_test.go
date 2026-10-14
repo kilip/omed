@@ -79,7 +79,7 @@ func (s *OAuthServiceSuite) SetupSuite() {
 		Sessions:       s.sessionSvc,
 		AuthSecret:     "test-secret-key-at-least-32-bytes-long",
 		ApiURL:         "http://localhost:8001",
-		TrustedOrigins: []string{"http://localhost:3001", "https://app.example.com"},
+		TrustedOrigins: []string{"http://localhost:3000", "https://app.example.com"},
 		GoogleID:       "mock-google-id",
 		GoogleSecret:   "mock-google-secret",
 		GithubID:       "mock-github-id",
@@ -125,7 +125,7 @@ func (s *OAuthServiceSuite) SetupTest() {
 func (s *OAuthServiceSuite) Test_GetAuthURL_Success() {
 	res, err := s.oauthSvc.GetAuthURL(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,
-		CallbackURL: "http://localhost:3001/dashboard",
+		CallbackURL: "http://localhost:3000/dashboard",
 	})
 	s.Require().NoError(err)
 	s.True(res.Redirect)
@@ -165,7 +165,7 @@ func (s *OAuthServiceSuite) Test_HandleCallback_InvalidState() {
 func (s *OAuthServiceSuite) Test_HandleCallback_SuccessNewUser() {
 	authRes, err := s.oauthSvc.GetAuthURL(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,
-		CallbackURL: "http://localhost:3001/welcome",
+		CallbackURL: "http://localhost:3000/welcome",
 	})
 	s.Require().NoError(err)
 
@@ -188,7 +188,7 @@ func (s *OAuthServiceSuite) Test_HandleCallback_SuccessNewUser() {
 		"TestBrowser",
 	)
 	s.Require().NoError(err)
-	s.Equal("http://localhost:3001/welcome", redirectURL)
+	s.Equal("http://localhost:3000/welcome", redirectURL)
 	s.Equal("google.user@example.com", user.Email)
 	s.Equal("Google User", user.Name)
 	s.NotEmpty(sess.Token)

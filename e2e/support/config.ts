@@ -53,7 +53,7 @@ const apiUrl = env("OMED_API_URL", "http://localhost:8001");
 export const config = {
   apiUrl,
   authUrl: apiUrl,
-  webUrl: env("OMED_WEB_URL", "http://localhost:3001"),
+  webUrl: env("OMED_WEB_URL", "http://localhost:3000"),
   authPath: env("OMED_AUTH_PATH", "/auth"),
   authSecret: env(
     "OMED_AUTH_SECRET",
@@ -65,7 +65,7 @@ export const config = {
   ),
   trustedOrigins: env(
     "OMED_TRUSTED_ORIGINS",
-    "http://localhost:3001,http://localhost:8001",
+    "http://localhost:3000,http://localhost:8001",
   ),
   autoStart: flag("E2E_AUTO_START", true),
   headed: flag("HEADED", false),

@@ -15,7 +15,7 @@ type Config struct {
 	// SessionCookieName is the cookie name used to store and retrieve the session token.
 	SessionCookieName string `env:"OMED_SESSION_COOKIE_NAME,default=omed_session"`
 	// TrustedOrigins lists allowed CORS origins for browser clients.
-	TrustedOrigins []string `env:"OMED_TRUSTED_ORIGINS,separator=,default=http://localhost:3001"`
+	TrustedOrigins []string `env:"OMED_TRUSTED_ORIGINS,separator=,default=http://localhost:3000"`
 	// DatabaseUrl database server to be use in omed
 	DatabaseUrl string `env:"OMED_DB_URL"`
 	// AuthSecret is used to sign/verify tokens and OAuth state.

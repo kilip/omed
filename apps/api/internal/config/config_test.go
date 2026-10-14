@@ -28,7 +28,7 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 	cfg := config.GetConfig()
 	s.Equal("/auth", cfg.AuthPath)
 	s.Equal("omed_session", cfg.SessionCookieName)
-	s.Equal([]string{"http://localhost:3001"}, cfg.TrustedOrigins)
+	s.Equal([]string{"http://localhost:3000"}, cfg.TrustedOrigins)
 }
 
 func (s *ConfigSuite) Test_GetConfig_CustomValues() {

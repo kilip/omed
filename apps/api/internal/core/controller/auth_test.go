@@ -46,7 +46,7 @@ func (m *mockOAuthService) HandleCallback(ctx context.Context, provider string, 
 		ID:    10,
 		Name:  "Mock User",
 		Email: "mock@example.com",
-	}, "http://localhost:3001/dashboard", nil
+	}, "http://localhost:3000/dashboard", nil
 }
 
 type mockSessionService struct {
@@ -120,7 +120,7 @@ func (s *AuthControllerSuite) SetupTest() {
 func (s *AuthControllerSuite) Test_SignInSocial_Success() {
 	reqBody := model.SignInSocialRequest{
 		Provider:    "google",
-		CallbackURL: "http://localhost:3001/dashboard",
+		CallbackURL: "http://localhost:3000/dashboard",
 	}
 	b, _ := json.Marshal(reqBody)
 
@@ -157,7 +157,7 @@ func (s *AuthControllerSuite) Test_Callback_SuccessRedirect() {
 	resp, err := s.app.Test(req)
 	s.Require().NoError(err)
 	s.Equal(fiber.StatusFound, resp.StatusCode)
-	s.Equal("http://localhost:3001/dashboard", resp.Header.Get("Location"))
+	s.Equal("http://localhost:3000/dashboard", resp.Header.Get("Location"))
 
 	// Verify cookie
 	cookies := resp.Cookies()

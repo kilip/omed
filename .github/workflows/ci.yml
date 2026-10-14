@@ -50,8 +50,8 @@ jobs:
       HUSKY: "0"
       OMED_DB_URL: postgres://omed:omed@localhost:5432/omed?sslmode=disable
       OMED_API_URL: http://localhost:8001
-      OMED_WEB_URL: http://localhost:3001
-      OMED_TRUSTED_ORIGINS: http://localhost:3001,http://localhost:8001
+      OMED_WEB_URL: http://localhost:3000
+      OMED_TRUSTED_ORIGINS: http://localhost:3000,http://localhost:8001
       OMED_AUTH_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
     services:
       postgres:

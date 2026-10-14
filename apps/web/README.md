@@ -9,7 +9,7 @@ For monorepo architecture, environment setup, and design guidelines, refer to th
 
 ## Development
 
-Run development server (port 3001):
+Run development server (port 3000):
 
 ```bash
 bun run dev
