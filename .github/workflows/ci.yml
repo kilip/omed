@@ -46,7 +46,8 @@ jobs:
     timeout-minutes: 20
     env:
       # The e2e runner starts auth, api and web itself. Values mirror
-      # `.env.example`; the secret is a throwaway one for CI only.
+      # `.env.example` and `.devcontainer/compose.yaml`; the secret is a
+      # throwaway one for CI only.
       HUSKY: "0"
       OMED_DB_URL: postgres://omed:omed@localhost:5432/omed?sslmode=disable
       OMED_AUTH_URL: http://localhost:8001
@@ -54,23 +55,25 @@ jobs:
       OMED_WEB_URL: http://localhost:3001
       OMED_TRUSTED_ORIGINS: http://localhost:3001,http://localhost:8002,http://localhost:8001
       OMED_AUTH_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_USER: omed
-          POSTGRES_PASSWORD: omed
-          POSTGRES_DB: omed
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U omed -d omed"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
+      OMED_REDIS_URL: redis://localhost:6379
+      OMED_KAFKA_BROKERS: localhost:9092
+      OMED_S3_ENDPOINT: http://localhost:9000
+      OMED_S3_ACCESS_KEY: rustfsadmin
+      OMED_S3_SECRET_KEY: rustfsadmin
+      OMED_S3_REGION: us-east-1
+      OMED_S3_FORCE_PATH_STYLE: "true"
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+
+      # Same Postgres, Redis, RustFS and Kafka as the devcontainer, so CI and
+      # local dev cannot drift. `.github/compose.e2e.yaml` publishes the ports.
+      - name: Start services
+        run: >-
+          docker compose
+          -f .devcontainer/compose.yaml
+          -f .github/compose.e2e.yaml
+          up -d --wait postgres redis rustfs kafka
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -97,6 +100,14 @@ jobs:
 
       - name: Run E2E tests
         run: bun run e2e
+
+      - name: Dump service logs
+        if: failure()
+        run: >-
+          docker compose
+          -f .devcontainer/compose.yaml
+          -f .github/compose.e2e.yaml
+          logs --no-color --tail 200 postgres redis rustfs kafka
 
       - name: Upload E2E report
         if: always()
