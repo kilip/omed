@@ -49,10 +49,9 @@ jobs:
       # `.env.example`; the secret is a throwaway one for CI only.
       HUSKY: "0"
       OMED_DB_URL: postgres://omed:omed@localhost:5432/omed?sslmode=disable
-      OMED_AUTH_URL: http://localhost:8001
       OMED_API_URL: http://localhost:8002
       OMED_WEB_URL: http://localhost:3001
-      OMED_TRUSTED_ORIGINS: http://localhost:3001,http://localhost:8002,http://localhost:8001
+      OMED_TRUSTED_ORIGINS: http://localhost:3001,http://localhost:8002
       OMED_AUTH_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
     services:
       postgres:
@@ -89,11 +88,6 @@ jobs:
       - name: Install Playwright Chromium
         working-directory: e2e
         run: bunx playwright install --with-deps chromium
-
-      # Creates the `auth` schema. The API creates its own tables on boot.
-      - name: Push auth database schema
-        working-directory: packages/better-auth
-        run: bun run db:push
 
       - name: Run E2E tests
         run: bun run e2e

@@ -11,8 +11,7 @@ services:
       OMED_API_URL: http://localhost:8002
       OMED_WEB_URL: http://localhost:3001
       OMED_DB_URL: postgres://omed:omed@postgres:5432/omed?sslmode=disable
-      OMED_TRUSTED_ORIGINS: http://localhost:3001,http://localhost:8002,http://localhost:8001
-      OMED_AUTH_URL: http://localhost:8001
+      OMED_TRUSTED_ORIGINS: http://localhost:3001,http://localhost:8002
       OMED_AUTH_SECRET: 6171ce314c622f9a4cdb542c810d40b91edde2f659bcd5224c6aeee7d7ea4925
       OMED_REDIS_URL: redis://redis:6379
       OMED_S3_ENDPOINT: http://rustfs:9000
@@ -20,7 +19,6 @@ services:
       OMED_S3_SECRET_KEY: rustfsadmin
       OMED_S3_REGION: us-east-1
       OMED_S3_FORCE_PATH_STYLE: "true"
-      # wrangler dev (apps/auth) uses this when the Hyperdrive binding is named HYPERDRIVE
       OMED_KAFKA_BROKERS: kafka:9092
     depends_on:
       postgres: { condition: service_healthy }
