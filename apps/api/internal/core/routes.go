@@ -21,6 +21,7 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	workspaces := r.Group("/workspaces")
 	ctlW := controller.NewWorkspaceController(mod.WorkspaceService)
 	ctlM := controller.NewMemberController(mod.MemberService, az)
+	ctlI := controller.NewInvitationController(mod.InvitationService)
 
 	// Workspaces collection
 	workspaces.Post("/search", ctlW.Search)
@@ -39,4 +40,14 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	workspaces.Post("/:wid/members", az.Require(domain.ObjMember, "create"), ctlM.Invite)
 	workspaces.Put("/:wid/members/:id", az.Require(domain.ObjMember, "update"), ctlM.Update)
 	workspaces.Delete("/:wid/members/:id", az.Require(domain.ObjMember, "delete"), ctlM.Delete)
+
+	// Workspace invitations
+	workspaces.Post("/:wid/invitations/search", az.Require(domain.ObjInvitation, "read"), ctlI.Search)
+	workspaces.Post("/:wid/invitations", az.Require(domain.ObjInvitation, "create"), ctlI.Create)
+	workspaces.Delete("/:wid/invitations/:id", az.Require(domain.ObjInvitation, "delete"), ctlI.Revoke)
+
+	// Public & join invitation routes
+	invitations := r.Group("/invitations")
+	invitations.Get("/:token", ctlI.GetPublic)
+	invitations.Post("/:token/accept", ctlI.Accept)
 }

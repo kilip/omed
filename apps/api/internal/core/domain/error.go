@@ -20,6 +20,14 @@ var (
 	ErrAlreadyMember = errors.New("MEMBER_ALREADY_EXISTS")
 	// ErrPersonalWorkspace indicates a forbidden operation on a personal workspace, such as deleting it.
 	ErrPersonalWorkspace = errors.New("WORKSPACE_PERSONAL")
+	// ErrInvitationNotFound indicates that the invitation does not exist.
+	ErrInvitationNotFound = errors.New("INVITATION_NOT_FOUND")
+	// ErrInvitationExpired indicates that the invitation has passed its expiration time.
+	ErrInvitationExpired = errors.New("INVITATION_EXPIRED")
+	// ErrInvitationMaxUsesReached indicates that the invitation has reached its maximum allowed uses.
+	ErrInvitationMaxUsesReached = errors.New("INVITATION_MAX_USES_REACHED")
+	// ErrInvitationRevoked indicates that the invitation has been revoked.
+	ErrInvitationRevoked = errors.New("INVITATION_REVOKED")
 )
 
 func init() {
@@ -28,4 +36,8 @@ func init() {
 	base.AddToErrorMap(ErrOwnerImmutable, fiber.StatusConflict, "workspace owner cannot be managed as a member")
 	base.AddToErrorMap(ErrAlreadyMember, fiber.StatusConflict, "user is already a member of this workspace")
 	base.AddToErrorMap(ErrPersonalWorkspace, fiber.StatusConflict, "personal workspace cannot be deleted")
+	base.AddToErrorMap(ErrInvitationNotFound, fiber.StatusNotFound, "invitation not found")
+	base.AddToErrorMap(ErrInvitationExpired, fiber.StatusUnprocessableEntity, "invitation has expired")
+	base.AddToErrorMap(ErrInvitationMaxUsesReached, fiber.StatusUnprocessableEntity, "invitation usage limit reached")
+	base.AddToErrorMap(ErrInvitationRevoked, fiber.StatusUnprocessableEntity, "invitation has been revoked")
 }

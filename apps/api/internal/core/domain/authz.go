@@ -8,6 +8,8 @@ const (
 	ObjWorkspace = "core:workspace"
 	// ObjMember is the permission object for workspace membership management.
 	ObjMember = "core:member"
+	// ObjInvitation is the permission object for workspace invitation management.
+	ObjInvitation = "core:invitation"
 )
 
 // Built-in core roles assignable per workspace.

@@ -26,6 +26,8 @@ type CoreModule struct {
 	WorkspaceService service.WorkspaceService
 	// MemberService handles workspace member business logic.
 	MemberService service.MemberService
+	// InvitationService handles workspace invitation business logic.
+	InvitationService service.InvitationService
 	// Authorizer handles workspace-scoped authorization checks.
 	Authorizer *authz.Authorizer
 }
@@ -38,16 +40,19 @@ func New(cfg Config) *CoreModule {
 	users := repository.NewUserRepository(cfg.EntCli)
 	workspaces := repository.NewWorkspaceRepository(cfg.EntCli)
 	members := repository.NewMemberRepository(cfg.EntCli)
+	invitations := repository.NewInvitationRepository(cfg.EntCli)
 
 	userSvc := service.NewUserService(users)
 	workspaceSvc := service.NewWorkspaceService(workspaces)
 	memberSvc := service.NewMemberService(members, workspaceSvc, userSvc)
+	invitationSvc := service.NewInvitationService(invitations, workspaceSvc, members, userSvc)
 
 	mod := &CoreModule{
-		cfg:              cfg,
-		UserService:      userSvc,
-		WorkspaceService: workspaceSvc,
-		MemberService:    memberSvc,
+		cfg:               cfg,
+		UserService:       userSvc,
+		WorkspaceService:  workspaceSvc,
+		MemberService:     memberSvc,
+		InvitationService: invitationSvc,
 	}
 
 	InitEntCli(cfg.EntCli)
@@ -58,6 +63,7 @@ func New(cfg Config) *CoreModule {
 func (u *CoreModule) SetAuthorizer(az *authz.Authorizer) {
 	u.Authorizer = az
 	u.MemberService.SetAuthorizer(az)
+	u.InvitationService.SetAuthorizer(az)
 }
 
 // PreBoot executes pre-initialization tasks for the core module.

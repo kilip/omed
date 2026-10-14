@@ -12,6 +12,7 @@ import (
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
 )
 
@@ -152,6 +153,33 @@ func (f TraverseWorkspace) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.WorkspaceQuery", q)
 }
 
+// The WorkspaceInvitationFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkspaceInvitationFunc func(context.Context, *ent.WorkspaceInvitationQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkspaceInvitationFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.WorkspaceInvitationQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.WorkspaceInvitationQuery", q)
+}
+
+// The TraverseWorkspaceInvitation type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkspaceInvitation func(context.Context, *ent.WorkspaceInvitationQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkspaceInvitation) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkspaceInvitation) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.WorkspaceInvitationQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.WorkspaceInvitationQuery", q)
+}
+
 // The WorkspaceMemberFunc type is an adapter to allow the use of ordinary function as a Querier.
 type WorkspaceMemberFunc func(context.Context, *ent.WorkspaceMemberQuery) (ent.Value, error)
 
@@ -188,6 +216,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.UserQuery, predicate.User, user.OrderOption]{typ: ent.TypeUser, tq: q}, nil
 	case *ent.WorkspaceQuery:
 		return &query[*ent.WorkspaceQuery, predicate.Workspace, workspace.OrderOption]{typ: ent.TypeWorkspace, tq: q}, nil
+	case *ent.WorkspaceInvitationQuery:
+		return &query[*ent.WorkspaceInvitationQuery, predicate.WorkspaceInvitation, workspaceinvitation.OrderOption]{typ: ent.TypeWorkspaceInvitation, tq: q}, nil
 	case *ent.WorkspaceMemberQuery:
 		return &query[*ent.WorkspaceMemberQuery, predicate.WorkspaceMember, workspacemember.OrderOption]{typ: ent.TypeWorkspaceMember, tq: q}, nil
 	default:

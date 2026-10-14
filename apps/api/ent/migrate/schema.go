@@ -154,6 +154,59 @@ var (
 			},
 		},
 	}
+	// WorkspaceInvitationsColumns holds the columns for the "workspace_invitations" table.
+	WorkspaceInvitationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "token", Type: field.TypeString, Unique: true},
+		{Name: "roles", Type: field.TypeJSON},
+		{Name: "max_uses", Type: field.TypeInt, Default: 0},
+		{Name: "uses_count", Type: field.TypeInt, Default: 0},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "is_revoked", Type: field.TypeBool, Default: false},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+	}
+	// WorkspaceInvitationsTable holds the schema information for the "workspace_invitations" table.
+	WorkspaceInvitationsTable = &schema.Table{
+		Name:       "workspace_invitations",
+		Columns:    WorkspaceInvitationsColumns,
+		PrimaryKey: []*schema.Column{WorkspaceInvitationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspace_invitations_workspaces_workspace",
+				Columns:    []*schema.Column{WorkspaceInvitationsColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspace_invitations_users_creator",
+				Columns:    []*schema.Column{WorkspaceInvitationsColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspace_invitations_users_updater",
+				Columns:    []*schema.Column{WorkspaceInvitationsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workspaceinvitation_token",
+				Unique:  true,
+				Columns: []*schema.Column{WorkspaceInvitationsColumns[3]},
+			},
+			{
+				Name:    "workspaceinvitation_workspace_id_is_revoked",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceInvitationsColumns[9], WorkspaceInvitationsColumns[8]},
+			},
+		},
+	}
 	// WorkspaceMembersColumns holds the columns for the "workspace_members" table.
 	WorkspaceMembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -214,6 +267,7 @@ var (
 		AccountsTable,
 		UsersTable,
 		WorkspacesTable,
+		WorkspaceInvitationsTable,
 		WorkspaceMembersTable,
 	}
 )
@@ -227,6 +281,9 @@ func init() {
 	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[1].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[2].RefTable = UsersTable
+	WorkspaceInvitationsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	WorkspaceInvitationsTable.ForeignKeys[1].RefTable = UsersTable
+	WorkspaceInvitationsTable.ForeignKeys[2].RefTable = UsersTable
 	WorkspaceMembersTable.ForeignKeys[0].RefTable = WorkspacesTable
 	WorkspaceMembersTable.ForeignKeys[1].RefTable = UsersTable
 	WorkspaceMembersTable.ForeignKeys[2].RefTable = UsersTable

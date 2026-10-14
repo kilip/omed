@@ -75,6 +75,18 @@ components:
           $ref: '#/components/schemas/httpx.Meta'
           description: Meta contains request metadata such as request ID and timestamps.
       type: object
+    httpx.WebResponse-array_model_InvitationResponse:
+      properties:
+        data:
+          description: Data contains the response payload.
+          items:
+            $ref: '#/components/schemas/model.InvitationResponse'
+          type: array
+          uniqueItems: false
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
     httpx.WebResponse-array_model_MemberResponse:
       properties:
         data:
@@ -129,6 +141,15 @@ components:
           $ref: '#/components/schemas/httpx.Meta'
           description: Meta contains request metadata such as request ID and timestamps.
       type: object
+    httpx.WebResponse-model_InvitationResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/model.InvitationResponse'
+          description: Data contains the response payload.
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
     httpx.WebResponse-model_MemberResponse:
       properties:
         data:
@@ -142,6 +163,15 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/model.PermissionsResponse'
+          description: Data contains the response payload.
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
+    httpx.WebResponse-model_PublicInvitationResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/model.PublicInvitationResponse'
           description: Data contains the response payload.
         meta:
           $ref: '#/components/schemas/httpx.Meta'
@@ -222,6 +252,22 @@ components:
       - name
       - type
       type: object
+    model.CreateInvitationRequest:
+      properties:
+        expiresAt:
+          type: string
+        maxUses:
+          minimum: 0
+          type: integer
+        roles:
+          items:
+            type: string
+          minItems: 1
+          type: array
+          uniqueItems: false
+      required:
+      - roles
+      type: object
     model.CreateUserRequest:
       properties:
         avatar:
@@ -246,6 +292,30 @@ components:
           type: integer
       required:
       - name
+      type: object
+    model.InvitationResponse:
+      properties:
+        createdAt:
+          type: string
+        expiresAt:
+          type: string
+        id:
+          type: integer
+        isRevoked:
+          type: boolean
+        maxUses:
+          type: integer
+        roles:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        token:
+          type: string
+        usesCount:
+          type: integer
+        workspaceId:
+          type: integer
       type: object
     model.InviteMemberRequest:
       properties:
@@ -303,7 +373,36 @@ components:
         workspaceId:
           type: integer
       type: object
+    model.PublicInvitationResponse:
+      properties:
+        expiresAt:
+          type: string
+        inviterName:
+          type: string
+        isValid:
+          type: boolean
+        roles:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        workspaceDescription:
+          type: string
+        workspaceId:
+          type: integer
+        workspaceName:
+          type: string
+      type: object
     model.SearchAccountRequest:
+      type: object
+    model.SearchInvitationRequest:
+      properties:
+        cursor:
+          type: string
+        limit:
+          maximum: 100
+          minimum: 1
+          type: integer
       type: object
     model.SearchMemberRequest:
       properties:
@@ -446,6 +545,91 @@ info:
   version: "1.0"
 openapi: 3.1.0
 paths:
+  /invitations/{token}:
+    get:
+      description: Returns workspace details, inviter name, and token validity for
+        previewing an invitation
+      parameters:
+      - description: Invitation Token
+        in: path
+        name: token
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PublicInvitationResponse'
+          description: OK
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      summary: Get public invitation preview
+      tags:
+      - Workspace Invitations
+  /invitations/{token}/accept:
+    post:
+      description: Join a workspace using an active invitation token
+      parameters:
+      - description: Invitation Token
+        in: path
+        name: token
+        required: true
+        schema:
+          type: string
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_MemberResponse'
+          description: Created
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Accept workspace invitation
+      tags:
+      - Workspace Invitations
   /users:
     post:
       description: Create a new user
@@ -1165,6 +1349,176 @@ paths:
       summary: Search accounts
       tags:
       - Finance Accounts
+  /workspaces/{wid}/invitations:
+    post:
+      description: Generate a new shareable workspace invitation link with roles,
+        max uses, and expiry
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.CreateInvitationRequest'
+              description: Create invitation payload
+              summary: request
+        description: Create invitation payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_InvitationResponse'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Create workspace invitation
+      tags:
+      - Workspace Invitations
+  /workspaces/{wid}/invitations/{id}:
+    delete:
+      description: Revoke an active invitation link so it can no longer be used
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Invitation ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Revoke workspace invitation
+      tags:
+      - Workspace Invitations
+  /workspaces/{wid}/invitations/search:
+    post:
+      description: List active and historical invitation links for a workspace with
+        cursor pagination
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.SearchInvitationRequest'
+              description: Search criteria
+              summary: request
+        description: Search criteria
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-array_model_InvitationResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Search workspace invitations
+      tags:
+      - Workspace Invitations
   /workspaces/{wid}/members:
     post:
       description: Add a user to the workspace by email (auto-creating the user if

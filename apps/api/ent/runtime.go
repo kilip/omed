@@ -9,6 +9,7 @@ import (
 	"github.com/kilip/omed/api/ent/schema"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
 )
 
@@ -90,6 +91,41 @@ func init() {
 	workspaceDescPersonal := workspaceFields[4].Descriptor()
 	// workspace.DefaultPersonal holds the default value on creation for the personal field.
 	workspace.DefaultPersonal = workspaceDescPersonal.Default.(bool)
+	workspaceinvitationMixin := schema.WorkspaceInvitation{}.Mixin()
+	workspaceinvitationMixinFields1 := workspaceinvitationMixin[1].Fields()
+	_ = workspaceinvitationMixinFields1
+	workspaceinvitationFields := schema.WorkspaceInvitation{}.Fields()
+	_ = workspaceinvitationFields
+	// workspaceinvitationDescCreatedAt is the schema descriptor for created_at field.
+	workspaceinvitationDescCreatedAt := workspaceinvitationMixinFields1[2].Descriptor()
+	// workspaceinvitation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workspaceinvitation.DefaultCreatedAt = workspaceinvitationDescCreatedAt.Default.(func() time.Time)
+	// workspaceinvitationDescUpdatedAt is the schema descriptor for updated_at field.
+	workspaceinvitationDescUpdatedAt := workspaceinvitationMixinFields1[3].Descriptor()
+	// workspaceinvitation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workspaceinvitation.DefaultUpdatedAt = workspaceinvitationDescUpdatedAt.Default.(func() time.Time)
+	// workspaceinvitation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workspaceinvitation.UpdateDefaultUpdatedAt = workspaceinvitationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// workspaceinvitationDescToken is the schema descriptor for token field.
+	workspaceinvitationDescToken := workspaceinvitationFields[1].Descriptor()
+	// workspaceinvitation.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	workspaceinvitation.TokenValidator = workspaceinvitationDescToken.Validators[0].(func(string) error)
+	// workspaceinvitationDescRoles is the schema descriptor for roles field.
+	workspaceinvitationDescRoles := workspaceinvitationFields[2].Descriptor()
+	// workspaceinvitation.DefaultRoles holds the default value on creation for the roles field.
+	workspaceinvitation.DefaultRoles = workspaceinvitationDescRoles.Default.([]string)
+	// workspaceinvitationDescMaxUses is the schema descriptor for max_uses field.
+	workspaceinvitationDescMaxUses := workspaceinvitationFields[3].Descriptor()
+	// workspaceinvitation.DefaultMaxUses holds the default value on creation for the max_uses field.
+	workspaceinvitation.DefaultMaxUses = workspaceinvitationDescMaxUses.Default.(int)
+	// workspaceinvitationDescUsesCount is the schema descriptor for uses_count field.
+	workspaceinvitationDescUsesCount := workspaceinvitationFields[4].Descriptor()
+	// workspaceinvitation.DefaultUsesCount holds the default value on creation for the uses_count field.
+	workspaceinvitation.DefaultUsesCount = workspaceinvitationDescUsesCount.Default.(int)
+	// workspaceinvitationDescIsRevoked is the schema descriptor for is_revoked field.
+	workspaceinvitationDescIsRevoked := workspaceinvitationFields[6].Descriptor()
+	// workspaceinvitation.DefaultIsRevoked holds the default value on creation for the is_revoked field.
+	workspaceinvitation.DefaultIsRevoked = workspaceinvitationDescIsRevoked.Default.(bool)
 	workspacememberMixin := schema.WorkspaceMember{}.Mixin()
 	workspacememberMixinFields0 := workspacememberMixin[0].Fields()
 	_ = workspacememberMixinFields0

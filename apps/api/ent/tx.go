@@ -18,6 +18,8 @@ type Tx struct {
 	User *UserClient
 	// Workspace is the client for interacting with the Workspace builders.
 	Workspace *WorkspaceClient
+	// WorkspaceInvitation is the client for interacting with the WorkspaceInvitation builders.
+	WorkspaceInvitation *WorkspaceInvitationClient
 	// WorkspaceMember is the client for interacting with the WorkspaceMember builders.
 	WorkspaceMember *WorkspaceMemberClient
 
@@ -154,6 +156,7 @@ func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.Workspace = NewWorkspaceClient(tx.config)
+	tx.WorkspaceInvitation = NewWorkspaceInvitationClient(tx.config)
 	tx.WorkspaceMember = NewWorkspaceMemberClient(tx.config)
 }
 

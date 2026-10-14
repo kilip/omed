@@ -7,10 +7,11 @@ import "context"
 // SchemaConfig represents alternative schema names for all tables
 // that can be passed at runtime.
 type SchemaConfig struct {
-	Account         string // Account table.
-	User            string // User table.
-	Workspace       string // Workspace table.
-	WorkspaceMember string // WorkspaceMember table.
+	Account             string // Account table.
+	User                string // User table.
+	Workspace           string // Workspace table.
+	WorkspaceInvitation string // WorkspaceInvitation table.
+	WorkspaceMember     string // WorkspaceMember table.
 }
 
 type schemaCtxKey struct{}

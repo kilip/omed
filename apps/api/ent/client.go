@@ -18,6 +18,7 @@ import (
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
 
 	"github.com/kilip/omed/api/ent/internal"
@@ -34,6 +35,8 @@ type Client struct {
 	User *UserClient
 	// Workspace is the client for interacting with the Workspace builders.
 	Workspace *WorkspaceClient
+	// WorkspaceInvitation is the client for interacting with the WorkspaceInvitation builders.
+	WorkspaceInvitation *WorkspaceInvitationClient
 	// WorkspaceMember is the client for interacting with the WorkspaceMember builders.
 	WorkspaceMember *WorkspaceMemberClient
 }
@@ -50,6 +53,7 @@ func (c *Client) init() {
 	c.Account = NewAccountClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.Workspace = NewWorkspaceClient(c.config)
+	c.WorkspaceInvitation = NewWorkspaceInvitationClient(c.config)
 	c.WorkspaceMember = NewWorkspaceMemberClient(c.config)
 }
 
@@ -144,12 +148,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		Account:         NewAccountClient(cfg),
-		User:            NewUserClient(cfg),
-		Workspace:       NewWorkspaceClient(cfg),
-		WorkspaceMember: NewWorkspaceMemberClient(cfg),
+		ctx:                 ctx,
+		config:              cfg,
+		Account:             NewAccountClient(cfg),
+		User:                NewUserClient(cfg),
+		Workspace:           NewWorkspaceClient(cfg),
+		WorkspaceInvitation: NewWorkspaceInvitationClient(cfg),
+		WorkspaceMember:     NewWorkspaceMemberClient(cfg),
 	}, nil
 }
 
@@ -167,12 +172,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		Account:         NewAccountClient(cfg),
-		User:            NewUserClient(cfg),
-		Workspace:       NewWorkspaceClient(cfg),
-		WorkspaceMember: NewWorkspaceMemberClient(cfg),
+		ctx:                 ctx,
+		config:              cfg,
+		Account:             NewAccountClient(cfg),
+		User:                NewUserClient(cfg),
+		Workspace:           NewWorkspaceClient(cfg),
+		WorkspaceInvitation: NewWorkspaceInvitationClient(cfg),
+		WorkspaceMember:     NewWorkspaceMemberClient(cfg),
 	}, nil
 }
 
@@ -204,6 +210,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Account.Use(hooks...)
 	c.User.Use(hooks...)
 	c.Workspace.Use(hooks...)
+	c.WorkspaceInvitation.Use(hooks...)
 	c.WorkspaceMember.Use(hooks...)
 }
 
@@ -213,6 +220,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Account.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 	c.Workspace.Intercept(interceptors...)
+	c.WorkspaceInvitation.Intercept(interceptors...)
 	c.WorkspaceMember.Intercept(interceptors...)
 }
 
@@ -225,6 +233,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *WorkspaceMutation:
 		return c.Workspace.mutate(ctx, m)
+	case *WorkspaceInvitationMutation:
+		return c.WorkspaceInvitation.mutate(ctx, m)
 	case *WorkspaceMemberMutation:
 		return c.WorkspaceMember.mutate(ctx, m)
 	default:
@@ -821,6 +831,196 @@ func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Val
 	}
 }
 
+// WorkspaceInvitationClient is a client for the WorkspaceInvitation schema.
+type WorkspaceInvitationClient struct {
+	config
+}
+
+// NewWorkspaceInvitationClient returns a client for the WorkspaceInvitation from the given config.
+func NewWorkspaceInvitationClient(c config) *WorkspaceInvitationClient {
+	return &WorkspaceInvitationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workspaceinvitation.Hooks(f(g(h())))`.
+func (c *WorkspaceInvitationClient) Use(hooks ...Hook) {
+	c.hooks.WorkspaceInvitation = append(c.hooks.WorkspaceInvitation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workspaceinvitation.Intercept(f(g(h())))`.
+func (c *WorkspaceInvitationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WorkspaceInvitation = append(c.inters.WorkspaceInvitation, interceptors...)
+}
+
+// Create returns a builder for creating a WorkspaceInvitation entity.
+func (c *WorkspaceInvitationClient) Create() *WorkspaceInvitationCreate {
+	mutation := newWorkspaceInvitationMutation(c.config, OpCreate)
+	return &WorkspaceInvitationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of WorkspaceInvitation entities.
+func (c *WorkspaceInvitationClient) CreateBulk(builders ...*WorkspaceInvitationCreate) *WorkspaceInvitationCreateBulk {
+	return &WorkspaceInvitationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorkspaceInvitationClient) MapCreateBulk(slice any, setFunc func(*WorkspaceInvitationCreate, int)) *WorkspaceInvitationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorkspaceInvitationCreateBulk{err: fmt.Errorf("calling to WorkspaceInvitationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorkspaceInvitationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WorkspaceInvitationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for WorkspaceInvitation.
+func (c *WorkspaceInvitationClient) Update() *WorkspaceInvitationUpdate {
+	mutation := newWorkspaceInvitationMutation(c.config, OpUpdate)
+	return &WorkspaceInvitationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkspaceInvitationClient) UpdateOne(_m *WorkspaceInvitation) *WorkspaceInvitationUpdateOne {
+	mutation := newWorkspaceInvitationMutation(c.config, OpUpdateOne, withWorkspaceInvitation(_m))
+	return &WorkspaceInvitationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkspaceInvitationClient) UpdateOneID(id int64) *WorkspaceInvitationUpdateOne {
+	mutation := newWorkspaceInvitationMutation(c.config, OpUpdateOne, withWorkspaceInvitationID(id))
+	return &WorkspaceInvitationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for WorkspaceInvitation.
+func (c *WorkspaceInvitationClient) Delete() *WorkspaceInvitationDelete {
+	mutation := newWorkspaceInvitationMutation(c.config, OpDelete)
+	return &WorkspaceInvitationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorkspaceInvitationClient) DeleteOne(_m *WorkspaceInvitation) *WorkspaceInvitationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorkspaceInvitationClient) DeleteOneID(id int64) *WorkspaceInvitationDeleteOne {
+	builder := c.Delete().Where(workspaceinvitation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkspaceInvitationDeleteOne{builder}
+}
+
+// Query returns a query builder for WorkspaceInvitation.
+func (c *WorkspaceInvitationClient) Query() *WorkspaceInvitationQuery {
+	return &WorkspaceInvitationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkspaceInvitation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a WorkspaceInvitation entity by its id.
+func (c *WorkspaceInvitationClient) Get(ctx context.Context, id int64) (*WorkspaceInvitation, error) {
+	return c.Query().Where(workspaceinvitation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkspaceInvitationClient) GetX(ctx context.Context, id int64) *WorkspaceInvitation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a WorkspaceInvitation.
+func (c *WorkspaceInvitationClient) QueryWorkspace(_m *WorkspaceInvitation) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspaceinvitation.Table, workspaceinvitation.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspaceinvitation.WorkspaceTable, workspaceinvitation.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.WorkspaceInvitation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a WorkspaceInvitation.
+func (c *WorkspaceInvitationClient) QueryCreator(_m *WorkspaceInvitation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspaceinvitation.Table, workspaceinvitation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspaceinvitation.CreatorTable, workspaceinvitation.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.WorkspaceInvitation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a WorkspaceInvitation.
+func (c *WorkspaceInvitationClient) QueryUpdater(_m *WorkspaceInvitation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspaceinvitation.Table, workspaceinvitation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspaceinvitation.UpdaterTable, workspaceinvitation.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.WorkspaceInvitation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *WorkspaceInvitationClient) Hooks() []Hook {
+	return c.hooks.WorkspaceInvitation
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkspaceInvitationClient) Interceptors() []Interceptor {
+	return c.inters.WorkspaceInvitation
+}
+
+func (c *WorkspaceInvitationClient) mutate(ctx context.Context, m *WorkspaceInvitationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkspaceInvitationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkspaceInvitationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkspaceInvitationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkspaceInvitationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown WorkspaceInvitation mutation op: %q", m.Op())
+	}
+}
+
 // WorkspaceMemberClient is a client for the WorkspaceMember schema.
 type WorkspaceMemberClient struct {
 	config
@@ -1033,20 +1233,21 @@ func (c *WorkspaceMemberClient) mutate(ctx context.Context, m *WorkspaceMemberMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, User, Workspace, WorkspaceMember []ent.Hook
+		Account, User, Workspace, WorkspaceInvitation, WorkspaceMember []ent.Hook
 	}
 	inters struct {
-		Account, User, Workspace, WorkspaceMember []ent.Interceptor
+		Account, User, Workspace, WorkspaceInvitation, WorkspaceMember []ent.Interceptor
 	}
 )
 
 var (
 	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
 	DefaultSchemaConfig = SchemaConfig{
-		Account:         tableSchemas[0],
-		User:            tableSchemas[0],
-		Workspace:       tableSchemas[0],
-		WorkspaceMember: tableSchemas[0],
+		Account:             tableSchemas[0],
+		User:                tableSchemas[0],
+		Workspace:           tableSchemas[0],
+		WorkspaceInvitation: tableSchemas[0],
+		WorkspaceMember:     tableSchemas[0],
 	}
 	tableSchemas = [...]string{"omed"}
 )
