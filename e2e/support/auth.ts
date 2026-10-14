@@ -19,7 +19,6 @@ export interface LegacyTestHelpers {
 
 /**
  * Test helpers backed by apps/api development test endpoints (/test/*).
- * Replaces Better Auth testUtils so tests don't require apps/auth.
  */
 export const getTestHelpers = async (): Promise<LegacyTestHelpers> => {
   return {
@@ -39,15 +38,7 @@ export const getTestHelpers = async (): Promise<LegacyTestHelpers> => {
         session,
         cookies: [
           {
-            name: "token",
-            value: session.token,
-            domain: "localhost",
-            path: "/",
-            httpOnly: true,
-            sameSite: "Lax",
-          },
-          {
-            name: "better-auth.session_token",
+            name: "omed_session",
             value: session.token,
             domain: "localhost",
             path: "/",

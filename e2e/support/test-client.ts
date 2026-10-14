@@ -155,15 +155,7 @@ export class TestClient {
 
     const cookies: PlaywrightCookie[] = [
       {
-        name: "token",
-        value: session.token,
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-      {
-        name: "better-auth.session_token",
+        name: "omed_session",
         value: session.token,
         domain: "localhost",
         path: "/",

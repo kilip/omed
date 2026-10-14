@@ -9,8 +9,6 @@
   },
   "dependencies": {
     "@cucumber/cucumber": "^13.3.0",
-    "@omed/better-auth": "workspace:*",
-    "better-auth": "^1.7.7",
     "playwright": "^1.64.0"
   },
   "devDependencies": {

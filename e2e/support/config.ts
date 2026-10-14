@@ -31,7 +31,6 @@ function loadEnvFile(filePath: string) {
 
 // Load envs: apps/api/.env is source of truth for db & api
 loadEnvFile(path.join(repoRoot, "apps/api/.env"));
-loadEnvFile(path.join(repoRoot, "apps/auth/.env"));
 loadEnvFile(path.join(repoRoot, "e2e/.env"));
 
 const env = (name: string, fallback: string): string => {
@@ -53,10 +52,7 @@ const apiUrl = env("OMED_API_URL", "http://localhost:8002");
 
 export const config = {
   apiUrl,
-  authUrl:
-    env("OMED_AUTH_URL", apiUrl) === "http://localhost:8001"
-      ? apiUrl
-      : env("OMED_AUTH_URL", apiUrl),
+  authUrl: apiUrl,
   webUrl: env("OMED_WEB_URL", "http://localhost:3001"),
   authPath: env("OMED_AUTH_PATH", "/auth"),
   authSecret: env(
@@ -69,7 +65,7 @@ export const config = {
   ),
   trustedOrigins: env(
     "OMED_TRUSTED_ORIGINS",
-    "http://localhost:3001,http://localhost:8002,http://localhost:8001",
+    "http://localhost:3001,http://localhost:8002",
   ),
   autoStart: flag("E2E_AUTO_START", true),
   headed: flag("HEADED", false),

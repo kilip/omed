@@ -32,7 +32,6 @@ const children: { service: Service; process: ChildProcess }[] = [];
 const sharedEnv = (): NodeJS.ProcessEnv => ({
   OMED_ENV: "test",
   OMED_DB_URL: config.dbUrl,
-  OMED_AUTH_URL: config.authUrl,
   OMED_AUTH_PATH: config.authPath,
   OMED_API_URL: config.apiUrl,
   OMED_WEB_URL: config.webUrl,
@@ -67,7 +66,6 @@ const services = (): Service[] => [
     ],
     env: {
       ...sharedEnv(),
-      VITE_AUTH_URL: config.authUrl,
       VITE_API_URL: config.apiUrl,
       VITE_PUBLIC_URL: config.webUrl,
     },
