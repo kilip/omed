@@ -75,9 +75,7 @@ func (s *AppSuite) Test_New() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		EntCli:   s.entCli,
-		Config: config.Config{
-			AuthUrl: "http://auth.local",
-		},
+		Config: config.Config{},
 	}
 
 	app := config.New(state)
@@ -94,9 +92,7 @@ func (s *AppSuite) Test_Boot_DefaultApp_WithBaseMiddleware() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		EntCli:   s.entCli,
-		Config: config.Config{
-			AuthUrl: "http://auth.local",
-		},
+		Config: config.Config{},
 	}
 
 	app := config.New(state)
@@ -124,9 +120,7 @@ func (s *AppSuite) Test_Boot_LifecycleOrder() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		Config: config.Config{
-			AuthUrl: "http://auth.local",
-		},
+		Config: config.Config{},
 	}
 
 	var executionOrder []string
@@ -153,9 +147,7 @@ func (s *AppSuite) Test_Boot_PreBootError() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		Config: config.Config{
-			AuthUrl: "http://auth.local",
-		},
+		Config: config.Config{},
 	}
 
 	errPreBoot := errors.New("preboot failed")
@@ -173,9 +165,7 @@ func (s *AppSuite) Test_Boot_BootError() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		Config: config.Config{
-			AuthUrl: "http://auth.local",
-		},
+		Config: config.Config{},
 	}
 
 	errBoot := errors.New("boot failed")
@@ -193,9 +183,7 @@ func (s *AppSuite) Test_Boot_PreBootAndBootErrorsJoined() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		Config: config.Config{
-			AuthUrl: "http://auth.local",
-		},
+		Config: config.Config{},
 	}
 
 	errPreBoot := errors.New("preboot failed")
@@ -218,9 +206,7 @@ func (s *AppSuite) Test_Run_GracefulShutdown() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		EntCli:   s.entCli,
-		Config: config.Config{
-			AuthUrl: "http://auth.local",
-		},
+		Config: config.Config{},
 	}
 
 	app := config.New(state)

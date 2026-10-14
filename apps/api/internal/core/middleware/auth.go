@@ -22,7 +22,7 @@ type AuthConfig struct {
 func NewAuthMiddleware(cfg AuthConfig) fiber.Handler {
 	cookieName := cfg.CookieName
 	if cookieName == "" {
-		cookieName = "token"
+		cookieName = "omed_session"
 	}
 
 	return func(c fiber.Ctx) error {
@@ -69,16 +69,13 @@ func extractToken(c fiber.Ctx, cookieName string) string {
 	if cookie := c.Cookies(cookieName); cookie != "" {
 		return cookie
 	}
-	if cookie := c.Cookies("better-auth.session_token"); cookie != "" {
-		return cookie
-	}
-	if cookieName != "token" {
-		if cookie := c.Cookies("token"); cookie != "" {
+	if cookieName != "omed_session" {
+		if cookie := c.Cookies("omed_session"); cookie != "" {
 			return cookie
 		}
 	}
-	if cookieName != "omed_session" {
-		if cookie := c.Cookies("omed_session"); cookie != "" {
+	if cookieName != "token" {
+		if cookie := c.Cookies("token"); cookie != "" {
 			return cookie
 		}
 	}

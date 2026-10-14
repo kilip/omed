@@ -26,8 +26,12 @@ func GetFiber(cfg Config, logger *slog.Logger) *fiber.App {
 	})
 
 	// cors config
+	origins := cfg.TrustedOrigins
+	if len(origins) == 0 {
+		origins = []string{"http://localhost:3001"}
+	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     cfg.TrustedOrigins,
+		AllowOrigins:     origins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,

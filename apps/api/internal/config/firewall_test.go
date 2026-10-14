@@ -49,7 +49,6 @@ func (s *FirewallSuite) SetupSuite() {
 
 func (s *FirewallSuite) Test_InitFirewall() {
 	cfg := config.Config{
-		AuthUrl:           "http://auth.local",
 		SessionCookieName: "custom_session_cookie",
 	}
 	app := config.GetFiber(cfg, s.logger)

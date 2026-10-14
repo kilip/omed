@@ -20,7 +20,7 @@ type AuthController struct {
 
 // NewAuthController creates a new AuthController.
 func NewAuthController(oauth service.OAuthService, sessions service.SessionService, cookieName ...string) AuthController {
-	cn := "token"
+	cn := "omed_session"
 	if len(cookieName) > 0 && cookieName[0] != "" {
 		cn = cookieName[0]
 	}
@@ -213,16 +213,13 @@ func (a AuthController) extractToken(c fiber.Ctx) string {
 	if cookie := c.Cookies(a.cookieName); cookie != "" {
 		return cookie
 	}
-	if cookie := c.Cookies("better-auth.session_token"); cookie != "" {
-		return cookie
-	}
-	if a.cookieName != "token" {
-		if cookie := c.Cookies("token"); cookie != "" {
+	if a.cookieName != "omed_session" {
+		if cookie := c.Cookies("omed_session"); cookie != "" {
 			return cookie
 		}
 	}
-	if a.cookieName != "omed_session" {
-		if cookie := c.Cookies("omed_session"); cookie != "" {
+	if a.cookieName != "token" {
+		if cookie := c.Cookies("token"); cookie != "" {
 			return cookie
 		}
 	}

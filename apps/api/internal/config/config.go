@@ -10,12 +10,10 @@ import (
 
 // Config holds the application-level environment configuration settings.
 type Config struct {
-	// AuthUrl is the base URL for the authentication service.
-	AuthUrl string `env:"OMED_AUTH_URL"`
 	// AuthPath is the subpath mounted for authentication endpoints.
 	AuthPath string `env:"OMED_AUTH_PATH"`
 	// SessionCookieName is the cookie name used to store and retrieve the session token.
-	SessionCookieName string `env:"OMED_SESSION_COOKIE_NAME,default=token"`
+	SessionCookieName string `env:"OMED_SESSION_COOKIE_NAME,default=omed_session"`
 	// TrustedOrigins lists allowed CORS origins for browser clients.
 	TrustedOrigins []string `env:"OMED_TRUSTED_ORIGINS,separator=,default=http://localhost:3001"`
 	// DatabaseUrl database server to be use in omed
@@ -59,7 +57,7 @@ func GetConfig() Config {
 	}
 
 	if config.SessionCookieName == "" {
-		config.SessionCookieName = "token"
+		config.SessionCookieName = "omed_session"
 	}
 
 	return config

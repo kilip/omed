@@ -165,7 +165,7 @@ func (s *AuthControllerSuite) Test_Callback_SuccessRedirect() {
 	s.NotEmpty(cookies)
 	var foundTokenCookie bool
 	for _, c := range cookies {
-		if c.Name == "token" && c.Value == "mock-session-token" {
+		if c.Name == "omed_session" && c.Value == "mock-session-token" {
 			foundTokenCookie = true
 			s.True(c.HttpOnly)
 		}
@@ -260,7 +260,7 @@ func (s *AuthControllerSuite) Test_SignOut_Success() {
 	// Check cookie expired
 	var cleared bool
 	for _, c := range resp.Cookies() {
-		if c.Name == "token" && c.MaxAge == -1 {
+		if c.Name == "omed_session" && c.MaxAge == -1 {
 			cleared = true
 		}
 	}
