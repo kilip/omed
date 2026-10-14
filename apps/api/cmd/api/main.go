@@ -8,8 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kilip/omed/api/internal/app"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/config"
 )
 
 // main initializes configuration, logging, fiber app state, and starts the server.
@@ -17,23 +16,23 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cfg := core.GetConfig()
-	logger := app.GetLogger()
-	fiber := app.GetFiber(cfg, logger)
+	cfg := config.GetConfig()
+	logger := config.GetLogger()
+	fiber := config.GetFiber(cfg, logger)
+	entcli := config.GetEntClient(cfg)
 
-	state := core.State{
+	state := config.State{
 		Logger:   logger,
 		Config:   cfg,
 		FiberApp: fiber,
 		Public:   fiber.Group("/"),
 		Secure:   fiber.Group("/"),
+		EntCli:   entcli,
 	}
 
-	app.WaitForJWKS(cfg, logger)
+	omed := config.New(state)
 
-	a := app.New(state)
-
-	if err := a.Run(ctx); err != nil {
+	if err := omed.Run(ctx); err != nil {
 		slog.Error("app stopped", "err", err)
 		os.Exit(1)
 	}

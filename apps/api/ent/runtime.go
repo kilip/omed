@@ -5,14 +5,67 @@ package ent
 import (
 	"time"
 
+	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/schema"
+	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/kilip/omed/api/ent/useraccount"
+	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspaceinvitation"
+	"github.com/kilip/omed/api/ent/workspacemember"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	accountMixin := schema.Account{}.Mixin()
+	accountMixinFields1 := accountMixin[1].Fields()
+	_ = accountMixinFields1
+	accountFields := schema.Account{}.Fields()
+	_ = accountFields
+	// accountDescCreatedAt is the schema descriptor for created_at field.
+	accountDescCreatedAt := accountMixinFields1[2].Descriptor()
+	// account.DefaultCreatedAt holds the default value on creation for the created_at field.
+	account.DefaultCreatedAt = accountDescCreatedAt.Default.(func() time.Time)
+	// accountDescUpdatedAt is the schema descriptor for updated_at field.
+	accountDescUpdatedAt := accountMixinFields1[3].Descriptor()
+	// account.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	account.DefaultUpdatedAt = accountDescUpdatedAt.Default.(func() time.Time)
+	// account.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	account.UpdateDefaultUpdatedAt = accountDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// accountDescCode is the schema descriptor for code field.
+	accountDescCode := accountFields[1].Descriptor()
+	// account.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	account.CodeValidator = accountDescCode.Validators[0].(func(string) error)
+	// accountDescName is the schema descriptor for name field.
+	accountDescName := accountFields[2].Descriptor()
+	// account.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	account.NameValidator = accountDescName.Validators[0].(func(string) error)
+	// accountDescIsActive is the schema descriptor for is_active field.
+	accountDescIsActive := accountFields[7].Descriptor()
+	// account.DefaultIsActive holds the default value on creation for the is_active field.
+	account.DefaultIsActive = accountDescIsActive.Default.(bool)
+	// accountDescIsPostable is the schema descriptor for is_postable field.
+	accountDescIsPostable := accountFields[8].Descriptor()
+	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
+	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
+	sessionFields := schema.Session{}.Fields()
+	_ = sessionFields
+	// sessionDescToken is the schema descriptor for token field.
+	sessionDescToken := sessionFields[2].Descriptor()
+	// session.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	session.TokenValidator = sessionDescToken.Validators[0].(func(string) error)
+	// sessionDescCreatedAt is the schema descriptor for created_at field.
+	sessionDescCreatedAt := sessionFields[6].Descriptor()
+	// session.DefaultCreatedAt holds the default value on creation for the created_at field.
+	session.DefaultCreatedAt = sessionDescCreatedAt.Default.(func() time.Time)
+	// sessionDescUpdatedAt is the schema descriptor for updated_at field.
+	sessionDescUpdatedAt := sessionFields[7].Descriptor()
+	// session.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	session.DefaultUpdatedAt = sessionDescUpdatedAt.Default.(func() time.Time)
+	// session.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	session.UpdateDefaultUpdatedAt = sessionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.
@@ -33,4 +86,101 @@ func init() {
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
+	useraccountFields := schema.UserAccount{}.Fields()
+	_ = useraccountFields
+	// useraccountDescProviderID is the schema descriptor for provider_id field.
+	useraccountDescProviderID := useraccountFields[2].Descriptor()
+	// useraccount.ProviderIDValidator is a validator for the "provider_id" field. It is called by the builders before save.
+	useraccount.ProviderIDValidator = useraccountDescProviderID.Validators[0].(func(string) error)
+	// useraccountDescAccountID is the schema descriptor for account_id field.
+	useraccountDescAccountID := useraccountFields[3].Descriptor()
+	// useraccount.AccountIDValidator is a validator for the "account_id" field. It is called by the builders before save.
+	useraccount.AccountIDValidator = useraccountDescAccountID.Validators[0].(func(string) error)
+	// useraccountDescCreatedAt is the schema descriptor for created_at field.
+	useraccountDescCreatedAt := useraccountFields[11].Descriptor()
+	// useraccount.DefaultCreatedAt holds the default value on creation for the created_at field.
+	useraccount.DefaultCreatedAt = useraccountDescCreatedAt.Default.(func() time.Time)
+	// useraccountDescUpdatedAt is the schema descriptor for updated_at field.
+	useraccountDescUpdatedAt := useraccountFields[12].Descriptor()
+	// useraccount.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	useraccount.DefaultUpdatedAt = useraccountDescUpdatedAt.Default.(func() time.Time)
+	// useraccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	useraccount.UpdateDefaultUpdatedAt = useraccountDescUpdatedAt.UpdateDefault.(func() time.Time)
+	workspaceMixin := schema.Workspace{}.Mixin()
+	workspaceMixinFields0 := workspaceMixin[0].Fields()
+	_ = workspaceMixinFields0
+	workspaceFields := schema.Workspace{}.Fields()
+	_ = workspaceFields
+	// workspaceDescCreatedAt is the schema descriptor for created_at field.
+	workspaceDescCreatedAt := workspaceMixinFields0[2].Descriptor()
+	// workspace.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workspace.DefaultCreatedAt = workspaceDescCreatedAt.Default.(func() time.Time)
+	// workspaceDescUpdatedAt is the schema descriptor for updated_at field.
+	workspaceDescUpdatedAt := workspaceMixinFields0[3].Descriptor()
+	// workspace.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workspace.DefaultUpdatedAt = workspaceDescUpdatedAt.Default.(func() time.Time)
+	// workspace.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workspace.UpdateDefaultUpdatedAt = workspaceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// workspaceDescName is the schema descriptor for name field.
+	workspaceDescName := workspaceFields[1].Descriptor()
+	// workspace.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	workspace.NameValidator = workspaceDescName.Validators[0].(func(string) error)
+	// workspaceDescPersonal is the schema descriptor for personal field.
+	workspaceDescPersonal := workspaceFields[4].Descriptor()
+	// workspace.DefaultPersonal holds the default value on creation for the personal field.
+	workspace.DefaultPersonal = workspaceDescPersonal.Default.(bool)
+	workspaceinvitationMixin := schema.WorkspaceInvitation{}.Mixin()
+	workspaceinvitationMixinFields1 := workspaceinvitationMixin[1].Fields()
+	_ = workspaceinvitationMixinFields1
+	workspaceinvitationFields := schema.WorkspaceInvitation{}.Fields()
+	_ = workspaceinvitationFields
+	// workspaceinvitationDescCreatedAt is the schema descriptor for created_at field.
+	workspaceinvitationDescCreatedAt := workspaceinvitationMixinFields1[2].Descriptor()
+	// workspaceinvitation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workspaceinvitation.DefaultCreatedAt = workspaceinvitationDescCreatedAt.Default.(func() time.Time)
+	// workspaceinvitationDescUpdatedAt is the schema descriptor for updated_at field.
+	workspaceinvitationDescUpdatedAt := workspaceinvitationMixinFields1[3].Descriptor()
+	// workspaceinvitation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workspaceinvitation.DefaultUpdatedAt = workspaceinvitationDescUpdatedAt.Default.(func() time.Time)
+	// workspaceinvitation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workspaceinvitation.UpdateDefaultUpdatedAt = workspaceinvitationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// workspaceinvitationDescToken is the schema descriptor for token field.
+	workspaceinvitationDescToken := workspaceinvitationFields[1].Descriptor()
+	// workspaceinvitation.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	workspaceinvitation.TokenValidator = workspaceinvitationDescToken.Validators[0].(func(string) error)
+	// workspaceinvitationDescRoles is the schema descriptor for roles field.
+	workspaceinvitationDescRoles := workspaceinvitationFields[2].Descriptor()
+	// workspaceinvitation.DefaultRoles holds the default value on creation for the roles field.
+	workspaceinvitation.DefaultRoles = workspaceinvitationDescRoles.Default.([]string)
+	// workspaceinvitationDescMaxUses is the schema descriptor for max_uses field.
+	workspaceinvitationDescMaxUses := workspaceinvitationFields[3].Descriptor()
+	// workspaceinvitation.DefaultMaxUses holds the default value on creation for the max_uses field.
+	workspaceinvitation.DefaultMaxUses = workspaceinvitationDescMaxUses.Default.(int)
+	// workspaceinvitationDescUsesCount is the schema descriptor for uses_count field.
+	workspaceinvitationDescUsesCount := workspaceinvitationFields[4].Descriptor()
+	// workspaceinvitation.DefaultUsesCount holds the default value on creation for the uses_count field.
+	workspaceinvitation.DefaultUsesCount = workspaceinvitationDescUsesCount.Default.(int)
+	// workspaceinvitationDescIsRevoked is the schema descriptor for is_revoked field.
+	workspaceinvitationDescIsRevoked := workspaceinvitationFields[6].Descriptor()
+	// workspaceinvitation.DefaultIsRevoked holds the default value on creation for the is_revoked field.
+	workspaceinvitation.DefaultIsRevoked = workspaceinvitationDescIsRevoked.Default.(bool)
+	workspacememberMixin := schema.WorkspaceMember{}.Mixin()
+	workspacememberMixinFields0 := workspacememberMixin[0].Fields()
+	_ = workspacememberMixinFields0
+	workspacememberFields := schema.WorkspaceMember{}.Fields()
+	_ = workspacememberFields
+	// workspacememberDescCreatedAt is the schema descriptor for created_at field.
+	workspacememberDescCreatedAt := workspacememberMixinFields0[2].Descriptor()
+	// workspacemember.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workspacemember.DefaultCreatedAt = workspacememberDescCreatedAt.Default.(func() time.Time)
+	// workspacememberDescUpdatedAt is the schema descriptor for updated_at field.
+	workspacememberDescUpdatedAt := workspacememberMixinFields0[3].Descriptor()
+	// workspacemember.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workspacemember.DefaultUpdatedAt = workspacememberDescUpdatedAt.Default.(func() time.Time)
+	// workspacemember.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workspacemember.UpdateDefaultUpdatedAt = workspacememberDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// workspacememberDescRoles is the schema descriptor for roles field.
+	workspacememberDescRoles := workspacememberFields[3].Descriptor()
+	// workspacemember.DefaultRoles holds the default value on creation for the roles field.
+	workspacemember.DefaultRoles = workspacememberDescRoles.Default.([]string)
 }

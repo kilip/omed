@@ -39,3 +39,74 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: apps/api/coverage.txt
+          flags: api
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # The e2e runner starts auth, api and web itself. Values mirror
+      # `.env.example`; the secret is a throwaway one for CI only.
+      HUSKY: "0"
+      OMED_DB_URL: postgres://omed:omed@localhost:5432/omed?sslmode=disable
+      OMED_API_URL: http://localhost:8001
+      OMED_WEB_URL: http://localhost:3000
+      OMED_TRUSTED_ORIGINS: http://localhost:3000,http://localhost:8001
+      OMED_AUTH_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: omed
+          POSTGRES_PASSWORD: omed
+          POSTGRES_DB: omed
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U omed -d omed"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/api/go.mod
+          cache-dependency-path: apps/api/go.sum
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        working-directory: e2e
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: bun run e2e
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: |
+            coverage/lcov.info
+            coverage/api-e2e.txt
+          flags: e2e
+
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report
+          path: e2e/reports
+          if-no-files-found: ignore
+          retention-days: 7

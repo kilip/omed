@@ -13,11 +13,10 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "forwardPorts": [3001, 8001, 8002, 9001, 8080, 5432, 4983],
+  "forwardPorts": [3000, 8001, 9001, 8080, 5432, 4983],
   "portsAttributes": {
-    "3001": { "label": "@omed/dash" },
-    "8001": { "label": "@omed/auth" },
-    "8002": { "label": "@omed/api" },
+    "3000": { "label": "@omed/dash" },
+    "8001": { "label": "@omed/api" },
     "9001": { "label": "rustfs console" },
     "8080": { "label": "kafka ui" },
     "5432": { "label": "postgres" },

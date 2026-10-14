@@ -4,7 +4,8 @@
   "packageManager": "bun@1.4.2",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "e2e"
   ],
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
@@ -12,7 +13,7 @@
     "@commitlint/config-conventional": "^21.2.3",
     "husky": "^9.1.7",
     "openapi-typescript": "^7.13.0",
-    "turbo": "^2.5.0",
+    "turbo": "^2.11.8",
     "typescript": "6.x.x"
   },
   "scripts": {
@@ -23,8 +24,7 @@
     "format": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "e2e": "turbo run e2e",
-    "db:push": "turbo run db:push"
+    "e2e": "turbo run e2e"
   },
   "version": "0.1.0"
 }

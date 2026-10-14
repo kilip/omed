@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/core"
 	_ "modernc.org/sqlite"
 )
 
@@ -32,6 +33,6 @@ func CreateTestDB(dsn ...string) *ent.Client {
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed to create schema resources: %v", err)
 	}
-	// config.ConfigureDBClient(client)
+	core.InitEntCli(client)
 	return client
 }

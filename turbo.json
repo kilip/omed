@@ -2,7 +2,7 @@
   "$schema": "./node_modules/turbo/schema.json",
   "ui": "tui",
   "globalDependencies": [".env"],
-  "globalPassThroughEnv": ["OMED_*"],
+  "globalPassThroughEnv": ["OMED_*", "E2E_*", "HEADED"],
   "tasks": {
     "e2e": {
       "cache": false
@@ -22,13 +22,6 @@
     },
     "oa:gen": {
       "cache": false
-    },
-    "@omed/better-auth#auth:schema": {
-      "cache": false
-    },
-    "@omed/better-auth#db:push": {
-      "cache": false,
-      "dependsOn": ["@omed/better-auth#auth:schema"]
     }
   }
 }

@@ -1,0 +1,47 @@
+package config_test
+
+import (
+	"os"
+	"testing"
+
+	"github.com/kilip/omed/api/internal/config"
+	"github.com/stretchr/testify/suite"
+)
+
+type ConfigSuite struct {
+	suite.Suite
+}
+
+func (s *ConfigSuite) Test_GetConfig_Defaults() {
+	s.T().Setenv("OMED_AUTH_PATH", "")
+	s.T().Setenv("OMED_SESSION_COOKIE_NAME", "")
+
+	// Ensure default TrustedOrigins is tested
+	originalOrigins, hadOrigins := os.LookupEnv("OMED_TRUSTED_ORIGINS")
+	os.Unsetenv("OMED_TRUSTED_ORIGINS")
+	s.T().Cleanup(func() {
+		if hadOrigins {
+			os.Setenv("OMED_TRUSTED_ORIGINS", originalOrigins)
+		}
+	})
+
+	cfg := config.GetConfig()
+	s.Equal("/auth", cfg.AuthPath)
+	s.Equal("omed_session", cfg.SessionCookieName)
+	s.Equal([]string{"http://localhost:3000"}, cfg.TrustedOrigins)
+}
+
+func (s *ConfigSuite) Test_GetConfig_CustomValues() {
+	s.T().Setenv("OMED_AUTH_PATH", "/api/v1/auth")
+	s.T().Setenv("OMED_SESSION_COOKIE_NAME", "custom_session_token")
+	s.T().Setenv("OMED_TRUSTED_ORIGINS", "https://app1.example.com,https://app2.example.com")
+
+	cfg := config.GetConfig()
+	s.Equal("/api/v1/auth", cfg.AuthPath)
+	s.Equal("custom_session_token", cfg.SessionCookieName)
+	s.Equal([]string{"https://app1.example.com", "https://app2.example.com"}, cfg.TrustedOrigins)
+}
+
+func TestConfigSuite(t *testing.T) {
+	suite.Run(t, new(ConfigSuite))
+}

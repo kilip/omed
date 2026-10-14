@@ -5,12 +5,12 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/base"
 )
 
 // MapError converts standard domain, validation, or framework errors into an HTTP status code and ErrorBody.
 // If the error is a validator.ValidationErrors, StatusUnprocessableEntity is returned with field details.
-// Otherwise, it delegates to core.MapError.
+// Otherwise, it delegates to base.MapError.
 func MapError(err error) (int, ErrorBody) {
 	var ve validator.ValidationErrors
 
@@ -22,6 +22,11 @@ func MapError(err error) (int, ErrorBody) {
 		return fiber.StatusUnprocessableEntity, ErrorBody{Code: "VALIDATION_FAILED", Message: "validation failed", Fields: fields}
 	}
 
-	item := core.MapError(err)
+	var fe *fiber.Error
+	if errors.As(err, &fe) {
+		return fe.Code, ErrorBody{Code: base.ErrUnknown.Error(), Message: fe.Message}
+	}
+
+	item := base.MapError(err)
 	return item.Status, ErrorBody{Code: item.Code, Message: item.Message}
 }

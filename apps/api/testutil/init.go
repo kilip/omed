@@ -10,18 +10,16 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
 	"github.com/kilip/omed/api/ent"
-	"github.com/kilip/omed/api/internal/app"
-	"github.com/kilip/omed/api/internal/core"
+	"github.com/kilip/omed/api/internal/config"
 )
 
 //go:generate go run go.uber.org/mock/mockgen@latest -destination=cmocks/mock_slog_handler.go -package=cmocks log/slog Handler
 
-var cfg core.Config
-var state core.State
+var cfg config.Config
+var state config.State
 var api *fiber.App
 var logger *slog.Logger
 var entClient *ent.Client
-var jwksMock JWKSMock
 
 func loadEnvForTest() {
 	// _, b, _, _ returns the absolute path of the current file
@@ -41,13 +39,7 @@ func init() {
 		_ = os.Setenv("API_INTERNAL_KEY", "test-internal-key-for-domus-api-at-least-32-chars")
 	}
 
-	cfg = core.GetConfig()
-
-	mock := NewJWKSMock()
-	jwksMock = *mock
-
-	// force test environment config
-	cfg.JWKSUrl = mock.URL
+	cfg = config.GetConfig()
 
 	_, b, _, _ := runtime.Caller(0)
 	logPath := filepath.Join(filepath.Dir(b), "../tmp/test.log")
@@ -62,12 +54,12 @@ func init() {
 	logger = slog.New(slog.NewJSONHandler(logWriter, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
-	api = app.GetFiber(cfg, logger)
+	api = config.GetFiber(cfg, logger)
 	entClient = CreateTestDB()
 
 	// config.ConfigureEntCli(entClient)
 	// mockStorage := storage.NewMemoryStorage()
-	state = core.State{
+	state = config.State{
 		FiberApp: api,
 		Config:   cfg,
 		Logger:   logger,
@@ -76,13 +68,13 @@ func init() {
 		// Storage:  mockStorage,
 	}
 
-	a := app.New(state)
+	a := config.New(state)
 	a.Boot()
 
 }
 
 // GetState returns the global initialized testing State instance.
-func GetState() core.State {
+func GetState() config.State {
 	return state
 }
 

@@ -3,11 +3,131 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
 
 var (
+	// AccountsColumns holds the columns for the "accounts" table.
+	AccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "code", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"}},
+		{Name: "normal_balance", Type: field.TypeEnum, Enums: []string{"DEBIT", "CREDIT"}},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "is_postable", Type: field.TypeBool, Default: true},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "parent_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// AccountsTable holds the schema information for the "accounts" table.
+	AccountsTable = &schema.Table{
+		Name:       "accounts",
+		Columns:    AccountsColumns,
+		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "accounts_workspaces_workspace",
+				Columns:    []*schema.Column{AccountsColumns[11]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "accounts_users_creator",
+				Columns:    []*schema.Column{AccountsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "accounts_users_updater",
+				Columns:    []*schema.Column{AccountsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "accounts_users_deleter",
+				Columns:    []*schema.Column{AccountsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "accounts_accounts_children",
+				Columns:    []*schema.Column{AccountsColumns[15]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "account_workspace_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "account_workspace_id_parent_id",
+				Unique:  false,
+				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[15]},
+			},
+			{
+				Name:    "account_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[3]},
+			},
+			{
+				Name:    "account_workspace_id_is_postable",
+				Unique:  false,
+				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[10]},
+			},
+		},
+	}
+	// SessionsColumns holds the columns for the "sessions" table.
+	SessionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "token", Type: field.TypeString, Unique: true},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "ip_address", Type: field.TypeString, Nullable: true},
+		{Name: "user_agent", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// SessionsTable holds the schema information for the "sessions" table.
+	SessionsTable = &schema.Table{
+		Name:       "sessions",
+		Columns:    SessionsColumns,
+		PrimaryKey: []*schema.Column{SessionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sessions_users_user",
+				Columns:    []*schema.Column{SessionsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "session_token",
+				Unique:  true,
+				Columns: []*schema.Column{SessionsColumns[1]},
+			},
+			{
+				Name:    "session_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{SessionsColumns[7]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -23,11 +143,232 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// UserAccountsColumns holds the columns for the "user_accounts" table.
+	UserAccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "provider_id", Type: field.TypeString},
+		{Name: "account_id", Type: field.TypeString},
+		{Name: "access_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "refresh_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "id_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "access_token_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "refresh_token_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "scope", Type: field.TypeString, Nullable: true},
+		{Name: "password", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// UserAccountsTable holds the schema information for the "user_accounts" table.
+	UserAccountsTable = &schema.Table{
+		Name:       "user_accounts",
+		Columns:    UserAccountsColumns,
+		PrimaryKey: []*schema.Column{UserAccountsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_accounts_users_user",
+				Columns:    []*schema.Column{UserAccountsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "useraccount_provider_id_account_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserAccountsColumns[1], UserAccountsColumns[2]},
+			},
+			{
+				Name:    "useraccount_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserAccountsColumns[12]},
+			},
+		},
+	}
+	// WorkspacesColumns holds the columns for the "workspaces" table.
+	WorkspacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "personal", Type: field.TypeBool, Default: false},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "owner_id", Type: field.TypeInt64},
+	}
+	// WorkspacesTable holds the schema information for the "workspaces" table.
+	WorkspacesTable = &schema.Table{
+		Name:       "workspaces",
+		Columns:    WorkspacesColumns,
+		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspaces_users_creator",
+				Columns:    []*schema.Column{WorkspacesColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspaces_users_updater",
+				Columns:    []*schema.Column{WorkspacesColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspaces_users_owner",
+				Columns:    []*schema.Column{WorkspacesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workspace_personal_owner",
+				Unique:  true,
+				Columns: []*schema.Column{WorkspacesColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "personal",
+				},
+			},
+		},
+	}
+	// WorkspaceInvitationsColumns holds the columns for the "workspace_invitations" table.
+	WorkspaceInvitationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "token", Type: field.TypeString, Unique: true},
+		{Name: "roles", Type: field.TypeJSON},
+		{Name: "max_uses", Type: field.TypeInt, Default: 0},
+		{Name: "uses_count", Type: field.TypeInt, Default: 0},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "is_revoked", Type: field.TypeBool, Default: false},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+	}
+	// WorkspaceInvitationsTable holds the schema information for the "workspace_invitations" table.
+	WorkspaceInvitationsTable = &schema.Table{
+		Name:       "workspace_invitations",
+		Columns:    WorkspaceInvitationsColumns,
+		PrimaryKey: []*schema.Column{WorkspaceInvitationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspace_invitations_workspaces_workspace",
+				Columns:    []*schema.Column{WorkspaceInvitationsColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspace_invitations_users_creator",
+				Columns:    []*schema.Column{WorkspaceInvitationsColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspace_invitations_users_updater",
+				Columns:    []*schema.Column{WorkspaceInvitationsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workspaceinvitation_token",
+				Unique:  true,
+				Columns: []*schema.Column{WorkspaceInvitationsColumns[3]},
+			},
+			{
+				Name:    "workspaceinvitation_workspace_id_is_revoked",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceInvitationsColumns[9], WorkspaceInvitationsColumns[8]},
+			},
+		},
+	}
+	// WorkspaceMembersColumns holds the columns for the "workspace_members" table.
+	WorkspaceMembersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "roles", Type: field.TypeJSON},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// WorkspaceMembersTable holds the schema information for the "workspace_members" table.
+	WorkspaceMembersTable = &schema.Table{
+		Name:       "workspace_members",
+		Columns:    WorkspaceMembersColumns,
+		PrimaryKey: []*schema.Column{WorkspaceMembersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspace_members_workspaces_members",
+				Columns:    []*schema.Column{WorkspaceMembersColumns[4]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "workspace_members_users_creator",
+				Columns:    []*schema.Column{WorkspaceMembersColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspace_members_users_updater",
+				Columns:    []*schema.Column{WorkspaceMembersColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspace_members_users_user",
+				Columns:    []*schema.Column{WorkspaceMembersColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workspacemember_workspace_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{WorkspaceMembersColumns[4], WorkspaceMembersColumns[7]},
+			},
+			{
+				Name:    "workspacemember_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceMembersColumns[7]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AccountsTable,
+		SessionsTable,
 		UsersTable,
+		UserAccountsTable,
+		WorkspacesTable,
+		WorkspaceInvitationsTable,
+		WorkspaceMembersTable,
 	}
 )
 
 func init() {
+	AccountsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	AccountsTable.ForeignKeys[1].RefTable = UsersTable
+	AccountsTable.ForeignKeys[2].RefTable = UsersTable
+	AccountsTable.ForeignKeys[3].RefTable = UsersTable
+	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
+	SessionsTable.ForeignKeys[0].RefTable = UsersTable
+	UserAccountsTable.ForeignKeys[0].RefTable = UsersTable
+	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
+	WorkspacesTable.ForeignKeys[1].RefTable = UsersTable
+	WorkspacesTable.ForeignKeys[2].RefTable = UsersTable
+	WorkspaceInvitationsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	WorkspaceInvitationsTable.ForeignKeys[1].RefTable = UsersTable
+	WorkspaceInvitationsTable.ForeignKeys[2].RefTable = UsersTable
+	WorkspaceMembersTable.ForeignKeys[0].RefTable = WorkspacesTable
+	WorkspaceMembersTable.ForeignKeys[1].RefTable = UsersTable
+	WorkspaceMembersTable.ForeignKeys[2].RefTable = UsersTable
+	WorkspaceMembersTable.ForeignKeys[3].RefTable = UsersTable
 }

@@ -1,0 +1,27 @@
+# CI override for `.devcontainer/compose.yaml`.
+#
+# In the devcontainer the workspace joins the compose network and reaches the
+# services by name. On a GitHub runner the apps run on the host, so publish the
+# ports and make Kafka advertise `localhost`.
+#
+#   docker compose -f .devcontainer/compose.yaml -f .github/compose.e2e.yaml \
+#     up -d --wait postgres redis rustfs kafka
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  rustfs:
+    ports:
+      - "9000:9000"
+
+  kafka:
+    ports:
+      - "9092:9092"
+    environment:
+      # Clients on the host must be told to reconnect to localhost, not `kafka`.
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://localhost:9092

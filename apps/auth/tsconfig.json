@@ -1,4 +1,0 @@
-{
-  "extends": "@omed/tsconfig/base.json",
-  "include": ["src"]
-}
