@@ -1,1 +1,6 @@
-@import "tailwindcss";
+/* Tailwind without preflight, so it does not reset Ant Design components. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@import "./theme/tokens.css";
