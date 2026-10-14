@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { App } from "antd";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +12,7 @@ export function useAction() {
   const { message } = App.useApp();
   const { t } = useTranslation();
   const revalidator = useRevalidator();
+  const queryClient = useQueryClient();
   const [pending, setPending] = useState(false);
 
   const run = useCallback(
@@ -19,7 +21,10 @@ export function useAction() {
       try {
         await action();
         if (successKey) message.success(t(successKey));
-        await revalidator.revalidate();
+        await Promise.all([
+          revalidator.revalidate(),
+          queryClient.invalidateQueries(),
+        ]);
         return true;
       } catch (error) {
         message.error(
@@ -30,7 +35,7 @@ export function useAction() {
         setPending(false);
       }
     },
-    [message, revalidator, t],
+    [message, revalidator, queryClient, t],
   );
 
   return { run, pending };
