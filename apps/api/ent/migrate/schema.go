@@ -22,10 +22,10 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "is_postable", Type: field.TypeBool, Default: true},
+		{Name: "workspace_id", Type: field.TypeInt64},
 		{Name: "created_by", Type: field.TypeInt64},
 		{Name: "updated_by", Type: field.TypeInt64},
 		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "workspace_id", Type: field.TypeInt64},
 		{Name: "parent_id", Type: field.TypeInt64, Nullable: true},
 	}
 	// AccountsTable holds the schema information for the "accounts" table.
@@ -35,28 +35,28 @@ var (
 		PrimaryKey: []*schema.Column{AccountsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "accounts_users_creator",
+				Symbol:     "accounts_workspaces_workspace",
 				Columns:    []*schema.Column{AccountsColumns[11]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "accounts_users_updater",
+				Symbol:     "accounts_users_creator",
 				Columns:    []*schema.Column{AccountsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "accounts_users_deleter",
+				Symbol:     "accounts_users_updater",
 				Columns:    []*schema.Column{AccountsColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "accounts_workspaces_workspace",
+				Symbol:     "accounts_users_deleter",
 				Columns:    []*schema.Column{AccountsColumns[14]},
-				RefColumns: []*schema.Column{WorkspacesColumns[0]},
-				OnDelete:   schema.NoAction,
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "accounts_accounts_children",
@@ -69,7 +69,7 @@ var (
 			{
 				Name:    "account_workspace_id_code",
 				Unique:  true,
-				Columns: []*schema.Column{AccountsColumns[14], AccountsColumns[4]},
+				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[4]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -77,17 +77,17 @@ var (
 			{
 				Name:    "account_workspace_id_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{AccountsColumns[14], AccountsColumns[15]},
+				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[15]},
 			},
 			{
 				Name:    "account_workspace_id_deleted_at",
 				Unique:  false,
-				Columns: []*schema.Column{AccountsColumns[14], AccountsColumns[3]},
+				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[3]},
 			},
 			{
 				Name:    "account_workspace_id_is_postable",
 				Unique:  false,
-				Columns: []*schema.Column{AccountsColumns[14], AccountsColumns[10]},
+				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[10]},
 			},
 		},
 	}
@@ -219,10 +219,10 @@ var (
 )
 
 func init() {
-	AccountsTable.ForeignKeys[0].RefTable = UsersTable
+	AccountsTable.ForeignKeys[0].RefTable = WorkspacesTable
 	AccountsTable.ForeignKeys[1].RefTable = UsersTable
 	AccountsTable.ForeignKeys[2].RefTable = UsersTable
-	AccountsTable.ForeignKeys[3].RefTable = WorkspacesTable
+	AccountsTable.ForeignKeys[3].RefTable = UsersTable
 	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
 	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[1].RefTable = UsersTable

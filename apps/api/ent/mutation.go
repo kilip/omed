@@ -50,14 +50,14 @@ type AccountMutation struct {
 	is_active        *bool
 	is_postable      *bool
 	clearedFields    map[string]struct{}
+	workspace        *int64
+	clearedworkspace bool
 	creator          *int64
 	clearedcreator   bool
 	updater          *int64
 	clearedupdater   bool
 	deleter          *int64
 	cleareddeleter   bool
-	workspace        *int64
-	clearedworkspace bool
 	parent           *int64
 	clearedparent    bool
 	children         map[int64]struct{}
@@ -170,6 +170,42 @@ func (m *AccountMutation) IDs(ctx context.Context) ([]int64, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *AccountMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *AccountMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *AccountMutation) ResetWorkspaceID() {
+	m.workspace = nil
 }
 
 // SetCreatedBy sets the "created_by" field.
@@ -412,42 +448,6 @@ func (m *AccountMutation) DeletedByIDCleared() bool {
 func (m *AccountMutation) ResetDeletedByID() {
 	m.deleter = nil
 	delete(m.clearedFields, account.FieldDeletedByID)
-}
-
-// SetWorkspaceID sets the "workspace_id" field.
-func (m *AccountMutation) SetWorkspaceID(i int64) {
-	m.workspace = &i
-}
-
-// WorkspaceID returns the value of the "workspace_id" field in the mutation.
-func (m *AccountMutation) WorkspaceID() (r int64, exists bool) {
-	v := m.workspace
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWorkspaceID returns the old "workspace_id" field's value of the Account entity.
-// If the Account object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
-	}
-	return oldValue.WorkspaceID, nil
-}
-
-// ResetWorkspaceID resets all changes to the "workspace_id" field.
-func (m *AccountMutation) ResetWorkspaceID() {
-	m.workspace = nil
 }
 
 // SetCode sets the "code" field.
@@ -764,6 +764,33 @@ func (m *AccountMutation) ResetIsPostable() {
 	m.is_postable = nil
 }
 
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *AccountMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[account.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *AccountMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *AccountMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *AccountMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by id.
 func (m *AccountMutation) SetCreatorID(id int64) {
 	m.creator = &id
@@ -884,33 +911,6 @@ func (m *AccountMutation) ResetDeleter() {
 	m.cleareddeleter = false
 }
 
-// ClearWorkspace clears the "workspace" edge to the Workspace entity.
-func (m *AccountMutation) ClearWorkspace() {
-	m.clearedworkspace = true
-	m.clearedFields[account.FieldWorkspaceID] = struct{}{}
-}
-
-// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
-func (m *AccountMutation) WorkspaceCleared() bool {
-	return m.clearedworkspace
-}
-
-// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// WorkspaceID instead. It exists only for internal usage by the builders.
-func (m *AccountMutation) WorkspaceIDs() (ids []int64) {
-	if id := m.workspace; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetWorkspace resets all changes to the "workspace" edge.
-func (m *AccountMutation) ResetWorkspace() {
-	m.workspace = nil
-	m.clearedworkspace = false
-}
-
 // ClearParent clears the "parent" edge to the Account entity.
 func (m *AccountMutation) ClearParent() {
 	m.clearedparent = true
@@ -1027,6 +1027,9 @@ func (m *AccountMutation) Type() string {
 // AddedFields().
 func (m *AccountMutation) Fields() []string {
 	fields := make([]string, 0, 15)
+	if m.workspace != nil {
+		fields = append(fields, account.FieldWorkspaceID)
+	}
 	if m.creator != nil {
 		fields = append(fields, account.FieldCreatedBy)
 	}
@@ -1044,9 +1047,6 @@ func (m *AccountMutation) Fields() []string {
 	}
 	if m.deleter != nil {
 		fields = append(fields, account.FieldDeletedByID)
-	}
-	if m.workspace != nil {
-		fields = append(fields, account.FieldWorkspaceID)
 	}
 	if m.code != nil {
 		fields = append(fields, account.FieldCode)
@@ -1080,6 +1080,8 @@ func (m *AccountMutation) Fields() []string {
 // schema.
 func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case account.FieldWorkspaceID:
+		return m.WorkspaceID()
 	case account.FieldCreatedBy:
 		return m.CreatedBy()
 	case account.FieldUpdatedBy:
@@ -1092,8 +1094,6 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedAt()
 	case account.FieldDeletedByID:
 		return m.DeletedByID()
-	case account.FieldWorkspaceID:
-		return m.WorkspaceID()
 	case account.FieldCode:
 		return m.Code()
 	case account.FieldName:
@@ -1119,6 +1119,8 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case account.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
 	case account.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
 	case account.FieldUpdatedBy:
@@ -1131,8 +1133,6 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDeletedAt(ctx)
 	case account.FieldDeletedByID:
 		return m.OldDeletedByID(ctx)
-	case account.FieldWorkspaceID:
-		return m.OldWorkspaceID(ctx)
 	case account.FieldCode:
 		return m.OldCode(ctx)
 	case account.FieldName:
@@ -1158,6 +1158,13 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *AccountMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case account.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
 	case account.FieldCreatedBy:
 		v, ok := value.(int64)
 		if !ok {
@@ -1199,13 +1206,6 @@ func (m *AccountMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeletedByID(v)
-		return nil
-	case account.FieldWorkspaceID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWorkspaceID(v)
 		return nil
 	case account.FieldCode:
 		v, ok := value.(string)
@@ -1342,6 +1342,9 @@ func (m *AccountMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AccountMutation) ResetField(name string) error {
 	switch name {
+	case account.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
 	case account.FieldCreatedBy:
 		m.ResetCreatedBy()
 		return nil
@@ -1359,9 +1362,6 @@ func (m *AccountMutation) ResetField(name string) error {
 		return nil
 	case account.FieldDeletedByID:
 		m.ResetDeletedByID()
-		return nil
-	case account.FieldWorkspaceID:
-		m.ResetWorkspaceID()
 		return nil
 	case account.FieldCode:
 		m.ResetCode()
@@ -1394,6 +1394,9 @@ func (m *AccountMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AccountMutation) AddedEdges() []string {
 	edges := make([]string, 0, 6)
+	if m.workspace != nil {
+		edges = append(edges, account.EdgeWorkspace)
+	}
 	if m.creator != nil {
 		edges = append(edges, account.EdgeCreator)
 	}
@@ -1402,9 +1405,6 @@ func (m *AccountMutation) AddedEdges() []string {
 	}
 	if m.deleter != nil {
 		edges = append(edges, account.EdgeDeleter)
-	}
-	if m.workspace != nil {
-		edges = append(edges, account.EdgeWorkspace)
 	}
 	if m.parent != nil {
 		edges = append(edges, account.EdgeParent)
@@ -1419,6 +1419,10 @@ func (m *AccountMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case account.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
 	case account.EdgeCreator:
 		if id := m.creator; id != nil {
 			return []ent.Value{*id}
@@ -1429,10 +1433,6 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 		}
 	case account.EdgeDeleter:
 		if id := m.deleter; id != nil {
-			return []ent.Value{*id}
-		}
-	case account.EdgeWorkspace:
-		if id := m.workspace; id != nil {
 			return []ent.Value{*id}
 		}
 	case account.EdgeParent:
@@ -1475,6 +1475,9 @@ func (m *AccountMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AccountMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 6)
+	if m.clearedworkspace {
+		edges = append(edges, account.EdgeWorkspace)
+	}
 	if m.clearedcreator {
 		edges = append(edges, account.EdgeCreator)
 	}
@@ -1483,9 +1486,6 @@ func (m *AccountMutation) ClearedEdges() []string {
 	}
 	if m.cleareddeleter {
 		edges = append(edges, account.EdgeDeleter)
-	}
-	if m.clearedworkspace {
-		edges = append(edges, account.EdgeWorkspace)
 	}
 	if m.clearedparent {
 		edges = append(edges, account.EdgeParent)
@@ -1500,14 +1500,14 @@ func (m *AccountMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *AccountMutation) EdgeCleared(name string) bool {
 	switch name {
+	case account.EdgeWorkspace:
+		return m.clearedworkspace
 	case account.EdgeCreator:
 		return m.clearedcreator
 	case account.EdgeUpdater:
 		return m.clearedupdater
 	case account.EdgeDeleter:
 		return m.cleareddeleter
-	case account.EdgeWorkspace:
-		return m.clearedworkspace
 	case account.EdgeParent:
 		return m.clearedparent
 	case account.EdgeChildren:
@@ -1520,6 +1520,9 @@ func (m *AccountMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *AccountMutation) ClearEdge(name string) error {
 	switch name {
+	case account.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
 	case account.EdgeCreator:
 		m.ClearCreator()
 		return nil
@@ -1528,9 +1531,6 @@ func (m *AccountMutation) ClearEdge(name string) error {
 		return nil
 	case account.EdgeDeleter:
 		m.ClearDeleter()
-		return nil
-	case account.EdgeWorkspace:
-		m.ClearWorkspace()
 		return nil
 	case account.EdgeParent:
 		m.ClearParent()
@@ -1543,6 +1543,9 @@ func (m *AccountMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AccountMutation) ResetEdge(name string) error {
 	switch name {
+	case account.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
 	case account.EdgeCreator:
 		m.ResetCreator()
 		return nil
@@ -1551,9 +1554,6 @@ func (m *AccountMutation) ResetEdge(name string) error {
 		return nil
 	case account.EdgeDeleter:
 		m.ResetDeleter()
-		return nil
-	case account.EdgeWorkspace:
-		m.ResetWorkspace()
 		return nil
 	case account.EdgeParent:
 		m.ResetParent()

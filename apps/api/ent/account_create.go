@@ -24,6 +24,12 @@ type AccountCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetWorkspaceID sets the "workspace_id" field.
+func (_c *AccountCreate) SetWorkspaceID(v int64) *AccountCreate {
+	_c.mutation.SetWorkspaceID(v)
+	return _c
+}
+
 // SetCreatedBy sets the "created_by" field.
 func (_c *AccountCreate) SetCreatedBy(v int64) *AccountCreate {
 	_c.mutation.SetCreatedBy(v)
@@ -89,12 +95,6 @@ func (_c *AccountCreate) SetNillableDeletedByID(v *int64) *AccountCreate {
 	if v != nil {
 		_c.SetDeletedByID(*v)
 	}
-	return _c
-}
-
-// SetWorkspaceID sets the "workspace_id" field.
-func (_c *AccountCreate) SetWorkspaceID(v int64) *AccountCreate {
-	_c.mutation.SetWorkspaceID(v)
 	return _c
 }
 
@@ -184,6 +184,11 @@ func (_c *AccountCreate) SetID(v int64) *AccountCreate {
 	return _c
 }
 
+// SetWorkspace sets the "workspace" edge to the Workspace entity.
+func (_c *AccountCreate) SetWorkspace(v *Workspace) *AccountCreate {
+	return _c.SetWorkspaceID(v.ID)
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_c *AccountCreate) SetCreatorID(id int64) *AccountCreate {
 	_c.mutation.SetCreatorID(id)
@@ -223,11 +228,6 @@ func (_c *AccountCreate) SetNillableDeleterID(id *int64) *AccountCreate {
 // SetDeleter sets the "deleter" edge to the User entity.
 func (_c *AccountCreate) SetDeleter(v *User) *AccountCreate {
 	return _c.SetDeleterID(v.ID)
-}
-
-// SetWorkspace sets the "workspace" edge to the Workspace entity.
-func (_c *AccountCreate) SetWorkspace(v *Workspace) *AccountCreate {
-	return _c.SetWorkspaceID(v.ID)
 }
 
 // SetParent sets the "parent" edge to the Account entity.
@@ -305,6 +305,9 @@ func (_c *AccountCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *AccountCreate) check() error {
+	if _, ok := _c.mutation.WorkspaceID(); !ok {
+		return &ValidationError{Name: "workspace_id", err: errors.New(`ent: missing required field "Account.workspace_id"`)}
+	}
 	if _, ok := _c.mutation.CreatedBy(); !ok {
 		return &ValidationError{Name: "created_by", err: errors.New(`ent: missing required field "Account.created_by"`)}
 	}
@@ -316,9 +319,6 @@ func (_c *AccountCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Account.updated_at"`)}
-	}
-	if _, ok := _c.mutation.WorkspaceID(); !ok {
-		return &ValidationError{Name: "workspace_id", err: errors.New(`ent: missing required field "Account.workspace_id"`)}
 	}
 	if _, ok := _c.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "Account.code"`)}
@@ -358,14 +358,14 @@ func (_c *AccountCreate) check() error {
 	if _, ok := _c.mutation.IsPostable(); !ok {
 		return &ValidationError{Name: "is_postable", err: errors.New(`ent: missing required field "Account.is_postable"`)}
 	}
+	if len(_c.mutation.WorkspaceIDs()) == 0 {
+		return &ValidationError{Name: "workspace", err: errors.New(`ent: missing required edge "Account.workspace"`)}
+	}
 	if len(_c.mutation.CreatorIDs()) == 0 {
 		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "Account.creator"`)}
 	}
 	if len(_c.mutation.UpdaterIDs()) == 0 {
 		return &ValidationError{Name: "updater", err: errors.New(`ent: missing required edge "Account.updater"`)}
-	}
-	if len(_c.mutation.WorkspaceIDs()) == 0 {
-		return &ValidationError{Name: "workspace", err: errors.New(`ent: missing required edge "Account.workspace"`)}
 	}
 	return nil
 }
@@ -441,6 +441,24 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		_spec.SetField(account.FieldIsPostable, field.TypeBool, value)
 		_node.IsPostable = value
 	}
+	if nodes := _c.mutation.WorkspaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   account.WorkspaceTable,
+			Columns: []string{account.WorkspaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _c.schemaConfig.Account
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.WorkspaceID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -495,24 +513,6 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		_node.DeletedByID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.WorkspaceIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   account.WorkspaceTable,
-			Columns: []string{account.WorkspaceColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _c.schemaConfig.Account
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.WorkspaceID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := _c.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -555,7 +555,7 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Account.Create().
-//		SetCreatedBy(v).
+//		SetWorkspaceID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -564,7 +564,7 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.AccountUpsert) {
-//			SetCreatedBy(v+v).
+//			SetWorkspaceID(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *AccountCreate) OnConflict(opts ...sql.ConflictOption) *AccountUpsertOne {
@@ -797,11 +797,11 @@ func (u *AccountUpsertOne) UpdateNewValues() *AccountUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(account.FieldID)
 		}
-		if _, exists := u.create.mutation.CreatedAt(); exists {
-			s.SetIgnore(account.FieldCreatedAt)
-		}
 		if _, exists := u.create.mutation.WorkspaceID(); exists {
 			s.SetIgnore(account.FieldWorkspaceID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(account.FieldCreatedAt)
 		}
 	}))
 	return u
@@ -1179,7 +1179,7 @@ func (_c *AccountCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.AccountUpsert) {
-//			SetCreatedBy(v+v).
+//			SetWorkspaceID(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *AccountCreateBulk) OnConflict(opts ...sql.ConflictOption) *AccountUpsertBulk {
@@ -1226,11 +1226,11 @@ func (u *AccountUpsertBulk) UpdateNewValues() *AccountUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(account.FieldID)
 			}
-			if _, exists := b.mutation.CreatedAt(); exists {
-				s.SetIgnore(account.FieldCreatedAt)
-			}
 			if _, exists := b.mutation.WorkspaceID(); exists {
 				s.SetIgnore(account.FieldWorkspaceID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(account.FieldCreatedAt)
 			}
 		}
 	}))

@@ -17,34 +17,34 @@ import (
 // to their package variables.
 func init() {
 	accountMixin := schema.Account{}.Mixin()
-	accountMixinFields0 := accountMixin[0].Fields()
-	_ = accountMixinFields0
+	accountMixinFields1 := accountMixin[1].Fields()
+	_ = accountMixinFields1
 	accountFields := schema.Account{}.Fields()
 	_ = accountFields
 	// accountDescCreatedAt is the schema descriptor for created_at field.
-	accountDescCreatedAt := accountMixinFields0[2].Descriptor()
+	accountDescCreatedAt := accountMixinFields1[2].Descriptor()
 	// account.DefaultCreatedAt holds the default value on creation for the created_at field.
 	account.DefaultCreatedAt = accountDescCreatedAt.Default.(func() time.Time)
 	// accountDescUpdatedAt is the schema descriptor for updated_at field.
-	accountDescUpdatedAt := accountMixinFields0[3].Descriptor()
+	accountDescUpdatedAt := accountMixinFields1[3].Descriptor()
 	// account.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	account.DefaultUpdatedAt = accountDescUpdatedAt.Default.(func() time.Time)
 	// account.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	account.UpdateDefaultUpdatedAt = accountDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// accountDescCode is the schema descriptor for code field.
-	accountDescCode := accountFields[2].Descriptor()
+	accountDescCode := accountFields[1].Descriptor()
 	// account.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	account.CodeValidator = accountDescCode.Validators[0].(func(string) error)
 	// accountDescName is the schema descriptor for name field.
-	accountDescName := accountFields[3].Descriptor()
+	accountDescName := accountFields[2].Descriptor()
 	// account.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	account.NameValidator = accountDescName.Validators[0].(func(string) error)
 	// accountDescIsActive is the schema descriptor for is_active field.
-	accountDescIsActive := accountFields[8].Descriptor()
+	accountDescIsActive := accountFields[7].Descriptor()
 	// account.DefaultIsActive holds the default value on creation for the is_active field.
 	account.DefaultIsActive = accountDescIsActive.Default.(bool)
 	// accountDescIsPostable is the schema descriptor for is_postable field.
-	accountDescIsPostable := accountFields[9].Descriptor()
+	accountDescIsPostable := accountFields[8].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
 	userFields := schema.User{}.Fields()

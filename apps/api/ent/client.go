@@ -340,6 +340,25 @@ func (c *AccountClient) GetX(ctx context.Context, id int64) *Account {
 	return obj
 }
 
+// QueryWorkspace queries the workspace edge of a Account.
+func (c *AccountClient) QueryWorkspace(_m *Account) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, account.WorkspaceTable, account.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.Account
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryCreator queries the creator edge of a Account.
 func (c *AccountClient) QueryCreator(_m *Account) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
@@ -390,25 +409,6 @@ func (c *AccountClient) QueryDeleter(_m *Account) *UserQuery {
 		)
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.Account
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryWorkspace queries the workspace edge of a Account.
-func (c *AccountClient) QueryWorkspace(_m *Account) *WorkspaceQuery {
-	query := (&WorkspaceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(account.Table, account.FieldID, id),
-			sqlgraph.To(workspace.Table, workspace.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, account.WorkspaceTable, account.WorkspaceColumn),
-		)
-		schemaConfig := _m.schemaConfig
-		step.To.Schema = schemaConfig.Workspace
 		step.Edge.Schema = schemaConfig.Account
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

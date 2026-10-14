@@ -56,6 +56,11 @@ func IDLTE(id int64) predicate.Account {
 	return predicate.Account(sql.FieldLTE(FieldID, id))
 }
 
+// WorkspaceID applies equality check predicate on the "workspace_id" field. It's identical to WorkspaceIDEQ.
+func WorkspaceID(v int64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldWorkspaceID, v))
+}
+
 // CreatedBy applies equality check predicate on the "created_by" field. It's identical to CreatedByEQ.
 func CreatedBy(v int64) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldCreatedBy, v))
@@ -86,11 +91,6 @@ func DeletedByID(v int64) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldDeletedByID, v))
 }
 
-// WorkspaceID applies equality check predicate on the "workspace_id" field. It's identical to WorkspaceIDEQ.
-func WorkspaceID(v int64) predicate.Account {
-	return predicate.Account(sql.FieldEQ(FieldWorkspaceID, v))
-}
-
 // Code applies equality check predicate on the "code" field. It's identical to CodeEQ.
 func Code(v string) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldCode, v))
@@ -119,6 +119,26 @@ func IsActive(v bool) predicate.Account {
 // IsPostable applies equality check predicate on the "is_postable" field. It's identical to IsPostableEQ.
 func IsPostable(v bool) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldIsPostable, v))
+}
+
+// WorkspaceIDEQ applies the EQ predicate on the "workspace_id" field.
+func WorkspaceIDEQ(v int64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldWorkspaceID, v))
+}
+
+// WorkspaceIDNEQ applies the NEQ predicate on the "workspace_id" field.
+func WorkspaceIDNEQ(v int64) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldWorkspaceID, v))
+}
+
+// WorkspaceIDIn applies the In predicate on the "workspace_id" field.
+func WorkspaceIDIn(vs ...int64) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldWorkspaceID, vs...))
+}
+
+// WorkspaceIDNotIn applies the NotIn predicate on the "workspace_id" field.
+func WorkspaceIDNotIn(vs ...int64) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldWorkspaceID, vs...))
 }
 
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
@@ -319,26 +339,6 @@ func DeletedByIDIsNil() predicate.Account {
 // DeletedByIDNotNil applies the NotNil predicate on the "deleted_by_id" field.
 func DeletedByIDNotNil() predicate.Account {
 	return predicate.Account(sql.FieldNotNull(FieldDeletedByID))
-}
-
-// WorkspaceIDEQ applies the EQ predicate on the "workspace_id" field.
-func WorkspaceIDEQ(v int64) predicate.Account {
-	return predicate.Account(sql.FieldEQ(FieldWorkspaceID, v))
-}
-
-// WorkspaceIDNEQ applies the NEQ predicate on the "workspace_id" field.
-func WorkspaceIDNEQ(v int64) predicate.Account {
-	return predicate.Account(sql.FieldNEQ(FieldWorkspaceID, v))
-}
-
-// WorkspaceIDIn applies the In predicate on the "workspace_id" field.
-func WorkspaceIDIn(vs ...int64) predicate.Account {
-	return predicate.Account(sql.FieldIn(FieldWorkspaceID, vs...))
-}
-
-// WorkspaceIDNotIn applies the NotIn predicate on the "workspace_id" field.
-func WorkspaceIDNotIn(vs ...int64) predicate.Account {
-	return predicate.Account(sql.FieldNotIn(FieldWorkspaceID, vs...))
 }
 
 // CodeEQ applies the EQ predicate on the "code" field.
@@ -636,6 +636,35 @@ func IsPostableNEQ(v bool) predicate.Account {
 	return predicate.Account(sql.FieldNEQ(FieldIsPostable, v))
 }
 
+// HasWorkspace applies the HasEdge predicate on the "workspace" edge.
+func HasWorkspace() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, WorkspaceTable, WorkspaceColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkspaceWith applies the HasEdge predicate on the "workspace" edge with a given conditions (other predicates).
+func HasWorkspaceWith(preds ...predicate.Workspace) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newWorkspaceStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.Account
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
@@ -714,35 +743,6 @@ func HasDeleterWith(preds ...predicate.User) predicate.Account {
 		step := newDeleterStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.Account
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasWorkspace applies the HasEdge predicate on the "workspace" edge.
-func HasWorkspace() predicate.Account {
-	return predicate.Account(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, WorkspaceTable, WorkspaceColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Workspace
-		step.Edge.Schema = schemaConfig.Account
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasWorkspaceWith applies the HasEdge predicate on the "workspace" edge with a given conditions (other predicates).
-func HasWorkspaceWith(preds ...predicate.Workspace) predicate.Account {
-	return predicate.Account(func(s *sql.Selector) {
-		step := newWorkspaceStep()
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Workspace
 		step.Edge.Schema = schemaConfig.Account
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

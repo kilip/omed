@@ -15,6 +15,8 @@ const (
 	Label = "account"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorkspaceID holds the string denoting the workspace_id field in the database.
+	FieldWorkspaceID = "workspace_id"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
 	// FieldUpdatedBy holds the string denoting the updated_by field in the database.
@@ -27,8 +29,6 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldDeletedByID holds the string denoting the deleted_by_id field in the database.
 	FieldDeletedByID = "deleted_by_id"
-	// FieldWorkspaceID holds the string denoting the workspace_id field in the database.
-	FieldWorkspaceID = "workspace_id"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
 	// FieldName holds the string denoting the name field in the database.
@@ -45,20 +45,27 @@ const (
 	FieldIsActive = "is_active"
 	// FieldIsPostable holds the string denoting the is_postable field in the database.
 	FieldIsPostable = "is_postable"
+	// EdgeWorkspace holds the string denoting the workspace edge name in mutations.
+	EdgeWorkspace = "workspace"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeUpdater holds the string denoting the updater edge name in mutations.
 	EdgeUpdater = "updater"
 	// EdgeDeleter holds the string denoting the deleter edge name in mutations.
 	EdgeDeleter = "deleter"
-	// EdgeWorkspace holds the string denoting the workspace edge name in mutations.
-	EdgeWorkspace = "workspace"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
 	EdgeChildren = "children"
 	// Table holds the table name of the account in the database.
 	Table = "accounts"
+	// WorkspaceTable is the table that holds the workspace relation/edge.
+	WorkspaceTable = "accounts"
+	// WorkspaceInverseTable is the table name for the Workspace entity.
+	// It exists in this package in order to avoid circular dependency with the "workspace" package.
+	WorkspaceInverseTable = "workspaces"
+	// WorkspaceColumn is the table column denoting the workspace relation/edge.
+	WorkspaceColumn = "workspace_id"
 	// CreatorTable is the table that holds the creator relation/edge.
 	CreatorTable = "accounts"
 	// CreatorInverseTable is the table name for the User entity.
@@ -80,13 +87,6 @@ const (
 	DeleterInverseTable = "users"
 	// DeleterColumn is the table column denoting the deleter relation/edge.
 	DeleterColumn = "deleted_by_id"
-	// WorkspaceTable is the table that holds the workspace relation/edge.
-	WorkspaceTable = "accounts"
-	// WorkspaceInverseTable is the table name for the Workspace entity.
-	// It exists in this package in order to avoid circular dependency with the "workspace" package.
-	WorkspaceInverseTable = "workspaces"
-	// WorkspaceColumn is the table column denoting the workspace relation/edge.
-	WorkspaceColumn = "workspace_id"
 	// ParentTable is the table that holds the parent relation/edge.
 	ParentTable = "accounts"
 	// ParentColumn is the table column denoting the parent relation/edge.
@@ -100,13 +100,13 @@ const (
 // Columns holds all SQL columns for account fields.
 var Columns = []string{
 	FieldID,
+	FieldWorkspaceID,
 	FieldCreatedBy,
 	FieldUpdatedBy,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
 	FieldDeletedByID,
-	FieldWorkspaceID,
 	FieldCode,
 	FieldName,
 	FieldType,
@@ -201,6 +201,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByWorkspaceID orders the results by the workspace_id field.
+func ByWorkspaceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorkspaceID, opts...).ToFunc()
+}
+
 // ByCreatedBy orders the results by the created_by field.
 func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
@@ -229,11 +234,6 @@ func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByDeletedByID orders the results by the deleted_by_id field.
 func ByDeletedByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeletedByID, opts...).ToFunc()
-}
-
-// ByWorkspaceID orders the results by the workspace_id field.
-func ByWorkspaceID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldWorkspaceID, opts...).ToFunc()
 }
 
 // ByCode orders the results by the code field.
@@ -276,6 +276,13 @@ func ByIsPostable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPostable, opts...).ToFunc()
 }
 
+// ByWorkspaceField orders the results by workspace field.
+func ByWorkspaceField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorkspaceStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByCreatorField orders the results by creator field.
 func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -294,13 +301,6 @@ func ByUpdaterField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByDeleterField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newDeleterStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByWorkspaceField orders the results by workspace field.
-func ByWorkspaceField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newWorkspaceStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -324,6 +324,13 @@ func ByChildren(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newChildrenStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+func newWorkspaceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorkspaceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, WorkspaceTable, WorkspaceColumn),
+	)
+}
 func newCreatorStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -343,13 +350,6 @@ func newDeleterStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DeleterInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, DeleterTable, DeleterColumn),
-	)
-}
-func newWorkspaceStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(WorkspaceInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, WorkspaceTable, WorkspaceColumn),
 	)
 }
 func newParentStep() *sqlgraph.Step {

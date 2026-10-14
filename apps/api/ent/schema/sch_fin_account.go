@@ -25,6 +25,7 @@ func (Account) Annotations() []schema.Annotation {
 // Mixin of the Account entity.
 func (Account) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		WorkspaceMixin{},
 		AuditMixin{},
 		SoftDeleteMixin{},
 	}
@@ -34,7 +35,6 @@ func (Account) Mixin() []ent.Mixin {
 func (Account) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id"),
-		field.Int64("workspace_id").Immutable(),
 		field.String("code").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.Enum("type").Values("ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"),
@@ -49,11 +49,6 @@ func (Account) Fields() []ent.Field {
 // Edges of the Account entity.
 func (Account) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("workspace", Workspace.Type).
-			Field("workspace_id").
-			Unique().
-			Required().
-			Immutable(),
 		edge.To("children", Account.Type).
 			From("parent").
 			Field("parent_id").

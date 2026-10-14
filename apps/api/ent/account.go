@@ -19,6 +19,8 @@ type Account struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
+	// WorkspaceID holds the value of the "workspace_id" field.
+	WorkspaceID int64 `json:"workspace_id,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy int64 `json:"created_by,omitempty"`
 	// UpdatedBy holds the value of the "updated_by" field.
@@ -31,8 +33,6 @@ type Account struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// DeletedByID holds the value of the "deleted_by_id" field.
 	DeletedByID *int64 `json:"deleted_by_id,omitempty"`
-	// WorkspaceID holds the value of the "workspace_id" field.
-	WorkspaceID int64 `json:"workspace_id,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
 	// Name holds the value of the "name" field.
@@ -57,14 +57,14 @@ type Account struct {
 
 // AccountEdges holds the relations/edges for other nodes in the graph.
 type AccountEdges struct {
+	// Workspace holds the value of the workspace edge.
+	Workspace *Workspace `json:"workspace,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
 	// Updater holds the value of the updater edge.
 	Updater *User `json:"updater,omitempty"`
 	// Deleter holds the value of the deleter edge.
 	Deleter *User `json:"deleter,omitempty"`
-	// Workspace holds the value of the workspace edge.
-	Workspace *Workspace `json:"workspace,omitempty"`
 	// Parent holds the value of the parent edge.
 	Parent *Account `json:"parent,omitempty"`
 	// Children holds the value of the children edge.
@@ -74,12 +74,23 @@ type AccountEdges struct {
 	loadedTypes [6]bool
 }
 
+// WorkspaceOrErr returns the Workspace value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) WorkspaceOrErr() (*Workspace, error) {
+	if e.Workspace != nil {
+		return e.Workspace, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: workspace.Label}
+	}
+	return nil, &NotLoadedError{edge: "workspace"}
+}
+
 // CreatorOrErr returns the Creator value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e AccountEdges) CreatorOrErr() (*User, error) {
 	if e.Creator != nil {
 		return e.Creator, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "creator"}
@@ -90,7 +101,7 @@ func (e AccountEdges) CreatorOrErr() (*User, error) {
 func (e AccountEdges) UpdaterOrErr() (*User, error) {
 	if e.Updater != nil {
 		return e.Updater, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "updater"}
@@ -101,21 +112,10 @@ func (e AccountEdges) UpdaterOrErr() (*User, error) {
 func (e AccountEdges) DeleterOrErr() (*User, error) {
 	if e.Deleter != nil {
 		return e.Deleter, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "deleter"}
-}
-
-// WorkspaceOrErr returns the Workspace value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AccountEdges) WorkspaceOrErr() (*Workspace, error) {
-	if e.Workspace != nil {
-		return e.Workspace, nil
-	} else if e.loadedTypes[3] {
-		return nil, &NotFoundError{label: workspace.Label}
-	}
-	return nil, &NotLoadedError{edge: "workspace"}
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -145,7 +145,7 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case account.FieldIsActive, account.FieldIsPostable:
 			values[i] = new(sql.NullBool)
-		case account.FieldID, account.FieldCreatedBy, account.FieldUpdatedBy, account.FieldDeletedByID, account.FieldWorkspaceID, account.FieldParentID:
+		case account.FieldID, account.FieldWorkspaceID, account.FieldCreatedBy, account.FieldUpdatedBy, account.FieldDeletedByID, account.FieldParentID:
 			values[i] = new(sql.NullInt64)
 		case account.FieldCode, account.FieldName, account.FieldType, account.FieldNormalBalance, account.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -172,6 +172,12 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int64(value.Int64)
+		case account.FieldWorkspaceID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field workspace_id", values[i])
+			} else if value.Valid {
+				_m.WorkspaceID = value.Int64
+			}
 		case account.FieldCreatedBy:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field created_by", values[i])
@@ -209,12 +215,6 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DeletedByID = new(int64)
 				*_m.DeletedByID = value.Int64
-			}
-		case account.FieldWorkspaceID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field workspace_id", values[i])
-			} else if value.Valid {
-				_m.WorkspaceID = value.Int64
 			}
 		case account.FieldCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -278,6 +278,11 @@ func (_m *Account) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryWorkspace queries the "workspace" edge of the Account entity.
+func (_m *Account) QueryWorkspace() *WorkspaceQuery {
+	return NewAccountClient(_m.config).QueryWorkspace(_m)
+}
+
 // QueryCreator queries the "creator" edge of the Account entity.
 func (_m *Account) QueryCreator() *UserQuery {
 	return NewAccountClient(_m.config).QueryCreator(_m)
@@ -291,11 +296,6 @@ func (_m *Account) QueryUpdater() *UserQuery {
 // QueryDeleter queries the "deleter" edge of the Account entity.
 func (_m *Account) QueryDeleter() *UserQuery {
 	return NewAccountClient(_m.config).QueryDeleter(_m)
-}
-
-// QueryWorkspace queries the "workspace" edge of the Account entity.
-func (_m *Account) QueryWorkspace() *WorkspaceQuery {
-	return NewAccountClient(_m.config).QueryWorkspace(_m)
 }
 
 // QueryParent queries the "parent" edge of the Account entity.
@@ -331,6 +331,9 @@ func (_m *Account) String() string {
 	var builder strings.Builder
 	builder.WriteString("Account(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("workspace_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.WorkspaceID))
+	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CreatedBy))
 	builder.WriteString(", ")
@@ -352,9 +355,6 @@ func (_m *Account) String() string {
 		builder.WriteString("deleted_by_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("workspace_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.WorkspaceID))
 	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(_m.Code)

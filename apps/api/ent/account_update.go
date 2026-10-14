@@ -397,14 +397,14 @@ func (_u *AccountUpdate) check() error {
 			return &ValidationError{Name: "normal_balance", err: fmt.Errorf(`ent: validator failed for field "Account.normal_balance": %w`, err)}
 		}
 	}
+	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
+	}
 	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Account.creator"`)
 	}
 	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Account.updater"`)
-	}
-	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
 	}
 	return nil
 }
@@ -1028,14 +1028,14 @@ func (_u *AccountUpdateOne) check() error {
 			return &ValidationError{Name: "normal_balance", err: fmt.Errorf(`ent: validator failed for field "Account.normal_balance": %w`, err)}
 		}
 	}
+	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
+	}
 	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Account.creator"`)
 	}
 	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Account.updater"`)
-	}
-	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
 	}
 	return nil
 }
