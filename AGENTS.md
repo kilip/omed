@@ -141,7 +141,7 @@ e2e/
 └── support/             # World, hooks, config, server runner, auth helper
 ```
 
-- Module names match the dashboard modules (`sys`, `user`, `fin`, `web`). `web` holds the shell itself: login and the homepage.
+- Group names match the dashboard modules (`sys`, `user`, `fin`, `web` for the CMS). `dashboard` is the one extra group: it covers the shell itself (login, homepage, invitations), which lives in `apps/web/app/routes` and is not a module.
 - Use the Page Object Model: locators and `expect*` checks live in `pages/{module}/*.page.ts`; steps only call page objects through `this.pages.{module}`. Do not put selectors in steps.
 - Put a step in `steps/common.steps.ts` only when more than one module uses it.
 - Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the Better Auth `testUtils` plugin (`support/auth.ts`), and removes the user afterwards. The plugin lives in a test-only auth instance, never in `packages/better-auth`.
