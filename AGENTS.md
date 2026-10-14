@@ -116,3 +116,13 @@ apps/web/app/modules/{module_name}/
 - API types come from `@omed/openapi` and are consumed through `openapi-fetch`. Do not hand-write types for API responses.
 - Style with the design tokens and the Ant Design theme described in `BRANDING.md`. Do not hardcode hex values in components.
 - Unit tests sit next to the file under test, the same convention as Go.
+
+## 5. End-to-end testing (`e2e`)
+
+End-to-end tests live under `e2e/` (Cucumber + Playwright).
+
+- Run tests with `bun run e2e`.
+- The runner starts `auth`, `web`, and `api` automatically if they are not already running (disable with `E2E_AUTO_START=false`).
+- Add `HEADED=true` to watch the browser.
+- Run `bunx playwright install chromium` once beforehand.
+
