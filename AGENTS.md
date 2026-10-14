@@ -27,43 +27,42 @@ cd apps/api && go test ./...   # Go unit + integration tests
 
 ## 2. Commit convention
 
-Commits follow [Conventional Commits](https://www.conventionalcommits.org), validated by commitlint, with one addition: **every commit subject ends with an emoji shortcode**.
+Commits follow [Conventional Commits](https://www.conventionalcommits.org), validated by commitlint, with one addition: **every commit subject prefixed with an emoji**: `type(scope): <emoji> subject`.
 
 ```
-<type>(<scope>): <subject> <emoji>
+<type>(<scope>): <emoji> <subject>
 ```
 
 Examples:
 
 ```
-feat(api): add auth :rocket:
-fix(web): handle empty workspace list :bug:
-chore(deps): bump biome :wrench:
+feat(api): ✨ add auth
+fix(web): 🐛 handle empty workspace list
+chore(deps): 🔧 bump biome
 ```
 
 Rules:
 
+- The emoji goes right after the colon, so the `type(scope):` prefix stays parseable by tooling.
 - The scope is optional. Allowed scopes (see `commitlint.config.ts`): `auth`, `web`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs`.
-- The subject is lowercase, imperative, and has no trailing period. The emoji shortcode comes last, separated by a space.
-- Use shortcodes (`:rocket:`), not the Unicode character.
-- `deps` is a scope, not a type: use `chore(deps): ...`.
-- Keep the header within 100 characters, emoji included.
-
-Emoji by type:
-
-| Type | Emoji |
-| --- | --- |
-| `feat` | `:rocket:` |
-| `fix` | `:bug:` |
-| `docs` | `:memo:` |
-| `refactor` | `:recycle:` |
-| `perf` | `:zap:` |
-| `test` | `:white_check_mark:` |
-| `style` | `:art:` |
-| `build` | `:package:` |
-| `ci` | `:construction_worker:` |
-| `revert` | `:rewind:` |
-| `chore` | `:wrench:` |
+- Subject: imperative mood, lowercase (after the emoji), no trailing period, max ~72 chars including the emoji.
+- Body (when needed): explain *why*, not *what*; wrap at ~72 chars.
+- Breaking changes: add `!` after type/scope and a `BREAKING CHANGE:` footer. Breaking changes keep the same emoji for their type.
+- `deps` is a scope, not a type: use `chore(deps): ...` or `build(deps): ...`.
+- One logical change per commit. Don't mix refactors with behavior changes.
+- Use exactly this mapping. Don't pick a different emoji and don't deliberate about it:
+    | Type       | Emoji | Example                                        |
+    | ---------- | ----- | ---------------------------------------------- |
+    | `feat`     | ✨    | `feat(auth): ✨ add refresh token rotation`     |
+    | `fix`      | 🐛    | `fix(api): 🐛 handle empty response body`       |
+    | `refactor` | ♻️    | `refactor(db): ♻️ extract query builder`        |
+    | `perf`     | ⚡    | `perf(search): ⚡ cache parsed index`           |
+    | `test`     | ✅    | `test(cart): ✅ cover discount edge cases`      |
+    | `docs`     | 📝    | `docs(readme): 📝 document local setup`         |
+    | `build`    | 📦    | `build(deps): 📦 bump typescript to 5.6`        |
+    | `ci`       | 👷    | `ci(actions): 👷 cache node_modules`            |
+    | `chore`    | 🔧    | `chore(repo): 🔧 update gitignore`              |
+    | `revert`   | ⏪    | `revert(auth): ⏪ revert refresh token rotation` |
 
 ## 3. Go (`apps/api`)
 
