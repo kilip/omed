@@ -155,6 +155,29 @@ func (a AuthController) GetSession(c fiber.Ctx) error {
 	return c.JSON(toSessionResponse(sess, usr))
 }
 
+// GetToken retrieves the token of the current active session.
+//
+//	@Summary		Get current token
+//	@Description	Retrieve token string for the current active session
+//	@Tags			Authentication
+//	@Produce		json
+//	@Success		200	{object}	map[string]string
+//	@Failure		401	{object}	httpx.ErrorResponse
+//	@Router			/auth/token [get]
+func (a AuthController) GetToken(c fiber.Ctx) error {
+	token := a.extractToken(c)
+	if token == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "missing session token")
+	}
+
+	sess, _, err := a.sessions.ValidateSession(c.Context(), token)
+	if err != nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "invalid session token")
+	}
+
+	return c.JSON(fiber.Map{"token": sess.Token})
+}
+
 // SignOut terminates the current session and clears cookies.
 //
 //	@Summary		Sign out
@@ -188,6 +211,9 @@ func (a AuthController) extractToken(c fiber.Ctx) string {
 		return strings.TrimPrefix(authHeader, "Bearer ")
 	}
 	if cookie := c.Cookies(a.cookieName); cookie != "" {
+		return cookie
+	}
+	if cookie := c.Cookies("better-auth.session_token"); cookie != "" {
 		return cookie
 	}
 	if a.cookieName != "token" {

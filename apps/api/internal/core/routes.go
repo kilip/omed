@@ -15,6 +15,7 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	auth.Get("/callback/:id", ctlA.Callback)
 	auth.Post("/callback/:id", ctlA.Callback)
 	auth.Get("/get-session", ctlA.GetSession)
+	auth.Get("/token", ctlA.GetToken)
 	auth.Post("/sign-out", ctlA.SignOut)
 
 	// Users management endpoints.

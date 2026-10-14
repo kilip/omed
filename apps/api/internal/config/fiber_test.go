@@ -101,6 +101,7 @@ func (s *FiberSuite) Test_GetFiber_CORS_AllowedOrigin() {
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 	s.Equal("http://trusted.com", resp.Header.Get("Access-Control-Allow-Origin"))
+	s.Equal("true", resp.Header.Get("Access-Control-Allow-Credentials"))
 }
 
 func (s *FiberSuite) Test_GetFiber_CORS_DisallowedOrigin() {

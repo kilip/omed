@@ -13,6 +13,7 @@ import (
 	"github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/fin"
 	"github.com/kilip/omed/api/internal/platform/authz"
+	"github.com/kilip/omed/api/internal/testctl"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -89,6 +90,11 @@ func (a *Omed) Boot() error {
 		if bootErr := m.Boot(); bootErr != nil {
 			return errors.Join(bootErr, err)
 		}
+	}
+
+	if a.state.Config.IsTestRoutesEnabled() && a.state.EntCli != nil {
+		ctl := testctl.NewController(a.state.EntCli, a.state.Config.SessionCookieName)
+		ctl.RegisterRoutes(a.state.FiberApp)
 	}
 
 	return err

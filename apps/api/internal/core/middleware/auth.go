@@ -31,6 +31,8 @@ func NewAuthMiddleware(cfg AuthConfig) fiber.Handler {
 			strings.HasPrefix(c.Path(), "/internal") ||
 			strings.HasPrefix(c.Path(), "/auth/") ||
 			c.Path() == "/auth" ||
+			strings.HasPrefix(c.Path(), "/test/") ||
+			c.Path() == "/test" ||
 			(c.Method() == fiber.MethodGet && strings.HasPrefix(c.Path(), "/invitations/") && !strings.HasSuffix(c.Path(), "/accept")) {
 			return c.Next()
 		}
@@ -65,6 +67,9 @@ func extractToken(c fiber.Ctx, cookieName string) string {
 		return strings.TrimPrefix(authHeader, "Bearer ")
 	}
 	if cookie := c.Cookies(cookieName); cookie != "" {
+		return cookie
+	}
+	if cookie := c.Cookies("better-auth.session_token"); cookie != "" {
 		return cookie
 	}
 	if cookieName != "token" {

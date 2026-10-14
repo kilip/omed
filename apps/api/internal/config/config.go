@@ -32,6 +32,13 @@ type Config struct {
 	GithubClientSecret string `env:"OMED_GITHUB_SECRET"`
 	// ApiUrl is the base URL for the API service.
 	ApiUrl string `env:"OMED_API_URL,default=http://localhost:8002"`
+	// Env is the runtime environment (development, test, production). Defaults to production.
+	Env string `env:"OMED_ENV,default=production"`
+}
+
+// IsTestRoutesEnabled returns true when the environment is development or test.
+func (c Config) IsTestRoutesEnabled() bool {
+	return c.Env == "development" || c.Env == "test"
 }
 
 // GetConfig reads environment variables and returns a populated Config instance.
@@ -41,6 +48,10 @@ func GetConfig() Config {
 
 	if err := envconfig.Process(context.Background(), &config); err != nil {
 		log.Fatalf("Error while parsing config: %s", err)
+	}
+
+	if config.Env == "" {
+		config.Env = "production"
 	}
 
 	if config.AuthPath == "" {

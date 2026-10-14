@@ -114,6 +114,7 @@ func (s *AuthControllerSuite) SetupTest() {
 	auth.Get("/callback/:id", ctl.Callback)
 	auth.Post("/callback/:id", ctl.Callback)
 	auth.Get("/get-session", ctl.GetSession)
+	auth.Get("/token", ctl.GetToken)
 	auth.Post("/sign-out", ctl.SignOut)
 }
 
@@ -215,6 +216,30 @@ func (s *AuthControllerSuite) Test_GetSession_WithBearer() {
 
 func (s *AuthControllerSuite) Test_GetSession_MissingToken() {
 	req := httptest.NewRequest(fiber.MethodGet, "/auth/get-session", nil)
+
+	resp, err := s.app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusUnauthorized, resp.StatusCode)
+}
+
+func (s *AuthControllerSuite) Test_GetToken_WithCookie() {
+	req := httptest.NewRequest(fiber.MethodGet, "/auth/token", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  "token",
+		Value: "mock-session-token",
+	})
+
+	resp, err := s.app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+
+	var res map[string]string
+	_ = json.NewDecoder(resp.Body).Decode(&res)
+	s.Equal("mock-session-token", res["token"])
+}
+
+func (s *AuthControllerSuite) Test_GetToken_MissingToken() {
+	req := httptest.NewRequest(fiber.MethodGet, "/auth/token", nil)
 
 	resp, err := s.app.Test(req)
 	s.Require().NoError(err)
