@@ -78,7 +78,7 @@ func (s *OAuthServiceSuite) SetupSuite() {
 		Users:          s.userRepo,
 		Sessions:       s.sessionSvc,
 		AuthSecret:     "test-secret-key-at-least-32-bytes-long",
-		ApiURL:         "http://localhost:8002",
+		ApiURL:         "http://localhost:8001",
 		TrustedOrigins: []string{"http://localhost:3001", "https://app.example.com"},
 		GoogleID:       "mock-google-id",
 		GoogleSecret:   "mock-google-secret",

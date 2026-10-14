@@ -100,7 +100,7 @@ func (a *Omed) Boot() error {
 	return err
 }
 
-// Run boots the application and starts the HTTP server listening on port 8002.
+// Run boots the application and starts the HTTP server listening on port 8001.
 // It listens for context cancellation to perform graceful shutdown.
 func (a *Omed) Run(ctx context.Context) error {
 	a.Boot()
@@ -109,7 +109,7 @@ func (a *Omed) Run(ctx context.Context) error {
 
 	// HTTP server
 	g.Go(func() error {
-		return a.state.FiberApp.Listen(":8002")
+		return a.state.FiberApp.Listen(":8001")
 	})
 
 	// Shutdown: nunggu signal / error dari goroutine lain

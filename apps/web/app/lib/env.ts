@@ -1,7 +1,7 @@
 const read = (value: unknown, fallback: string): string =>
   typeof value === "string" && value.length > 0 ? value : fallback;
 
-const apiUrl = read(import.meta.env.VITE_API_URL, "http://localhost:8002");
+const apiUrl = read(import.meta.env.VITE_API_URL, "http://localhost:8001");
 
 export const env = {
   apiUrl,

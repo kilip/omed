@@ -77,7 +77,7 @@ func NewOAuthService(p OAuthServiceParams) OAuthService {
 
 	apiURL := strings.TrimRight(p.ApiURL, "/")
 	if apiURL == "" {
-		apiURL = "http://localhost:8002"
+		apiURL = "http://localhost:8001"
 	}
 
 	providers := make(map[string]OAuthProviderConfig)

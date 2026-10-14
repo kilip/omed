@@ -3238,7 +3238,7 @@ const docTemplate = `{
     "servers": [
         {
             "description": "Local Development Server",
-            "url": "http://localhost:8002"
+            "url": "http://localhost:8001"
         }
     ]
 }`

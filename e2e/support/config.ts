@@ -48,7 +48,7 @@ const flag = (name: string, fallback: boolean): boolean => {
  * Defaults mirror the `.env.example` files and `.devcontainer/compose.yaml`.
  * Every value can be overridden through the same `OMED_*` variables the apps use.
  */
-const apiUrl = env("OMED_API_URL", "http://localhost:8002");
+const apiUrl = env("OMED_API_URL", "http://localhost:8001");
 
 export const config = {
   apiUrl,
@@ -65,7 +65,7 @@ export const config = {
   ),
   trustedOrigins: env(
     "OMED_TRUSTED_ORIGINS",
-    "http://localhost:3001,http://localhost:8002",
+    "http://localhost:3001,http://localhost:8001",
   ),
   autoStart: flag("E2E_AUTO_START", true),
   headed: flag("HEADED", false),

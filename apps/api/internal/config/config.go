@@ -29,7 +29,7 @@ type Config struct {
 	// GithubClientSecret is the OAuth2 client secret for GitHub authentication.
 	GithubClientSecret string `env:"OMED_GITHUB_SECRET"`
 	// ApiUrl is the base URL for the API service.
-	ApiUrl string `env:"OMED_API_URL,default=http://localhost:8002"`
+	ApiUrl string `env:"OMED_API_URL,default=http://localhost:8001"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
 }

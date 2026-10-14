@@ -11,7 +11,7 @@ package main
 // @license.name  MIT
 // @license.url   https://github.com/kilip/omed/blob/main/LICENSE
 
-// @servers.url          http://localhost:8002
+// @servers.url          http://localhost:8001
 // @servers.description  Local Development Server
 
 // @securityDefinitions.apikey BearerAuth
