@@ -94,7 +94,7 @@ Once running: dashboard at <http://localhost:3001>, auth at <http://localhost:80
 
 ### Environment
 
-In the devcontainer all values below are set through `.devcontainer/compose.yaml`. Outside the devcontainer, create a `.env` (git-ignored; `apps/api` also reads `.env` via godotenv).
+In the devcontainer all values below are set through `.devcontainer/compose.yaml`. Outside the devcontainer, each app reads its own git-ignored `.env`: copy `apps/api/.env.example`, `apps/auth/.env.example`, and `apps/web/.env.example` to `.env` in the same directory (`cp apps/<app>/.env.example apps/<app>/.env`).
 
 | Variable | Used by | Notes |
 | --- | --- | --- |
