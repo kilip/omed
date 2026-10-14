@@ -22,13 +22,6 @@
     },
     "oa:gen": {
       "cache": false
-    },
-    "@omed/better-auth#auth:schema": {
-      "cache": false
-    },
-    "@omed/better-auth#db:push": {
-      "cache": false,
-      "dependsOn": ["@omed/better-auth#auth:schema"]
     }
   }
 }
