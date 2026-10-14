@@ -1,4 +1,5 @@
 import { CopyOutlined, PlusOutlined, StopOutlined } from "@ant-design/icons";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   App,
   Button,
@@ -17,23 +18,20 @@ import { useTranslation } from "react-i18next";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { RecordModal } from "~/components/RecordModal";
-import { api, unwrapList, unwrapOne, unwrapVoid } from "~/lib/api";
+import { api, unwrapOne, unwrapVoid } from "~/lib/api";
 import { env } from "~/lib/env";
 import { formatDateTime } from "~/lib/format";
+import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { type Invitation, invitationStatus } from "../lib";
+import { invitationsQueryOptions } from "../queries";
 import type { Route } from "./+types/invitations";
 
 export async function clientLoader() {
   const wid = await requireWorkspaceId();
-  const invitations = await unwrapList(
-    api.POST("/workspaces/{wid}/invitations/search", {
-      params: { path: { wid } },
-      body: { limit: 100 },
-    }),
-  );
-  return { wid, invitations };
+  await getQueryClient().ensureQueryData(invitationsQueryOptions(wid));
+  return { wid };
 }
 
 type FormValues = {
@@ -50,7 +48,8 @@ const statusColor = {
 } as const;
 
 export default function Invitations({ loaderData }: Route.ComponentProps) {
-  const { wid, invitations } = loaderData;
+  const { wid } = loaderData;
+  const { data: invitations } = useSuspenseQuery(invitationsQueryOptions(wid));
   const { t, i18n } = useTranslation();
   const { message } = App.useApp();
   const { run, pending } = useAction();

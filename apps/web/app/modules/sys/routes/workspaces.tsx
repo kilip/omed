@@ -1,4 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Button,
   Form,
@@ -15,25 +16,26 @@ import { useSearchParams } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { RecordModal } from "~/components/RecordModal";
-import { api, unwrapList, unwrapOne, unwrapVoid } from "~/lib/api";
+import { api, unwrapOne, unwrapVoid } from "~/lib/api";
 import { formatDate } from "~/lib/format";
+import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId, type Workspace } from "~/lib/workspace";
+import { workspacesQueryOptions } from "../queries";
 import type { Route } from "./+types/workspaces";
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   await requireWorkspaceId();
   const name = new URL(request.url).searchParams.get("q") ?? undefined;
-  const workspaces = await unwrapList(
-    api.POST("/workspaces/search", { body: { name, limit: 100 } }),
-  );
-  return { workspaces };
+  await getQueryClient().ensureQueryData(workspacesQueryOptions(name));
+  return { name };
 }
 
 type FormValues = { name: string; description?: string };
 
 export default function Workspaces({ loaderData }: Route.ComponentProps) {
-  const { workspaces } = loaderData;
+  const { name } = loaderData;
+  const { data: workspaces } = useSuspenseQuery(workspacesQueryOptions(name));
   const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
   const { run, pending } = useAction();

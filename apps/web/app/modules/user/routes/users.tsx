@@ -1,5 +1,6 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import type { components } from "@omed/openapi";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Avatar,
   Button,
@@ -16,25 +17,26 @@ import { useSearchParams } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { RecordModal } from "~/components/RecordModal";
-import { api, unwrapList, unwrapOne, unwrapVoid } from "~/lib/api";
+import { api, unwrapOne, unwrapVoid } from "~/lib/api";
 import { formatDate } from "~/lib/format";
+import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
+import { usersQueryOptions } from "../queries";
 import type { Route } from "./+types/users";
 
 type User = components["schemas"]["model.UserResponse"];
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const name = new URL(request.url).searchParams.get("q") ?? undefined;
-  const users = await unwrapList(
-    api.POST("/users/search", { body: { name, limit: 100 } }),
-  );
-  return { users };
+  await getQueryClient().ensureQueryData(usersQueryOptions(name));
+  return { name };
 }
 
 type FormValues = { name: string; email?: string; avatar?: string };
 
 export default function Users({ loaderData }: Route.ComponentProps) {
-  const { users } = loaderData;
+  const { name } = loaderData;
+  const { data: users } = useSuspenseQuery(usersQueryOptions(name));
   const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
   const { run, pending } = useAction();

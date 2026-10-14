@@ -1,4 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Avatar,
   Button,
@@ -16,28 +17,26 @@ import { useTranslation } from "react-i18next";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { RecordModal } from "~/components/RecordModal";
-import { api, unwrapList, unwrapOne, unwrapVoid } from "~/lib/api";
+import { api, unwrapOne, unwrapVoid } from "~/lib/api";
 import { formatDate } from "~/lib/format";
+import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
 import type { Member } from "../lib";
+import { membersQueryOptions } from "../queries";
 import type { Route } from "./+types/members";
 
 export async function clientLoader() {
   const wid = await requireWorkspaceId();
-  const members = await unwrapList(
-    api.POST("/workspaces/{wid}/members/search", {
-      params: { path: { wid } },
-      body: { limit: 100 },
-    }),
-  );
-  return { wid, members };
+  await getQueryClient().ensureQueryData(membersQueryOptions(wid));
+  return { wid };
 }
 
 type FormValues = { email?: string; roles: string[] };
 
 export default function Members({ loaderData }: Route.ComponentProps) {
-  const { wid, members } = loaderData;
+  const { wid } = loaderData;
+  const { data: members } = useSuspenseQuery(membersQueryOptions(wid));
   const { t, i18n } = useTranslation();
   const { run, pending } = useAction();
   const [editing, setEditing] = useState<Member | "new" | null>(null);

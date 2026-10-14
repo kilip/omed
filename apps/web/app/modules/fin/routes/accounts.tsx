@@ -1,5 +1,6 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import type { components } from "@omed/openapi";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Button,
   Form,
@@ -18,9 +19,11 @@ import { useTranslation } from "react-i18next";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { RecordModal } from "~/components/RecordModal";
-import { api, unwrapList, unwrapOne, unwrapVoid } from "~/lib/api";
+import { api, unwrapOne, unwrapVoid } from "~/lib/api";
+import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
+import { accountsQueryOptions } from "../queries";
 import type { Route } from "./+types/accounts";
 
 type Account = components["schemas"]["model.AccountResponse"];
@@ -41,13 +44,8 @@ const defaultNormal = (type: AccountType): NormalBalance =>
 
 export async function clientLoader() {
   const wid = await requireWorkspaceId();
-  const accounts = await unwrapList(
-    api.POST("/workspaces/{wid}/fin/accounts/search", {
-      params: { path: { wid } },
-      body: {},
-    }),
-  );
-  return { wid, accounts };
+  await getQueryClient().ensureQueryData(accountsQueryOptions(wid));
+  return { wid };
 }
 
 function buildTree(accounts: Account[]): Row[] {
@@ -87,7 +85,8 @@ type FormValues = {
 };
 
 export default function Accounts({ loaderData }: Route.ComponentProps) {
-  const { wid, accounts } = loaderData;
+  const { wid } = loaderData;
+  const { data: accounts } = useSuspenseQuery(accountsQueryOptions(wid));
   const { t } = useTranslation();
   const { run, pending } = useAction();
   const [editing, setEditing] = useState<Account | "new" | null>(null);
