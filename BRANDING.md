@@ -1,6 +1,6 @@
 # Omed brand guidelines
 
-Style: **modern, glassmorphism, compact, warm**. Component base: Ant Design. Primary color: **terracotta**.
+Style: **modern, glassmorphism, compact, cool**. Component base: Ant Design. Primary color: **ocean blue**.
 
 Related files:
 
@@ -9,10 +9,10 @@ Related files:
 
 ## 1. Principles
 
-1. **Warm, not cold.** Neutrals always lean brown/cream, never blue-gray.
+1. **Cool, not stark.** Neutrals always lean blue-slate, never pure gray or warm brown.
 2. **Glass in moderation.** Blur is for surfaces (cards, modals, sider, header), not for everything.
-3. **Dense but breathable.** Compact: small controls, 4/8/12/16 spacing, with a clear hierarchy.
-4. **One accent per screen.** Terracotta is only for the main action and active states.
+3. **Compact but breathable.** Small controls, 4/8/12/16 spacing, a clear hierarchy. Dense never means cramped.
+4. **One accent per screen.** Ocean blue is only for the main action and active states.
 5. **Legible first, pretty second.** Small text must pass AA contrast (4.5:1).
 
 ## 2. Color
@@ -21,26 +21,26 @@ Related files:
 
 | Token | Light | Dark | Used for |
 | --- | --- | --- | --- |
-| `--omed-brand` | `#C2603A` | `#E08A66` | Logo, illustrations, large accents. Not small text |
-| `--omed-primary` | `#B85630` | `#E08A66` | Primary buttons, links, focus, active menu item |
-| `--omed-primary-hover` | `#A94D29` | `#EBA283` | Hover |
-| `--omed-primary-active` | `#94421F` | `#C9714D` | Pressed |
-| `--omed-on-primary` | `#FFFFFF` | `#2A140B` | Text on primary buttons |
-| `--omed-tint` | `rgba(194,96,58,.10)` | `rgba(224,138,102,.16)` | Selected item background, soft badges |
-| `--omed-tint-text` | `#7A3519` | `#F4C4AE` | Text on tint |
+| `--omed-brand` | `#2478DB` | `#6AA8F5` | Logo, illustrations, large accents. Not small text |
+| `--omed-primary` | `#0B63CE` | `#6AA8F5` | Primary buttons, links, focus, active menu item |
+| `--omed-primary-hover` | `#0A56B3` | `#8BBCF8` | Hover |
+| `--omed-primary-active` | `#084A98` | `#4F93E6` | Pressed |
+| `--omed-on-primary` | `#FFFFFF` | `#101620` | Text on primary buttons |
+| `--omed-tint` | `rgba(11,99,206,.10)` | `rgba(106,168,245,.16)` | Selected item background, soft badges |
+| `--omed-tint-text` | `#0A428F` | `#BBD8FB` | Text on tint |
 
-> `#C2603A` (the original pick) has 4.18:1 contrast against white, below AA for small text. So actions use `#B85630` (4.76:1), while `#C2603A` stays as the identity color.
+> `#2478DB` (brand) has 4.39:1 contrast against white, below AA for small text. So actions use `#0B63CE` (5.7:1), while `#2478DB` stays as the identity color. In dark mode brand and primary are the same color.
 
-### Warm neutrals
+### Cool neutrals
 
 | Token | Light | Dark |
 | --- | --- | --- |
-| `--omed-bg` | `#FAF6F0` | `#1C1713` |
-| `--omed-text` | `#2B211B` | `#F3EAE2` |
+| `--omed-bg` | `#F1F5FB` | `#101620` |
+| `--omed-text` | `#14233A` | `#E4EDF9` |
 | `--omed-text-secondary` | 68% text | 68% text |
 | `--omed-text-muted` | 45% text | 42% text |
-| `--omed-border` | `rgba(43,33,27,.12)` | `rgba(243,234,226,.14)` |
-| `--omed-border-soft` | `rgba(43,33,27,.07)` | `rgba(243,234,226,.08)` |
+| `--omed-border` | `rgba(20,35,58,.12)` | `rgba(228,237,249,.14)` |
+| `--omed-border-soft` | `rgba(20,35,58,.07)` | `rgba(228,237,249,.08)` |
 
 ### Semantic
 
@@ -49,9 +49,9 @@ Related files:
 | Success | `#4F7F52` | `#7FB382` |
 | Warning | `#B7791F` | `#E0B04F` |
 | Danger | `#B83A4B` | `#E0707F` |
-| Info | `#4A6FA5` | `#82A6D6` |
+| Info | `#0F766E` | `#4FD1C5` |
 
-Danger leans rose on purpose so it doesn't get confused with terracotta.
+Danger leans rose on purpose so it doesn't get confused with the primary blue. Info is teal (not blue) for the same reason: a blue info message would read like an action.
 
 ## 3. Glass
 
@@ -61,11 +61,11 @@ Danger leans rose on purpose so it doesn't get confused with terracotta.
 | Fill strong (overlays, header, sider) | `rgba(255,255,255,.72)` | `rgba(255,255,255,.10)` |
 | Edge (1px border) | `rgba(255,255,255,.65)` | `rgba(255,255,255,.12)` |
 | Blur | 16px + saturate 140% | same |
-| Shadow | `0 4px 24px rgba(120,60,30,.08)` | `0 4px 28px rgba(0,0,0,.35)` |
+| Shadow | `0 4px 24px rgba(20,60,120,.08)` | `0 4px 28px rgba(0,0,0,.35)` |
 
 Rules:
 
-- Glass needs a colorful backdrop. The page background already has terracotta/amber blobs (`--omed-page-bg`); don't replace it with a flat color.
+- Glass needs a colorful backdrop. The page background already has blue/teal blobs (`--omed-page-bg`); don't replace it with a flat color.
 - At most **2 stacked glass layers**. Glass inside glass isn't blurred again (handled in the CSS).
 - Long text, tables, and heavy forms go on dense surfaces (fill strong), not thin glass.
 - Falls back to solid colors automatically when the browser doesn't support blur or the user enables `prefers-reduced-transparency`.
@@ -73,38 +73,41 @@ Rules:
 ## 4. Typography
 
 - Font: **Inter** (already loaded in `root.tsx`), system sans fallback.
-- Base 15px. Two weights only: 400 and 500.
+- Base 14px. Two weights only: 400 and 500.
 
 | Role | Size |
 | --- | --- |
-| Heading 1 | 28 |
-| Heading 2 | 22 |
-| Heading 3 | 18 |
-| Heading 4 | 16 |
-| Body, labels, tables | 15 |
-| Caption, metadata | 13 |
+| Heading 1 | 24 |
+| Heading 2 | 20 |
+| Heading 3 | 16 |
+| Heading 4 | 14 (weight 500) |
+| Body, labels | 14 |
+| Tables, dense lists | 13 |
+| Caption, metadata | 12 |
 
 Sentence case for all labels, buttons, and titles. No ALL CAPS.
 
 ## 5. Density and shape
 
-- Ant Design uses `compactAlgorithm` + 15px font. Use `size="small"` on tables and forms when the data is dense.
-- Spacing scale: **4, 8, 12, 16, 24**. Card padding 16, gap between cards 12.
+- Ant Design uses `compactAlgorithm` + 14px font. Use `size="small"` on tables and forms by default, not only when the data is dense.
+- Spacing scale: **4, 8, 12, 16, 24**. Card padding 12 (16 for modals and drawers), gap between cards 12.
 - Radius: small 6 (tags, checkboxes), default 10 (buttons, inputs, small cards), large 14 (cards, modals, drawers).
-- Header height 52px.
+- Header height 44px. Sider width 148px.
+- Table cells: 5px vertical padding, 12px horizontal.
 
 ## 6. Component guidance
 
 | Component | Rule |
 | --- | --- |
-| Button | One `type="primary"` per screen. The rest are default or text. No shadow |
+| Button | One `type="primary"` per screen. The rest are default or text. No shadow. `size="small"` |
 | Menu / sider | Active item: `tint` background + primary text, no active bar |
-| Table | Transparent header, `tint` on hover, `border-soft` borders |
+| Table | Transparent header, `tint` on hover, `border-soft` borders, no border on the last row |
 | Card | Glass comes from the CSS. Don't set a background color manually |
+| KPI card | Label (12) above value (20, weight 500). An optional sparkline in `primary` at 55% opacity |
 | Modal / Drawer | Fill strong so forms stay readable |
-| Tag / badge | `tint` + `tint-text`, not solid colors |
+| Tag / badge | `tint` + `tint-text`, not solid colors. Neutral states use `border-soft` fill + secondary text |
 | Form | Labels on top, `size="small"`, errors use danger |
-| Empty state | Short invitation + one action button, warm tone |
+| Empty state | Short invitation + one action button, friendly tone |
 
 ## 7. Voice and copy
 
@@ -117,10 +120,11 @@ Sentence case for all labels, buttons, and titles. No ALL CAPS.
 | Do | Don't |
 | --- | --- |
 | Use tokens (`var(--omed-*)` or the antd theme) | Hardcode hex values in components |
-| Terracotta for the main action and active states | Terracotta as decoration everywhere |
+| Ocean blue for the main action and active states | Ocean blue as decoration everywhere |
 | Glass on surfaces, solid for dense content | Three or more stacked glass layers |
 | Check contrast in both light and dark | Small `brand`-colored text on light backgrounds |
-| Warm neutrals | Cold grays mixed into the theme |
+| Blue-slate neutrals | Warm browns or pure grays mixed into the theme |
+| Teal for info, rose for danger | Blue for info or danger, which reads as an action |
 
 ## 9. Usage
 
