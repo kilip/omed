@@ -96,6 +96,8 @@ Controllers carry the Swaggo annotations. After changing annotations or response
 
 ## 4. TypeScript (React Router)
 
+The React Router agent skill is located at [`apps/web/.agents/skills/react-router`](./apps/web/.agents/skills/react-router). Refer to it for React Router conventions and best practices.
+
 ### Module structure (`apps/web`)
 
 Each dashboard module is self-contained under `app/modules/{module_name}/`:
