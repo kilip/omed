@@ -19,7 +19,9 @@ export type ModuleMeta = {
   menu: ModuleMenuItem[];
 };
 
-export const defineModule = (meta: ModuleMeta): ModuleMeta => meta;
+export function defineModule(meta: ModuleMeta): ModuleMeta {
+  return meta;
+}
 
 const found = import.meta.glob<{ default: ModuleMeta }>(
   "../modules/*/module.ts",
