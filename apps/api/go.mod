@@ -6,6 +6,7 @@ require (
 	entgo.io/ent v0.14.6
 	github.com/MicahParks/jwkset v0.11.3
 	github.com/MicahParks/keyfunc/v3 v3.8.2
+	github.com/casbin/casbin/v3 v3.11.0
 	github.com/go-playground/validator/v10 v10.30.5
 	github.com/gofiber/contrib/v3/jwt v1.2.5
 	github.com/gofiber/fiber/v3 v3.5.0
@@ -29,7 +30,6 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
-	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
