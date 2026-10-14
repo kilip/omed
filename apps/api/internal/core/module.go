@@ -50,7 +50,7 @@ func New(cfg Config) *CoreModule {
 		MemberService:    memberSvc,
 	}
 
-	InitMutator(cfg.EntCli)
+	InitEntCli(cfg.EntCli)
 	return mod
 }
 

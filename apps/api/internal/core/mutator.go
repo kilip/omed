@@ -33,8 +33,8 @@ func hasAuditField(m ent.Mutation, snake, camel string) bool {
 	return false
 }
 
-// InitMutator registers the audit mutator hook on the given Ent client.
-func InitMutator(cli *ent.Client) {
+// InitEntCli registers the audit mutator hook on the given Ent client.
+func InitEntCli(cli *ent.Client) {
 	cli.Use(func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
 			c, isCreator := m.(creatorMutator)

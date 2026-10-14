@@ -33,6 +33,6 @@ func CreateTestDB(dsn ...string) *ent.Client {
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed to create schema resources: %v", err)
 	}
-	core.InitMutator(client)
+	core.InitEntCli(client)
 	return client
 }
