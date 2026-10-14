@@ -30,6 +30,7 @@ const logDir = path.join(repoRoot, "e2e", "reports", "logs");
 const children: { service: Service; process: ChildProcess }[] = [];
 
 const sharedEnv = (): NodeJS.ProcessEnv => ({
+  OMED_ENV: "test",
   OMED_DB_URL: config.dbUrl,
   OMED_AUTH_URL: config.authUrl,
   OMED_AUTH_PATH: config.authPath,
@@ -43,17 +44,6 @@ const port = (url: string): number => Number(new URL(url).port);
 
 const services = (): Service[] => [
   {
-    name: "auth",
-    cwd: path.join(repoRoot, "apps/auth"),
-    command: "bun",
-    args: ["run", "src/main.ts"],
-    env: { ...sharedEnv(), AUTH_PORT: String(port(config.authUrl)) },
-    url: config.authUrl,
-    readyUrl: `${config.authUrl}/health`,
-  },
-  {
-    // The API refuses to boot until the JWKS endpoint of `auth` answers,
-    // so it always starts after `auth` is ready.
     name: "api",
     cwd: path.join(repoRoot, "apps/api"),
     command: "go",
@@ -160,13 +150,13 @@ async function start(service: Service): Promise<void> {
   await waitUntilReady(service, child);
 }
 
-/** Starts `auth`, `api` and `web` unless they already answer on their port. */
+/** Starts `api` and `web` unless they already answer on their port. */
 export async function startServers(): Promise<void> {
   if (!config.autoStart) return;
 
-  const [auth, api, web] = services() as [Service, Service, Service];
-  await start(auth);
-  await Promise.all([start(api), start(web)]);
+  for (const service of services()) {
+    await start(service);
+  }
 }
 
 /** Stops only the processes this runner started. */

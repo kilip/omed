@@ -4,10 +4,10 @@ import {
   setWorldConstructor,
   World,
 } from "@cucumber/cucumber";
-import type { User } from "better-auth";
 import type { BrowserContext, Page } from "playwright";
 import { createPages, type Pages } from "../pages";
 import { config } from "./config";
+import type { TestUser } from "./test-client";
 
 setDefaultTimeout(30_000);
 
@@ -16,7 +16,7 @@ export class OmedWorld extends World {
   page!: Page;
   pages!: Pages;
   /** Set by the `@authenticated` hook. */
-  user?: User;
+  user?: TestUser;
 
   constructor(options: IWorldOptions) {
     super(options);

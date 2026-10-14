@@ -1,8 +1,8 @@
 import { After, AfterAll, Before, BeforeAll, Status } from "@cucumber/cucumber";
 import { type Browser, chromium } from "playwright";
-import { getTestHelpers } from "./auth";
 import { config } from "./config";
 import { startServers, stopServers } from "./servers";
+import { testClient } from "./test-client";
 import type { OmedWorld } from "./world";
 
 let browser: Browser;
@@ -28,16 +28,9 @@ Before(async function (this: OmedWorld) {
   this.init(context, await context.newPage());
 });
 
-/** Signs in through Better Auth `testUtils`: real user, real session, signed cookie. */
+/** Signs in through testClient: real user, real session, cookies for dashboard. */
 Before({ tags: "@authenticated" }, async function (this: OmedWorld) {
-  const test = await getTestHelpers();
-  const user = await test.saveUser(
-    test.createUser({
-      name: "E2E Tester",
-      email: `e2e+${crypto.randomUUID()}@omed.test`,
-    }),
-  );
-  const { cookies } = await test.login({ userId: user.id });
+  const { user, cookies } = await testClient.setupAuthenticatedUser();
   await this.context.addCookies(cookies);
   this.user = user;
 });
@@ -49,7 +42,6 @@ After(async function (this: OmedWorld, scenario) {
   }
   await this.context.close();
   if (this.user) {
-    const test = await getTestHelpers();
-    await test.deleteUser(this.user.id);
+    await testClient.deleteUser(this.user.id);
   }
 });

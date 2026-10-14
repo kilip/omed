@@ -29,9 +29,9 @@ function loadEnvFile(filePath: string) {
   }
 }
 
-// Load envs from apps/auth and apps/api for e2e
-loadEnvFile(path.join(repoRoot, "apps/auth/.env"));
+// Load envs: apps/api/.env is source of truth for db & api
 loadEnvFile(path.join(repoRoot, "apps/api/.env"));
+loadEnvFile(path.join(repoRoot, "apps/auth/.env"));
 loadEnvFile(path.join(repoRoot, "e2e/.env"));
 
 const env = (name: string, fallback: string): string => {
@@ -49,9 +49,14 @@ const flag = (name: string, fallback: boolean): boolean => {
  * Defaults mirror the `.env.example` files and `.devcontainer/compose.yaml`.
  * Every value can be overridden through the same `OMED_*` variables the apps use.
  */
+const apiUrl = env("OMED_API_URL", "http://localhost:8002");
+
 export const config = {
-  authUrl: env("OMED_AUTH_URL", "http://localhost:8001"),
-  apiUrl: env("OMED_API_URL", "http://localhost:8002"),
+  apiUrl,
+  authUrl:
+    env("OMED_AUTH_URL", apiUrl) === "http://localhost:8001"
+      ? apiUrl
+      : env("OMED_AUTH_URL", apiUrl),
   webUrl: env("OMED_WEB_URL", "http://localhost:3001"),
   authPath: env("OMED_AUTH_PATH", "/auth"),
   authSecret: env(
