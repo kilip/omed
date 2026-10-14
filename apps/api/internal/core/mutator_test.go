@@ -34,7 +34,7 @@ func (s *MutatorSuite) TearDownSuite() {
 }
 
 func (s *MutatorSuite) SetupTest() {
-	ctx := context.Background()
+	ctx := base.WithSkipAuditMutator(context.Background())
 	_, _ = s.client.Account.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
@@ -265,3 +265,37 @@ func (s *MutatorSuite) Test_WorkspaceInterceptor_QueryFilteringAndBypass() {
 	s.Len(allAccounts, 2)
 }
 
+func (s *MutatorSuite) Test_SkipAuditMutator() {
+	// WithSkipAuditMutator allows mutation without UserContext
+	ctx := base.WithSkipAuditMutator(context.Background())
+	ws, err := s.client.Workspace.Create().
+		SetName("Skipped Audit WS").
+		SetOwnerID(s.user.ID).
+		SetCreatedBy(s.user.ID).
+		SetUpdatedBy(s.user.ID).
+		Save(ctx)
+	s.Require().NoError(err)
+	s.Equal(s.user.ID, ws.CreatedBy)
+	s.Equal(s.user.ID, ws.UpdatedBy)
+
+	// Updating with WithSkipAuditMutator does not auto-inject or modify updated_by
+	updated, err := s.client.Workspace.UpdateOneID(ws.ID).
+		SetName("Updated Skipped Audit WS").
+		Save(ctx)
+	s.Require().NoError(err)
+	s.Equal(s.user.ID, updated.UpdatedBy)
+
+	// Deleting with WithSkipAuditMutator does not panic without UserContext
+	err = s.client.Workspace.DeleteOneID(ws.ID).Exec(ctx)
+	s.Require().NoError(err)
+}
+
+func (s *MutatorSuite) Test_AuditMutator_PanicsWithoutUserAndWithoutSkip() {
+	ctx := context.Background()
+	s.Panics(func() {
+		_, _ = s.client.Workspace.Create().
+			SetName("Panic WS").
+			SetOwnerID(s.user.ID).
+			Save(ctx)
+	})
+}

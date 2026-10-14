@@ -34,7 +34,7 @@ func (s *WorkspaceRepoSuite) TearDownSuite() {
 }
 
 func (s *WorkspaceRepoSuite) SetupTest() {
-	ctx := context.Background()
+	ctx := base.WithSkipAuditMutator(context.Background())
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
 	_, _ = s.client.User.Delete().Exec(ctx)
 
@@ -160,7 +160,7 @@ func (s *WorkspaceRepoSuite) Test_Update_NotFound() {
 }
 
 func (s *WorkspaceRepoSuite) Test_Delete_Success() {
-	ctx := context.Background()
+	ctx := s.ctx
 	user := s.createTestUser("Eve", "eve@example.com")
 	w := s.createTestWorkspace("To Delete", "Desc", user.ID)
 
@@ -172,7 +172,7 @@ func (s *WorkspaceRepoSuite) Test_Delete_Success() {
 }
 
 func (s *WorkspaceRepoSuite) Test_Delete_NotFound() {
-	ctx := context.Background()
+	ctx := s.ctx
 	err := s.repo.Delete(ctx, 99999)
 	s.ErrorIs(err, base.ErrNotFound)
 }

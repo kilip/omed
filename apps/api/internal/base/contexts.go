@@ -93,3 +93,26 @@ func SkipWorkspaceFilterFromContext(ctx context.Context) bool {
 	return false
 }
 
+// SKIP_AUDIT_MUTATOR_KEY is the context key used to bypass audit mutator field injection.
+const SKIP_AUDIT_MUTATOR_KEY = "skip_audit_mutator"
+
+// WithSkipAuditMutator returns a child context indicating that audit mutator should be bypassed.
+func WithSkipAuditMutator(ctx context.Context) context.Context {
+	return context.WithValue(ctx, SKIP_AUDIT_MUTATOR_KEY, true)
+}
+
+// SkipAuditMutatorFromContext reports whether the audit mutator should be bypassed.
+func SkipAuditMutatorFromContext(ctx context.Context) bool {
+	if ctx == nil {
+		return false
+	}
+	if fctx, ok := ctx.(contextLocalGetter); ok {
+		if skip, ok := fctx.Locals(SKIP_AUDIT_MUTATOR_KEY).(bool); ok {
+			return skip
+		}
+	}
+	if skip, ok := ctx.Value(SKIP_AUDIT_MUTATOR_KEY).(bool); ok {
+		return skip
+	}
+	return false
+}

@@ -34,7 +34,7 @@ func (s *AccountRepoSuite) TearDownSuite() {
 }
 
 func (s *AccountRepoSuite) SetupTest() {
-	ctx := context.Background()
+	ctx := base.WithSkipAuditMutator(context.Background())
 	_, _ = s.client.Account.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
@@ -206,4 +206,3 @@ func (s *AccountRepoSuite) Test_HasActiveChildren() {
 func TestAccountRepoSuite(t *testing.T) {
 	suite.Run(t, new(AccountRepoSuite))
 }
-

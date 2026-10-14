@@ -35,7 +35,7 @@ func (s *AccountServiceSuite) TearDownSuite() {
 }
 
 func (s *AccountServiceSuite) SetupTest() {
-	ctx := context.Background()
+	ctx := base.WithSkipAuditMutator(context.Background())
 	_, _ = s.client.Account.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
@@ -207,4 +207,3 @@ func (s *AccountServiceSuite) Test_Delete_BlockedWithChildren() {
 func TestAccountServiceSuite(t *testing.T) {
 	suite.Run(t, new(AccountServiceSuite))
 }
-

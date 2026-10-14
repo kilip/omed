@@ -42,7 +42,7 @@ func hasAuditField(m ent.Mutation, snake, camel string) bool {
 
 // InitEntCli registers the audit mutator, workspace mutator, and query interceptors on the given Ent client.
 func InitEntCli(cli *ent.Client) {
-	initAuditMutator(cli)
+	setupAuditMutator(cli)
 	setupWorkspaceMutator(cli)
 	setupWorkspaceInterceptor(cli)
 }
@@ -109,10 +109,12 @@ func setupWorkspaceInterceptor(cli *ent.Client) {
 	cli.Intercept(workspaceInterceptor{})
 }
 
-
-func initAuditMutator(cli *ent.Client) {
+func setupAuditMutator(cli *ent.Client) {
 	cli.Use(func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if base.SkipAuditMutatorFromContext(ctx) {
+				return next.Mutate(ctx, m)
+			}
 			c, isCreator := m.(creatorMutator)
 			u, isUpdater := m.(updaterMutator)
 			d, isDeleter := m.(deleterMutator)
@@ -121,9 +123,6 @@ func initAuditMutator(cli *ent.Client) {
 				return next.Mutate(ctx, m)
 			}
 			if !m.Op().Is(ent.OpCreate | ent.OpUpdate | ent.OpUpdateOne | ent.OpDelete | ent.OpDeleteOne) {
-				return next.Mutate(ctx, m)
-			}
-			if ctx.Value(base.USER_CONTEXT_KEY) == nil {
 				return next.Mutate(ctx, m)
 			}
 
