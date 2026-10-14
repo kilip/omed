@@ -68,6 +68,7 @@ const services = (): Service[] => [
       ...sharedEnv(),
       VITE_API_URL: config.apiUrl,
       VITE_PUBLIC_URL: config.webUrl,
+      VITE_COVERAGE: "true",
     },
     url: config.webUrl,
     readyUrl: `${config.webUrl}/login`,

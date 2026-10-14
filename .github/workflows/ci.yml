@@ -96,6 +96,7 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
           flags: e2e
 
       - name: Upload E2E report

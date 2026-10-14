@@ -14,7 +14,13 @@
   "devDependencies": {
     "@omed/tsconfig": "workspace:*",
     "@types/bun": "^1.4.2",
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/istanbul-lib-report": "^3.0.3",
+    "@types/istanbul-reports": "^3.0.4",
     "@types/node": "^26.6.4",
+    "istanbul-lib-coverage": "^3.2.2",
+    "istanbul-lib-report": "^3.0.1",
+    "istanbul-reports": "^3.2.0",
     "typescript": "6.x"
   }
 }
