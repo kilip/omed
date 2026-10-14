@@ -721,27 +721,6 @@ paths:
       summary: Sign out
       tags:
       - Authentication
-  /auth/token:
-    get:
-      description: Retrieve token string for the current active session
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/httpx.ErrorResponse'
-          description: Unauthorized
-      summary: Get current token
-      tags:
-      - Authentication
   /invitations/{token}:
     get:
       description: Returns workspace details, inviter name, and token validity for
