@@ -61,16 +61,17 @@ func (s *AccountServiceSuite) SetupTest() {
 }
 
 func (s *AccountServiceSuite) ctx() context.Context {
-	return context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+	ctx := context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
 		ID:   s.userID,
 		Name: "Bob",
 	})
+	return base.WithWorkspaceID(ctx, s.workspaceID)
 }
 
 func (s *AccountServiceSuite) Test_Create_InvalidType() {
 	ctx := s.ctx()
 
-	_, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	_, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code: "1000",
 		Name: "Invalid",
 		Type: "NON_EXISTENT",
@@ -82,7 +83,7 @@ func (s *AccountServiceSuite) Test_Create_DefaultNormalBalance() {
 	ctx := s.ctx()
 
 	// Asset defaults to DEBIT
-	asset, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	asset, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code: "1000",
 		Name: "Asset",
 		Type: domain.AccountTypeAsset,
@@ -91,7 +92,7 @@ func (s *AccountServiceSuite) Test_Create_DefaultNormalBalance() {
 	s.Equal(domain.NormalBalanceDebit, asset.NormalBalance)
 
 	// Revenue defaults to CREDIT
-	rev, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	rev, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code: "4000",
 		Name: "Sales",
 		Type: domain.AccountTypeRevenue,
@@ -104,7 +105,7 @@ func (s *AccountServiceSuite) Test_Create_ParentNotFound() {
 	ctx := s.ctx()
 
 	invalidParentID := int64(999999)
-	_, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	_, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code:     "1100",
 		Name:     "Child",
 		Type:     domain.AccountTypeAsset,
@@ -116,14 +117,14 @@ func (s *AccountServiceSuite) Test_Create_ParentNotFound() {
 func (s *AccountServiceSuite) Test_Create_DuplicateCode() {
 	ctx := s.ctx()
 
-	_, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	_, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code: "1000",
 		Name: "Cash",
 		Type: domain.AccountTypeAsset,
 	})
 	s.Require().NoError(err)
 
-	_, err = s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	_, err = s.svc.Create(ctx, model.CreateAccountRequest{
 		Code: "1000",
 		Name: "Cash Duplicate",
 		Type: domain.AccountTypeAsset,
@@ -134,14 +135,14 @@ func (s *AccountServiceSuite) Test_Create_DuplicateCode() {
 func (s *AccountServiceSuite) Test_Update_CyclePrevention() {
 	ctx := s.ctx()
 
-	root, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	root, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code: "1000",
 		Name: "Assets",
 		Type: domain.AccountTypeAsset,
 	})
 	s.Require().NoError(err)
 
-	child, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	child, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code:     "1100",
 		Name:     "Current Assets",
 		Type:     domain.AccountTypeAsset,
@@ -149,7 +150,7 @@ func (s *AccountServiceSuite) Test_Update_CyclePrevention() {
 	})
 	s.Require().NoError(err)
 
-	grandchild, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	grandchild, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code:     "1110",
 		Name:     "Cash and Bank",
 		Type:     domain.AccountTypeAsset,
@@ -158,14 +159,14 @@ func (s *AccountServiceSuite) Test_Update_CyclePrevention() {
 	s.Require().NoError(err)
 
 	// Attempting to set root's parent to itself fails
-	_, err = s.svc.Update(ctx, s.workspaceID, root.ID, model.UpdateAccountRequest{
+	_, err = s.svc.Update(ctx, root.ID, model.UpdateAccountRequest{
 		Name:     "Assets",
 		ParentID: root.ID,
 	})
 	s.Equal(domain.ErrAccountCyclicParent, err)
 
 	// Attempting to set root's parent to grandchild fails (creates cycle)
-	_, err = s.svc.Update(ctx, s.workspaceID, root.ID, model.UpdateAccountRequest{
+	_, err = s.svc.Update(ctx, root.ID, model.UpdateAccountRequest{
 		Name:     "Assets",
 		ParentID: grandchild.ID,
 	})
@@ -175,14 +176,14 @@ func (s *AccountServiceSuite) Test_Update_CyclePrevention() {
 func (s *AccountServiceSuite) Test_Delete_BlockedWithChildren() {
 	ctx := s.ctx()
 
-	root, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	root, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code: "1000",
 		Name: "Assets",
 		Type: domain.AccountTypeAsset,
 	})
 	s.Require().NoError(err)
 
-	child, err := s.svc.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	child, err := s.svc.Create(ctx, model.CreateAccountRequest{
 		Code:     "1100",
 		Name:     "Current Assets",
 		Type:     domain.AccountTypeAsset,
@@ -191,18 +192,19 @@ func (s *AccountServiceSuite) Test_Delete_BlockedWithChildren() {
 	s.Require().NoError(err)
 
 	// Attempting to delete root should fail because child exists
-	err = s.svc.Delete(ctx, s.workspaceID, root.ID)
+	err = s.svc.Delete(ctx, root.ID)
 	s.Equal(domain.ErrAccountHasChildren, err)
 
 	// Deleting child first succeeds
-	err = s.svc.Delete(ctx, s.workspaceID, child.ID)
+	err = s.svc.Delete(ctx, child.ID)
 	s.Require().NoError(err)
 
 	// Now deleting root succeeds
-	err = s.svc.Delete(ctx, s.workspaceID, root.ID)
+	err = s.svc.Delete(ctx, root.ID)
 	s.Require().NoError(err)
 }
 
 func TestAccountServiceSuite(t *testing.T) {
 	suite.Run(t, new(AccountServiceSuite))
 }
+

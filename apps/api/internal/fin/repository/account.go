@@ -24,13 +24,12 @@ func NewAccountRepository(cli *ent.Client) AccountRepository {
 }
 
 // GetByID retrieves an active account by its ID within a workspace.
-func (r AccountRepository) GetByID(c context.Context, workspaceID, id int64) (domain.Account, error) {
+func (r AccountRepository) GetByID(c context.Context, id int64) (domain.Account, error) {
 	var dom domain.Account
 
 	a, err := r.cli.Account.Query().
 		Where(
 			account.ID(id),
-			account.WorkspaceID(workspaceID),
 			account.DeletedAtIsNil(),
 		).
 		WithCreator().
@@ -49,10 +48,9 @@ func (r AccountRepository) GetByID(c context.Context, workspaceID, id int64) (do
 
 // Search returns all active accounts in the workspace without filtering,
 // allowing the client to filter, construct hierarchy trees, and paginate client-side.
-func (r AccountRepository) Search(c context.Context, workspaceID int64, _ model.SearchAccountRequest) ([]domain.Account, string, error) {
+func (r AccountRepository) Search(c context.Context, _ model.SearchAccountRequest) ([]domain.Account, string, error) {
 	items, err := r.cli.Account.Query().
 		Where(
-			account.WorkspaceID(workspaceID),
 			account.DeletedAtIsNil(),
 		).
 		Order(ent.Asc(account.FieldCode), ent.Asc(account.FieldID)).
@@ -73,13 +71,12 @@ func (r AccountRepository) Search(c context.Context, workspaceID int64, _ model.
 }
 
 // Create inserts a new account within a database transaction.
-func (r AccountRepository) Create(c context.Context, workspaceID int64, req model.CreateAccountRequest, normalBalance string) (domain.Account, error) {
+func (r AccountRepository) Create(c context.Context, req model.CreateAccountRequest, normalBalance string) (domain.Account, error) {
 	var dom domain.Account
 
 	var createdID int64
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		builder := tx.Account.Create().
-			SetWorkspaceID(workspaceID).
 			SetCode(req.Code).
 			SetName(req.Name).
 			SetType(account.Type(req.Type)).
@@ -109,11 +106,11 @@ func (r AccountRepository) Create(c context.Context, workspaceID int64, req mode
 		return dom, err
 	}
 
-	return r.GetByID(c, workspaceID, createdID)
+	return r.GetByID(c, createdID)
 }
 
 // Update modifies an existing account within a database transaction.
-func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req model.UpdateAccountRequest) (domain.Account, error) {
+func (r AccountRepository) Update(c context.Context, id int64, req model.UpdateAccountRequest) (domain.Account, error) {
 	var dom domain.Account
 
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
@@ -121,7 +118,6 @@ func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req 
 		exists, err := tx.Account.Query().
 			Where(
 				account.ID(id),
-				account.WorkspaceID(workspaceID),
 				account.DeletedAtIsNil(),
 			).
 			Exist(c)
@@ -166,16 +162,15 @@ func (r AccountRepository) Update(c context.Context, workspaceID, id int64, req 
 		return dom, err
 	}
 
-	return r.GetByID(c, workspaceID, id)
+	return r.GetByID(c, id)
 }
 
 // Delete marks an existing account as soft-deleted.
-func (r AccountRepository) Delete(c context.Context, workspaceID, id int64) error {
+func (r AccountRepository) Delete(c context.Context, id int64) error {
 	return entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		exists, err := tx.Account.Query().
 			Where(
 				account.ID(id),
-				account.WorkspaceID(workspaceID),
 				account.DeletedAtIsNil(),
 			).
 			Exist(c)
@@ -194,10 +189,9 @@ func (r AccountRepository) Delete(c context.Context, workspaceID, id int64) erro
 }
 
 // HasActiveChildren reports whether any active child accounts reference this account as parent.
-func (r AccountRepository) HasActiveChildren(c context.Context, workspaceID, id int64) (bool, error) {
+func (r AccountRepository) HasActiveChildren(c context.Context, id int64) (bool, error) {
 	return r.cli.Account.Query().
 		Where(
-			account.WorkspaceID(workspaceID),
 			account.ParentIDEQ(id),
 			account.DeletedAtIsNil(),
 		).
@@ -205,11 +199,10 @@ func (r AccountRepository) HasActiveChildren(c context.Context, workspaceID, id 
 }
 
 // FindByCode finds an active account by workspace and code.
-func (r AccountRepository) FindByCode(c context.Context, workspaceID int64, code string) (domain.Account, error) {
+func (r AccountRepository) FindByCode(c context.Context, code string) (domain.Account, error) {
 	var dom domain.Account
 	a, err := r.cli.Account.Query().
 		Where(
-			account.WorkspaceID(workspaceID),
 			account.CodeEQ(code),
 			account.DeletedAtIsNil(),
 		).
@@ -225,6 +218,7 @@ func (r AccountRepository) FindByCode(c context.Context, workspaceID int64, code
 	}
 	return toAccountDomain(a), nil
 }
+
 
 func toAccountDomain(a *ent.Account) domain.Account {
 	dom := domain.Account{

@@ -12,11 +12,11 @@ import (
 
 // AccountServiceContract defines the operations required by AccountController.
 type AccountServiceContract interface {
-	GetByID(c context.Context, workspaceID, id int64) (domain.Account, error)
-	Search(c context.Context, workspaceID int64, req model.SearchAccountRequest) ([]domain.Account, string, error)
-	Create(c context.Context, workspaceID int64, req model.CreateAccountRequest) (domain.Account, error)
-	Update(c context.Context, workspaceID, id int64, req model.UpdateAccountRequest) (domain.Account, error)
-	Delete(c context.Context, workspaceID, id int64) error
+	GetByID(c context.Context, id int64) (domain.Account, error)
+	Search(c context.Context, req model.SearchAccountRequest) ([]domain.Account, string, error)
+	Create(c context.Context, req model.CreateAccountRequest) (domain.Account, error)
+	Update(c context.Context, id int64, req model.UpdateAccountRequest) (domain.Account, error)
+	Delete(c context.Context, id int64) error
 }
 
 // AccountController handles HTTP requests for Chart of Accounts.
@@ -46,15 +46,11 @@ func NewAccountController(accounts AccountServiceContract) AccountController {
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/fin/accounts/search [post]
 func (ctl AccountController) Search(c fiber.Ctx) error {
-	wid, err := httpx.GetParamID[int64](c, "wid")
-	if err != nil {
-		return err
-	}
 	var req model.SearchAccountRequest
 	if err := c.Bind().Body(&req); err != nil {
 		return err
 	}
-	items, cursor, err := ctl.accounts.Search(c, wid, req)
+	items, cursor, err := ctl.accounts.Search(c, req)
 	if err != nil {
 		return err
 	}
@@ -84,15 +80,11 @@ func (ctl AccountController) Search(c fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/fin/accounts [post]
 func (ctl AccountController) Create(c fiber.Ctx) error {
-	wid, err := httpx.GetParamID[int64](c, "wid")
-	if err != nil {
-		return err
-	}
 	var req model.CreateAccountRequest
 	if err := c.Bind().Body(&req); err != nil {
 		return err
 	}
-	acc, err := ctl.accounts.Create(c, wid, req)
+	acc, err := ctl.accounts.Create(c, req)
 	if err != nil {
 		return err
 	}
@@ -115,15 +107,11 @@ func (ctl AccountController) Create(c fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/fin/accounts/{id} [get]
 func (ctl AccountController) GetByID(c fiber.Ctx) error {
-	wid, err := httpx.GetParamID[int64](c, "wid")
-	if err != nil {
-		return err
-	}
 	id, err := httpx.GetParamID[int64](c, "id")
 	if err != nil {
 		return err
 	}
-	acc, err := ctl.accounts.GetByID(c, wid, id)
+	acc, err := ctl.accounts.GetByID(c, id)
 	if err != nil {
 		return err
 	}
@@ -150,10 +138,6 @@ func (ctl AccountController) GetByID(c fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/fin/accounts/{id} [put]
 func (ctl AccountController) Update(c fiber.Ctx) error {
-	wid, err := httpx.GetParamID[int64](c, "wid")
-	if err != nil {
-		return err
-	}
 	id, err := httpx.GetParamID[int64](c, "id")
 	if err != nil {
 		return err
@@ -162,7 +146,7 @@ func (ctl AccountController) Update(c fiber.Ctx) error {
 	if err := c.Bind().Body(&req); err != nil {
 		return err
 	}
-	acc, err := ctl.accounts.Update(c, wid, id, req)
+	acc, err := ctl.accounts.Update(c, id, req)
 	if err != nil {
 		return err
 	}
@@ -186,19 +170,16 @@ func (ctl AccountController) Update(c fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/fin/accounts/{id} [delete]
 func (ctl AccountController) Delete(c fiber.Ctx) error {
-	wid, err := httpx.GetParamID[int64](c, "wid")
-	if err != nil {
-		return err
-	}
 	id, err := httpx.GetParamID[int64](c, "id")
 	if err != nil {
 		return err
 	}
-	if err := ctl.accounts.Delete(c, wid, id); err != nil {
+	if err := ctl.accounts.Delete(c, id); err != nil {
 		return err
 	}
 	return httpx.OK(c, httpx.NoContent{})
 }
+
 
 func toAccountResponse(a domain.Account) model.AccountResponse {
 	return model.AccountResponse{

@@ -12,13 +12,13 @@ import (
 
 // AccountRepository defines the persistence operations required by AccountService.
 type AccountRepository interface {
-	GetByID(c context.Context, workspaceID, id int64) (domain.Account, error)
-	Search(c context.Context, workspaceID int64, req model.SearchAccountRequest) ([]domain.Account, string, error)
-	Create(c context.Context, workspaceID int64, req model.CreateAccountRequest, normalBalance string) (domain.Account, error)
-	Update(c context.Context, workspaceID, id int64, req model.UpdateAccountRequest) (domain.Account, error)
-	Delete(c context.Context, workspaceID, id int64) error
-	HasActiveChildren(c context.Context, workspaceID, id int64) (bool, error)
-	FindByCode(c context.Context, workspaceID int64, code string) (domain.Account, error)
+	GetByID(c context.Context, id int64) (domain.Account, error)
+	Search(c context.Context, req model.SearchAccountRequest) ([]domain.Account, string, error)
+	Create(c context.Context, req model.CreateAccountRequest, normalBalance string) (domain.Account, error)
+	Update(c context.Context, id int64, req model.UpdateAccountRequest) (domain.Account, error)
+	Delete(c context.Context, id int64) error
+	HasActiveChildren(c context.Context, id int64) (bool, error)
+	FindByCode(c context.Context, code string) (domain.Account, error)
 }
 
 // AccountService manages business logic and validation for Chart of Accounts.
@@ -32,17 +32,17 @@ func NewAccountService(repo AccountRepository) AccountService {
 }
 
 // GetByID retrieves an active account by its ID within a workspace.
-func (s AccountService) GetByID(c context.Context, workspaceID, id int64) (domain.Account, error) {
-	return s.repo.GetByID(c, workspaceID, id)
+func (s AccountService) GetByID(c context.Context, id int64) (domain.Account, error) {
+	return s.repo.GetByID(c, id)
 }
 
 // Search searches accounts within a workspace based on filter criteria.
-func (s AccountService) Search(c context.Context, workspaceID int64, req model.SearchAccountRequest) ([]domain.Account, string, error) {
-	return s.repo.Search(c, workspaceID, req)
+func (s AccountService) Search(c context.Context, req model.SearchAccountRequest) ([]domain.Account, string, error) {
+	return s.repo.Search(c, req)
 }
 
 // Create validates and creates a new account in the workspace.
-func (s AccountService) Create(c context.Context, workspaceID int64, req model.CreateAccountRequest) (domain.Account, error) {
+func (s AccountService) Create(c context.Context, req model.CreateAccountRequest) (domain.Account, error) {
 	if !domain.ValidAccountTypes[req.Type] {
 		return domain.Account{}, domain.ErrAccountInvalidType
 	}
@@ -58,7 +58,7 @@ func (s AccountService) Create(c context.Context, workspaceID int64, req model.C
 
 	// Check if parent account exists and belongs to the workspace
 	if req.ParentID > 0 {
-		_, err := s.repo.GetByID(c, workspaceID, req.ParentID)
+		_, err := s.repo.GetByID(c, req.ParentID)
 		if err != nil {
 			if errors.Is(err, base.ErrNotFound) {
 				return domain.Account{}, domain.ErrAccountParentNotFound
@@ -68,26 +68,26 @@ func (s AccountService) Create(c context.Context, workspaceID int64, req model.C
 	}
 
 	// Verify code is not already in use in this workspace
-	existing, err := s.repo.FindByCode(c, workspaceID, req.Code)
+	existing, err := s.repo.FindByCode(c, req.Code)
 	if err == nil && existing.ID != 0 {
 		return domain.Account{}, domain.ErrAccountCodeTaken
 	} else if err != nil && !errors.Is(err, base.ErrNotFound) {
 		return domain.Account{}, err
 	}
 
-	return s.repo.Create(c, workspaceID, req, normalBalance)
+	return s.repo.Create(c, req, normalBalance)
 }
 
 // Update validates and updates an existing account in the workspace.
-func (s AccountService) Update(c context.Context, workspaceID, id int64, req model.UpdateAccountRequest) (domain.Account, error) {
-	existing, err := s.repo.GetByID(c, workspaceID, id)
+func (s AccountService) Update(c context.Context, id int64, req model.UpdateAccountRequest) (domain.Account, error) {
+	existing, err := s.repo.GetByID(c, id)
 	if err != nil {
 		return domain.Account{}, err
 	}
 
 	// If code is being changed, ensure it's not already in use
 	if req.Code != "" && req.Code != existing.Code {
-		other, err := s.repo.FindByCode(c, workspaceID, req.Code)
+		other, err := s.repo.FindByCode(c, req.Code)
 		if err == nil && other.ID != id {
 			return domain.Account{}, domain.ErrAccountCodeTaken
 		} else if err != nil && !errors.Is(err, base.ErrNotFound) {
@@ -108,7 +108,7 @@ func (s AccountService) Update(c context.Context, workspaceID, id int64, req mod
 			return domain.Account{}, domain.ErrAccountCyclicParent
 		}
 
-		parent, err := s.repo.GetByID(c, workspaceID, targetParentID)
+		parent, err := s.repo.GetByID(c, targetParentID)
 		if err != nil {
 			if errors.Is(err, base.ErrNotFound) {
 				return domain.Account{}, domain.ErrAccountParentNotFound
@@ -122,7 +122,7 @@ func (s AccountService) Update(c context.Context, workspaceID, id int64, req mod
 			if curr == id {
 				return domain.Account{}, domain.ErrAccountCyclicParent
 			}
-			ancestor, err := s.repo.GetByID(c, workspaceID, curr)
+			ancestor, err := s.repo.GetByID(c, curr)
 			if err != nil {
 				break
 			}
@@ -130,17 +130,17 @@ func (s AccountService) Update(c context.Context, workspaceID, id int64, req mod
 		}
 	}
 
-	return s.repo.Update(c, workspaceID, id, req)
+	return s.repo.Update(c, id, req)
 }
 
 // Delete validates and performs soft deletion on an account.
-func (s AccountService) Delete(c context.Context, workspaceID, id int64) error {
-	_, err := s.repo.GetByID(c, workspaceID, id)
+func (s AccountService) Delete(c context.Context, id int64) error {
+	_, err := s.repo.GetByID(c, id)
 	if err != nil {
 		return err
 	}
 
-	hasChildren, err := s.repo.HasActiveChildren(c, workspaceID, id)
+	hasChildren, err := s.repo.HasActiveChildren(c, id)
 	if err != nil {
 		return err
 	}
@@ -148,5 +148,6 @@ func (s AccountService) Delete(c context.Context, workspaceID, id int64) error {
 		return domain.ErrAccountHasChildren
 	}
 
-	return s.repo.Delete(c, workspaceID, id)
+	return s.repo.Delete(c, id)
 }
+

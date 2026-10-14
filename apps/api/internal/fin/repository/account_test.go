@@ -60,10 +60,11 @@ func (s *AccountRepoSuite) SetupTest() {
 }
 
 func (s *AccountRepoSuite) ctx() context.Context {
-	return context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+	ctx := context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
 		ID:   s.userID,
 		Name: "Alice",
 	})
+	return base.WithWorkspaceID(ctx, s.workspaceID)
 }
 
 func ptr[T any](v T) *T {
@@ -74,7 +75,7 @@ func (s *AccountRepoSuite) Test_CreateAndGetByID() {
 	ctx := s.ctx()
 
 	desc := "Cash account"
-	acc, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	acc, err := s.repo.Create(ctx, model.CreateAccountRequest{
 		Code:        "1000",
 		Name:        "Cash",
 		Type:        domain.AccountTypeAsset,
@@ -92,7 +93,7 @@ func (s *AccountRepoSuite) Test_CreateAndGetByID() {
 	s.Nil(acc.AuditMeta.DeletedAt)
 
 	// Fetch via GetByID
-	fetched, err := s.repo.GetByID(ctx, s.workspaceID, acc.ID)
+	fetched, err := s.repo.GetByID(ctx, acc.ID)
 	s.Require().NoError(err)
 	s.Equal(acc.ID, fetched.ID)
 }
@@ -103,7 +104,7 @@ func (s *AccountRepoSuite) Test_Search() {
 	for i := 1; i <= 5; i++ {
 		code := fmt.Sprintf("100%d", i)
 		name := fmt.Sprintf("Account %d", i)
-		_, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+		_, err := s.repo.Create(ctx, model.CreateAccountRequest{
 			Code: code,
 			Name: name,
 			Type: domain.AccountTypeAsset,
@@ -111,7 +112,7 @@ func (s *AccountRepoSuite) Test_Search() {
 		s.Require().NoError(err)
 	}
 
-	items, _, err := s.repo.Search(ctx, s.workspaceID, model.SearchAccountRequest{})
+	items, _, err := s.repo.Search(ctx, model.SearchAccountRequest{})
 	s.Require().NoError(err)
 	s.Len(items, 5)
 }
@@ -119,7 +120,7 @@ func (s *AccountRepoSuite) Test_Search() {
 func (s *AccountRepoSuite) Test_Update() {
 	ctx := s.ctx()
 
-	acc, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	acc, err := s.repo.Create(ctx, model.CreateAccountRequest{
 		Code:       "2000",
 		Name:       "Accounts Payable",
 		Type:       domain.AccountTypeLiability,
@@ -128,7 +129,7 @@ func (s *AccountRepoSuite) Test_Update() {
 	}, domain.NormalBalanceCredit)
 	s.Require().NoError(err)
 
-	updated, err := s.repo.Update(ctx, s.workspaceID, acc.ID, model.UpdateAccountRequest{
+	updated, err := s.repo.Update(ctx, acc.ID, model.UpdateAccountRequest{
 		Name:       "AP Trade",
 		IsPostable: ptr(false),
 	})
@@ -140,7 +141,7 @@ func (s *AccountRepoSuite) Test_Update() {
 func (s *AccountRepoSuite) Test_SoftDeleteAndCodeReuse() {
 	ctx := s.ctx()
 
-	acc, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	acc, err := s.repo.Create(ctx, model.CreateAccountRequest{
 		Code:       "3000",
 		Name:       "Retained Earnings",
 		Type:       domain.AccountTypeEquity,
@@ -150,20 +151,20 @@ func (s *AccountRepoSuite) Test_SoftDeleteAndCodeReuse() {
 	s.Require().NoError(err)
 
 	// Soft delete
-	err = s.repo.Delete(ctx, s.workspaceID, acc.ID)
+	err = s.repo.Delete(ctx, acc.ID)
 	s.Require().NoError(err)
 
 	// GetByID should return ErrNotFound
-	_, err = s.repo.GetByID(ctx, s.workspaceID, acc.ID)
+	_, err = s.repo.GetByID(ctx, acc.ID)
 	s.Equal(base.ErrNotFound, err)
 
 	// Search should not return soft deleted accounts by default
-	items, _, err := s.repo.Search(ctx, s.workspaceID, model.SearchAccountRequest{})
+	items, _, err := s.repo.Search(ctx, model.SearchAccountRequest{})
 	s.Require().NoError(err)
 	s.Empty(items)
 
 	// Re-creating an account with the same code succeeds because the old one is soft-deleted
-	newAcc, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	newAcc, err := s.repo.Create(ctx, model.CreateAccountRequest{
 		Code:       "3000",
 		Name:       "New Retained Earnings",
 		Type:       domain.AccountTypeEquity,
@@ -177,7 +178,7 @@ func (s *AccountRepoSuite) Test_SoftDeleteAndCodeReuse() {
 func (s *AccountRepoSuite) Test_HasActiveChildren() {
 	ctx := s.ctx()
 
-	root, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	root, err := s.repo.Create(ctx, model.CreateAccountRequest{
 		Code:       "1000",
 		Name:       "Assets Header",
 		Type:       domain.AccountTypeAsset,
@@ -186,7 +187,7 @@ func (s *AccountRepoSuite) Test_HasActiveChildren() {
 	}, domain.NormalBalanceDebit)
 	s.Require().NoError(err)
 
-	child, err := s.repo.Create(ctx, s.workspaceID, model.CreateAccountRequest{
+	child, err := s.repo.Create(ctx, model.CreateAccountRequest{
 		Code:       "1100",
 		Name:       "Current Assets",
 		Type:       domain.AccountTypeAsset,
@@ -197,7 +198,7 @@ func (s *AccountRepoSuite) Test_HasActiveChildren() {
 	s.Require().NoError(err)
 	s.NotZero(child.ID)
 
-	hasChildren, err := s.repo.HasActiveChildren(ctx, s.workspaceID, root.ID)
+	hasChildren, err := s.repo.HasActiveChildren(ctx, root.ID)
 	s.Require().NoError(err)
 	s.True(hasChildren)
 }
@@ -205,3 +206,4 @@ func (s *AccountRepoSuite) Test_HasActiveChildren() {
 func TestAccountRepoSuite(t *testing.T) {
 	suite.Run(t, new(AccountRepoSuite))
 }
+

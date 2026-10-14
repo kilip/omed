@@ -40,3 +40,56 @@ func (u UserContext) HasRole(role UserRole) bool {
 func UserFromContext(ctx context.Context) UserContext {
 	return ctx.Value(USER_CONTEXT_KEY).(UserContext)
 }
+
+// WORKSPACE_CONTEXT_KEY is the context key used to store and retrieve the active workspace ID.
+const WORKSPACE_CONTEXT_KEY = "workspace_id"
+
+// SKIP_WORKSPACE_FILTER_KEY is the context key used to bypass workspace query filtering.
+const SKIP_WORKSPACE_FILTER_KEY = "skip_workspace_filter"
+
+type contextLocalGetter interface {
+	Locals(key any, value ...any) any
+}
+
+// WithWorkspaceID returns a child context carrying the workspace ID.
+func WithWorkspaceID(ctx context.Context, id int64) context.Context {
+	return context.WithValue(ctx, WORKSPACE_CONTEXT_KEY, id)
+}
+
+// WorkspaceIDFromContext retrieves the workspace ID from a context.Context or fiber.Ctx locals.
+func WorkspaceIDFromContext(ctx context.Context) int64 {
+	if ctx == nil {
+		return 0
+	}
+	if fctx, ok := ctx.(contextLocalGetter); ok {
+		if id, ok := fctx.Locals(WORKSPACE_CONTEXT_KEY).(int64); ok {
+			return id
+		}
+	}
+	if id, ok := ctx.Value(WORKSPACE_CONTEXT_KEY).(int64); ok {
+		return id
+	}
+	return 0
+}
+
+// WithSkipWorkspaceFilter returns a child context indicating that workspace query filter should be bypassed.
+func WithSkipWorkspaceFilter(ctx context.Context) context.Context {
+	return context.WithValue(ctx, SKIP_WORKSPACE_FILTER_KEY, true)
+}
+
+// SkipWorkspaceFilterFromContext reports whether the workspace query filter should be bypassed.
+func SkipWorkspaceFilterFromContext(ctx context.Context) bool {
+	if ctx == nil {
+		return false
+	}
+	if fctx, ok := ctx.(contextLocalGetter); ok {
+		if skip, ok := fctx.Locals(SKIP_WORKSPACE_FILTER_KEY).(bool); ok {
+			return skip
+		}
+	}
+	if skip, ok := ctx.Value(SKIP_WORKSPACE_FILTER_KEY).(bool); ok {
+		return skip
+	}
+	return false
+}
+

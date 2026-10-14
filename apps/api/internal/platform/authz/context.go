@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/kilip/omed/api/internal/base"
 )
 
 // MEMBERSHIP_CONTEXT_KEY is the context key used to store the resolved workspace Membership.
@@ -24,16 +25,24 @@ type MembershipResolver interface {
 	ResolveMembership(ctx context.Context, userID, workspaceID int64) (Membership, error)
 }
 
-// WithMembership stores the membership in the Fiber request locals.
+// WithMembership stores the membership in the Fiber request locals and sets base workspace ID.
 func WithMembership(c fiber.Ctx, m Membership) {
 	c.Locals(MEMBERSHIP_CONTEXT_KEY, m)
+	if m.WorkspaceID > 0 {
+		c.Locals(base.WORKSPACE_CONTEXT_KEY, m.WorkspaceID)
+	}
 }
 
-// ContextWithMembership returns a child context carrying the membership.
+// ContextWithMembership returns a child context carrying the membership and workspace ID.
 // Useful for service-level checks outside an HTTP request (e.g. tests, jobs).
 func ContextWithMembership(ctx context.Context, m Membership) context.Context {
-	return context.WithValue(ctx, MEMBERSHIP_CONTEXT_KEY, m) //nolint:staticcheck // string key mirrors base.USER_CONTEXT_KEY
+	ctx = context.WithValue(ctx, MEMBERSHIP_CONTEXT_KEY, m) //nolint:staticcheck // string key mirrors base.USER_CONTEXT_KEY
+	if m.WorkspaceID > 0 {
+		ctx = base.WithWorkspaceID(ctx, m.WorkspaceID)
+	}
+	return ctx
 }
+
 
 // MembershipFromContext retrieves the Membership resolved by the authz middleware, if present.
 func MembershipFromContext(ctx context.Context) (Membership, bool) {

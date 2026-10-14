@@ -155,3 +155,113 @@ func (s *MutatorSuite) Test_SoftDeleteAuditFields_ExplicitDeleterPreserved() {
 	s.Require().NotNil(deleted.DeletedByID)
 	s.Equal(u2.ID, *deleted.DeletedByID, "explicitly set deleted_by_id must be preserved")
 }
+
+func (s *MutatorSuite) Test_WorkspaceMutator_AutoInjectOnCreate() {
+	ws, err := s.client.Workspace.Create().
+		SetName("Tenant A").
+		SetOwnerID(s.user.ID).
+		Save(s.ctx)
+	s.Require().NoError(err)
+
+	ctxWithWS := base.WithWorkspaceID(s.ctx, ws.ID)
+
+	// Create account without calling SetWorkspaceID
+	acc, err := s.client.Account.Create().
+		SetCode("1101").
+		SetName("Petty Cash").
+		SetType(account.TypeASSET).
+		SetNormalBalance(account.NormalBalanceDEBIT).
+		Save(ctxWithWS)
+	s.Require().NoError(err)
+	s.Equal(ws.ID, acc.WorkspaceID)
+}
+
+func (s *MutatorSuite) Test_WorkspaceMutator_OverrideManualWhenContextHasWorkspace() {
+	wsA, err := s.client.Workspace.Create().
+		SetName("Tenant A").
+		SetOwnerID(s.user.ID).
+		Save(s.ctx)
+	s.Require().NoError(err)
+
+	wsB, err := s.client.Workspace.Create().
+		SetName("Tenant B").
+		SetOwnerID(s.user.ID).
+		Save(s.ctx)
+	s.Require().NoError(err)
+
+	// Context says wsA, but manual SetWorkspaceID passes wsB
+	ctxWithWSA := base.WithWorkspaceID(s.ctx, wsA.ID)
+	acc, err := s.client.Account.Create().
+		SetWorkspaceID(wsB.ID).
+		SetCode("1102").
+		SetName("Account Receivable").
+		SetType(account.TypeASSET).
+		SetNormalBalance(account.NormalBalanceDEBIT).
+		Save(ctxWithWSA)
+	s.Require().NoError(err)
+	s.Equal(wsA.ID, acc.WorkspaceID, "context workspace must override manual set")
+}
+
+func (s *MutatorSuite) Test_WorkspaceMutator_FallbackManualWhenContextEmpty() {
+	ws, err := s.client.Workspace.Create().
+		SetName("Tenant Manual").
+		SetOwnerID(s.user.ID).
+		Save(s.ctx)
+	s.Require().NoError(err)
+
+	// Context has no workspace ID, but builder sets it manually
+	acc, err := s.client.Account.Create().
+		SetWorkspaceID(ws.ID).
+		SetCode("1103").
+		SetName("Inventory").
+		SetType(account.TypeASSET).
+		SetNormalBalance(account.NormalBalanceDEBIT).
+		Save(s.ctx)
+	s.Require().NoError(err)
+	s.Equal(ws.ID, acc.WorkspaceID)
+}
+
+func (s *MutatorSuite) Test_WorkspaceInterceptor_QueryFilteringAndBypass() {
+	wsA, err := s.client.Workspace.Create().SetName("WS A").SetOwnerID(s.user.ID).Save(s.ctx)
+	s.Require().NoError(err)
+	wsB, err := s.client.Workspace.Create().SetName("WS B").SetOwnerID(s.user.ID).Save(s.ctx)
+	s.Require().NoError(err)
+
+	ctxA := base.WithWorkspaceID(s.ctx, wsA.ID)
+	ctxB := base.WithWorkspaceID(s.ctx, wsB.ID)
+
+	_, err = s.client.Account.Create().
+		SetCode("A101").
+		SetName("WS A Account").
+		SetType(account.TypeASSET).
+		SetNormalBalance(account.NormalBalanceDEBIT).
+		Save(ctxA)
+	s.Require().NoError(err)
+
+	_, err = s.client.Account.Create().
+		SetCode("B101").
+		SetName("WS B Account").
+		SetType(account.TypeASSET).
+		SetNormalBalance(account.NormalBalanceDEBIT).
+		Save(ctxB)
+	s.Require().NoError(err)
+
+	// Query with ctxA -> should only see 1 account belonging to WS A
+	accountsA, err := s.client.Account.Query().All(ctxA)
+	s.Require().NoError(err)
+	s.Len(accountsA, 1)
+	s.Equal("A101", accountsA[0].Code)
+
+	// Query with ctxB -> should only see 1 account belonging to WS B
+	accountsB, err := s.client.Account.Query().All(ctxB)
+	s.Require().NoError(err)
+	s.Len(accountsB, 1)
+	s.Equal("B101", accountsB[0].Code)
+
+	// Query with ctxA but with bypass -> should see both accounts
+	ctxBypass := base.WithSkipWorkspaceFilter(ctxA)
+	allAccounts, err := s.client.Account.Query().All(ctxBypass)
+	s.Require().NoError(err)
+	s.Len(allAccounts, 2)
+}
+

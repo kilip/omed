@@ -3,7 +3,10 @@ package core
 import (
 	"context"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/intercept"
 	"github.com/kilip/omed/api/internal/base"
 )
 
@@ -23,6 +26,10 @@ type deleterIDMutator interface {
 	SetDeletedByID(int64)
 }
 
+type workspaceMutator interface {
+	SetWorkspaceID(int64)
+}
+
 func hasAuditField(m ent.Mutation, snake, camel string) bool {
 	if _, exists := m.Field(snake); exists {
 		return true
@@ -33,10 +40,75 @@ func hasAuditField(m ent.Mutation, snake, camel string) bool {
 	return false
 }
 
-// InitEntCli registers the audit mutator hook on the given Ent client.
+// InitEntCli registers the audit mutator, workspace mutator, and query interceptors on the given Ent client.
 func InitEntCli(cli *ent.Client) {
 	initAuditMutator(cli)
+	setupWorkspaceMutator(cli)
+	setupWorkspaceInterceptor(cli)
 }
+
+func setupWorkspaceMutator(cli *ent.Client) {
+	cli.Use(func(next ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if !m.Op().Is(ent.OpCreate) {
+				return next.Mutate(ctx, m)
+			}
+			w, isWorkspaceMutator := m.(workspaceMutator)
+			if !isWorkspaceMutator {
+				return next.Mutate(ctx, m)
+			}
+
+			wsID := base.WorkspaceIDFromContext(ctx)
+			if wsID > 0 {
+				w.SetWorkspaceID(wsID)
+			}
+			return next.Mutate(ctx, m)
+		})
+	})
+}
+
+type workspaceInterceptor struct{}
+
+func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error {
+	if base.SkipWorkspaceFilterFromContext(ctx) {
+		return nil
+	}
+	wsID := base.WorkspaceIDFromContext(ctx)
+	if wsID <= 0 {
+		return nil
+	}
+	switch q.Type() {
+	case ent.TypeAccount:
+		q.WhereP(sql.FieldEQ(account.FieldWorkspaceID, wsID))
+	}
+	return nil
+}
+
+func (w workspaceInterceptor) Intercept(next ent.Querier) ent.Querier {
+	return ent.QuerierFunc(func(ctx context.Context, q ent.Query) (ent.Value, error) {
+		query, err := intercept.NewQuery(q)
+		if err != nil {
+			return nil, err
+		}
+		if err := w.filter(ctx, query); err != nil {
+			return nil, err
+		}
+		return next.Query(ctx, q)
+	})
+}
+
+func (w workspaceInterceptor) Traverse(ctx context.Context, q ent.Query) error {
+	query, err := intercept.NewQuery(q)
+	if err != nil {
+		return err
+	}
+	return w.filter(ctx, query)
+}
+
+func setupWorkspaceInterceptor(cli *ent.Client) {
+	cli.Intercept(workspaceInterceptor{})
+}
+
 
 func initAuditMutator(cli *ent.Client) {
 	cli.Use(func(next ent.Mutator) ent.Mutator {
