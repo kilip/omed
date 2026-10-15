@@ -46,7 +46,7 @@ type Role struct {
 	// refers to, and what the enforcer evaluates, so it must never change once released.
 	ID string
 	// Name is the human readable display name shown in the UI, e.g. "Accountant".
-	// Unlike ID it is free text and may be reworded at any time.
+	// It is required. Unlike ID it is free text and may be reworded at any time.
 	Name string
 	// Description is a human readable description of the role.
 	Description string
@@ -125,6 +125,9 @@ func (r *Registry) Validate() error {
 func validateRole(role Role) error {
 	if !roleIDPattern.MatchString(role.ID) {
 		return fmt.Errorf("authz: invalid role id %q, expected <module>:<role>", role.ID)
+	}
+	if strings.TrimSpace(role.Name) == "" {
+		return fmt.Errorf("authz: role %q requires a display name", role.ID)
 	}
 	mod := role.Module()
 	for _, p := range role.Permissions {
