@@ -263,7 +263,7 @@ func (s *WorkspaceSuite) Test_Delete_PersonalWorkspace_Forbidden() {
 	s.AssertStatus(fiber.StatusConflict)
 }
 
-func (s *WorkspaceSuite) Test_Search_FilteredByMembershipForNonSuperadmin() {
+func (s *WorkspaceSuite) Test_Search_FilteredByMembership() {
 	otherUser := s.EnsureUser(ent.User{
 		Name:  "Bob",
 		Email: "bob@example.com",

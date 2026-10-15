@@ -24,8 +24,8 @@ type WorkspaceResponse struct {
 type CreateWorkspaceRequest struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description,omitempty"`
-	// OwnerID is honored only for superadmin callers; otherwise the caller becomes the owner.
-	OwnerID int64 `json:"ownerId,omitempty"`
+	// OwnerID is set by the service from the authenticated user and never bound from JSON.
+	OwnerID int64 `json:"-" swaggerignore:"true"`
 }
 
 // UpdateWorkspaceRequest defines the payload required to update an existing workspace.

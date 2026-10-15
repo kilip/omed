@@ -1981,8 +1981,6 @@ export interface components {
     "model.CreateWorkspaceRequest": {
       description?: string;
       name: string;
-      /** @description OwnerID is honored only for superadmin callers; otherwise the caller becomes the owner. */
-      ownerId?: number;
     };
     "model.InvitationResponse": {
       createdAt?: string;

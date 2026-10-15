@@ -80,13 +80,6 @@ func (s *AuthorizerSuite) Test_Require_OwnerBypass() {
 	s.Equal(fiber.StatusOK, s.status(s.app(s.az.Require("fin:invoice", "delete")), "/workspaces/1/invoices"))
 }
 
-func (s *AuthorizerSuite) Test_Require_SuperadminNotMember() {
-	s.user.Roles = []base.UserRole{base.UserRoleAdmin}
-	s.resolver.EXPECT().ResolveMembership(gomock.Any(), int64(7), int64(1)).
-		Return(authz.Membership{}, base.ErrNotFound)
-	s.Equal(fiber.StatusNotFound, s.status(s.app(s.az.Require("fin:invoice", "read")), "/workspaces/1/invoices"))
-}
-
 func (s *AuthorizerSuite) Test_Require_InvalidWorkspaceID() {
 	app := s.app(s.az.Require("fin:invoice", "read"))
 	s.Equal(fiber.StatusBadRequest, s.status(app, "/workspaces/abc/invoices"))
@@ -127,14 +120,6 @@ func (s *AuthorizerSuite) Test_RequireOwner_NotMember() {
 	s.resolver.EXPECT().ResolveMembership(gomock.Any(), int64(7), int64(1)).
 		Return(authz.Membership{}, base.ErrNotFound)
 	s.Equal(fiber.StatusNotFound, s.status(s.app(s.az.RequireOwner()), "/workspaces/1/invoices"))
-}
-
-func (s *AuthorizerSuite) Test_RequireGlobal() {
-	app := s.app(authz.RequireGlobal(base.UserRoleAdmin))
-	s.Equal(fiber.StatusForbidden, s.status(app, "/workspaces/1/invoices"))
-
-	s.user.Roles = []base.UserRole{base.UserRoleAdmin}
-	s.Equal(fiber.StatusOK, s.status(app, "/workspaces/1/invoices"))
 }
 
 func (s *AuthorizerSuite) Test_HasRole() {

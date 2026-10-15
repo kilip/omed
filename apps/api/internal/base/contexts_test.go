@@ -13,7 +13,7 @@ func TestUserFromContext(t *testing.T) {
 		ID:            42,
 		Name:          "Alice",
 		EmailVerified: true,
-		Roles:         []base.UserRole{base.UserRoleAdmin},
+		Roles:         []base.UserRole{base.UserRoleUser},
 	}
 	ctx := context.WithValue(context.Background(), base.USER_CONTEXT_KEY, expected)
 	u := base.UserFromContext(ctx)
@@ -21,11 +21,10 @@ func TestUserFromContext(t *testing.T) {
 }
 
 func TestUserContext_HasRole(t *testing.T) {
-	u := base.UserContext{Roles: []base.UserRole{base.UserRoleUser, base.UserRoleAdmin}}
-	assert.True(t, u.HasRole(base.UserRoleAdmin))
+	u := base.UserContext{Roles: []base.UserRole{base.UserRoleUser}}
 	assert.True(t, u.HasRole(base.UserRoleUser))
-	assert.False(t, base.UserContext{}.HasRole(base.UserRoleAdmin))
-	assert.False(t, base.UserContext{Roles: []base.UserRole{base.UserRoleUser}}.HasRole(base.UserRoleAdmin))
+	assert.False(t, u.HasRole(base.UserRole("other")))
+	assert.False(t, base.UserContext{}.HasRole(base.UserRoleUser))
 }
 
 type mockLocalGetter struct {

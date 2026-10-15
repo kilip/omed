@@ -377,10 +377,6 @@ const docTemplate = `{
                     },
                     "name": {
                         "type": "string"
-                    },
-                    "ownerId": {
-                        "description": "OwnerID is honored only for superadmin callers; otherwise the caller becomes the owner.",
-                        "type": "integer"
                     }
                 },
                 "required": [

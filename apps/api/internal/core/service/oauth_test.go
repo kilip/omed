@@ -37,7 +37,7 @@ func (s *OAuthServiceSuite) SetupSuite() {
 	s.accountRepo = repository.NewAccountRepository(s.client)
 	sessionRepo := repository.NewSessionRepository(s.client)
 	s.sessionSvc = service.NewSessionService(sessionRepo, s.userRepo, 24*time.Hour)
-	s.ctx = testutil.NewAdminContext()
+	s.ctx = testutil.NewUserContext()
 
 	// Mock OAuth2 Provider Server (Token exchange & UserInfo)
 	s.mockServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
