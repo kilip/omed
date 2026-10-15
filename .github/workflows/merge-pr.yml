@@ -1,22 +1,22 @@
 name: merge-pr
 on:
-  pull_request_review:
-    types: [submitted]
+  issue_comment:
+    types: [created]
 
 concurrency:
-  group: rebase-merge-${{ github.event.pull_request.number }}
+  group: rebase-merge-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 permissions:
   contents: read
+  issues: read
+  pull-requests: read
 
 jobs:
   check:
     if: >
-      github.event.review.state == 'approved' &&
-      github.event.pull_request.base.ref == 'main' &&
-      github.event.pull_request.draft == false &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.issue.pull_request != null &&
+      startsWith(github.event.comment.body, '/rebase')
     runs-on: ubuntu-latest
     outputs:
       allowed: ${{ steps.verify.outputs.allowed }}
@@ -25,28 +25,45 @@ jobs:
       - id: verify
         env:
           GH_TOKEN: ${{ github.token }}
-          REVIEWER: ${{ github.event.review.user.login }}
-          REVIEW_SHA: ${{ github.event.review.commit_id }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMENTER: ${{ github.event.comment.user.login }}
+          PR_NUMBER: ${{ github.event.issue.number }}
         run: |
           set -euo pipefail
           allowed=false
 
-          perm=$(gh api "repos/${{ github.repository }}/collaborators/$REVIEWER/permission" --jq '.permission')
-          head_sha=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER" --jq '.head.sha')
-          echo "Reviewer $REVIEWER permission: $perm"
-          echo "Approved SHA: $REVIEW_SHA | Current head: $head_sha"
+          perm=$(gh api "repos/${{ github.repository }}/collaborators/$COMMENTER/permission" --jq '.permission')
+          echo "Commenter $COMMENTER permission: $perm"
 
           if [[ "$perm" != "admin" && "$perm" != "write" ]]; then
-            echo "Skip: reviewer bukan maintainer."
-          elif [[ "$head_sha" != "$REVIEW_SHA" ]]; then
-            echo "Skip: ada commit baru setelah approval (stale), butuh approve ulang."
+            echo "Skip: commenter bukan maintainer."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "sha=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          pr_json=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER")
+          pr_state=$(echo "$pr_json" | jq -r '.state')
+          base_ref=$(echo "$pr_json" | jq -r '.base.ref')
+          is_draft=$(echo "$pr_json" | jq -r '.draft')
+          head_repo=$(echo "$pr_json" | jq -r '.head.repo.full_name')
+          head_sha=$(echo "$pr_json" | jq -r '.head.sha')
+
+          echo "PR #$PR_NUMBER state: $pr_state | base: $base_ref | draft: $is_draft | repo: $head_repo | head: $head_sha"
+
+          if [[ "$pr_state" != "open" ]]; then
+            echo "Skip: PR tidak dalam status open."
+          elif [[ "$base_ref" != "main" ]]; then
+            echo "Skip: base branch bukan main ($base_ref)."
+          elif [[ "$is_draft" == "true" ]]; then
+            echo "Skip: PR masih draft."
+          elif [[ "$head_repo" != "${{ github.repository }}" ]]; then
+            echo "Skip: PR dari fork ($head_repo)."
           else
             allowed=true
           fi
 
           echo "allowed=$allowed" >> "$GITHUB_OUTPUT"
-          echo "sha=$REVIEW_SHA" >> "$GITHUB_OUTPUT"
+          echo "sha=$head_sha" >> "$GITHUB_OUTPUT"
 
   rebase:
     needs: check
@@ -83,14 +100,14 @@ jobs:
       - name: Rebase and ff-merge
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          APPROVED_SHA: ${{ needs.check.outputs.sha }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          TARGET_SHA: ${{ needs.check.outputs.sha }}
         run: |
           set -euo pipefail
           gh pr checkout "$PR_NUMBER"
 
-          if [[ "$(git rev-parse HEAD)" != "$APPROVED_SHA" ]]; then
-            echo "HEAD PR berubah setelah approval, batal."
+          if [[ "$(git rev-parse HEAD)" != "$TARGET_SHA" ]]; then
+            echo "HEAD PR berubah setelah trigger, batal."
             exit 1
           fi
 
