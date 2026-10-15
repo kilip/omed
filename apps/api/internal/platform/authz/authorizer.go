@@ -37,6 +37,11 @@ func (a *Authorizer) HasRole(name string) bool {
 	return a.registry.Has(name)
 }
 
+// Roles returns the roles in the registry backing this Authorizer, sorted by ID.
+func (a *Authorizer) Roles() []Role {
+	return a.registry.Roles()
+}
+
 // resolve loads the current user's membership for the :wid route param and stores it in context.
 func (a *Authorizer) resolve(c fiber.Ctx) (Membership, error) {
 	raw := c.Params(WorkspaceParam)

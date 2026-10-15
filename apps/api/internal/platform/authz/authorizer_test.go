@@ -62,6 +62,14 @@ func (s *AuthorizerSuite) status(app *fiber.App, path string) int {
 	return resp.StatusCode
 }
 
+func (s *AuthorizerSuite) Test_Roles_FromBackingRegistry() {
+	roles := s.az.Roles()
+	s.Require().Len(roles, 3)
+	s.Equal("fin:accountant", roles[0].ID)
+	s.Equal("Accountant", roles[0].Name)
+	s.Equal("fin:viewer", roles[2].ID)
+}
+
 func (s *AuthorizerSuite) Test_Require_AllowedByRole() {
 	s.resolver.EXPECT().ResolveMembership(gomock.Any(), int64(7), int64(1)).
 		Return(authz.Membership{WorkspaceID: 1, UserID: 7, Roles: []string{"fin:accountant"}}, nil)

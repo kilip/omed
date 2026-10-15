@@ -34,6 +34,9 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	// Workspace permissions for the current user
 	workspaces.Get("/:wid/permissions", az.Member(), ctlM.Permissions)
 
+	// Roles that can be assigned in this workspace
+	workspaces.Get("/:wid/roles", az.Member(), ctlM.Roles)
+
 	// Workspace members
 	workspaces.Post("/:wid/members/search", az.Require(domain.ObjMember, "read"), ctlM.Search)
 	workspaces.Post("/:wid/members", az.Require(domain.ObjMember, "create"), ctlM.Invite)

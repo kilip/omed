@@ -36,6 +36,18 @@ type PermissionItem struct {
 	Action string `json:"action"`
 }
 
+// RoleResponse describes a role that can be assigned to workspace members and invitations.
+type RoleResponse struct {
+	// ID is the stable identifier in the form "<module>:<role>"; this is what member and
+	// invitation requests carry in their roles.
+	ID string `json:"id"`
+	// Name is the human readable display name, e.g. "Accountant".
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// Module is the module that declared the role, e.g. "fin".
+	Module string `json:"module"`
+}
+
 // PermissionsResponse describes the effective authorization of the current user in a workspace.
 type PermissionsResponse struct {
 	WorkspaceID int64            `json:"workspaceId"`

@@ -201,6 +201,33 @@ func (ctl MemberController) Permissions(c fiber.Ctx) error {
 	})
 }
 
+// Roles lists the roles that can be assigned to members and invitations.
+//
+//	@Summary		List assignable roles
+//	@Description	Returns every role registered by the modules, with display names, for role pickers
+//	@Tags			Workspace Members
+//	@Produce		json
+//	@Param			wid	path		int	true	"Workspace ID"
+//	@Success		200	{object}	httpx.WebResponse[[]model.RoleResponse]
+//	@Failure		400	{object}	httpx.ErrorResponse
+//	@Failure		404	{object}	httpx.ErrorResponse
+//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/roles [get]
+func (ctl MemberController) Roles(c fiber.Ctx) error {
+	roles := ctl.az.Roles()
+	out := make([]model.RoleResponse, len(roles))
+	for i, r := range roles {
+		out[i] = model.RoleResponse{
+			ID:          r.ID,
+			Name:        r.Name,
+			Description: r.Description,
+			Module:      r.Module(),
+		}
+	}
+	return httpx.OK(c, out)
+}
+
 func toMemberResponse(m domain.Member) model.MemberResponse {
 	return model.MemberResponse{
 		ID:          m.ID,

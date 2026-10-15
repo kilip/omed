@@ -160,6 +160,29 @@ func (s *MemberSuite) Test_Permissions_Member() {
 	s.NotEmpty(resp.Data.Permissions)
 }
 
+func (s *MemberSuite) Test_Roles_Member() {
+	ws := s.ensureWorkspace("Acme Corp", s.User.ID)
+
+	alice := s.AsUser("alice@example.com", "Alice")
+	s.AddMember(ws.ID, alice.ID, "core:member")
+
+	s.Request(fmt.Sprintf("/workspaces/%d/roles", ws.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	resp := testutil.DecodeOther[[]model.RoleResponse](s)
+	byID := map[string]model.RoleResponse{}
+	for _, r := range resp.Data {
+		byID[r.ID] = r
+	}
+	s.Equal(model.RoleResponse{
+		ID:          "core:member",
+		Name:        "Member",
+		Description: "View the workspace and its members",
+		Module:      "core",
+	}, byID["core:member"])
+	s.Equal("Admin", byID["core:admin"].Name)
+}
+
 func (s *MemberSuite) Test_NonMember_Gets404() {
 	ws := s.ensureWorkspace("Acme Corp", s.User.ID)
 
@@ -169,6 +192,9 @@ func (s *MemberSuite) Test_NonMember_Gets404() {
 	s.AssertStatus(fiber.StatusNotFound)
 
 	s.Request(fmt.Sprintf("/workspaces/%d/permissions", ws.ID), fiber.MethodGet, nil)
+	s.AssertStatus(fiber.StatusNotFound)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/roles", ws.ID), fiber.MethodGet, nil)
 	s.AssertStatus(fiber.StatusNotFound)
 }
 
