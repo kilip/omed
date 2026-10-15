@@ -85,14 +85,14 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
             params: { path: { wid, id: invitation.id ?? 0 } },
           }),
         ),
-      "sys.invitations.revoked",
+      "core.invitations.revoked",
     );
 
   const copyLink = async (invitation: Invitation) => {
     const link = `${env.publicUrl}/invite/${invitation.token}`;
     try {
       await navigator.clipboard.writeText(link);
-      message.success(t("sys.invitations.copied"));
+      message.success(t("core.invitations.copied"));
     } catch {
       message.info(link);
     }
@@ -100,15 +100,15 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
 
   const columns: TableProps<Invitation>["columns"] = [
     {
-      title: t("sys.invitations.link"),
+      title: t("core.invitations.link"),
       render: (_, i) => (
         <div className="flex items-center gap-1">
           <code>{`…${(i.token ?? "").slice(-8)}`}</code>
-          <Tooltip title={t("sys.invitations.copy")}>
+          <Tooltip title={t("core.invitations.copy")}>
             <Button
               type="text"
               icon={<CopyOutlined />}
-              aria-label={t("sys.invitations.copy")}
+              aria-label={t("core.invitations.copy")}
               onClick={() => copyLink(i)}
             />
           </Tooltip>
@@ -116,7 +116,7 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
       ),
     },
     {
-      title: t("sys.members.roles"),
+      title: t("core.members.roles"),
       render: (_, i) => (
         <div className="flex flex-wrap gap-1">
           {(i.roles ?? []).map((role) => (
@@ -126,18 +126,18 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
       ),
     },
     {
-      title: t("sys.invitations.status"),
+      title: t("core.invitations.status"),
       render: (_, i) => {
         const status = invitationStatus(i);
         return (
           <Tag color={statusColor[status]}>
-            {t(`sys.invitations.${status}`)}
+            {t(`core.invitations.${status}`)}
           </Tag>
         );
       },
     },
     {
-      title: t("sys.invitations.uses"),
+      title: t("core.invitations.uses"),
       align: "right",
       render: (_, i) =>
         i.maxUses
@@ -145,20 +145,20 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
           : `${i.usesCount ?? 0} / ∞`,
     },
     {
-      title: t("sys.invitations.expires"),
+      title: t("core.invitations.expires"),
       align: "right",
       render: (_, i) =>
         i.expiresAt
           ? formatDateTime(i.expiresAt, i18n.language)
-          : t("sys.invitations.never"),
+          : t("core.invitations.never"),
     },
     {
       title: "",
       align: "right",
       render: (_, i) => (
         <Popconfirm
-          title={t("sys.invitations.revokeConfirm")}
-          okText={t("sys.invitations.revoke")}
+          title={t("core.invitations.revokeConfirm")}
+          okText={t("core.invitations.revoke")}
           cancelText={t("common.cancel")}
           disabled={invitationStatus(i) !== "active"}
           onConfirm={() => revoke(i)}
@@ -168,7 +168,7 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
             danger
             icon={<StopOutlined />}
             disabled={invitationStatus(i) !== "active"}
-            aria-label={t("sys.invitations.revoke")}
+            aria-label={t("core.invitations.revoke")}
           />
         </Popconfirm>
       ),
@@ -177,14 +177,14 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page
-      title={t("sys.menu.invitations")}
+      title={t("core.menu.invitations")}
       actions={
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => setCreating(true)}
         >
-          {t("sys.invitations.new")}
+          {t("core.invitations.new")}
         </Button>
       }
     >
@@ -201,7 +201,7 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
 
       <RecordModal<FormValues>
         open={creating}
-        title={t("sys.invitations.new")}
+        title={t("core.invitations.new")}
         initialValues={{ roles: [] }}
         submitting={pending}
         onClose={() => setCreating(false)}
@@ -211,24 +211,24 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
           <>
             <Form.Item
               name="roles"
-              label={t("sys.members.roles")}
+              label={t("core.members.roles")}
               rules={[{ required: true, type: "array", min: 1 }]}
             >
               <Select
                 mode="multiple"
                 options={roleOptions}
                 optionFilterProp="label"
-                placeholder={t("sys.members.rolesPlaceholder")}
+                placeholder={t("core.members.rolesPlaceholder")}
               />
             </Form.Item>
             <Form.Item
               name="maxUses"
-              label={t("sys.invitations.maxUses")}
-              extra={t("sys.invitations.maxUsesHint")}
+              label={t("core.invitations.maxUses")}
+              extra={t("core.invitations.maxUsesHint")}
             >
               <InputNumber min={0} style={{ width: "100%" }} />
             </Form.Item>
-            <Form.Item name="expiresAt" label={t("sys.invitations.expires")}>
+            <Form.Item name="expiresAt" label={t("core.invitations.expires")}>
               <DatePicker showTime style={{ width: "100%" }} />
             </Form.Item>
           </>

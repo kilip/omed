@@ -79,7 +79,7 @@ export default function Members({ loaderData }: Route.ComponentProps) {
 
   const columns: TableProps<Member>["columns"] = [
     {
-      title: t("sys.members.user"),
+      title: t("core.members.user"),
       render: (_, m) => (
         <div className="flex items-center gap-2">
           <Avatar size={24} src={m.user?.avatar}>
@@ -98,7 +98,7 @@ export default function Members({ loaderData }: Route.ComponentProps) {
       ),
     },
     {
-      title: t("sys.members.roles"),
+      title: t("core.members.roles"),
       render: (_, m) => (
         <div className="flex flex-wrap gap-1">
           {(m.roles ?? []).map((role) => (
@@ -108,7 +108,7 @@ export default function Members({ loaderData }: Route.ComponentProps) {
       ),
     },
     {
-      title: t("sys.members.joined"),
+      title: t("core.members.joined"),
       align: "right",
       render: (_, m) => formatDate(m.createdAt, i18n.language),
     },
@@ -117,17 +117,17 @@ export default function Members({ loaderData }: Route.ComponentProps) {
       align: "right",
       render: (_, m) => (
         <div className="flex justify-end gap-1">
-          <Tooltip title={t("sys.members.editRoles")}>
+          <Tooltip title={t("core.members.editRoles")}>
             <Button
               type="text"
               icon={<EditOutlined />}
-              aria-label={t("sys.members.editRoles")}
+              aria-label={t("core.members.editRoles")}
               onClick={() => setEditing(m)}
             />
           </Tooltip>
           <Popconfirm
-            title={t("sys.members.removeConfirm")}
-            okText={t("sys.members.remove")}
+            title={t("core.members.removeConfirm")}
+            okText={t("core.members.remove")}
             cancelText={t("common.cancel")}
             onConfirm={() => remove(m)}
           >
@@ -135,7 +135,7 @@ export default function Members({ loaderData }: Route.ComponentProps) {
               type="text"
               danger
               icon={<DeleteOutlined />}
-              aria-label={t("sys.members.remove")}
+              aria-label={t("core.members.remove")}
             />
           </Popconfirm>
         </div>
@@ -147,14 +147,14 @@ export default function Members({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page
-      title={t("sys.menu.members")}
+      title={t("core.menu.members")}
       actions={
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => setEditing("new")}
         >
-          {t("sys.members.invite")}
+          {t("core.members.invite")}
         </Button>
       }
     >
@@ -171,7 +171,7 @@ export default function Members({ loaderData }: Route.ComponentProps) {
 
       <RecordModal<FormValues>
         open={editing !== null}
-        title={isNew ? t("sys.members.invite") : t("sys.members.editRoles")}
+        title={isNew ? t("core.members.invite") : t("core.members.editRoles")}
         initialValues={
           editing && !isNew ? { roles: editing.roles ?? [] } : { roles: [] }
         }
@@ -192,14 +192,14 @@ export default function Members({ loaderData }: Route.ComponentProps) {
             ) : null}
             <Form.Item
               name="roles"
-              label={t("sys.members.roles")}
+              label={t("core.members.roles")}
               rules={[{ required: true, type: "array", min: 1 }]}
             >
               <Select
                 mode="multiple"
                 options={roleOptions}
                 optionFilterProp="label"
-                placeholder={t("sys.members.rolesPlaceholder")}
+                placeholder={t("core.members.rolesPlaceholder")}
               />
             </Form.Item>
           </>

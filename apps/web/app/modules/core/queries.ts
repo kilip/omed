@@ -1,20 +1,20 @@
-﻿import { queryOptions } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import { api, unwrapList } from "~/lib/api";
 
 export const memberKeys = {
-  all: (wid: number) => ["sys", "workspaces", wid, "members"] as const,
+  all: (wid: number) => ["core", "workspaces", wid, "members"] as const,
 };
 
 export const invitationKeys = {
-  all: (wid: number) => ["sys", "workspaces", wid, "invitations"] as const,
+  all: (wid: number) => ["core", "workspaces", wid, "invitations"] as const,
 };
 
 export const roleKeys = {
-  all: (wid: number) => ["sys", "workspaces", wid, "roles"] as const,
+  all: (wid: number) => ["core", "workspaces", wid, "roles"] as const,
 };
 
 export const workspaceKeys = {
-  list: (name?: string) => ["sys", "workspace-list", { name }] as const,
+  list: (name?: string) => ["core", "workspace-list", { name }] as const,
 };
 
 /** Roles that can be assigned in a workspace, with their display names. */

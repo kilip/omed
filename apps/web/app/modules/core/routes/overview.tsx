@@ -51,14 +51,14 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
 
   const columns: TableProps<Workspace>["columns"] = [
     { title: t("common.name"), dataIndex: "name" },
-    { title: t("sys.workspaces.owner"), render: (_, w) => w.owner?.name },
+    { title: t("core.workspaces.owner"), render: (_, w) => w.owner?.name },
     {
       title: t("common.type"),
       render: (_, w) =>
         w.personal ? (
-          <Tag>{t("sys.workspaces.personal")}</Tag>
+          <Tag>{t("core.workspaces.personal")}</Tag>
         ) : (
-          <Tag variant="filled">{t("sys.workspaces.shared")}</Tag>
+          <Tag variant="filled">{t("core.workspaces.shared")}</Tag>
         ),
     },
     {
@@ -70,36 +70,39 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page
-      title={t("sys.menu.overview")}
+      title={t("core.menu.overview")}
       actions={
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          onClick={() => navigate("/sys/workspaces")}
+          onClick={() => navigate("/core/workspaces")}
         >
-          {t("sys.workspaces.new")}
+          {t("core.workspaces.new")}
         </Button>
       }
     >
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
         <Panel>
           <Statistic
-            title={t("sys.overview.workspaces")}
+            title={t("core.overview.workspaces")}
             value={workspaces.length}
           />
         </Panel>
         <Panel>
-          <Statistic title={t("sys.overview.members")} value={members.length} />
+          <Statistic
+            title={t("core.overview.members")}
+            value={members.length}
+          />
         </Panel>
         <Panel>
           <Statistic
-            title={t("sys.overview.invitations")}
+            title={t("core.overview.invitations")}
             value={activeInvitations.length}
           />
         </Panel>
         <Panel>
           <Statistic
-            title={t("sys.overview.roles")}
+            title={t("core.overview.roles")}
             value={permissions.roles?.length ?? 0}
           />
         </Panel>
@@ -108,7 +111,7 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
       <div className="flex flex-wrap items-start gap-3">
         <Panel
           strong
-          title={t("sys.overview.yourWorkspaces")}
+          title={t("core.overview.yourWorkspaces")}
           className="flex-[2_1_520px]"
         >
           <Table
@@ -122,10 +125,10 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
         </Panel>
 
         <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-3">
-          <Panel strong title={t("sys.overview.access")}>
+          <Panel strong title={t("core.overview.access")}>
             <div className="mb-2 flex flex-wrap gap-1">
               {permissions.owner ? (
-                <Tag color="success">{t("sys.overview.owner")}</Tag>
+                <Tag color="success">{t("core.overview.owner")}</Tag>
               ) : null}
               {(permissions.roles ?? []).map((role) => (
                 <Tag key={role}>{roleName(role)}</Tag>

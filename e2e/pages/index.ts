@@ -5,7 +5,7 @@ import { LoginPage } from "./dashboard/login.page";
 /**
  * Page objects grouped by area. `dashboard` is the shell itself (login and the
  * launcher, `apps/web/app/routes`), which is not a module. Business modules
- * (`apps/web/app/modules/<module>`) get a group of their own: add `sys`,
+ * (`apps/web/app/modules/<module>`) get a group of their own: add `core`,
  * `user`, `fin` or `cms` next to it as they get covered.
  */
 export const createPages = (page: Page) => ({

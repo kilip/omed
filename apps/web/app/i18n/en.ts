@@ -74,7 +74,7 @@ export const en = {
     core: { member: "Member", admin: "Admin" },
     fin: { viewer: "Viewer", accountant: "Accountant", admin: "Admin" },
   },
-  sys: {
+  core: {
     label: "Workspaces",
     description: "Workspaces, members and invitation links",
     menu: {

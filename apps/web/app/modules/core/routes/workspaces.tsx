@@ -69,14 +69,14 @@ export default function Workspaces({ loaderData }: Route.ComponentProps) {
   const columns: TableProps<Workspace>["columns"] = [
     { title: t("common.name"), dataIndex: "name" },
     { title: t("common.description"), dataIndex: "description" },
-    { title: t("sys.workspaces.owner"), render: (_, w) => w.owner?.name },
+    { title: t("core.workspaces.owner"), render: (_, w) => w.owner?.name },
     {
       title: t("common.type"),
       render: (_, w) =>
         w.personal ? (
-          <Tag>{t("sys.workspaces.personal")}</Tag>
+          <Tag>{t("core.workspaces.personal")}</Tag>
         ) : (
-          <Tag variant="filled">{t("sys.workspaces.shared")}</Tag>
+          <Tag variant="filled">{t("core.workspaces.shared")}</Tag>
         ),
     },
     {
@@ -98,7 +98,7 @@ export default function Workspaces({ loaderData }: Route.ComponentProps) {
             />
           </Tooltip>
           <Popconfirm
-            title={t("sys.workspaces.deleteConfirm")}
+            title={t("core.workspaces.deleteConfirm")}
             okText={t("common.delete")}
             cancelText={t("common.cancel")}
             disabled={w.personal}
@@ -119,7 +119,7 @@ export default function Workspaces({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page
-      title={t("sys.menu.workspaces")}
+      title={t("core.menu.workspaces")}
       actions={
         <>
           <Input.Search
@@ -134,7 +134,7 @@ export default function Workspaces({ loaderData }: Route.ComponentProps) {
             icon={<PlusOutlined />}
             onClick={() => setEditing("new")}
           >
-            {t("sys.workspaces.new")}
+            {t("core.workspaces.new")}
           </Button>
         </>
       }
@@ -154,8 +154,8 @@ export default function Workspaces({ loaderData }: Route.ComponentProps) {
         open={editing !== null}
         title={
           editing === "new" || editing === null
-            ? t("sys.workspaces.new")
-            : t("sys.workspaces.edit")
+            ? t("core.workspaces.new")
+            : t("core.workspaces.edit")
         }
         initialValues={
           editing && editing !== "new"

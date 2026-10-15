@@ -76,7 +76,7 @@ export const id: Translation = {
     core: { member: "Anggota", admin: "Admin" },
     fin: { viewer: "Peninjau", accountant: "Akuntan", admin: "Admin" },
   },
-  sys: {
+  core: {
     label: "Workspace",
     description: "Workspace, anggota, dan tautan undangan",
     menu: {

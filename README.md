@@ -40,7 +40,7 @@ omed/
 - `apps/api` handles identity, sessions, and is the source of truth for users, workspaces, and memberships.
 - Authorization in `apps/api` is **workspace based**: every user gets a personal workspace, can create more, and can invite other users. Roles are assigned per workspace membership, and a user can only access or read workspace resources when they are a member or owner of that workspace.
 - Modules in `apps/api` register their roles & permissions in code via `authz.AddRole` in `init()` (e.g. `fin:accountant` -> `fin:invoice read`). Permissions are verified per-request using an in-memory Casbin enforcer based on resolved workspace membership.
-- The dashboard is split into modules (`sys`, `fin`, `cms`), each under `apps/web/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
+- The dashboard is split into modules (`core`, `fin`, `cms`), each under `apps/web/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
 
 ## Tech Stack
 
