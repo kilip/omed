@@ -38,7 +38,7 @@ func TestEnforcer_Allowed(t *testing.T) {
 
 func TestEnforcer_GlobalWildcard(t *testing.T) {
 	reg := authz.NewRegistry()
-	require.NoError(t, reg.Add(authz.Role{Name: "fin:root", Permissions: []authz.Permission{{Object: "*", Action: "*"}}}))
+	require.NoError(t, reg.Add(authz.Role{ID: "fin:root", Permissions: []authz.Permission{{Object: "*", Action: "*"}}}))
 	enf, err := authz.NewEnforcer(reg)
 	require.NoError(t, err)
 	assert.True(t, enf.Allowed([]string{"fin:root"}, "anything:here", "whatever"))

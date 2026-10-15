@@ -8,7 +8,7 @@ const (
 	ObjAccount = "fin:account"
 )
 
-// Built-in fin roles assignable per workspace.
+// Built-in fin role IDs assignable per workspace.
 const (
 	// RoleViewer can view accounts and reports.
 	RoleViewer = "fin:viewer"
@@ -20,14 +20,16 @@ const (
 
 func init() {
 	authz.AddRole(authz.Role{
-		Name:        RoleViewer,
+		ID:          RoleViewer,
+		Name:        "Viewer",
 		Description: "View accounts, reports, and financial summaries",
 		Permissions: []authz.Permission{
 			{Object: ObjAccount, Action: "read"},
 		},
 	})
 	authz.AddRole(authz.Role{
-		Name:        RoleAccountant,
+		ID:          RoleAccountant,
+		Name:        "Accountant",
 		Description: "Manage accounts, journal entries, and transactions",
 		Inherits:    []string{RoleViewer},
 		Permissions: []authz.Permission{
@@ -36,7 +38,8 @@ func init() {
 		},
 	})
 	authz.AddRole(authz.Role{
-		Name:        RoleAdmin,
+		ID:          RoleAdmin,
+		Name:        "Admin",
 		Description: "Full administrative access to financial module",
 		Inherits:    []string{RoleAccountant},
 		Permissions: []authz.Permission{

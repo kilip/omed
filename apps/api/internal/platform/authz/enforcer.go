@@ -13,7 +13,7 @@ import (
 var modelConf string
 
 // Enforcer is an in-memory Casbin enforcer built from role definitions.
-// It evaluates role names (not users) against objects and actions.
+// It evaluates role IDs (not users) against objects and actions.
 type Enforcer struct {
 	e *casbin.Enforcer
 }
@@ -36,10 +36,10 @@ func NewEnforcer(reg *Registry) (*Enforcer, error) {
 	var policies, groupings [][]string
 	for _, role := range reg.Roles() {
 		for _, p := range role.Permissions {
-			policies = append(policies, []string{role.Name, p.Object, p.Action})
+			policies = append(policies, []string{role.ID, p.Object, p.Action})
 		}
 		for _, parent := range role.Inherits {
-			groupings = append(groupings, []string{role.Name, parent})
+			groupings = append(groupings, []string{role.ID, parent})
 		}
 	}
 	if len(policies) > 0 {

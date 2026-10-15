@@ -12,7 +12,7 @@ const (
 	ObjInvitation = "core:invitation"
 )
 
-// Built-in core roles assignable per workspace.
+// Built-in core role IDs assignable per workspace.
 const (
 	// RoleMember can view the workspace and its members.
 	RoleMember = "core:member"
@@ -22,7 +22,8 @@ const (
 
 func init() {
 	authz.AddRole(authz.Role{
-		Name:        RoleMember,
+		ID:          RoleMember,
+		Name:        "Member",
 		Description: "View the workspace and its members",
 		Permissions: []authz.Permission{
 			{Object: ObjWorkspace, Action: "read"},
@@ -30,7 +31,8 @@ func init() {
 		},
 	})
 	authz.AddRole(authz.Role{
-		Name:        RoleAdmin,
+		ID:          RoleAdmin,
+		Name:        "Admin",
 		Description: "Manage the workspace settings and its members",
 		Inherits:    []string{RoleMember},
 		Permissions: []authz.Permission{

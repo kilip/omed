@@ -5,7 +5,8 @@
 //
 //	func init() {
 //		authz.AddRole(authz.Role{
-//			Name:        "fin:accountant",
+//			ID:          "fin:accountant",
+//			Name:        "Accountant",
 //			Permissions: []authz.Permission{{Object: "fin:invoice", Action: "read"}},
 //		})
 //	}
@@ -27,9 +28,9 @@ import (
 const Wildcard = "*"
 
 var (
-	roleNamePattern = regexp.MustCompile(`^[a-z][a-z0-9]*:[a-z][a-z0-9_]*$`)
-	objectPattern   = regexp.MustCompile(`^[a-z][a-z0-9]*:([a-z][a-z0-9_]*|\*)$`)
-	actionPattern   = regexp.MustCompile(`^([a-z][a-z0-9_]*|\*)$`)
+	roleIDPattern = regexp.MustCompile(`^[a-z][a-z0-9]*:[a-z][a-z0-9_]*$`)
+	objectPattern = regexp.MustCompile(`^[a-z][a-z0-9]*:([a-z][a-z0-9_]*|\*)$`)
+	actionPattern = regexp.MustCompile(`^([a-z][a-z0-9_]*|\*)$`)
 )
 
 // Permission is a single (object, action) pair, e.g. {"fin:invoice", "read"}.
@@ -40,19 +41,24 @@ type Permission struct {
 
 // Role is a module-scoped role definition, e.g. "fin:accountant".
 type Role struct {
-	// Name is the fully qualified role name in the form "<module>:<role>".
+	// ID is the stable, fully qualified identifier in the form "<module>:<role>",
+	// e.g. "fin:accountant". It is what memberships and invitations store, what Inherits
+	// refers to, and what the enforcer evaluates, so it must never change once released.
+	ID string
+	// Name is the human readable display name shown in the UI, e.g. "Accountant".
+	// Unlike ID it is free text and may be reworded at any time.
 	Name string
 	// Description is a human readable description of the role.
 	Description string
 	// Permissions granted directly by this role.
 	Permissions []Permission
-	// Inherits lists other role names whose permissions are granted by this role.
+	// Inherits lists the IDs of other roles whose permissions are granted by this role.
 	Inherits []string
 }
 
-// Module returns the module prefix of the role name ("fin" for "fin:accountant").
+// Module returns the module prefix of the role ID ("fin" for "fin:accountant").
 func (r Role) Module() string {
-	mod, _, _ := strings.Cut(r.Name, ":")
+	mod, _, _ := strings.Cut(r.ID, ":")
 	return mod
 }
 
@@ -67,29 +73,29 @@ func NewRegistry() *Registry {
 	return &Registry{roles: map[string]Role{}}
 }
 
-// Add validates and registers a role. It returns an error on duplicate names or invalid format.
+// Add validates and registers a role. It returns an error on duplicate IDs or invalid format.
 func (r *Registry) Add(role Role) error {
 	if err := validateRole(role); err != nil {
 		return err
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if _, exists := r.roles[role.Name]; exists {
-		return fmt.Errorf("authz: role %q already registered", role.Name)
+	if _, exists := r.roles[role.ID]; exists {
+		return fmt.Errorf("authz: role %q already registered", role.ID)
 	}
-	r.roles[role.Name] = role
+	r.roles[role.ID] = role
 	return nil
 }
 
-// Has reports whether a role with the given name is registered.
-func (r *Registry) Has(name string) bool {
+// Has reports whether a role with the given ID is registered.
+func (r *Registry) Has(id string) bool {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	_, ok := r.roles[name]
+	_, ok := r.roles[id]
 	return ok
 }
 
-// Roles returns all registered roles sorted by name.
+// Roles returns all registered roles sorted by ID.
 func (r *Registry) Roles() []Role {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -97,7 +103,7 @@ func (r *Registry) Roles() []Role {
 	for _, role := range r.roles {
 		out = append(out, role)
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }
 
@@ -109,7 +115,7 @@ func (r *Registry) Validate() error {
 	for _, role := range r.roles {
 		for _, parent := range role.Inherits {
 			if _, ok := r.roles[parent]; !ok {
-				return fmt.Errorf("authz: role %q inherits unknown role %q", role.Name, parent)
+				return fmt.Errorf("authz: role %q inherits unknown role %q", role.ID, parent)
 			}
 		}
 	}
@@ -117,29 +123,29 @@ func (r *Registry) Validate() error {
 }
 
 func validateRole(role Role) error {
-	if !roleNamePattern.MatchString(role.Name) {
-		return fmt.Errorf("authz: invalid role name %q, expected <module>:<role>", role.Name)
+	if !roleIDPattern.MatchString(role.ID) {
+		return fmt.Errorf("authz: invalid role id %q, expected <module>:<role>", role.ID)
 	}
 	mod := role.Module()
 	for _, p := range role.Permissions {
 		if p.Object != Wildcard {
 			if !objectPattern.MatchString(p.Object) {
-				return fmt.Errorf("authz: role %q has invalid object %q", role.Name, p.Object)
+				return fmt.Errorf("authz: role %q has invalid object %q", role.ID, p.Object)
 			}
 			if objMod, _, _ := strings.Cut(p.Object, ":"); objMod != mod {
-				return fmt.Errorf("authz: role %q cannot grant object %q outside module %q", role.Name, p.Object, mod)
+				return fmt.Errorf("authz: role %q cannot grant object %q outside module %q", role.ID, p.Object, mod)
 			}
 		}
 		if !actionPattern.MatchString(p.Action) {
-			return fmt.Errorf("authz: role %q has invalid action %q", role.Name, p.Action)
+			return fmt.Errorf("authz: role %q has invalid action %q", role.ID, p.Action)
 		}
 	}
 	for _, parent := range role.Inherits {
-		if !roleNamePattern.MatchString(parent) {
-			return fmt.Errorf("authz: role %q inherits invalid role name %q", role.Name, parent)
+		if !roleIDPattern.MatchString(parent) {
+			return fmt.Errorf("authz: role %q inherits invalid role id %q", role.ID, parent)
 		}
-		if parent == role.Name {
-			return fmt.Errorf("authz: role %q cannot inherit itself", role.Name)
+		if parent == role.ID {
+			return fmt.Errorf("authz: role %q cannot inherit itself", role.ID)
 		}
 	}
 	return nil
@@ -155,12 +161,12 @@ func AddRole(role Role) {
 	}
 }
 
-// HasRole reports whether a role is registered in the default registry.
-func HasRole(name string) bool {
-	return defaultRegistry.Has(name)
+// HasRole reports whether a role ID is registered in the default registry.
+func HasRole(id string) bool {
+	return defaultRegistry.Has(id)
 }
 
-// Roles returns all roles registered in the default registry, sorted by name.
+// Roles returns all roles registered in the default registry, sorted by ID.
 func Roles() []Role {
 	return defaultRegistry.Roles()
 }
