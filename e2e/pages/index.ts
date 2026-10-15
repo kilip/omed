@@ -1,5 +1,7 @@
 import type { Page } from "playwright";
 import { HomePage } from "./core/home.page";
+import { InvitationsPage } from "./core/invitations.page";
+import { InvitePage } from "./core/invite.page";
 import { LoginPage } from "./core/login.page";
 
 /**
@@ -9,6 +11,8 @@ export const createPages = (page: Page) => ({
   core: {
     login: new LoginPage(page),
     home: new HomePage(page),
+    invitations: new InvitationsPage(page),
+    invite: new InvitePage(page),
   },
 });
 

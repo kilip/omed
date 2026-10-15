@@ -100,4 +100,7 @@ After(async function (this: OmedWorld, scenario) {
   if (this.user) {
     await testClient.deleteUser(this.user.id);
   }
+  if (this.recipientUser) {
+    await testClient.deleteUser(this.recipientUser.id);
+  }
 });

@@ -7,7 +7,7 @@ import {
 import type { BrowserContext, Page } from "playwright";
 import { createPages, type Pages } from "../pages";
 import { config } from "./config";
-import type { TestUser } from "./test-client";
+import type { TestUser, TestWorkspace } from "./test-client";
 
 setDefaultTimeout(30_000);
 
@@ -17,6 +17,9 @@ export class OmedWorld extends World {
   pages!: Pages;
   /** Set by the `@authenticated` hook. */
   user?: TestUser;
+  workspace?: TestWorkspace;
+  recipientUser?: TestUser;
+  invitationLink?: string;
 
   constructor(options: IWorldOptions) {
     super(options);

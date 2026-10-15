@@ -38,6 +38,22 @@ export interface PlaywrightCookie {
   sameSite?: "Strict" | "Lax" | "None";
 }
 
+export interface TestEmailAddress {
+  Name?: string;
+  Address?: string;
+}
+
+export interface TestEmailMessage {
+  From?: TestEmailAddress;
+  To?: TestEmailAddress[];
+  Cc?: TestEmailAddress[];
+  Bcc?: TestEmailAddress[];
+  Subject: string;
+  TextBody: string;
+  HTMLBody: string;
+  Headers?: Record<string, string>;
+}
+
 export class TestClient {
   private baseUrl: string;
 
@@ -131,6 +147,20 @@ export class TestClient {
 
   async reset(): Promise<void> {
     await this.request<void>("/test/reset", {
+      method: "POST",
+    });
+  }
+
+  async getSentEmails(): Promise<TestEmailMessage[]> {
+    return this.request<TestEmailMessage[]>("/test/mailer/messages");
+  }
+
+  async getLastEmail(): Promise<TestEmailMessage> {
+    return this.request<TestEmailMessage>("/test/mailer/last");
+  }
+
+  async resetEmails(): Promise<void> {
+    await this.request<void>("/test/mailer/reset", {
       method: "POST",
     });
   }
