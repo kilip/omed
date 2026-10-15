@@ -78,12 +78,12 @@ export const en = {
     label: "Workspaces",
     description: "Workspaces, members and invitation links",
     menu: {
-      overview: "Overview",
+      dashboard: "Dashboard",
       workspaces: "Workspaces",
       members: "Members",
       invitations: "Invitations",
     },
-    overview: {
+    dashboard: {
       workspaces: "Workspaces",
       members: "Members in this workspace",
       invitations: "Active invitations",
@@ -133,7 +133,7 @@ export const en = {
     label: "Finance",
     description: "Accounts, journal entries, ledger and trial balance",
     menu: {
-      overview: "Overview",
+      dashboard: "Dashboard",
       accounts: "Chart of accounts",
       journal: "Journal entries",
       ledger: "General ledger",

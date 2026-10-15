@@ -80,12 +80,12 @@ export const id: Translation = {
     label: "Workspace",
     description: "Workspace, anggota, dan tautan undangan",
     menu: {
-      overview: "Ringkasan",
+      dashboard: "Dashboard",
       workspaces: "Workspace",
       members: "Anggota",
       invitations: "Undangan",
     },
-    overview: {
+    dashboard: {
       workspaces: "Workspace",
       members: "Anggota di workspace ini",
       invitations: "Undangan aktif",
@@ -136,7 +136,7 @@ export const id: Translation = {
     label: "Keuangan",
     description: "Akun, jurnal umum, buku besar, dan neraca saldo",
     menu: {
-      overview: "Ringkasan",
+      dashboard: "Dashboard",
       accounts: "Bagan akun",
       journal: "Jurnal umum",
       ledger: "Buku besar",

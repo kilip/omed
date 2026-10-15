@@ -14,7 +14,7 @@ const moduleRoutes = import.meta.glob<{ default: RouteConfigEntry[] }>(
 
 export default [
   route("login", "routes/login.tsx"),
-  route("invite/:token", "routes/invite.tsx"),
+  route("invite/:token", "modules/core/routes/invite.tsx"),
   layout("routes/shell.tsx", [
     index("routes/launcher.tsx"),
     ...Object.values(moduleRoutes).flatMap((m) => m.default),

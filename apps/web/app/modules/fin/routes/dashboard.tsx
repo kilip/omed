@@ -70,7 +70,7 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
   ];
 
   return (
-    <Page title={t("fin.menu.overview")}>
+    <Page title={t("fin.menu.dashboard")}>
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
         <Panel extra={provisional}>
           <Statistic

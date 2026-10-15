@@ -11,7 +11,7 @@ import { requireWorkspaceId, type Workspace } from "~/lib/workspace";
 import { useRoles } from "../hooks/use-roles";
 import { invitationStatus } from "../lib";
 import { rolesQueryOptions } from "../queries";
-import type { Route } from "./+types/overview";
+import type { Route } from "./+types/dashboard";
 
 export async function clientLoader() {
   const wid = await requireWorkspaceId();
@@ -39,7 +39,7 @@ export async function clientLoader() {
   return { workspaces, members, invitations, permissions, wid };
 }
 
-export default function Overview({ loaderData }: Route.ComponentProps) {
+export default function CoreDashboard({ loaderData }: Route.ComponentProps) {
   const { workspaces, members, invitations, permissions, wid } = loaderData;
   const { label: roleName } = useRoles(wid);
   const { t, i18n } = useTranslation();
@@ -70,7 +70,7 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page
-      title={t("core.menu.overview")}
+      title={t("core.menu.dashboard")}
       actions={
         <Button
           type="primary"
@@ -84,25 +84,25 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
         <Panel>
           <Statistic
-            title={t("core.overview.workspaces")}
+            title={t("core.dashboard.workspaces")}
             value={workspaces.length}
           />
         </Panel>
         <Panel>
           <Statistic
-            title={t("core.overview.members")}
+            title={t("core.dashboard.members")}
             value={members.length}
           />
         </Panel>
         <Panel>
           <Statistic
-            title={t("core.overview.invitations")}
+            title={t("core.dashboard.invitations")}
             value={activeInvitations.length}
           />
         </Panel>
         <Panel>
           <Statistic
-            title={t("core.overview.roles")}
+            title={t("core.dashboard.roles")}
             value={permissions.roles?.length ?? 0}
           />
         </Panel>
@@ -111,7 +111,7 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
       <div className="flex flex-wrap items-start gap-3">
         <Panel
           strong
-          title={t("core.overview.yourWorkspaces")}
+          title={t("core.dashboard.yourWorkspaces")}
           className="flex-[2_1_520px]"
         >
           <Table
@@ -125,10 +125,10 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
         </Panel>
 
         <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-3">
-          <Panel strong title={t("core.overview.access")}>
+          <Panel strong title={t("core.dashboard.access")}>
             <div className="mb-2 flex flex-wrap gap-1">
               {permissions.owner ? (
-                <Tag color="success">{t("core.overview.owner")}</Tag>
+                <Tag color="success">{t("core.dashboard.owner")}</Tag>
               ) : null}
               {(permissions.roles ?? []).map((role) => (
                 <Tag key={role}>{roleName(role)}</Tag>

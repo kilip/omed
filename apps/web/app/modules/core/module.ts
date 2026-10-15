@@ -14,9 +14,9 @@ export default defineModule({
   order: 10,
   menu: [
     {
-      key: "overview",
+      key: "dashboard",
       path: "",
-      labelKey: "core.menu.overview",
+      labelKey: "core.menu.dashboard",
       icon: DashboardOutlined,
     },
     {
