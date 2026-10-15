@@ -1,15 +1,12 @@
 import type { Page } from "playwright";
-import { HomePage } from "./dashboard/home.page";
-import { LoginPage } from "./dashboard/login.page";
+import { HomePage } from "./core/home.page";
+import { LoginPage } from "./core/login.page";
 
 /**
- * Page objects grouped by area. `dashboard` is the shell itself (login and the
- * launcher, `apps/web/app/routes`), which is not a module. Business modules
- * (`apps/web/app/modules/<module>`) get a group of their own: add `core`,
- * `user`, `fin` or `cms` next to it as they get covered.
+ * Page objects grouped by module: `core`, `fin`, etc.
  */
 export const createPages = (page: Page) => ({
-  dashboard: {
+  core: {
     login: new LoginPage(page),
     home: new HomePage(page),
   },

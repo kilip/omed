@@ -141,7 +141,7 @@ e2e/
 └── support/             # World, hooks, config, server runner, test client
 ```
 
-- Group names match the dashboard modules (`core`, `fin`, `cms`). `dashboard` is the one extra group: it covers the shell itself (login, homepage, invitations), which lives in `apps/web/app/routes` and is not a module.
+- Group names match the modules (`core`, `fin`, `cms`). `core` covers the shell itself (login, homepage, invitations) and workspace administration.
 - Use the Page Object Model: locators and `expect*` checks live in `pages/{module}/*.page.ts`; steps only call page objects through `this.pages.{module}`. Do not put selectors in steps.
 - Put a step in `steps/common/` only when more than one module uses it.
 - Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the API test endpoints (`support/test-client.ts`), and removes the user afterwards.
