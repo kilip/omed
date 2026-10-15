@@ -123,15 +123,6 @@ export const en = {
       maxUsesHint: "Leave empty or 0 for no limit.",
     },
   },
-  user: {
-    label: "Users",
-    description: "All accounts in the system",
-    menu: { users: "Users" },
-    new: "New user",
-    edit: "Edit user",
-    avatar: "Avatar URL",
-    deleteConfirm: "Delete this user?",
-  },
   fin: {
     label: "Finance",
     description: "Accounts, journal entries, ledger and trial balance",

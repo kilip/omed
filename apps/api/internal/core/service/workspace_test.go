@@ -17,6 +17,8 @@ import (
 
 //go:generate go run go.uber.org/mock/mockgen -source workspace.go -destination mock/mock_workspace.go -package mock
 
+const callerID int64 = 10
+
 type WorkspaceSuite struct {
 	suite.Suite
 	mockRepo *mock.MockWorkspaceRepository
@@ -29,7 +31,8 @@ func (s *WorkspaceSuite) SetupTest() {
 	s.mockRepo = mock.NewMockWorkspaceRepository(ctl)
 	s.service = service.NewWorkspaceService(s.mockRepo)
 	s.ctx = context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
-		Roles: []base.UserRole{base.UserRoleAdmin},
+		ID:    callerID,
+		Roles: []base.UserRole{base.UserRoleUser},
 	})
 }
 
@@ -83,7 +86,9 @@ func (s *WorkspaceSuite) Test_Search_Success() {
 	}
 	nextCursor := "cursor-123"
 
-	s.mockRepo.EXPECT().Search(ctx, req).Return(expectedWorkspaces, nextCursor, nil)
+	scoped := req
+	scoped.MemberID = callerID
+	s.mockRepo.EXPECT().Search(ctx, scoped).Return(expectedWorkspaces, nextCursor, nil)
 
 	workspaces, cursor, err := s.service.Search(ctx, req)
 	s.NoError(err)
@@ -97,7 +102,9 @@ func (s *WorkspaceSuite) Test_Search_Error() {
 		Name: "NonExistent",
 	}
 
-	s.mockRepo.EXPECT().Search(ctx, req).Return(nil, "", errors.New("database query error"))
+	scoped := req
+	scoped.MemberID = callerID
+	s.mockRepo.EXPECT().Search(ctx, scoped).Return(nil, "", errors.New("database query error"))
 
 	workspaces, cursor, err := s.service.Search(ctx, req)
 	s.Error(err)
@@ -120,11 +127,29 @@ func (s *WorkspaceSuite) Test_Create_Success() {
 		UpdatedAt:   time.Now(),
 	}
 
-	s.mockRepo.EXPECT().Create(ctx, req).Return(expected, nil)
+	owned := req
+	owned.OwnerID = callerID
+	s.mockRepo.EXPECT().Create(ctx, owned).Return(expected, nil)
 
 	actual, err := s.service.Create(ctx, req)
 	s.NoError(err)
 	s.Equal(expected, actual)
+}
+
+func (s *WorkspaceSuite) Test_Create_AssignsCallerAsOwner() {
+	ctx := s.ctx
+	req := model.CreateWorkspaceRequest{
+		Name:    "Owned By Caller",
+		OwnerID: 99,
+	}
+	owned := req
+	owned.OwnerID = callerID
+
+	s.mockRepo.EXPECT().Create(ctx, owned).Return(domain.Workspace{ID: 3, OwnerID: callerID}, nil)
+
+	actual, err := s.service.Create(ctx, req)
+	s.NoError(err)
+	s.Equal(callerID, actual.OwnerID)
 }
 
 func (s *WorkspaceSuite) Test_Create_Error() {
@@ -133,7 +158,9 @@ func (s *WorkspaceSuite) Test_Create_Error() {
 		Name: "New Workspace",
 	}
 
-	s.mockRepo.EXPECT().Create(ctx, req).Return(domain.Workspace{}, errors.New("cannot create workspace"))
+	owned := req
+	owned.OwnerID = callerID
+	s.mockRepo.EXPECT().Create(ctx, owned).Return(domain.Workspace{}, errors.New("cannot create workspace"))
 
 	actual, err := s.service.Create(ctx, req)
 	s.Error(err)

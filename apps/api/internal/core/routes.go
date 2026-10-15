@@ -17,15 +17,6 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	auth.Get("/get-session", ctlA.GetSession)
 	auth.Post("/sign-out", ctlA.SignOut)
 
-	// Users management endpoints.
-	users := r.Group("/users")
-	ctlU := controller.NewUserController(mod.UserService)
-	users.Get("/:id", ctlU.GetByID)
-	users.Post("/search", ctlU.Search)
-	users.Post("/", ctlU.Create)
-	users.Put("/:id", ctlU.Update)
-	users.Delete("/:id", ctlU.Delete)
-
 	workspaces := r.Group("/workspaces")
 	ctlW := controller.NewWorkspaceController(mod.WorkspaceService)
 	ctlM := controller.NewMemberController(mod.MemberService, az)

@@ -51,7 +51,7 @@ func (s *MutatorSuite) SetupTest() {
 		ID:            u.ID,
 		Name:          u.Name,
 		EmailVerified: true,
-		Roles:         []base.UserRole{base.UserRoleAdmin},
+		Roles:         []base.UserRole{base.UserRoleUser},
 	})
 }
 

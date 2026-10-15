@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
-	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/testutil"
@@ -84,7 +83,7 @@ func (s *MemberSuite) Test_UpdateRoles_Successfully() {
 	s.AddMember(ws.ID, alice.ID, "core:member")
 
 	// Switch back to owner
-	s.AsUser("test@example.com", "Test User", base.UserRoleAdmin)
+	s.AsUser("test@example.com", "Test User")
 
 	s.Request(fmt.Sprintf("/workspaces/%d/members/%d", ws.ID, alice.ID), fiber.MethodPut, model.UpdateMemberRequest{
 		Roles: []string{"core:admin"},
@@ -110,7 +109,7 @@ func (s *MemberSuite) Test_DeleteMember_Successfully() {
 	alice := s.AsUser("alice@example.com", "Alice")
 	s.AddMember(ws.ID, alice.ID, "core:member")
 
-	s.AsUser("test@example.com", "Test User", base.UserRoleAdmin)
+	s.AsUser("test@example.com", "Test User")
 
 	s.Request(fmt.Sprintf("/workspaces/%d/members/%d", ws.ID, alice.ID), fiber.MethodDelete, nil)
 	s.OK()
@@ -122,7 +121,7 @@ func (s *MemberSuite) Test_SearchMembers_Successfully() {
 	alice := s.AsUser("alice@example.com", "Alice")
 	s.AddMember(ws.ID, alice.ID, "core:member")
 
-	s.AsUser("test@example.com", "Test User", base.UserRoleAdmin)
+	s.AsUser("test@example.com", "Test User")
 
 	s.Request(fmt.Sprintf("/workspaces/%d/members/search", ws.ID), fiber.MethodPost, model.SearchMemberRequest{})
 	s.OK()
@@ -170,16 +169,6 @@ func (s *MemberSuite) Test_NonMember_Gets404() {
 	s.AssertStatus(fiber.StatusNotFound)
 
 	s.Request(fmt.Sprintf("/workspaces/%d/permissions", ws.ID), fiber.MethodGet, nil)
-	s.AssertStatus(fiber.StatusNotFound)
-}
-
-func (s *MemberSuite) Test_Superadmin_NonMember_Gets404() {
-	ws := s.ensureWorkspace("Acme Corp", s.User.ID)
-
-	// Superadmin who is not member or owner of Acme Corp
-	s.AsUser("admin@example.com", "Global Admin", base.UserRoleAdmin)
-
-	s.Request(fmt.Sprintf("/workspaces/%d", ws.ID), fiber.MethodGet, nil)
 	s.AssertStatus(fiber.StatusNotFound)
 }
 

@@ -11,8 +11,6 @@ const USER_CONTEXT_KEY = "user"
 type UserRole string
 
 const (
-	// UserRoleAdmin represents a super administrator role with elevated system privileges.
-	UserRoleAdmin UserRole = "superadmin"
 	// UserRoleUser represents a standard authenticated user.
 	UserRoleUser UserRole = "user"
 )

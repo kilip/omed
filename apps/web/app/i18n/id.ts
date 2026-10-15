@@ -126,15 +126,6 @@ export const id: Translation = {
       maxUsesHint: "Kosongkan atau isi 0 untuk tanpa batas.",
     },
   },
-  user: {
-    label: "Pengguna",
-    description: "Semua akun di sistem",
-    menu: { users: "Pengguna" },
-    new: "Pengguna baru",
-    edit: "Ubah pengguna",
-    avatar: "URL avatar",
-    deleteConfirm: "Hapus pengguna ini?",
-  },
   fin: {
     label: "Keuangan",
     description: "Akun, jurnal umum, buku besar, dan neraca saldo",

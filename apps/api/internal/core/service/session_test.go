@@ -28,7 +28,7 @@ func (s *SessionServiceSuite) SetupSuite() {
 	s.sessionRepo = repository.NewSessionRepository(s.client)
 	s.userRepo = repository.NewUserRepository(s.client)
 	s.svc = service.NewSessionService(s.sessionRepo, s.userRepo, 24*time.Hour)
-	s.ctx = testutil.NewAdminContext()
+	s.ctx = testutil.NewUserContext()
 }
 
 func (s *SessionServiceSuite) TearDownSuite() {

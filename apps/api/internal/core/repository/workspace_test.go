@@ -24,7 +24,7 @@ type WorkspaceRepoSuite struct {
 func (s *WorkspaceRepoSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:workspace_repo_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
 	s.repo = repository.NewWorkspaceRepository(s.client)
-	s.ctx = testutil.NewAdminContext()
+	s.ctx = testutil.NewUserContext()
 }
 
 func (s *WorkspaceRepoSuite) TearDownSuite() {
@@ -43,7 +43,7 @@ func (s *WorkspaceRepoSuite) SetupTest() {
 		ID:            admin.ID,
 		Name:          admin.Name,
 		EmailVerified: true,
-		Roles:         []base.UserRole{base.UserRoleAdmin},
+		Roles:         []base.UserRole{base.UserRoleUser},
 	})
 }
 

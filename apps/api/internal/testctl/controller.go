@@ -50,12 +50,12 @@ func (ctl Controller) RegisterRoutes(r fiber.Router) {
 	test.Post("/coverage/flush", ctl.FlushCoverage)
 }
 
-func adminCtx(ctx context.Context) context.Context {
+func harnessCtx(ctx context.Context) context.Context {
 	return context.WithValue(ctx, base.USER_CONTEXT_KEY, base.UserContext{
 		ID:            1,
-		Name:          "Test Harness Admin",
+		Name:          "Test Harness",
 		EmailVerified: true,
-		Roles:         []base.UserRole{base.UserRoleAdmin},
+		Roles:         []base.UserRole{base.UserRoleUser},
 	})
 }
 
@@ -85,7 +85,7 @@ func (ctl Controller) EnsureUser(c fiber.Ctx) error {
 		req.Name = "Test User"
 	}
 
-	ctx := adminCtx(c.Context())
+	ctx := harnessCtx(c.Context())
 
 	b := ctl.client.User.Create().
 		SetName(req.Name).
@@ -134,7 +134,7 @@ func (ctl Controller) CreateSession(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "userId must be positive")
 	}
 
-	ctx := adminCtx(c.Context())
+	ctx := harnessCtx(c.Context())
 
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
@@ -194,7 +194,7 @@ func (ctl Controller) CreateWorkspace(c fiber.Ctx) error {
 		req.Name = "Test Workspace"
 	}
 
-	ctx := adminCtx(c.Context())
+	ctx := harnessCtx(c.Context())
 
 	w, err := ctl.client.Workspace.Create().
 		SetName(req.Name).
@@ -242,7 +242,7 @@ func (ctl Controller) AddMember(c fiber.Ctx) error {
 		req.Roles = []string{"member"}
 	}
 
-	ctx := adminCtx(c.Context())
+	ctx := harnessCtx(c.Context())
 
 	err := ctl.client.WorkspaceMember.Create().
 		SetWorkspaceID(req.WorkspaceID).
@@ -268,7 +268,7 @@ func (ctl Controller) DeleteUser(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "invalid user id")
 	}
 
-	ctx := adminCtx(c.Context())
+	ctx := harnessCtx(c.Context())
 
 	_, _ = ctl.client.Session.Delete().Where(session.UserID(id)).Exec(ctx)
 	_, _ = ctl.client.WorkspaceMember.Delete().Where(workspacemember.UserID(id)).Exec(ctx)
@@ -280,7 +280,7 @@ func (ctl Controller) DeleteUser(c fiber.Ctx) error {
 
 // Reset cleans up all test users and associated test data.
 func (ctl Controller) Reset(c fiber.Ctx) error {
-	ctx := adminCtx(c.Context())
+	ctx := harnessCtx(c.Context())
 
 	testUsers, err := ctl.client.User.Query().
 		Where(user.EmailHasSuffix("@omed.test")).

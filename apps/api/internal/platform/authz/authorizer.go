@@ -131,18 +131,3 @@ func (a *Authorizer) allowed(m Membership, obj, act string) bool {
 	}
 	return a.enforcer.Allowed(m.Roles, obj, act)
 }
-
-// RequireGlobal requires the authenticated user to hold a global role from the JWT,
-// such as base.UserRoleAdmin. It does not grant any workspace access.
-func RequireGlobal(role base.UserRole) fiber.Handler {
-	return func(c fiber.Ctx) error {
-		user := base.UserFromContext(c)
-		if user.ID == 0 {
-			return base.ErrUnauthorized
-		}
-		if !user.HasRole(role) {
-			return base.ErrForbidden
-		}
-		return c.Next()
-	}
-}

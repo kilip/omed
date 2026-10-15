@@ -156,23 +156,6 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
-            "httpx.WebResponse-array_model_UserResponse": {
-                "properties": {
-                    "data": {
-                        "description": "Data contains the response payload.",
-                        "items": {
-                            "$ref": "#/components/schemas/model.UserResponse"
-                        },
-                        "type": "array",
-                        "uniqueItems": false
-                    },
-                    "meta": {
-                        "$ref": "#/components/schemas/httpx.Meta",
-                        "description": "Meta contains request metadata such as request ID and timestamps."
-                    }
-                },
-                "type": "object"
-            },
             "httpx.WebResponse-array_model_WorkspaceResponse": {
                 "properties": {
                     "data": {
@@ -259,19 +242,6 @@ const docTemplate = `{
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.PublicInvitationResponse",
-                        "description": "Data contains the response payload."
-                    },
-                    "meta": {
-                        "$ref": "#/components/schemas/httpx.Meta",
-                        "description": "Meta contains request metadata such as request ID and timestamps."
-                    }
-                },
-                "type": "object"
-            },
-            "httpx.WebResponse-model_UserResponse": {
-                "properties": {
-                    "data": {
-                        "$ref": "#/components/schemas/model.UserResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -400,24 +370,6 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
-            "model.CreateUserRequest": {
-                "properties": {
-                    "avatar": {
-                        "type": "string"
-                    },
-                    "email": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "email",
-                    "name"
-                ],
-                "type": "object"
-            },
             "model.CreateWorkspaceRequest": {
                 "properties": {
                     "description": {
@@ -425,10 +377,6 @@ const docTemplate = `{
                     },
                     "name": {
                         "type": "string"
-                    },
-                    "ownerId": {
-                        "description": "OwnerID is honored only for superadmin callers; otherwise the caller becomes the owner.",
-                        "type": "integer"
                     }
                 },
                 "required": [
@@ -614,22 +562,6 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
-            "model.SearchRequest": {
-                "properties": {
-                    "cursor": {
-                        "type": "string"
-                    },
-                    "limit": {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "model.SearchWorkspaceRequest": {
                 "properties": {
                     "cursor": {
@@ -766,20 +698,6 @@ const docTemplate = `{
                 },
                 "required": [
                     "roles"
-                ],
-                "type": "object"
-            },
-            "model.UpdateUserRequest": {
-                "properties": {
-                    "avatar": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "name"
                 ],
                 "type": "object"
             },
@@ -1221,364 +1139,6 @@ const docTemplate = `{
                 "summary": "Accept workspace invitation",
                 "tags": [
                     "Workspace Invitations"
-                ]
-            }
-        },
-        "/users": {
-            "post": {
-                "description": "Create a new user",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/model.CreateUserRequest",
-                                "summary": "request",
-                                "description": "User creation payload"
-                            }
-                        }
-                    },
-                    "description": "User creation payload",
-                    "required": true
-                },
-                "responses": {
-                    "201": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.WebResponse-model_UserResponse"
-                                }
-                            }
-                        },
-                        "description": "Created"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "422": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Unprocessable Entity"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Create user",
-                "tags": [
-                    "Users"
-                ]
-            }
-        },
-        "/users/search": {
-            "post": {
-                "description": "Search users matching filter criteria with pagination cursor",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/model.SearchRequest",
-                                "summary": "request",
-                                "description": "Search filter criteria"
-                            }
-                        }
-                    },
-                    "description": "Search filter criteria",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_UserResponse"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "422": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Unprocessable Entity"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Search users",
-                "tags": [
-                    "Users"
-                ]
-            }
-        },
-        "/users/{id}": {
-            "delete": {
-                "description": "Delete a user by ID",
-                "parameters": [
-                    {
-                        "description": "User ID",
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Not Found"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Delete user",
-                "tags": [
-                    "Users"
-                ]
-            },
-            "get": {
-                "description": "Retrieve user detail by ID",
-                "parameters": [
-                    {
-                        "description": "User ID",
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.WebResponse-model_UserResponse"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Not Found"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Get user by ID",
-                "tags": [
-                    "Users"
-                ]
-            },
-            "put": {
-                "description": "Update an existing user by ID",
-                "parameters": [
-                    {
-                        "description": "User ID",
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/model.UpdateUserRequest",
-                                "summary": "request",
-                                "description": "User update payload"
-                            }
-                        }
-                    },
-                    "description": "User update payload",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.WebResponse-model_UserResponse"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Not Found"
-                    },
-                    "422": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Unprocessable Entity"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Update user",
-                "tags": [
-                    "Users"
                 ]
             }
         },

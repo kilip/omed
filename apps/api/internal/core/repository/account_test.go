@@ -23,7 +23,7 @@ type AccountRepoSuite struct {
 func (s *AccountRepoSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:account_repo_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
 	s.repo = repository.NewAccountRepository(s.client)
-	s.ctx = testutil.NewAdminContext()
+	s.ctx = testutil.NewUserContext()
 }
 
 func (s *AccountRepoSuite) TearDownSuite() {
