@@ -1,4 +1,4 @@
-import { Checkbox, Tag } from "antd";
+import { Radio, Tag } from "antd";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Panel } from "~/components/Panel";
@@ -19,6 +19,11 @@ export function RoleSelector({
 }: RoleSelectorProps) {
   const { t } = useTranslation();
 
+  const getModule = (roleId: string) => {
+    const role = roles.find((r) => r.id === roleId);
+    return role?.module || roleId.split(":")[0] || "core";
+  };
+
   const grouped = useMemo(() => {
     const map = new Map<string, Role[]>();
     for (const r of roles) {
@@ -35,12 +40,11 @@ export function RoleSelector({
     }));
   }, [roles, t]);
 
-  const toggle = (id: string) => {
-    if (disabled) return;
-    const next = value.includes(id)
-      ? value.filter((v) => v !== id)
-      : [...value, id];
-    onChange?.(next);
+  const select = (id: string) => {
+    if (disabled || value.includes(id)) return;
+    const mod = getModule(id);
+    const withoutModule = value.filter((v) => getModule(v) !== mod);
+    onChange?.([...withoutModule, id]);
   };
 
   return (
@@ -84,11 +88,11 @@ export function RoleSelector({
                       background: checked ? "var(--omed-tint)" : "transparent",
                     }}
                   >
-                    <Checkbox
+                    <Radio
                       checked={checked}
                       disabled={disabled}
                       className="w-full !flex !items-start"
-                      onChange={() => toggle(roleId)}
+                      onChange={() => select(roleId)}
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -106,7 +110,7 @@ export function RoleSelector({
                           </div>
                         ) : null}
                       </div>
-                    </Checkbox>
+                    </Radio>
                   </div>
                 );
               })}
