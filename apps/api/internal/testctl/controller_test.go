@@ -2,6 +2,7 @@ package testctl_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/platform/mailx"
 	"github.com/kilip/omed/api/internal/testctl"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
@@ -18,17 +20,23 @@ import (
 type TestControllerSuite struct {
 	suite.Suite
 	client *ent.Client
+	mailer mailx.Mailer
 	app    *fiber.App
 }
 
 func (s *TestControllerSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:testctl_test?mode=memory&cache=shared&_fk=1")
+	mailer, err := mailx.New(mailx.Config{Driver: "memory"})
+	s.Require().NoError(err)
+	s.mailer = mailer
+
 	s.app = fiber.New()
-	ctl := testctl.NewController(s.client, "token")
+	ctl := testctl.NewController(s.client, s.mailer, "token")
 	ctl.RegisterRoutes(s.app)
 }
 
 func (s *TestControllerSuite) TearDownSuite() {
+	_ = s.mailer.Close()
 	_ = s.client.Close()
 }
 
@@ -124,6 +132,68 @@ func (s *TestControllerSuite) TestLifecycle() {
 	resp, err = s.app.Test(flushReq)
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
+}
+
+func (s *TestControllerSuite) TestMailerEndpoints() {
+	// 1. Initially empty
+	req := httptest.NewRequest(http.MethodGet, "/test/mailer/messages", nil)
+	resp, err := s.app.Test(req)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	var msgs []mailx.Message
+	_ = json.NewDecoder(resp.Body).Decode(&msgs)
+	s.Require().Empty(msgs)
+
+	// Last message 404
+	req = httptest.NewRequest(http.MethodGet, "/test/mailer/last", nil)
+	resp, err = s.app.Test(req)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusNotFound, resp.StatusCode)
+
+	// 2. Dispatch a message
+	err = s.mailer.Send(context.Background(), mailx.Message{
+		To:       []mailx.Address{{Address: "test@example.com"}},
+		Subject:  "Test Subject",
+		TextBody: "Hello Test",
+	})
+	s.Require().NoError(err)
+
+	// 3. Verify messages
+	req = httptest.NewRequest(http.MethodGet, "/test/mailer/messages", nil)
+	resp, err = s.app.Test(req)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	_ = json.NewDecoder(resp.Body).Decode(&msgs)
+	s.Require().Len(msgs, 1)
+	s.Require().Equal("Test Subject", msgs[0].Subject)
+
+	// 4. Verify last
+	req = httptest.NewRequest(http.MethodGet, "/test/mailer/last", nil)
+	resp, err = s.app.Test(req)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	var lastMsg mailx.Message
+	_ = json.NewDecoder(resp.Body).Decode(&lastMsg)
+	s.Require().Equal("Test Subject", lastMsg.Subject)
+
+	// 5. Reset mailer
+	req = httptest.NewRequest(http.MethodPost, "/test/mailer/reset", nil)
+	resp, err = s.app.Test(req)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	// 6. Verify empty again
+	req = httptest.NewRequest(http.MethodGet, "/test/mailer/messages", nil)
+	resp, err = s.app.Test(req)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	msgs = nil
+	_ = json.NewDecoder(resp.Body).Decode(&msgs)
+	s.Require().Empty(msgs)
 }
 
 func TestController(t *testing.T) {

@@ -18,22 +18,25 @@ import (
 	"github.com/kilip/omed/api/ent/workspace"
 	"github.com/kilip/omed/api/ent/workspacemember"
 	"github.com/kilip/omed/api/internal/base"
+	"github.com/kilip/omed/api/internal/platform/mailx"
 )
 
 // Controller handles development and test-only helper endpoints.
 type Controller struct {
 	client     *ent.Client
+	mailer     mailx.Mailer
 	cookieName string
 }
 
 // NewController creates a new test Controller instance.
-func NewController(client *ent.Client, cookieName ...string) Controller {
+func NewController(client *ent.Client, mailer mailx.Mailer, cookieName ...string) Controller {
 	cn := "token"
 	if len(cookieName) > 0 && cookieName[0] != "" {
 		cn = cookieName[0]
 	}
 	return Controller{
 		client:     client,
+		mailer:     mailer,
 		cookieName: cn,
 	}
 }
@@ -48,6 +51,10 @@ func (ctl Controller) RegisterRoutes(r fiber.Router) {
 	test.Delete("/users/:id", ctl.DeleteUser)
 	test.Post("/reset", ctl.Reset)
 	test.Post("/coverage/flush", ctl.FlushCoverage)
+
+	test.Get("/mailer/messages", ctl.GetMailerMessages)
+	test.Get("/mailer/last", ctl.GetMailerLastMessage)
+	test.Post("/mailer/reset", ctl.ResetMailer)
 }
 
 func harnessCtx(ctx context.Context) context.Context {
@@ -296,6 +303,10 @@ func (ctl Controller) Reset(c fiber.Ctx) error {
 		_, _ = ctl.client.User.Delete().Where(user.ID(u.ID)).Exec(ctx)
 	}
 
+	if md := ctl.getMemoryDriver(); md != nil {
+		md.Reset()
+	}
+
 	return c.JSON(fiber.Map{"success": true, "deletedCount": len(testUsers)})
 }
 
@@ -307,4 +318,46 @@ func (ctl Controller) FlushCoverage(c fiber.Ctx) error {
 		_ = coverage.WriteCountersDir(dir)
 	}
 	return c.JSON(fiber.Map{"success": true, "dir": dir})
+}
+
+func (ctl Controller) getMemoryDriver() *mailx.MemoryDriver {
+	if ctl.mailer == nil {
+		return nil
+	}
+	md, _ := ctl.mailer.Driver().(*mailx.MemoryDriver)
+	return md
+}
+
+// GetMailerMessages returns all messages dispatched through the in-memory driver.
+func (ctl Controller) GetMailerMessages(c fiber.Ctx) error {
+	md := ctl.getMemoryDriver()
+	if md == nil {
+		return c.JSON([]mailx.Message{})
+	}
+	msgs := md.SentMessages()
+	if msgs == nil {
+		msgs = []mailx.Message{}
+	}
+	return c.JSON(msgs)
+}
+
+// GetMailerLastMessage returns the most recently dispatched message.
+func (ctl Controller) GetMailerLastMessage(c fiber.Ctx) error {
+	md := ctl.getMemoryDriver()
+	if md == nil {
+		return fiber.NewError(fiber.StatusNotFound, "no messages found")
+	}
+	msg := md.LastMessage()
+	if msg == nil {
+		return fiber.NewError(fiber.StatusNotFound, "no messages found")
+	}
+	return c.JSON(msg)
+}
+
+// ResetMailer clears all messages recorded in the in-memory driver.
+func (ctl Controller) ResetMailer(c fiber.Ctx) error {
+	if md := ctl.getMemoryDriver(); md != nil {
+		md.Reset()
+	}
+	return c.JSON(fiber.Map{"success": true})
 }

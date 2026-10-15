@@ -121,7 +121,7 @@ func (a *Omed) Boot() error {
 	}
 
 	if a.state.Config.IsTestRoutesEnabled() && a.state.EntCli != nil {
-		ctl := testctl.NewController(a.state.EntCli, a.state.Config.SessionCookieName)
+		ctl := testctl.NewController(a.state.EntCli, a.state.Mailer, a.state.Config.SessionCookieName)
 		ctl.RegisterRoutes(a.state.FiberApp)
 	}
 
