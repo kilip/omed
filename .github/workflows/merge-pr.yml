@@ -1,0 +1,105 @@
+name: merge-pr
+on:
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: rebase-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: >
+      github.event.review.state == 'approved' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.verify.outputs.allowed }}
+      sha: ${{ steps.verify.outputs.sha }}
+    steps:
+      - id: verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEWER: ${{ github.event.review.user.login }}
+          REVIEW_SHA: ${{ github.event.review.commit_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          allowed=false
+
+          perm=$(gh api "repos/${{ github.repository }}/collaborators/$REVIEWER/permission" --jq '.permission')
+          head_sha=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER" --jq '.head.sha')
+          echo "Reviewer $REVIEWER permission: $perm"
+          echo "Approved SHA: $REVIEW_SHA | Current head: $head_sha"
+
+          if [[ "$perm" != "admin" && "$perm" != "write" ]]; then
+            echo "Skip: reviewer bukan maintainer."
+          elif [[ "$head_sha" != "$REVIEW_SHA" ]]; then
+            echo "Skip: ada commit baru setelah approval (stale), butuh approve ulang."
+          else
+            allowed=true
+          fi
+
+          echo "allowed=$allowed" >> "$GITHUB_OUTPUT"
+          echo "sha=$REVIEW_SHA" >> "$GITHUB_OUTPUT"
+
+  rebase:
+    needs: check
+    if: needs.check.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v3
+        id: app
+        with:
+          client-id: ${{ secrets.ASPRI_CLIENT_ID }}
+          private-key: ${{ secrets.ASPRI_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+
+      - name: Setup SSH commit signing
+        env:
+          SIGNING_KEY: ${{ secrets.ASPRI_SIGN_KEY }}
+          SIGN_NAME: ${{ vars.SIGN_NAME }}
+          SIGN_EMAIL: ${{ vars.SIGN_EMAIL }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SIGNING_KEY" > ~/.ssh/signing_key
+          chmod 600 ~/.ssh/signing_key
+          git config --global gpg.format ssh
+          git config --global user.signingkey ~/.ssh/signing_key
+          git config --global commit.gpgsign true
+          git config --global user.name "$SIGN_NAME"
+          git config --global user.email "$SIGN_EMAIL"
+
+      - name: Rebase and ff-merge
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          APPROVED_SHA: ${{ needs.check.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gh pr checkout "$PR_NUMBER"
+
+          if [[ "$(git rev-parse HEAD)" != "$APPROVED_SHA" ]]; then
+            echo "HEAD PR berubah setelah approval, batal."
+            exit 1
+          fi
+
+          git rebase origin/main
+          git push --force-with-lease
+          git checkout main
+          git merge --ff-only -
+          git push origin main
+
+      - name: Cleanup signing key
+        if: always()
+        run: rm -f ~/.ssh/signing_key
