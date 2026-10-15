@@ -21,6 +21,7 @@ jobs:
     outputs:
       allowed: ${{ steps.verify.outputs.allowed }}
       sha: ${{ steps.verify.outputs.sha }}
+      head_ref: ${{ steps.verify.outputs.head_ref }}
     steps:
       - id: verify
         env:
@@ -38,6 +39,7 @@ jobs:
             echo "Skip: commenter bukan maintainer."
             echo "allowed=false" >> "$GITHUB_OUTPUT"
             echo "sha=" >> "$GITHUB_OUTPUT"
+            echo "head_ref=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -47,8 +49,9 @@ jobs:
           is_draft=$(echo "$pr_json" | jq -r '.draft')
           head_repo=$(echo "$pr_json" | jq -r '.head.repo.full_name')
           head_sha=$(echo "$pr_json" | jq -r '.head.sha')
+          head_ref=$(echo "$pr_json" | jq -r '.head.ref')
 
-          echo "PR #$PR_NUMBER state: $pr_state | base: $base_ref | draft: $is_draft | repo: $head_repo | head: $head_sha"
+          echo "PR #$PR_NUMBER state: $pr_state | base: $base_ref | draft: $is_draft | repo: $head_repo | head: $head_sha | branch: $head_ref"
 
           if [[ "$pr_state" != "open" ]]; then
             echo "Skip: PR tidak dalam status open."
@@ -64,6 +67,7 @@ jobs:
 
           echo "allowed=$allowed" >> "$GITHUB_OUTPUT"
           echo "sha=$head_sha" >> "$GITHUB_OUTPUT"
+          echo "head_ref=$head_ref" >> "$GITHUB_OUTPUT"
 
   rebase:
     needs: check
@@ -102,6 +106,7 @@ jobs:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           PR_NUMBER: ${{ github.event.issue.number }}
           TARGET_SHA: ${{ needs.check.outputs.sha }}
+          HEAD_REF: ${{ needs.check.outputs.head_ref }}
         run: |
           set -euo pipefail
           gh pr checkout "$PR_NUMBER"
@@ -116,6 +121,10 @@ jobs:
           git checkout main
           git merge --ff-only -
           git push origin main
+
+          if [[ -n "$HEAD_REF" && "$HEAD_REF" != "main" ]]; then
+            git push origin --delete "$HEAD_REF"
+          fi
 
       - name: Cleanup signing key
         if: always()
