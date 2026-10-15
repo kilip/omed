@@ -156,6 +156,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_RoleResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.RoleResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_WorkspaceResponse": {
                 "properties": {
                     "data": {
@@ -528,6 +545,26 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "workspaceName": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.RoleResponse": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "description": "ID is the stable identifier in the form \"\u003cmodule\u003e:\u003crole\u003e\"; this is what member and\ninvitation requests carry in their roles.",
+                        "type": "string"
+                    },
+                    "module": {
+                        "description": "Module is the module that declared the role, e.g. \"fin\".",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name is the human readable display name, e.g. \"Accountant\".",
                         "type": "string"
                     }
                 },
@@ -2788,6 +2825,73 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Get current user's workspace permissions",
+                "tags": [
+                    "Workspace Members"
+                ]
+            }
+        },
+        "/workspaces/{wid}/roles": {
+            "get": {
+                "description": "Returns every role registered by the modules, with display names, for role pickers",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_RoleResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List assignable roles",
                 "tags": [
                     "Workspace Members"
                 ]

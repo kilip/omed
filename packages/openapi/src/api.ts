@@ -1844,6 +1844,75 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/roles": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List assignable roles
+     * @description Returns every role registered by the modules, with display names, for role pickers
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-array_model_RoleResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1897,6 +1966,12 @@ export interface components {
     "httpx.WebResponse-array_model_MemberResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.MemberResponse"][];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-array_model_RoleResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.RoleResponse"][];
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
@@ -2023,6 +2098,18 @@ export interface components {
       workspaceDescription?: string;
       workspaceId?: number;
       workspaceName?: string;
+    };
+    "model.RoleResponse": {
+      description?: string;
+      /**
+       * @description ID is the stable identifier in the form "<module>:<role>"; this is what member and
+       *     invitation requests carry in their roles.
+       */
+      id?: string;
+      /** @description Module is the module that declared the role, e.g. "fin". */
+      module?: string;
+      /** @description Name is the human readable display name, e.g. "Accountant". */
+      name?: string;
     };
     "model.SearchAccountRequest": Record<string, never>;
     "model.SearchInvitationRequest": {
