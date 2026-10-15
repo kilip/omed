@@ -30,6 +30,24 @@ type Config struct {
 	GithubClientSecret string `env:"OMED_GITHUB_SECRET"`
 	// ApiUrl is the base URL for the API service.
 	ApiUrl string `env:"OMED_API_URL,default=http://localhost:8001"`
+	// WebUrl is the base URL for the web frontend client.
+	WebUrl string `env:"OMED_WEB_URL,default=http://localhost:3000"`
+	// MailerDriver specifies the email transport driver (memory, smtp). Defaults to memory.
+	MailerDriver string `env:"OMED_MAILER_DRIVER,default=memory"`
+	// MailerHost is the SMTP server hostname.
+	MailerHost string `env:"OMED_MAILER_HOST,default=localhost"`
+	// MailerPort is the SMTP server port.
+	MailerPort int `env:"OMED_MAILER_PORT,default=1025"`
+	// MailerUsername is the SMTP auth username.
+	MailerUsername string `env:"OMED_MAILER_USER"`
+	// MailerPassword is the SMTP auth password.
+	MailerPassword string `env:"OMED_MAILER_PASSWORD"`
+	// MailerFromAddress is the default sender email address.
+	MailerFromAddress string `env:"OMED_MAILER_FROM_ADDRESS,default=no-reply@omed.local"`
+	// MailerFromName is the default sender display name.
+	MailerFromName string `env:"OMED_MAILER_FROM_NAME,default=Omed"`
+	// MailerInsecureTLS allows self-signed TLS certificates for SMTP.
+	MailerInsecureTLS bool `env:"OMED_MAILER_INSECURE_TLS,default=false"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
 }
@@ -58,6 +76,26 @@ func GetConfig() Config {
 
 	if config.SessionCookieName == "" {
 		config.SessionCookieName = "omed_session"
+	}
+
+	if config.WebUrl == "" {
+		config.WebUrl = "http://localhost:3000"
+	}
+
+	if config.MailerDriver == "" {
+		config.MailerDriver = "memory"
+	}
+
+	if config.MailerPort <= 0 {
+		config.MailerPort = 1025
+	}
+
+	if config.MailerFromAddress == "" {
+		config.MailerFromAddress = "no-reply@omed.local"
+	}
+
+	if config.MailerFromName == "" {
+		config.MailerFromName = "Omed"
 	}
 
 	return config

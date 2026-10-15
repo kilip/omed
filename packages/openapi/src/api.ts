@@ -1415,6 +1415,100 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/invitations/{id}/send": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Send workspace invitation email
+     * @description Send or resend an invitation email containing the workspace join link to the specified recipient
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Invitation ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      /** @description Send invitation payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SendInvitationRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_SendInvitationResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/members": {
     parameters: {
       query?: never;
@@ -2017,6 +2111,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_SendInvitationResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.SendInvitationResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_WorkspaceResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.WorkspaceResponse"];
@@ -2049,6 +2149,7 @@ export interface components {
       type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
     };
     "model.CreateInvitationRequest": {
+      email?: string;
       expiresAt?: string;
       maxUses?: number;
       roles: string[];
@@ -2125,6 +2226,12 @@ export interface components {
       limit?: number;
       name?: string;
       ownerId?: number;
+    };
+    "model.SendInvitationRequest": {
+      email: string;
+    };
+    "model.SendInvitationResponse": {
+      sent?: boolean;
     };
     "model.SessionData": {
       createdAt?: string;

@@ -9,6 +9,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
+	"github.com/kilip/omed/api/internal/platform/mailx"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )
@@ -226,6 +227,97 @@ func (s *InvitationSuite) Test_Revoke_Successfully() {
 	// Trying to accept revoked link
 	s.AsUser("frank@example.com", "Frank")
 	s.Request(fmt.Sprintf("/invitations/%s/accept", inv.Token), fiber.MethodPost, nil)
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+}
+
+func (s *InvitationSuite) Test_Create_WithEmail_DispatchesEmail() {
+	mailer := testutil.GetMailer()
+	s.Require().NotNil(mailer)
+	memDriver, ok := mailer.Driver().(*mailx.MemoryDriver)
+	s.Require().True(ok)
+	memDriver.Reset()
+
+	ws := s.ensureWorkspace("Email Dispatch WS", s.User.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations", ws.ID), fiber.MethodPost, model.CreateInvitationRequest{
+		Roles: []string{"core:member"},
+		Email: "invited.member@example.com",
+	})
+	s.Created()
+
+	s.Eventually(func() bool {
+		return len(memDriver.SentMessages()) == 1
+	}, 2*time.Second, 50*time.Millisecond)
+
+	msg := memDriver.LastMessage()
+	s.Require().NotNil(msg)
+	s.Equal("invited.member@example.com", msg.To[0].Address)
+	s.Contains(msg.Subject, "Email Dispatch WS")
+	s.Contains(msg.HTMLBody, "Email Dispatch WS")
+	s.Contains(msg.HTMLBody, s.GetResponse().Data.Token)
+}
+
+func (s *InvitationSuite) Test_Send_Successfully() {
+	mailer := testutil.GetMailer()
+	s.Require().NotNil(mailer)
+	memDriver, ok := mailer.Driver().(*mailx.MemoryDriver)
+	s.Require().True(ok)
+	memDriver.Reset()
+
+	ws := s.ensureWorkspace("Resend WS", s.User.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations", ws.ID), fiber.MethodPost, model.CreateInvitationRequest{
+		Roles: []string{"core:member"},
+	})
+	s.Created()
+	inv := s.GetResponse().Data
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations/%d/send", ws.ID, inv.ID), fiber.MethodPost, model.SendInvitationRequest{
+		Email: "resend.target@example.com",
+	})
+	s.OK()
+
+	s.Eventually(func() bool {
+		return len(memDriver.SentMessages()) == 1
+	}, 2*time.Second, 50*time.Millisecond)
+
+	msg := memDriver.LastMessage()
+	s.Require().NotNil(msg)
+	s.Equal("resend.target@example.com", msg.To[0].Address)
+	s.Contains(msg.Subject, "Resend WS")
+	s.Contains(msg.HTMLBody, inv.Token)
+}
+
+func (s *InvitationSuite) Test_Send_InvalidEmail() {
+	ws := s.ensureWorkspace("Invalid Email WS", s.User.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations", ws.ID), fiber.MethodPost, model.CreateInvitationRequest{
+		Roles: []string{"core:member"},
+	})
+	s.Created()
+	inv := s.GetResponse().Data
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations/%d/send", ws.ID, inv.ID), fiber.MethodPost, model.SendInvitationRequest{
+		Email: "not-an-email",
+	})
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+}
+
+func (s *InvitationSuite) Test_Send_Revoked() {
+	ws := s.ensureWorkspace("Revoked Send WS", s.User.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations", ws.ID), fiber.MethodPost, model.CreateInvitationRequest{
+		Roles: []string{"core:member"},
+	})
+	s.Created()
+	inv := s.GetResponse().Data
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations/%d", ws.ID, inv.ID), fiber.MethodDelete, nil)
+	s.OK()
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations/%d/send", ws.ID, inv.ID), fiber.MethodPost, model.SendInvitationRequest{
+		Email: "revoked@example.com",
+	})
 	s.AssertStatus(fiber.StatusUnprocessableEntity)
 }
 

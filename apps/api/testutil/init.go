@@ -11,6 +11,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/config"
+	"github.com/kilip/omed/api/internal/platform/mailx"
 )
 
 //go:generate go run go.uber.org/mock/mockgen@latest -destination=cmocks/mock_slog_handler.go -package=cmocks log/slog Handler
@@ -70,7 +71,7 @@ func init() {
 
 	a := config.New(state)
 	a.Boot()
-
+	state = a.State()
 }
 
 // GetState returns the global initialized testing State instance.
@@ -81,4 +82,9 @@ func GetState() config.State {
 // GetEntCli returns the global in-memory test Ent client.
 func GetEntCli() *ent.Client {
 	return state.EntCli
+}
+
+// GetMailer returns the global initialized testing Mailer instance.
+func GetMailer() mailx.Mailer {
+	return state.Mailer
 }

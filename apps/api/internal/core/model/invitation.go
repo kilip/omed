@@ -7,6 +7,17 @@ type CreateInvitationRequest struct {
 	Roles     []string   `json:"roles" validate:"required,min=1,dive,required"`
 	MaxUses   int        `json:"maxUses,omitempty" validate:"omitempty,min=0"`
 	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+	Email     string     `json:"email,omitempty" validate:"omitempty,email"`
+}
+
+// SendInvitationRequest defines the payload to send or resend an invitation email.
+type SendInvitationRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+// SendInvitationResponse defines the response returned after sending an invitation email.
+type SendInvitationResponse struct {
+	Sent bool `json:"sent"`
 }
 
 // SearchInvitationRequest defines cursor pagination options for listing workspace invitations.

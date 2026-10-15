@@ -46,6 +46,7 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	// Workspace invitations
 	workspaces.Post("/:wid/invitations/search", az.Require(domain.ObjInvitation, "read"), ctlI.Search)
 	workspaces.Post("/:wid/invitations", az.Require(domain.ObjInvitation, "create"), ctlI.Create)
+	workspaces.Post("/:wid/invitations/:id/send", az.Require(domain.ObjInvitation, "create"), ctlI.Send)
 	workspaces.Delete("/:wid/invitations/:id", az.Require(domain.ObjInvitation, "delete"), ctlI.Revoke)
 
 	// Public & join invitation routes

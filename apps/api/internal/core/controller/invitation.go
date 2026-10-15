@@ -17,6 +17,7 @@ type InvitationServiceContract interface {
 	Accept(ctx context.Context, token string, userID int64) (domain.Member, error)
 	Search(ctx context.Context, wid int64, req model.SearchInvitationRequest) ([]domain.Invitation, string, error)
 	Revoke(ctx context.Context, wid, id int64) error
+	Send(ctx context.Context, wid, id int64, req model.SendInvitationRequest) error
 }
 
 // InvitationController handles workspace invitation management and join endpoints.
@@ -60,6 +61,43 @@ func (ctl InvitationController) Create(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.Created(c, toInvitationResponse(inv))
+}
+
+// Send dispatches an invitation email for a workspace invitation.
+//
+//	@Summary		Send workspace invitation email
+//	@Description	Send or resend an invitation email containing the workspace join link to the specified recipient
+//	@Tags			Workspace Invitations
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int							true	"Workspace ID"
+//	@Param			id		path		int							true	"Invitation ID"
+//	@Param			request	body		model.SendInvitationRequest	true	"Send invitation payload"
+//	@Success		200		{object}	httpx.WebResponse[model.SendInvitationResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/invitations/{id}/send [post]
+func (ctl InvitationController) Send(c fiber.Ctx) error {
+	wid, err := httpx.GetParamID[int64](c, "wid")
+	if err != nil {
+		return err
+	}
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	var req model.SendInvitationRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	if err := ctl.invitations.Send(c, wid, id, req); err != nil {
+		return err
+	}
+	return httpx.OK(c, model.SendInvitationResponse{Sent: true})
 }
 
 // Search searches invitations for a given workspace.

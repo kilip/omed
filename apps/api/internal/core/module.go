@@ -10,6 +10,7 @@ import (
 	"github.com/kilip/omed/api/internal/core/repository"
 	"github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/platform/authz"
+	"github.com/kilip/omed/api/internal/platform/mailx"
 )
 
 type Config struct {
@@ -18,6 +19,7 @@ type Config struct {
 	EntCli            *ent.Client
 	AuthSecret        string
 	ApiURL            string
+	WebURL            string
 	TrustedOrigins    []string
 	GoogleID          string
 	GoogleSecret      string
@@ -25,6 +27,7 @@ type Config struct {
 	GithubSecret      string
 	SessionTTL        time.Duration
 	SessionCookieName string
+	Mailer            mailx.Mailer
 }
 
 // CoreModule represents the core module implementing base.Module.
@@ -61,7 +64,7 @@ func New(cfg Config) *CoreModule {
 	userSvc := service.NewUserService(users)
 	workspaceSvc := service.NewWorkspaceService(workspaces)
 	memberSvc := service.NewMemberService(members, workspaceSvc, userSvc)
-	invitationSvc := service.NewInvitationService(invitations, workspaceSvc, members, userSvc)
+	invitationSvc := service.NewInvitationService(invitations, workspaceSvc, members, userSvc, cfg.Mailer, cfg.WebURL)
 	sessionSvc := service.NewSessionService(sessions, users, cfg.SessionTTL)
 	oauthSvc := service.NewOAuthService(service.OAuthServiceParams{
 		Accounts:       accounts,

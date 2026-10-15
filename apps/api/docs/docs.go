@@ -268,6 +268,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_SendInvitationResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.SendInvitationResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_WorkspaceResponse": {
                 "properties": {
                     "data": {
@@ -366,6 +379,9 @@ const docTemplate = `{
             },
             "model.CreateInvitationRequest": {
                 "properties": {
+                    "email": {
+                        "type": "string"
+                    },
                     "expiresAt": {
                         "type": "string"
                     },
@@ -614,6 +630,25 @@ const docTemplate = `{
                     },
                     "ownerId": {
                         "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SendInvitationRequest": {
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email"
+                ],
+                "type": "object"
+            },
+            "model.SendInvitationResponse": {
+                "properties": {
+                    "sent": {
+                        "type": "boolean"
                     }
                 },
                 "type": "object"
@@ -2345,6 +2380,115 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Revoke workspace invitation",
+                "tags": [
+                    "Workspace Invitations"
+                ]
+            }
+        },
+        "/workspaces/{wid}/invitations/{id}/send": {
+            "post": {
+                "description": "Send or resend an invitation email containing the workspace join link to the specified recipient",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Invitation ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SendInvitationRequest",
+                                "summary": "request",
+                                "description": "Send invitation payload"
+                            }
+                        }
+                    },
+                    "description": "Send invitation payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_SendInvitationResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Send workspace invitation email",
                 "tags": [
                     "Workspace Invitations"
                 ]

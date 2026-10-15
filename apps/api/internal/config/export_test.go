@@ -17,8 +17,3 @@ func NewWithModules(state State, modules []Module) Omed {
 func (a *Omed) Modules() []Module {
 	return a.modules
 }
-
-// State returns the Omed runtime state for testing assertions.
-func (a *Omed) State() State {
-	return a.state
-}

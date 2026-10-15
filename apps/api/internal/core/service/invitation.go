@@ -4,12 +4,15 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/authz"
+	"github.com/kilip/omed/api/internal/platform/mailx"
 )
 
 // InvitationRepository defines persistence requirements for workspace invitations.
@@ -29,6 +32,8 @@ type InvitationService struct {
 	members     MemberRepository
 	users       UserService
 	az          *authz.Authorizer
+	mailer      mailx.Mailer
+	webURL      string
 }
 
 // NewInvitationService constructs a new InvitationService.
@@ -37,13 +42,23 @@ func NewInvitationService(
 	workspaces WorkspaceService,
 	members MemberRepository,
 	users UserService,
+	mailer mailx.Mailer,
+	webURL string,
 ) InvitationService {
 	return InvitationService{
 		invitations: invitations,
 		workspaces:  workspaces,
 		members:     members,
 		users:       users,
+		mailer:      mailer,
+		webURL:      webURL,
 	}
+}
+
+// SetMailer configures the mailer and web base URL.
+func (s *InvitationService) SetMailer(mailer mailx.Mailer, webURL string) {
+	s.mailer = mailer
+	s.webURL = webURL
 }
 
 // SetAuthorizer configures the authorizer used for role validation.
@@ -53,7 +68,7 @@ func (s *InvitationService) SetAuthorizer(az *authz.Authorizer) {
 
 // Create generates a new workspace invitation link.
 func (s InvitationService) Create(ctx context.Context, wid int64, req model.CreateInvitationRequest) (domain.Invitation, error) {
-	_, err := s.workspaces.GetByID(ctx, wid)
+	ws, err := s.workspaces.GetByID(ctx, wid)
 	if err != nil {
 		return domain.Invitation{}, err
 	}
@@ -67,7 +82,76 @@ func (s InvitationService) Create(ctx context.Context, wid int64, req model.Crea
 		return domain.Invitation{}, err
 	}
 
-	return s.invitations.Create(ctx, wid, req, token)
+	inv, err := s.invitations.Create(ctx, wid, req, token)
+	if err != nil {
+		return domain.Invitation{}, err
+	}
+
+	if req.Email != "" {
+		s.sendInvitationEmail(ctx, inv, ws, req.Email)
+	}
+
+	return inv, nil
+}
+
+// Send triggers sending or resending an invitation email for an existing workspace invitation.
+func (s InvitationService) Send(ctx context.Context, wid, id int64, req model.SendInvitationRequest) error {
+	ws, err := s.workspaces.GetByID(ctx, wid)
+	if err != nil {
+		return err
+	}
+
+	inv, err := s.invitations.FindByID(ctx, wid, id)
+	if err != nil {
+		return err
+	}
+
+	if inv.IsRevoked {
+		return domain.ErrInvitationRevoked
+	}
+
+	if inv.ExpiresAt != nil && time.Now().After(*inv.ExpiresAt) {
+		return domain.ErrInvitationExpired
+	}
+
+	if inv.MaxUses > 0 && inv.UsesCount >= inv.MaxUses {
+		return domain.ErrInvitationMaxUsesReached
+	}
+
+	s.sendInvitationEmail(ctx, inv, ws, req.Email)
+	return nil
+}
+
+func (s InvitationService) sendInvitationEmail(ctx context.Context, inv domain.Invitation, ws domain.Workspace, recipientEmail string) {
+	if s.mailer == nil {
+		return
+	}
+
+	inviterName := "Workspace Admin"
+	if inv.CreatedBy > 0 {
+		u, err := s.users.GetByID(ctx, inv.CreatedBy)
+		if err == nil && u.Name != "" {
+			inviterName = u.Name
+		}
+	}
+
+	webURL := s.webURL
+	if webURL == "" {
+		webURL = "http://localhost:3000"
+	}
+	inviteURL := fmt.Sprintf("%s/invite/%s", strings.TrimRight(webURL, "/"), inv.Token)
+
+	data := map[string]any{
+		"WorkspaceName": ws.Name,
+		"InviterName":   inviterName,
+		"InviteURL":     inviteURL,
+	}
+
+	msg := mailx.NewMessage()
+	msg.AddTo(recipientEmail, "")
+	msg.Subject = fmt.Sprintf("You have been invited to join %s", ws.Name)
+
+	_ = s.mailer.SendTemplateAsync(ctx, "invitation", data, msg)
 }
 
 // GetPublicInfo retrieves public preview info for an invitation token without requiring authentication.

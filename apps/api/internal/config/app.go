@@ -13,6 +13,7 @@ import (
 	"github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/fin"
 	"github.com/kilip/omed/api/internal/platform/authz"
+	"github.com/kilip/omed/api/internal/platform/mailx"
 	"github.com/kilip/omed/api/internal/testctl"
 	"golang.org/x/sync/errgroup"
 )
@@ -25,20 +26,47 @@ type Omed struct {
 	sessionService service.SessionService
 }
 
+// State returns the application runtime state.
+func (a Omed) State() State {
+	return a.state
+}
+
 // New creates a new Omed instance populated with runtime state and registered modules.
 func New(state State) Omed {
+	if state.Mailer == nil {
+		mailer, err := mailx.New(mailx.Config{
+			Driver:      state.Config.MailerDriver,
+			FromAddress: state.Config.MailerFromAddress,
+			FromName:    state.Config.MailerFromName,
+			SMTP: mailx.SMTPConfig{
+				Host:        state.Config.MailerHost,
+				Port:        state.Config.MailerPort,
+				Username:    state.Config.MailerUsername,
+				Password:    state.Config.MailerPassword,
+				InsecureTLS: state.Config.MailerInsecureTLS,
+			},
+			Logger: state.Logger,
+		})
+		if err != nil {
+			log.Fatalf("failed to initialize mailer: %v", err)
+		}
+		state.Mailer = mailer
+	}
+
 	coreMod := core.New(core.Config{
 		FiberApp:          state.FiberApp,
 		Logger:            state.Logger,
 		EntCli:            state.EntCli,
 		AuthSecret:        state.Config.AuthSecret,
 		ApiURL:            state.Config.ApiUrl,
+		WebURL:            state.Config.WebUrl,
 		TrustedOrigins:    state.Config.TrustedOrigins,
 		GoogleID:          state.Config.GoogleClientID,
 		GoogleSecret:      state.Config.GoogleClientSecret,
 		GithubID:          state.Config.GithubClientID,
 		GithubSecret:      state.Config.GithubClientSecret,
 		SessionCookieName: state.Config.SessionCookieName,
+		Mailer:            state.Mailer,
 	})
 
 	az, err := authz.New(coreMod.MemberService)
@@ -117,6 +145,9 @@ func (a *Omed) Run(ctx context.Context) error {
 		<-ctx.Done()
 		sctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+		if a.state.Mailer != nil {
+			_ = a.state.Mailer.Close()
+		}
 		return a.state.FiberApp.ShutdownWithContext(sctx)
 	})
 

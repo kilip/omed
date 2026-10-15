@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/platform/authz"
+	"github.com/kilip/omed/api/internal/platform/mailx"
 )
 
 // State holds the shared dependencies and runtime components accessible across modules.
@@ -24,4 +25,6 @@ type State struct {
 	Secure fiber.Router
 	// Authz is the workspace authorization engine.
 	Authz *authz.Authorizer
+	// Mailer is the application-wide email dispatcher.
+	Mailer mailx.Mailer
 }
