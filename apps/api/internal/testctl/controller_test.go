@@ -121,6 +121,36 @@ func (s *TestControllerSuite) TestLifecycle() {
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 
+	// 5b. Ensure second user can create workspace after first user was deleted
+	user2Req := map[string]string{
+		"name":  "E2E Second Tester",
+		"email": "tester2@omed.test",
+	}
+	body, _ = json.Marshal(user2Req)
+	req = httptest.NewRequest(http.MethodPost, "/test/users", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = s.app.Test(req)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	var user2Res struct {
+		ID int64 `json:"id"`
+	}
+	_ = json.NewDecoder(resp.Body).Decode(&user2Res)
+	s.Require().NotEqual(userRes.ID, user2Res.ID)
+
+	ws2Req := map[string]any{
+		"name":     "Second Workspace",
+		"ownerId":  user2Res.ID,
+		"personal": false,
+	}
+	body, _ = json.Marshal(ws2Req)
+	req = httptest.NewRequest(http.MethodPost, "/test/workspaces", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = s.app.Test(req)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
 	// 6. Reset
 	resetReq := httptest.NewRequest(http.MethodPost, "/test/reset", nil)
 	resp, err = s.app.Test(resetReq)
@@ -199,4 +229,3 @@ func (s *TestControllerSuite) TestMailerEndpoints() {
 func TestController(t *testing.T) {
 	suite.Run(t, new(TestControllerSuite))
 }
-

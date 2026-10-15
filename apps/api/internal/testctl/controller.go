@@ -16,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/platform/mailx"
@@ -57,9 +58,13 @@ func (ctl Controller) RegisterRoutes(r fiber.Router) {
 	test.Post("/mailer/reset", ctl.ResetMailer)
 }
 
-func harnessCtx(ctx context.Context) context.Context {
+func harnessCtx(ctx context.Context, userID ...int64) context.Context {
+	uid := int64(1)
+	if len(userID) > 0 && userID[0] > 0 {
+		uid = userID[0]
+	}
 	return context.WithValue(ctx, base.USER_CONTEXT_KEY, base.UserContext{
-		ID:            1,
+		ID:            uid,
 		Name:          "Test Harness",
 		EmailVerified: true,
 		Roles:         []base.UserRole{base.UserRoleUser},
@@ -141,7 +146,7 @@ func (ctl Controller) CreateSession(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "userId must be positive")
 	}
 
-	ctx := harnessCtx(c.Context())
+	ctx := harnessCtx(c.Context(), req.UserID)
 
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
@@ -201,7 +206,7 @@ func (ctl Controller) CreateWorkspace(c fiber.Ctx) error {
 		req.Name = "Test Workspace"
 	}
 
-	ctx := harnessCtx(c.Context())
+	ctx := harnessCtx(c.Context(), req.OwnerID)
 
 	w, err := ctl.client.Workspace.Create().
 		SetName(req.Name).
@@ -249,7 +254,11 @@ func (ctl Controller) AddMember(c fiber.Ctx) error {
 		req.Roles = []string{"member"}
 	}
 
-	ctx := harnessCtx(c.Context())
+	actorID := req.UserID
+	if ws, err := ctl.client.Workspace.Get(c.Context(), req.WorkspaceID); err == nil && ws.OwnerID > 0 {
+		actorID = ws.OwnerID
+	}
+	ctx := harnessCtx(c.Context(), actorID)
 
 	err := ctl.client.WorkspaceMember.Create().
 		SetWorkspaceID(req.WorkspaceID).
@@ -275,8 +284,17 @@ func (ctl Controller) DeleteUser(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "invalid user id")
 	}
 
-	ctx := harnessCtx(c.Context())
+	ctx := harnessCtx(c.Context(), id)
 
+	wsIDs, _ := ctl.client.Workspace.Query().Where(workspace.OwnerID(id)).IDs(ctx)
+	if len(wsIDs) > 0 {
+		_, _ = ctl.client.WorkspaceInvitation.Delete().Where(workspaceinvitation.WorkspaceIDIn(wsIDs...)).Exec(ctx)
+		_, _ = ctl.client.WorkspaceMember.Delete().Where(workspacemember.WorkspaceIDIn(wsIDs...)).Exec(ctx)
+	}
+	_, _ = ctl.client.WorkspaceInvitation.Delete().Where(workspaceinvitation.Or(
+		workspaceinvitation.CreatedBy(id),
+		workspaceinvitation.UpdatedBy(id),
+	)).Exec(ctx)
 	_, _ = ctl.client.Session.Delete().Where(session.UserID(id)).Exec(ctx)
 	_, _ = ctl.client.WorkspaceMember.Delete().Where(workspacemember.UserID(id)).Exec(ctx)
 	_, _ = ctl.client.Workspace.Delete().Where(workspace.OwnerID(id)).Exec(ctx)
@@ -297,10 +315,20 @@ func (ctl Controller) Reset(c fiber.Ctx) error {
 	}
 
 	for _, u := range testUsers {
-		_, _ = ctl.client.Session.Delete().Where(session.UserID(u.ID)).Exec(ctx)
-		_, _ = ctl.client.WorkspaceMember.Delete().Where(workspacemember.UserID(u.ID)).Exec(ctx)
-		_, _ = ctl.client.Workspace.Delete().Where(workspace.OwnerID(u.ID)).Exec(ctx)
-		_, _ = ctl.client.User.Delete().Where(user.ID(u.ID)).Exec(ctx)
+		uCtx := harnessCtx(c.Context(), u.ID)
+		wsIDs, _ := ctl.client.Workspace.Query().Where(workspace.OwnerID(u.ID)).IDs(uCtx)
+		if len(wsIDs) > 0 {
+			_, _ = ctl.client.WorkspaceInvitation.Delete().Where(workspaceinvitation.WorkspaceIDIn(wsIDs...)).Exec(uCtx)
+			_, _ = ctl.client.WorkspaceMember.Delete().Where(workspacemember.WorkspaceIDIn(wsIDs...)).Exec(uCtx)
+		}
+		_, _ = ctl.client.WorkspaceInvitation.Delete().Where(workspaceinvitation.Or(
+			workspaceinvitation.CreatedBy(u.ID),
+			workspaceinvitation.UpdatedBy(u.ID),
+		)).Exec(uCtx)
+		_, _ = ctl.client.Session.Delete().Where(session.UserID(u.ID)).Exec(uCtx)
+		_, _ = ctl.client.WorkspaceMember.Delete().Where(workspacemember.UserID(u.ID)).Exec(uCtx)
+		_, _ = ctl.client.Workspace.Delete().Where(workspace.OwnerID(u.ID)).Exec(uCtx)
+		_, _ = ctl.client.User.Delete().Where(user.ID(u.ID)).Exec(uCtx)
 	}
 
 	if md := ctl.getMemoryDriver(); md != nil {
