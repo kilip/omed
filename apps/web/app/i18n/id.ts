@@ -130,6 +130,10 @@ export const id: Translation = {
       new: "Undangan baru",
       maxUses: "Maksimum pemakaian",
       maxUsesHint: "Kosongkan atau isi 0 untuk tanpa batas.",
+      email: "Email penerima",
+      emailHint: "Opsional. Kirim email undangan secara langsung.",
+      sendEmail: "Kirim email",
+      emailSent: "Email undangan telah dikirim",
     },
   },
   fin: {

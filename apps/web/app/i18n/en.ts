@@ -127,6 +127,10 @@ export const en = {
       new: "New invitation",
       maxUses: "Maximum uses",
       maxUsesHint: "Leave empty or 0 for no limit.",
+      email: "Recipient email",
+      emailHint: "Optional. Send an invitation email directly.",
+      sendEmail: "Send email",
+      emailSent: "Invitation email sent",
     },
   },
   fin: {

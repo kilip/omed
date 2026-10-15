@@ -1,10 +1,16 @@
-import { CopyOutlined, PlusOutlined, StopOutlined } from "@ant-design/icons";
+import {
+  CopyOutlined,
+  MailOutlined,
+  PlusOutlined,
+  StopOutlined,
+} from "@ant-design/icons";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   App,
   Button,
   DatePicker,
   Form,
+  Input,
   InputNumber,
   Popconfirm,
   Select,
@@ -43,6 +49,7 @@ type FormValues = {
   roles: string[];
   maxUses?: number;
   expiresAt?: { toISOString: () => string };
+  email?: string;
 };
 
 const statusColor = {
@@ -60,6 +67,7 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
   const { message } = App.useApp();
   const { run, pending } = useAction();
   const [creating, setCreating] = useState(false);
+  const [sendingTo, setSendingTo] = useState<Invitation | null>(null);
 
   const create = (values: FormValues) =>
     run(
@@ -71,10 +79,23 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
               roles: values.roles,
               maxUses: values.maxUses || undefined,
               expiresAt: values.expiresAt?.toISOString(),
+              email: values.email?.trim() || undefined,
             },
           }),
         ),
       "common.saved",
+    );
+
+  const sendEmail = (values: { email: string }) =>
+    run(
+      () =>
+        unwrapOne(
+          api.POST("/workspaces/{wid}/invitations/{id}/send", {
+            params: { path: { wid, id: sendingTo?.id ?? 0 } },
+            body: { email: values.email.trim() },
+          }),
+        ),
+      "core.invitations.emailSent",
     );
 
   const revoke = (invitation: Invitation) =>
@@ -156,21 +177,32 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
       title: "",
       align: "right",
       render: (_, i) => (
-        <Popconfirm
-          title={t("core.invitations.revokeConfirm")}
-          okText={t("core.invitations.revoke")}
-          cancelText={t("common.cancel")}
-          disabled={invitationStatus(i) !== "active"}
-          onConfirm={() => revoke(i)}
-        >
-          <Button
-            type="text"
-            danger
-            icon={<StopOutlined />}
+        <div className="flex items-center justify-end gap-1">
+          <Tooltip title={t("core.invitations.sendEmail")}>
+            <Button
+              type="text"
+              icon={<MailOutlined />}
+              disabled={invitationStatus(i) !== "active"}
+              aria-label={t("core.invitations.sendEmail")}
+              onClick={() => setSendingTo(i)}
+            />
+          </Tooltip>
+          <Popconfirm
+            title={t("core.invitations.revokeConfirm")}
+            okText={t("core.invitations.revoke")}
+            cancelText={t("common.cancel")}
             disabled={invitationStatus(i) !== "active"}
-            aria-label={t("core.invitations.revoke")}
-          />
-        </Popconfirm>
+            onConfirm={() => revoke(i)}
+          >
+            <Button
+              type="text"
+              danger
+              icon={<StopOutlined />}
+              disabled={invitationStatus(i) !== "active"}
+              aria-label={t("core.invitations.revoke")}
+            />
+          </Popconfirm>
+        </div>
       ),
     },
   ];
@@ -222,6 +254,14 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
               />
             </Form.Item>
             <Form.Item
+              name="email"
+              label={t("core.invitations.email")}
+              extra={t("core.invitations.emailHint")}
+              rules={[{ type: "email" }]}
+            >
+              <Input placeholder="user@example.com" />
+            </Form.Item>
+            <Form.Item
               name="maxUses"
               label={t("core.invitations.maxUses")}
               extra={t("core.invitations.maxUsesHint")}
@@ -232,6 +272,25 @@ export default function Invitations({ loaderData }: Route.ComponentProps) {
               <DatePicker showTime style={{ width: "100%" }} />
             </Form.Item>
           </>
+        )}
+      </RecordModal>
+
+      <RecordModal<{ email: string }>
+        open={Boolean(sendingTo)}
+        title={t("core.invitations.sendEmail")}
+        initialValues={{ email: "" }}
+        submitting={pending}
+        onClose={() => setSendingTo(null)}
+        onSubmit={sendEmail}
+      >
+        {() => (
+          <Form.Item
+            name="email"
+            label={t("core.invitations.email")}
+            rules={[{ required: true, type: "email" }]}
+          >
+            <Input placeholder="user@example.com" autoFocus />
+          </Form.Item>
         )}
       </RecordModal>
     </Page>
