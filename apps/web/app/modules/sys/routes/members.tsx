@@ -22,13 +22,18 @@ import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
+import { useRoles } from "../hooks/use-roles";
 import type { Member } from "../lib";
-import { membersQueryOptions } from "../queries";
+import { membersQueryOptions, rolesQueryOptions } from "../queries";
 import type { Route } from "./+types/members";
 
 export async function clientLoader() {
   const wid = await requireWorkspaceId();
-  await getQueryClient().ensureQueryData(membersQueryOptions(wid));
+  const queryClient = getQueryClient();
+  await Promise.all([
+    queryClient.ensureQueryData(membersQueryOptions(wid)),
+    queryClient.ensureQueryData(rolesQueryOptions(wid)),
+  ]);
   return { wid };
 }
 
@@ -37,6 +42,7 @@ type FormValues = { email?: string; roles: string[] };
 export default function Members({ loaderData }: Route.ComponentProps) {
   const { wid } = loaderData;
   const { data: members } = useSuspenseQuery(membersQueryOptions(wid));
+  const { options: roleOptions, label: roleName } = useRoles(wid);
   const { t, i18n } = useTranslation();
   const { run, pending } = useAction();
   const [editing, setEditing] = useState<Member | "new" | null>(null);
@@ -96,7 +102,7 @@ export default function Members({ loaderData }: Route.ComponentProps) {
       render: (_, m) => (
         <div className="flex flex-wrap gap-1">
           {(m.roles ?? []).map((role) => (
-            <Tag key={role}>{role}</Tag>
+            <Tag key={role}>{roleName(role)}</Tag>
           ))}
         </div>
       ),
@@ -187,14 +193,13 @@ export default function Members({ loaderData }: Route.ComponentProps) {
             <Form.Item
               name="roles"
               label={t("sys.members.roles")}
-              extra={t("sys.members.rolesHint")}
               rules={[{ required: true, type: "array", min: 1 }]}
             >
               <Select
-                mode="tags"
-                tokenSeparators={[","]}
-                placeholder="fin:accountant"
-                open={false}
+                mode="multiple"
+                options={roleOptions}
+                optionFilterProp="label"
+                placeholder={t("sys.members.rolesPlaceholder")}
               />
             </Form.Item>
           </>

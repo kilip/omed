@@ -9,9 +9,23 @@ export const invitationKeys = {
   all: (wid: number) => ["sys", "workspaces", wid, "invitations"] as const,
 };
 
+export const roleKeys = {
+  all: (wid: number) => ["sys", "workspaces", wid, "roles"] as const,
+};
+
 export const workspaceKeys = {
   list: (name?: string) => ["sys", "workspace-list", { name }] as const,
 };
+
+/** Roles that can be assigned in a workspace, with their display names. */
+export const rolesQueryOptions = (wid: number) =>
+  queryOptions({
+    queryKey: roleKeys.all(wid),
+    queryFn: () =>
+      unwrapList(
+        api.GET("/workspaces/{wid}/roles", { params: { path: { wid } } }),
+      ),
+  });
 
 /** Members of a workspace (first 100, matching the previous loader). */
 export const membersQueryOptions = (wid: number) =>

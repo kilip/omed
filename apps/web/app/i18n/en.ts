@@ -68,6 +68,12 @@ export const en = {
     signInFirst: "Sign in to accept this invitation.",
     joined: "You joined the workspace",
   },
+  // Role labels by ID ("fin:accountant" -> role.fin.accountant). They override the
+  // display name sent by the API; roles without an entry fall back to that name.
+  role: {
+    core: { member: "Member", admin: "Admin" },
+    fin: { viewer: "Viewer", accountant: "Accountant", admin: "Admin" },
+  },
   sys: {
     label: "Workspaces",
     description: "Workspaces, members and invitation links",
@@ -102,7 +108,7 @@ export const en = {
       remove: "Remove",
       removeConfirm: "Remove this member from the workspace?",
       invite: "Invite member",
-      rolesHint: "Type a role such as fin:accountant and press Enter.",
+      rolesPlaceholder: "Select roles",
     },
     invitations: {
       link: "Link",

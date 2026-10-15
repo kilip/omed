@@ -6,8 +6,11 @@ import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { api, orForbidden, unwrapList, unwrapOne } from "~/lib/api";
 import { formatDate } from "~/lib/format";
+import { getQueryClient } from "~/lib/query-client";
 import { requireWorkspaceId, type Workspace } from "~/lib/workspace";
+import { useRoles } from "../hooks/use-roles";
 import { invitationStatus } from "../lib";
+import { rolesQueryOptions } from "../queries";
 import type { Route } from "./+types/overview";
 
 export async function clientLoader() {
@@ -29,13 +32,16 @@ export async function clientLoader() {
       }),
     ).catch(orForbidden([])),
     unwrapOne(api.GET("/workspaces/{wid}/permissions", { params: { path } })),
+    // Warms the roles query that useRoles reads for the role labels.
+    getQueryClient().ensureQueryData(rolesQueryOptions(wid)),
   ]);
 
-  return { workspaces, members, invitations, permissions };
+  return { workspaces, members, invitations, permissions, wid };
 }
 
 export default function Overview({ loaderData }: Route.ComponentProps) {
-  const { workspaces, members, invitations, permissions } = loaderData;
+  const { workspaces, members, invitations, permissions, wid } = loaderData;
+  const { label: roleName } = useRoles(wid);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -122,7 +128,7 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
                 <Tag color="success">{t("sys.overview.owner")}</Tag>
               ) : null}
               {(permissions.roles ?? []).map((role) => (
-                <Tag key={role}>{role}</Tag>
+                <Tag key={role}>{roleName(role)}</Tag>
               ))}
             </div>
             <div className="flex flex-col gap-1 text-[13px]">

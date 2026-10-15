@@ -70,6 +70,12 @@ export const id: Translation = {
     signInFirst: "Masuk dulu untuk menerima undangan ini.",
     joined: "Anda sudah bergabung ke workspace",
   },
+  // Label peran berdasarkan ID ("fin:accountant" -> role.fin.accountant). Mengalahkan
+  // nama dari API; peran tanpa entri memakai nama dari API.
+  role: {
+    core: { member: "Anggota", admin: "Admin" },
+    fin: { viewer: "Peninjau", accountant: "Akuntan", admin: "Admin" },
+  },
   sys: {
     label: "Workspace",
     description: "Workspace, anggota, dan tautan undangan",
@@ -104,7 +110,7 @@ export const id: Translation = {
       remove: "Keluarkan",
       removeConfirm: "Keluarkan anggota ini dari workspace?",
       invite: "Undang anggota",
-      rolesHint: "Ketik peran seperti fin:accountant lalu tekan Enter.",
+      rolesPlaceholder: "Pilih peran",
     },
     invitations: {
       link: "Tautan",

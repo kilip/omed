@@ -7,6 +7,7 @@ import { Logo } from "~/components/Logo";
 import { LanguageMenu, ThemeMenu } from "~/components/PreferenceMenus";
 import { api, unwrapOne } from "~/lib/api";
 import { authClient } from "~/lib/auth-client";
+import { roleLabel } from "~/lib/roles";
 import { setActiveWorkspaceId } from "~/lib/workspace";
 import type { Route } from "./+types/invite";
 
@@ -85,7 +86,11 @@ export default function Invite({ loaderData, params }: Route.ComponentProps) {
           ) : null}
           {preview.roles?.length ? (
             <p className="m-0" style={{ color: "var(--omed-text-secondary)" }}>
-              {t("invite.roles", { roles: preview.roles.join(", ") })}
+              {t("invite.roles", {
+                roles: preview.roles
+                  .map((role) => roleLabel(t, role))
+                  .join(", "),
+              })}
             </p>
           ) : null}
 
