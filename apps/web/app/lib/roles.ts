@@ -1,5 +1,6 @@
 import type { components } from "@omed/openapi";
 import type { TFunction } from "i18next";
+import { modules } from "./modules";
 
 export type Role = components["schemas"]["model.RoleResponse"];
 
@@ -15,4 +16,13 @@ export const roleKey = (id: string) => `role.${id.replace(":", ".")}`;
  */
 export function roleLabel(t: TFunction, id: string, name?: string): string {
   return t(roleKey(id), { defaultValue: name || id });
+}
+
+/**
+ * Display label of a module (e.g. "core" -> "Workspaces", "fin" -> "Finance").
+ */
+export function moduleLabel(t: TFunction, moduleId: string): string {
+  const meta = modules.find((m) => m.id === moduleId);
+  if (meta) return t(meta.labelKey);
+  return t(`${moduleId}.label`, { defaultValue: moduleId });
 }

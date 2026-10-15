@@ -3,23 +3,20 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Avatar,
   Button,
-  Form,
-  Input,
   Popconfirm,
-  Select,
   Table,
   type TableProps,
   Tag,
   Tooltip,
 } from "antd";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
-import { RecordModal } from "~/components/RecordModal";
-import { api, unwrapOne, unwrapVoid } from "~/lib/api";
+import { api, unwrapVoid } from "~/lib/api";
 import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
+import { moduleLabel } from "~/lib/roles";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { useRoles } from "../hooks/use-roles";
@@ -37,34 +34,12 @@ export async function clientLoader() {
   return { wid };
 }
 
-type FormValues = { email?: string; roles: string[] };
-
 export default function Members({ loaderData }: Route.ComponentProps) {
   const { wid } = loaderData;
   const { data: members } = useSuspenseQuery(membersQueryOptions(wid));
-  const { options: roleOptions, label: roleName } = useRoles(wid);
+  const { label: roleName } = useRoles(wid);
   const { t, i18n } = useTranslation();
-  const { run, pending } = useAction();
-  const [editing, setEditing] = useState<Member | "new" | null>(null);
-
-  const save = (values: FormValues) =>
-    run(async () => {
-      if (editing === "new" || editing === null) {
-        await unwrapOne(
-          api.POST("/workspaces/{wid}/members", {
-            params: { path: { wid } },
-            body: { email: values.email ?? "", roles: values.roles },
-          }),
-        );
-      } else if (editing.user?.id !== undefined) {
-        await unwrapOne(
-          api.PUT("/workspaces/{wid}/members/{id}", {
-            params: { path: { wid, id: editing.user.id } },
-            body: { roles: values.roles },
-          }),
-        );
-      }
-    }, "common.saved");
+  const { run } = useAction();
 
   const remove = (member: Member) =>
     run(
@@ -101,9 +76,18 @@ export default function Members({ loaderData }: Route.ComponentProps) {
       title: t("core.members.roles"),
       render: (_, m) => (
         <div className="flex flex-wrap gap-1">
-          {(m.roles ?? []).map((role) => (
-            <Tag key={role}>{roleName(role)}</Tag>
-          ))}
+          {(m.roles ?? []).map((role) => {
+            const mod = role.split(":")[0];
+            const modName = moduleLabel(t, mod);
+            return (
+              <Tag key={role}>
+                <span style={{ color: "var(--omed-text-secondary)" }}>
+                  {modName}:
+                </span>{" "}
+                {roleName(role)}
+              </Tag>
+            );
+          })}
         </div>
       ),
     },
@@ -118,12 +102,13 @@ export default function Members({ loaderData }: Route.ComponentProps) {
       render: (_, m) => (
         <div className="flex justify-end gap-1">
           <Tooltip title={t("core.members.editRoles")}>
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              aria-label={t("core.members.editRoles")}
-              onClick={() => setEditing(m)}
-            />
+            <Link to={`/core/members/${m.user?.id}`}>
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                aria-label={t("core.members.editRoles")}
+              />
+            </Link>
           </Tooltip>
           <Popconfirm
             title={t("core.members.removeConfirm")}
@@ -143,19 +128,15 @@ export default function Members({ loaderData }: Route.ComponentProps) {
     },
   ];
 
-  const isNew = editing === "new";
-
   return (
     <Page
       title={t("core.menu.members")}
       actions={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setEditing("new")}
-        >
-          {t("core.members.invite")}
-        </Button>
+        <Link to="/core/members/new">
+          <Button type="primary" icon={<PlusOutlined />}>
+            {t("core.members.invite")}
+          </Button>
+        </Link>
       }
     >
       <Panel strong>
@@ -168,43 +149,6 @@ export default function Members({ loaderData }: Route.ComponentProps) {
           scroll={{ x: "max-content" }}
         />
       </Panel>
-
-      <RecordModal<FormValues>
-        open={editing !== null}
-        title={isNew ? t("core.members.invite") : t("core.members.editRoles")}
-        initialValues={
-          editing && !isNew ? { roles: editing.roles ?? [] } : { roles: [] }
-        }
-        submitting={pending}
-        onClose={() => setEditing(null)}
-        onSubmit={save}
-      >
-        {() => (
-          <>
-            {isNew ? (
-              <Form.Item
-                name="email"
-                label={t("common.email")}
-                rules={[{ required: true, type: "email" }]}
-              >
-                <Input />
-              </Form.Item>
-            ) : null}
-            <Form.Item
-              name="roles"
-              label={t("core.members.roles")}
-              rules={[{ required: true, type: "array", min: 1 }]}
-            >
-              <Select
-                mode="multiple"
-                options={roleOptions}
-                optionFilterProp="label"
-                placeholder={t("core.members.rolesPlaceholder")}
-              />
-            </Form.Item>
-          </>
-        )}
-      </RecordModal>
     </Page>
   );
 }
