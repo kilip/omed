@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.0](https://github.com/kilip/omed/compare/v0.2.0...v0.3.0) (2026-10-15)
+
+
+### Features
+
+* **api:** ✨ add endpoint listing assignable roles ([e1c0e28](https://github.com/kilip/omed/commit/e1c0e285ea190b9effdfc1c75c927dee4a600dd3))
+* **api:** ✨ add mailer inspection endpoints to testctl ([a4e0151](https://github.com/kilip/omed/commit/a4e0151e8b1f69eb94bbf0e5c1c903157db6dbf1))
+* **api:** ✨ integrate mailing platform mailx and invitation emails ([1217988](https://github.com/kilip/omed/commit/12179889e901f1dbbc36ebbe477417dae8b3ecc8))
+* **api:** ✨ require a display name on roles ([3b24176](https://github.com/kilip/omed/commit/3b24176febe78c562320ffc07629d5980b483e8b))
+* **web:** ✨ add email field and resend action to invitations ([ce42f39](https://github.com/kilip/omed/commit/ce42f39084adaf05791001094d86aa894b74cc7a))
+* **web:** ✨ enforce single role selection per module ([64b1faf](https://github.com/kilip/omed/commit/64b1fafd4193f436519b39e193911cbc1172ab98))
+* **web:** ✨ group roles by module and use pages for member editing ([9f1db18](https://github.com/kilip/omed/commit/9f1db18fed6a9eaa32522352c8edca113b7007a3))
+* **web:** ✨ pick roles from the api with i18n labels ([49a2e37](https://github.com/kilip/omed/commit/49a2e377ce1ca0434ec4d966d0e9f419d574418c))
+
+
+### Bug Fixes
+
+* **api:** 🐛 use owner id for testctl workspace audit context ([7fc1fff](https://github.com/kilip/omed/commit/7fc1fff08ea12febe711b2b7c92c2b009dc3ecde))
+
 ## [0.2.0](https://github.com/kilip/omed/compare/v0.1.0...v0.2.0) (2026-10-14)
 
 
