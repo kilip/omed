@@ -369,337 +369,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/users": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Create user
-     * @description Create a new user
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description User creation payload */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["model.CreateUserRequest"];
-        };
-      };
-      responses: {
-        /** @description Created */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.WebResponse-model_UserResponse"];
-          };
-        };
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Unprocessable Entity */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Internal Server Error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/users/search": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Search users
-     * @description Search users matching filter criteria with pagination cursor
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description Search filter criteria */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["model.SearchRequest"];
-        };
-      };
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.WebResponse-array_model_UserResponse"];
-          };
-        };
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Unprocessable Entity */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Internal Server Error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/users/{id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get user by ID
-     * @description Retrieve user detail by ID
-     */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description User ID */
-          id: number;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.WebResponse-model_UserResponse"];
-          };
-        };
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Not Found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Internal Server Error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-      };
-    };
-    /**
-     * Update user
-     * @description Update an existing user by ID
-     */
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description User ID */
-          id: number;
-        };
-        cookie?: never;
-      };
-      /** @description User update payload */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["model.UpdateUserRequest"];
-        };
-      };
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.WebResponse-model_UserResponse"];
-          };
-        };
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Not Found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Unprocessable Entity */
-        422: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Internal Server Error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-      };
-    };
-    post?: never;
-    /**
-     * Delete user
-     * @description Delete a user by ID
-     */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description User ID */
-          id: number;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": Record<string, never>;
-          };
-        };
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Not Found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-        /** @description Internal Server Error */
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["httpx.ErrorResponse"];
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   "/workspaces": {
     parameters: {
       query?: never;
@@ -2231,12 +1900,6 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
-    "httpx.WebResponse-array_model_UserResponse": {
-      /** @description Data contains the response payload. */
-      data?: components["schemas"]["model.UserResponse"][];
-      /** @description Meta contains request metadata such as request ID and timestamps. */
-      meta?: components["schemas"]["httpx.Meta"];
-    };
     "httpx.WebResponse-array_model_WorkspaceResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.WorkspaceResponse"][];
@@ -2279,12 +1942,6 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
-    "httpx.WebResponse-model_UserResponse": {
-      /** @description Data contains the response payload. */
-      data?: components["schemas"]["model.UserResponse"];
-      /** @description Meta contains request metadata such as request ID and timestamps. */
-      meta?: components["schemas"]["httpx.Meta"];
-    };
     "httpx.WebResponse-model_WorkspaceResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.WorkspaceResponse"];
@@ -2320,11 +1977,6 @@ export interface components {
       expiresAt?: string;
       maxUses?: number;
       roles: string[];
-    };
-    "model.CreateUserRequest": {
-      avatar?: string;
-      email: string;
-      name: string;
     };
     "model.CreateWorkspaceRequest": {
       description?: string;
@@ -2383,11 +2035,6 @@ export interface components {
       cursor?: string;
       limit?: number;
     };
-    "model.SearchRequest": {
-      cursor?: string;
-      limit?: number;
-      name?: string;
-    };
     "model.SearchWorkspaceRequest": {
       cursor?: string;
       limit?: number;
@@ -2430,10 +2077,6 @@ export interface components {
     };
     "model.UpdateMemberRequest": {
       roles: string[];
-    };
-    "model.UpdateUserRequest": {
-      avatar?: string;
-      name: string;
     };
     "model.UpdateWorkspaceRequest": {
       description?: string;
