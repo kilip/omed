@@ -1,18 +1,20 @@
 # Omed brand guidelines
 
-Style: **modern, glassmorphism, compact, cool**. Component base: Ant Design. Primary color: **ocean blue**.
+Style: **warm, flat, compact, modern** (Notion-like). Component base: Ant Design. Primary color: **cocoa**.
 
 Related files:
 
-- `apps/web/app/theme/tokens.css`: CSS variables + glass utilities
+- `apps/web/app/theme/tokens.css`: CSS variables + surface utilities
 - `apps/web/app/theme/antd.ts`: `getAntdTheme(mode)` for `ConfigProvider`
+- `apps/web/app/theme/theme-context.tsx`: `ThemeProvider` and `useTheme` (system, light, dark)
+- `apps/web/app/theme/init-script.ts`: inline head script that prevents a theme flash on load
 
 ## 1. Principles
 
-1. **Cool, not stark.** Neutrals always lean blue-slate, never pure gray or warm brown.
-2. **Glass in moderation.** Blur is for surfaces (cards, modals, sider, header), not for everything.
+1. **Warm, not stark.** Neutrals always lean warm cream and cocoa, never pure gray or cool blue-slate.
+2. **Flat surfaces.** Hairline borders separate surfaces. No blur, no gradients, no decorative shadows.
 3. **Compact but breathable.** Small controls, 4/8/12/16 spacing, a clear hierarchy. Dense never means cramped.
-4. **One accent per screen.** Ocean blue is only for the main action and active states.
+4. **One accent per screen.** Cocoa is only for the main action and active states.
 5. **Legible first, pretty second.** Small text must pass AA contrast (4.5:1).
 
 ## 2. Color
@@ -21,67 +23,73 @@ Related files:
 
 | Token | Light | Dark | Used for |
 | --- | --- | --- | --- |
-| `--omed-brand` | `#2478DB` | `#6AA8F5` | Logo, illustrations, large accents. Not small text |
-| `--omed-primary` | `#0B63CE` | `#6AA8F5` | Primary buttons, links, focus, active menu item |
-| `--omed-primary-hover` | `#0A56B3` | `#8BBCF8` | Hover |
-| `--omed-primary-active` | `#084A98` | `#4F93E6` | Pressed |
-| `--omed-on-primary` | `#FFFFFF` | `#101620` | Text on primary buttons |
-| `--omed-tint` | `rgba(11,99,206,.10)` | `rgba(106,168,245,.16)` | Selected item background, soft badges |
-| `--omed-tint-text` | `#0A428F` | `#BBD8FB` | Text on tint |
+| `--omed-brand` | `#9A5B48` | `#C99480` | Logo and identity accents |
+| `--omed-primary` | `#9A5B48` | `#C99480` | Primary buttons, links, focus, active menu item |
+| `--omed-primary-hover` | `#874D3C` | `#D6A793` | Hover |
+| `--omed-primary-active` | `#74402F` | `#B98068` | Pressed |
+| `--omed-on-primary` | `#FFFFFF` | `#1B1917` | Text on primary buttons |
+| `--omed-tint` | `rgba(154,91,72,.10)` | `rgba(201,148,128,.16)` | Selected item background, soft badges |
+| `--omed-tint-text` | `#6E3A2B` | `#EACBBE` | Text on tint |
 
-> `#2478DB` (brand) has 4.39:1 contrast against white, below AA for small text. So actions use `#0B63CE` (5.7:1), while `#2478DB` stays as the identity color. In dark mode brand and primary are the same color.
+> Brand and primary are the same color. `#9A5B48` has 5.3:1 contrast against white, so it passes AA for small text and no separate action color is needed.
 
-### Cool neutrals
+### Warm neutrals
 
-| Token | Light | Dark |
-| --- | --- | --- |
-| `--omed-bg` | `#F1F5FB` | `#101620` |
-| `--omed-text` | `#14233A` | `#E4EDF9` |
-| `--omed-text-secondary` | 68% text | 68% text |
-| `--omed-text-muted` | 45% text | 42% text |
-| `--omed-border` | `rgba(20,35,58,.12)` | `rgba(228,237,249,.14)` |
-| `--omed-border-soft` | `rgba(20,35,58,.07)` | `rgba(228,237,249,.08)` |
+| Token | Light | Dark | Used for |
+| --- | --- | --- | --- |
+| `--omed-bg` | `#FBF9F6` | `#1B1917` | Page background |
+| `--omed-surface` | `#FFFFFF` | `#242120` | Cards, header, sider, modals |
+| `--omed-surface-muted` | `#F4F1EC` | `#2E2A28` | Light cards, hover background |
+| `--omed-text` | `#2F2B26` | `#ECE8E3` | Body text |
+| `--omed-text-secondary` | `#736B61` | `#A09890` | Supporting text |
+| `--omed-text-muted` | `#8C8479` | `#7C746C` | Placeholders and metadata only |
+| `--omed-border` | `#E9E4DC` | `#3D3835` | Default hairline |
+| `--omed-border-soft` | `#F0EBE3` | `#322E2B` | Table rows, quiet dividers |
+
+> `--omed-text-muted` is about 3.5:1 on the page background. Never use it for text the user must read.
 
 ### Semantic
 
-| Role | Light | Dark |
+| Role | Fill (light) | Text (light) | Fill and text (dark) |
+| --- | --- | --- | --- |
+| Success | `#5F8767` | `#476B4F` | `#82AD8A` |
+| Warning | `#CFA04A` | `#8A6420` | `#DDB462` |
+| Danger | `#BC4B44` | `#BC4B44` | `#DE7570` |
+| Info | `#3F727A` | `#3F727A` | `#7FB1B6` |
+
+Each role has a fill token (`--omed-success`) and a text token (`--omed-success-text`). Use the fill for dots, icons, and borders, and the text token for text.
+
+- In light mode the success fill is 4.1:1 and the warning fill is 2.4:1 on white. Both are below AA, so they are never used as text.
+- Danger and primary are both reddish. Never rely on color alone for a destructive action: pair it with a label ("Delete member") and an icon.
+- Info is teal and not part of the cocoa family, so an info message never reads like an action.
+
+## 3. Surfaces
+
+| Class | Fill | Used for |
 | --- | --- | --- |
-| Success | `#4F7F52` | `#7FB382` |
-| Warning | `#B7791F` | `#E0B04F` |
-| Danger | `#B83A4B` | `#E0707F` |
-| Info | `#0F766E` | `#4FD1C5` |
+| `.surface` | `--omed-surface` | Header, sider, dense panels (tables and forms), login and invite cards |
+| `.surface-muted` | `--omed-surface-muted` | Light cards such as launcher tiles |
 
-Danger leans rose on purpose so it doesn't get confused with the primary blue. Info is teal (not blue) for the same reason: a blue info message would read like an action.
-
-## 3. Glass
-
-| Property | Light | Dark |
-| --- | --- | --- |
-| Fill | `rgba(255,255,255,.55)` | `rgba(255,255,255,.06)` |
-| Fill strong (overlays, header, sider) | `rgba(255,255,255,.72)` | `rgba(255,255,255,.10)` |
-| Edge (1px border) | `rgba(255,255,255,.65)` | `rgba(255,255,255,.12)` |
-| Blur | 16px + saturate 140% | same |
-| Shadow | `0 4px 24px rgba(20,60,120,.08)` | `0 4px 28px rgba(0,0,0,.35)` |
+Both have a 1px `--omed-border` hairline and no shadow or blur. The page background is the flat `--omed-bg`.
 
 Rules:
 
-- Glass needs a colorful backdrop. The page background already has blue/teal blobs (`--omed-page-bg`); don't replace it with a flat color.
-- At most **2 stacked glass layers**. Glass inside glass isn't blurred again (handled in the CSS).
-- Long text, tables, and heavy forms go on dense surfaces (fill strong), not thin glass.
-- Falls back to solid colors automatically when the browser doesn't support blur or the user enables `prefers-reduced-transparency`.
+- Long text, tables, and heavy forms go on `.surface` (white), not `.surface-muted`.
+- At most two nested levels. A `.surface-muted` card sits on the page, and a `.surface` card sits inside only when it holds dense content.
+- Use `Panel` (`strong` for dense content) instead of repeating the classes by hand.
 
 ## 4. Typography
 
 - Font: **Inter** (already loaded in `root.tsx`), system sans fallback.
-- Base 14px. Two weights only: 400 and 500.
+- Base 13px. Two weights only: 400 and 500.
 
 | Role | Size |
 | --- | --- |
-| Heading 1 | 24 |
-| Heading 2 | 20 |
-| Heading 3 | 16 |
-| Heading 4 | 14 (weight 500) |
-| Body, labels | 14 |
+| Heading 1 | 22 |
+| Heading 2 | 18 |
+| Heading 3 | 15 |
+| Heading 4 | 13 (weight 500) |
+| Body, labels | 13 |
 | Tables, dense lists | 13 |
 | Caption, metadata | 12 |
 
@@ -89,22 +97,22 @@ Sentence case for all labels, buttons, and titles. No ALL CAPS.
 
 ## 5. Density and shape
 
-- Ant Design uses `compactAlgorithm` + 14px font. Use `size="small"` on tables and forms by default, not only when the data is dense.
-- Spacing scale: **4, 8, 12, 16, 24**. Card padding 12 (16 for modals and drawers), gap between cards 12.
-- Radius: small 6 (tags, checkboxes), default 10 (buttons, inputs, small cards), large 14 (cards, modals, drawers).
-- Header height 44px. Sider width 148px.
-- Table cells: 5px vertical padding, 12px horizontal.
+- Ant Design uses `compactAlgorithm` + 13px font, and `ConfigProvider` sets `componentSize="small"`. Use `size="small"` on tables and forms by default, not only when the data is dense.
+- Spacing scale: **4, 8, 12, 16, 24**. Card and panel padding 10, gap between cards 8 to 12, auth cards 20.
+- Radius: small 4 (tags, checkboxes), default 6 (buttons, inputs, small cards), large 8 (cards, modals, drawers).
+- Header height 40px. Sider width 140px. Menu item height 26px.
+- Table cells: 4px vertical padding, 10px horizontal.
 
 ## 6. Component guidance
 
 | Component | Rule |
 | --- | --- |
 | Button | One `type="primary"` per screen. The rest are default or text. No shadow. `size="small"` |
-| Menu / sider | Active item: `tint` background + primary text, no active bar |
-| Table | Transparent header, `tint` on hover, `border-soft` borders, no border on the last row |
-| Card | Glass comes from the CSS. Don't set a background color manually |
-| KPI card | Label (12) above value (20, weight 500). An optional sparkline in `primary` at 55% opacity |
-| Modal / Drawer | Fill strong so forms stay readable |
+| Menu / sider | Active item: `tint` background + primary text, no active bar. Hover: `surface-muted` |
+| Table | Transparent header, `surface-muted` on hover, `tint` on selected rows, `border-soft` borders, no border on the last row |
+| Card | Use `.surface` or `.surface-muted`. Don't set a background color manually |
+| KPI card | Label (12) above value (18, weight 500). An optional sparkline in `primary` at 55% opacity |
+| Modal / Drawer | `surface` fill so forms stay readable |
 | Tag / badge | `tint` + `tint-text`, not solid colors. Neutral states use `border-soft` fill + secondary text |
 | Form | Labels on top, `size="small"`, errors use danger |
 | Empty state | Short invitation + one action button, friendly tone |
@@ -120,43 +128,42 @@ Sentence case for all labels, buttons, and titles. No ALL CAPS.
 | Do | Don't |
 | --- | --- |
 | Use tokens (`var(--omed-*)` or the antd theme) | Hardcode hex values in components |
-| Ocean blue for the main action and active states | Ocean blue as decoration everywhere |
-| Glass on surfaces, solid for dense content | Three or more stacked glass layers |
-| Check contrast in both light and dark | Small `brand`-colored text on light backgrounds |
-| Blue-slate neutrals | Warm browns or pure grays mixed into the theme |
-| Teal for info, rose for danger | Blue for info or danger, which reads as an action |
+| Cocoa for the main action and active states | Cocoa as decoration everywhere |
+| Flat surfaces with hairline borders | Blur, gradients, or heavy shadows |
+| Check contrast in both light and dark | `--omed-text-muted` or fill-only colors for readable text |
+| Warm cream and cocoa neutrals | Cool blue-slate or pure grays mixed into the theme |
+| Pair danger with a label and icon | Danger shown by color alone |
 
-## 9. Usage
+## 9. Theme modes
+
+The dashboard supports three preferences: **system** (default), **light**, and **dark**.
+
+- System follows `prefers-color-scheme` and updates live when the OS setting changes.
+- The theme menu in the header (`ThemeMenu`) switches between light, dark, and system.
+- The choice is stored in `localStorage` under `omed.theme`.
+- `init-script.ts` runs in the document head and sets `data-theme` on `<html>` before the first paint, so there is no flash of the wrong theme.
+- Tokens flip through `:root[data-theme="dark"]`, and Ant Design flips through `getAntdTheme(mode)`.
+
+## 10. Usage
+
+`ThemeProvider` and `ConfigProvider` are already wired in `app/providers.tsx`:
 
 ```tsx
-// app/root.tsx
-import { ConfigProvider } from "antd";
-import { useEffect, useMemo, useState } from "react";
-import { getAntdTheme, type ThemeMode } from "~/theme/antd";
-import "~/theme/tokens.css";
+// app/providers.tsx
+function ThemedApp({ children }: { children: ReactNode }) {
+  const { mode } = useTheme();
 
-function useThemeMode(): ThemeMode {
-  const [mode, setMode] = useState<ThemeMode>("light");
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const apply = () => setMode(mq.matches ? "dark" : "light");
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
-  useEffect(() => {
-    document.documentElement.dataset.theme = mode;
-  }, [mode]);
-  return mode;
-}
-
-export default function App() {
-  const mode = useThemeMode();
-  const theme = useMemo(() => getAntdTheme(mode), [mode]);
   return (
-    <ConfigProvider theme={theme}>
-      <Outlet />
+    <ConfigProvider theme={getAntdTheme(mode)} componentSize="small">
+      <AntdApp>{children}</AntdApp>
     </ConfigProvider>
   );
 }
+```
+
+In components, read colors from tokens:
+
+```tsx
+<span style={{ color: "var(--omed-text-secondary)" }}>Last updated</span>
+<span style={{ color: "var(--omed-danger-text)" }}>Unpaid</span>
 ```
