@@ -17,7 +17,7 @@ type ThemeContextValue = {
   setPreference: (preference: ThemePreference) => void;
 };
 
-const STORAGE_KEY = "omed.theme";
+export const THEME_STORAGE_KEY = "omed.theme";
 
 const ThemeContext = createContext<ThemeContextValue>({
   mode: "light",
@@ -27,7 +27,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 function readPreference(): ThemePreference {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored === "light" || stored === "dark" || stored === "system") {
       return stored;
     }
@@ -60,7 +60,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setPreference = useCallback((next: ThemePreference) => {
     setPreferenceState(next);
     try {
-      localStorage.setItem(STORAGE_KEY, next);
+      localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {
       // Ignore storage failures; the preference still applies this session.
     }

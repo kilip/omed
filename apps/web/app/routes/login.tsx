@@ -101,7 +101,7 @@ export default function Login() {
         </section>
 
         <section
-          className="glass-strong flex w-full max-w-[400px] flex-[0_1_400px] flex-col gap-4 p-6"
+          className="surface flex w-full max-w-[400px] flex-[0_1_400px] flex-col gap-3 p-5"
           style={{ borderRadius: "var(--omed-radius-lg)" }}
           aria-labelledby="login-title"
         >

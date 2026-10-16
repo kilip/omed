@@ -81,7 +81,7 @@ export function RoleSelector({
                     key={roleId}
                     className="flex items-start gap-2.5 p-2.5 rounded transition-all select-none"
                     style={{
-                      borderRadius: "var(--omed-radius-default)",
+                      borderRadius: "var(--omed-radius)",
                       border: checked
                         ? "1px solid var(--omed-primary)"
                         : "1px solid var(--omed-border-soft)",

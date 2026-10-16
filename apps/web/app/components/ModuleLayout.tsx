@@ -24,7 +24,7 @@ export function ModuleLayout({ moduleId }: { moduleId: string }) {
   return (
     <div className="flex flex-1 flex-wrap">
       <aside
-        className="glass-strong shrink-0 px-2 py-3"
+        className="surface shrink-0 px-2 py-2"
         style={{
           width: "var(--omed-sider-width)",
           borderBlock: 0,

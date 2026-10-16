@@ -61,7 +61,7 @@ export default function Invite({ loaderData, params }: Route.ComponentProps) {
       </div>
       <main className="flex flex-1 items-center justify-center px-4 pb-12">
         <section
-          className="glass-strong flex w-full max-w-[420px] flex-col gap-4 p-6"
+          className="surface flex w-full max-w-[420px] flex-col gap-3 p-5"
           style={{ borderRadius: "var(--omed-radius-lg)" }}
         >
           <span className="flex items-center gap-2 font-medium">

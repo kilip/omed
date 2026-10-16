@@ -3,80 +3,68 @@
 :root {
   color-scheme: light;
 
-  --omed-brand: #2478db;
-  --omed-primary: #0b63ce;
-  --omed-primary-hover: #0a56b3;
-  --omed-primary-active: #084a98;
+  --omed-brand: #9a5b48;
+  --omed-primary: #9a5b48;
+  --omed-primary-hover: #874d3c;
+  --omed-primary-active: #74402f;
   --omed-on-primary: #ffffff;
-  --omed-tint: rgba(11, 99, 206, 0.1);
-  --omed-tint-text: #0a428f;
+  --omed-tint: rgba(154, 91, 72, 0.1);
+  --omed-tint-text: #6e3a2b;
 
-  --omed-bg: #f1f5fb;
-  --omed-text: #14233a;
-  --omed-text-secondary: rgba(20, 35, 58, 0.68);
-  --omed-text-muted: rgba(20, 35, 58, 0.45);
-  --omed-border: rgba(20, 35, 58, 0.12);
-  --omed-border-soft: rgba(20, 35, 58, 0.07);
+  --omed-bg: #fbf9f6;
+  --omed-surface: #ffffff;
+  --omed-surface-muted: #f4f1ec;
+  --omed-text: #2f2b26;
+  --omed-text-secondary: #736b61;
+  --omed-text-muted: #8c8479;
+  --omed-border: #e9e4dc;
+  --omed-border-soft: #f0ebe3;
 
-  --omed-success: #4f7f52;
-  --omed-warning: #b7791f;
-  --omed-danger: #b83a4b;
-  --omed-info: #0f766e;
+  /* Fill colors (dots, icons, borders). Use the -text variants for text. */
+  --omed-success: #5f8767;
+  --omed-warning: #cfa04a;
+  --omed-danger: #bc4b44;
+  --omed-info: #3f727a;
+  --omed-success-text: #476b4f;
+  --omed-warning-text: #8a6420;
+  --omed-danger-text: #bc4b44;
+  --omed-info-text: #3f727a;
 
-  --omed-glass: rgba(255, 255, 255, 0.55);
-  --omed-glass-strong: rgba(255, 255, 255, 0.72);
-  --omed-glass-edge: rgba(255, 255, 255, 0.65);
-  --omed-glass-shadow: 0 4px 24px rgba(20, 60, 120, 0.08);
-  --omed-glass-blur: blur(16px) saturate(140%);
-
-  --omed-blob-a: rgba(36, 120, 219, 0.28);
-  --omed-blob-b: rgba(15, 118, 110, 0.2);
-  --omed-page-bg:
-    radial-gradient(900px 560px at 6% -8%, var(--omed-blob-a), transparent 62%),
-    radial-gradient(
-      820px 560px at 100% 100%,
-      var(--omed-blob-b),
-      transparent 62%
-    ),
-    var(--omed-bg);
-
-  --omed-radius-sm: 6px;
-  --omed-radius: 10px;
-  --omed-radius-lg: 14px;
-  --omed-header-height: 44px;
-  --omed-sider-width: 148px;
+  --omed-radius-sm: 4px;
+  --omed-radius: 6px;
+  --omed-radius-lg: 8px;
+  --omed-header-height: 40px;
+  --omed-sider-width: 140px;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --omed-brand: #6aa8f5;
-  --omed-primary: #6aa8f5;
-  --omed-primary-hover: #8bbcf8;
-  --omed-primary-active: #4f93e6;
-  --omed-on-primary: #101620;
-  --omed-tint: rgba(106, 168, 245, 0.16);
-  --omed-tint-text: #bbd8fb;
+  --omed-brand: #c99480;
+  --omed-primary: #c99480;
+  --omed-primary-hover: #d6a793;
+  --omed-primary-active: #b98068;
+  --omed-on-primary: #1b1917;
+  --omed-tint: rgba(201, 148, 128, 0.16);
+  --omed-tint-text: #eacbbe;
 
-  --omed-bg: #101620;
-  --omed-text: #e4edf9;
-  --omed-text-secondary: rgba(228, 237, 249, 0.68);
-  --omed-text-muted: rgba(228, 237, 249, 0.42);
-  --omed-border: rgba(228, 237, 249, 0.14);
-  --omed-border-soft: rgba(228, 237, 249, 0.08);
+  --omed-bg: #1b1917;
+  --omed-surface: #242120;
+  --omed-surface-muted: #2e2a28;
+  --omed-text: #ece8e3;
+  --omed-text-secondary: #a09890;
+  --omed-text-muted: #7c746c;
+  --omed-border: #3d3835;
+  --omed-border-soft: #322e2b;
 
-  --omed-success: #7fb382;
-  --omed-warning: #e0b04f;
-  --omed-danger: #e0707f;
-  --omed-info: #4fd1c5;
-
-  --omed-glass: rgba(255, 255, 255, 0.06);
-  --omed-glass-strong: rgba(255, 255, 255, 0.1);
-  --omed-glass-edge: rgba(255, 255, 255, 0.12);
-  --omed-glass-shadow: 0 4px 28px rgba(0, 0, 0, 0.35);
-
-  --omed-blob-a: rgba(106, 168, 245, 0.22);
-  --omed-blob-b: rgba(79, 209, 197, 0.14);
+  --omed-success: #82ad8a;
+  --omed-warning: #ddb462;
+  --omed-danger: #de7570;
+  --omed-info: #7fb1b6;
+  --omed-success-text: #82ad8a;
+  --omed-warning-text: #ddb462;
+  --omed-danger-text: #de7570;
+  --omed-info-text: #7fb1b6;
 }
 
 *,
@@ -94,11 +82,10 @@ body {
 body {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--omed-text);
-  background: var(--omed-page-bg);
-  background-attachment: fixed;
+  background: var(--omed-bg);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -107,49 +94,18 @@ a {
   text-decoration: none;
 }
 
-/* Glass surfaces. Use at most two stacked layers. */
-.glass,
-.glass-strong {
-  border: 1px solid var(--omed-glass-edge);
-  box-shadow: var(--omed-glass-shadow);
-  -webkit-backdrop-filter: var(--omed-glass-blur);
-  backdrop-filter: var(--omed-glass-blur);
+/* Flat surfaces: a hairline border, no blur. */
+.surface,
+.surface-muted {
+  border: 1px solid var(--omed-border);
 }
 
-.glass {
-  background: var(--omed-glass);
+.surface {
+  background: var(--omed-surface);
 }
 
-.glass-strong {
-  background: var(--omed-glass-strong);
-}
-
-/* Glass inside glass is not blurred again. */
-.glass .glass,
-.glass .glass-strong,
-.glass-strong .glass,
-.glass-strong .glass-strong {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-@supports not (
-    (backdrop-filter: blur(1px)) or
-    (-webkit-backdrop-filter: blur(1px))
-  ) {
-  .glass,
-  .glass-strong {
-    background: var(--omed-bg);
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .glass,
-  .glass-strong {
-    background: var(--omed-bg);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
+.surface-muted {
+  background: var(--omed-surface-muted);
 }
 
 .num {

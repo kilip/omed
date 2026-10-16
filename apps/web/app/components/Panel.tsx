@@ -4,7 +4,7 @@ type PanelProps = {
   title?: ReactNode;
   extra?: ReactNode;
   children: ReactNode;
-  /** Dense surface for tables and forms. Thin glass otherwise. */
+  /** Dense (white) surface for tables and forms. Muted surface otherwise. */
   strong?: boolean;
   className?: string;
 };
@@ -18,7 +18,7 @@ export function Panel({
 }: PanelProps) {
   return (
     <section
-      className={`${strong ? "glass-strong" : "glass"} min-w-0 p-3 ${className}`}
+      className={`${strong ? "surface" : "surface-muted"} min-w-0 p-2.5 ${className}`}
       style={{ borderRadius: "var(--omed-radius-lg)" }}
     >
       {title || extra ? (

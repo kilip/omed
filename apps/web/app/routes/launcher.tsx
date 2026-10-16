@@ -19,7 +19,7 @@ export default function Launcher() {
           <Link
             key={m.id}
             to={`/${m.id}`}
-            className="glass flex min-w-0 flex-col gap-3 p-4"
+            className="surface-muted flex min-w-0 flex-col gap-2 p-3"
             style={{
               borderRadius: "var(--omed-radius-lg)",
               color: "var(--omed-text)",

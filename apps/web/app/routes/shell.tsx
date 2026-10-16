@@ -54,7 +54,7 @@ export default function Shell({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <header
-        className="glass-strong flex flex-wrap items-center gap-x-2 px-3"
+        className="surface flex flex-wrap items-center gap-x-2 px-3"
         style={{
           minHeight: "var(--omed-header-height)",
           borderRadius: 0,
