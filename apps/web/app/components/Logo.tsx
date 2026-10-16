@@ -12,7 +12,7 @@ export function Logo({ size = 20 }: { size?: number }) {
       <path
         d="M12 5A7 7 0 0 1 19 12"
         fill="none"
-        stroke="var(--omed-info)"
+        stroke="var(--omed-brand-accent)"
         strokeWidth="5"
       />
     </svg>

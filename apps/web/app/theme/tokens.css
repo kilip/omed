@@ -4,6 +4,7 @@
   color-scheme: light;
 
   --omed-brand: #9a5b48;
+  --omed-brand-accent: #cfa04a;
   --omed-primary: #9a5b48;
   --omed-primary-hover: #874d3c;
   --omed-primary-active: #74402f;
@@ -41,6 +42,7 @@
   color-scheme: dark;
 
   --omed-brand: #c99480;
+  --omed-brand-accent: #ddb462;
   --omed-primary: #c99480;
   --omed-primary-hover: #d6a793;
   --omed-primary-active: #b98068;
