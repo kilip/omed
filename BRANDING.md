@@ -23,7 +23,8 @@ Related files:
 
 | Token | Light | Dark | Used for |
 | --- | --- | --- | --- |
-| `--omed-brand` | `#9A5B48` | `#C99480` | Logo and identity accents |
+| `--omed-brand` | `#9A5B48` | `#C99480` | Logo ring and identity accents |
+| `--omed-brand-accent` | `#CFA04A` | `#DDB462` | Logo arc only. Not an action or status color |
 | `--omed-primary` | `#9A5B48` | `#C99480` | Primary buttons, links, focus, active menu item |
 | `--omed-primary-hover` | `#874D3C` | `#D6A793` | Hover |
 | `--omed-primary-active` | `#74402F` | `#B98068` | Pressed |
@@ -62,6 +63,20 @@ Each role has a fill token (`--omed-success`) and a text token (`--omed-success-
 - In light mode the success fill is 4.1:1 and the warning fill is 2.4:1 on white. Both are below AA, so they are never used as text.
 - Danger and primary are both reddish. Never rely on color alone for a destructive action: pair it with a label ("Delete member") and an icon.
 - Info is teal and not part of the cocoa family, so an info message never reads like an action.
+
+### Logo and app icons
+
+The mark is a ring with a quarter arc. Assets live in `apps/web/public`:
+
+| Asset | Colors | Used for |
+| --- | --- | --- |
+| `logo-icon.svg`, `logo-icon-512.png` | Ring `#9A5B48`, arc `#CFA04A`, transparent | Light backgrounds |
+| `favicon.svg` | Same as above, switches to the dark pair with `prefers-color-scheme` | Browser tab |
+| `favicon-16x16.png`, `favicon-32x32.png`, `favicon.ico` | Same as `logo-icon.svg` | Fallback favicons |
+| `icon-rounded.svg`, `icon-192.png`, `icon-512.png` | Ring `#C99480`, arc `#DDB462` on `#1B1917` | App icons with rounded corners |
+| `icon-maskable-512.png`, `apple-touch-icon.png` | Same as `icon-rounded.svg`, full bleed | Maskable and iOS icons |
+
+When the colors change, edit the three SVGs and regenerate the PNGs and `favicon.ico` from them, so the files never drift apart. The in-app `Logo` component reads `--omed-brand` and `--omed-brand-accent`, so it follows the active theme.
 
 ## 3. Surfaces
 
