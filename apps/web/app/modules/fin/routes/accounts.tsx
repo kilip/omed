@@ -6,7 +6,6 @@ import {
   Form,
   Input,
   Popconfirm,
-  Segmented,
   Select,
   Switch,
   Table,
@@ -93,18 +92,17 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
   const [filter, setFilter] = useState<AccountType | "ALL">("ALL");
   const [query, setQuery] = useState("");
 
-  const rows = useMemo(() => {
+  const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return buildTree(
-      accounts.filter(
-        (a) =>
-          (filter === "ALL" || a.type === filter) &&
-          (!needle ||
-            a.code?.toLowerCase().includes(needle) ||
-            a.name?.toLowerCase().includes(needle)),
-      ),
+    return accounts.filter(
+      (a) =>
+        (filter === "ALL" || a.type === filter) &&
+        (!needle ||
+          a.code?.toLowerCase().includes(needle) ||
+          a.name?.toLowerCase().includes(needle)),
     );
   }, [accounts, filter, query]);
+  const rows = useMemo(() => buildTree(filtered), [filtered]);
 
   const save = (values: FormValues) =>
     run(async () => {
@@ -216,6 +214,33 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
   return (
     <Page
       title={t("fin.menu.accounts")}
+      count={filtered.length}
+      search={{
+        value: query,
+        onChange: setQuery,
+        placeholder: t("fin.accounts.search"),
+        facets:
+          filter === "ALL"
+            ? []
+            : [
+                {
+                  key: "type",
+                  label: t("fin.accounts.facetType", {
+                    type: t(`fin.types.${filter}`),
+                  }),
+                  onRemove: () => setFilter("ALL"),
+                },
+              ],
+        filterItems: types.map((type) => ({
+          key: type,
+          label: t(`fin.types.${type}`),
+        })),
+        selectedFilterKeys: filter === "ALL" ? [] : [filter],
+        onFilterSelect: (key) =>
+          setFilter((current) =>
+            current === key ? "ALL" : (key as AccountType),
+          ),
+      }}
       actions={
         <Button
           type="primary"
@@ -226,27 +251,6 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
         </Button>
       }
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <Input.Search
-          allowClear
-          style={{ width: 260 }}
-          placeholder={t("fin.accounts.search")}
-          onSearch={setQuery}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <Segmented<AccountType | "ALL">
-          value={filter}
-          onChange={setFilter}
-          options={[
-            { value: "ALL", label: t("fin.accounts.allTypes") },
-            ...types.map((type) => ({
-              value: type,
-              label: t(`fin.types.${type}`),
-            })),
-          ]}
-        />
-      </div>
-
       <Panel strong>
         <Table<Row>
           size="small"

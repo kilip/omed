@@ -15,9 +15,12 @@ import {
 } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Chatter, type ChatterMessage } from "~/components/Chatter";
+import { FormView } from "~/components/FormView";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { RecordModal } from "~/components/RecordModal";
+import { StatusBar } from "~/components/StatusBar";
 import { formatDate, formatIDR } from "~/lib/format";
 import {
   accountName,
@@ -126,13 +129,47 @@ export default function Journal() {
   const { t, i18n } = useTranslation();
   const { message } = App.useApp();
   const [entries, setEntries] = useState<JournalEntry[]>(mockEntries);
-  const [selectedId, setSelectedId] = useState<number | undefined>(
-    mockEntries[0]?.id,
-  );
+  const [openId, setOpenId] = useState<number | undefined>();
   const [creating, setCreating] = useState(false);
+  const [messages, setMessages] = useState<Record<number, ChatterMessage[]>>(
+    {},
+  );
 
   const money = (value: number) => formatIDR(value, i18n.language);
-  const selected = entries.find((e) => e.id === selectedId);
+  const opened = entries.find((e) => e.id === openId);
+
+  const addMessage = (
+    entryId: number,
+    kind: ChatterMessage["kind"],
+    body: string,
+  ) =>
+    setMessages((all) => {
+      const current = all[entryId] ?? [];
+      const id = Math.max(0, ...current.map((m) => m.id)) + 1;
+      const message: ChatterMessage = {
+        id,
+        kind,
+        body,
+        author: t("chatter.you"),
+        at: new Date().toLocaleString(i18n.language),
+      };
+      return { ...all, [entryId]: [message, ...current] };
+    });
+
+  const setStatus = (entry: JournalEntry, status: JournalEntry["status"]) => {
+    setEntries((all) =>
+      all.map((e) => (e.id === entry.id ? { ...e, status } : e)),
+    );
+    addMessage(
+      entry.id,
+      "tracking",
+      t(
+        status === "POSTED"
+          ? "fin.journal.trackPosted"
+          : "fin.journal.trackDraft",
+      ),
+    );
+  };
 
   const create = async (values: FormValues) => {
     const lines: JournalLine[] = values.lines
@@ -163,7 +200,7 @@ export default function Journal() {
       lines,
     };
     setEntries([entry, ...entries]);
-    setSelectedId(id);
+    setOpenId(id);
     message.success(t("common.saved"));
     return true;
   };
@@ -210,23 +247,102 @@ export default function Journal() {
     },
   ];
 
+  const newButton = (
+    <Button
+      type="primary"
+      icon={<PlusOutlined />}
+      onClick={() => setCreating(true)}
+    >
+      {t("fin.journal.new")}
+    </Button>
+  );
+
   return (
     <Page
-      title={t("fin.menu.journal")}
-      actions={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setCreating(true)}
-        >
-          {t("fin.journal.new")}
-        </Button>
+      title={opened ? opened.number : t("fin.menu.journal")}
+      trail={
+        opened
+          ? [
+              {
+                title: t("fin.menu.journal"),
+                onClick: () => setOpenId(undefined),
+              },
+            ]
+          : []
       }
+      count={opened ? undefined : entries.length}
+      actions={newButton}
     >
       <Alert type="info" showIcon message={t("common.provisionalNotice")} />
 
-      <div className="flex flex-wrap items-start gap-3">
-        <Panel strong className="flex-[3_1_480px]">
+      {opened ? (
+        <FormView
+          title={opened.number}
+          buttons={
+            opened.status === "DRAFT" ? (
+              <Button
+                type="primary"
+                onClick={() => setStatus(opened, "POSTED")}
+              >
+                {t("fin.journal.post")}
+              </Button>
+            ) : (
+              <Button onClick={() => setStatus(opened, "DRAFT")}>
+                {t("fin.journal.resetDraft")}
+              </Button>
+            )
+          }
+          statusbar={
+            <StatusBar
+              label={t("common.status")}
+              current={opened.status}
+              steps={[
+                { value: "DRAFT", label: t("fin.journal.DRAFT") },
+                { value: "POSTED", label: t("fin.journal.POSTED") },
+              ]}
+            />
+          }
+          chatter={
+            <Chatter
+              messages={messages[opened.id] ?? []}
+              onPost={(kind, body) => addMessage(opened.id, kind, body)}
+            />
+          }
+        >
+          <div
+            className="mb-2 text-[13px]"
+            style={{ color: "var(--omed-text-secondary)" }}
+          >
+            {formatDate(opened.date, i18n.language)} · {opened.reference}
+          </div>
+          <Table<JournalLine>
+            size="small"
+            rowKey={(l) => `${l.account}-${l.debit}-${l.credit}`}
+            columns={lineColumns}
+            dataSource={opened.lines}
+            pagination={false}
+            scroll={{ x: "max-content" }}
+            summary={() => (
+              <Table.Summary.Row>
+                <Table.Summary.Cell index={0} colSpan={2}>
+                  <strong>{t("common.total")}</strong>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={2} align="right">
+                  <strong className="num">
+                    {money(sumDebit(opened.lines))}
+                  </strong>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={3} align="right">
+                  <strong className="num">
+                    {money(sumCredit(opened.lines))}
+                  </strong>
+                </Table.Summary.Cell>
+              </Table.Summary.Row>
+            )}
+          />
+        </FormView>
+      ) : (
+        <Panel strong>
           <Table<JournalEntry>
             size="small"
             rowKey="id"
@@ -234,59 +350,13 @@ export default function Journal() {
             dataSource={entries}
             pagination={false}
             scroll={{ x: "max-content" }}
-            rowSelection={{
-              type: "radio",
-              selectedRowKeys: selectedId === undefined ? [] : [selectedId],
-              onChange: (keys) => setSelectedId(Number(keys[0])),
-            }}
+            onRow={(entry) => ({
+              onClick: () => setOpenId(entry.id),
+              style: { cursor: "pointer" },
+            })}
           />
         </Panel>
-
-        {selected ? (
-          <Panel
-            strong
-            className="flex-[2_1_380px]"
-            title={selected.number}
-            extra={
-              <Tag color={selected.status === "POSTED" ? "success" : "default"}>
-                {t(`fin.journal.${selected.status}`)}
-              </Tag>
-            }
-          >
-            <div
-              className="mb-2 text-[13px]"
-              style={{ color: "var(--omed-text-secondary)" }}
-            >
-              {formatDate(selected.date, i18n.language)} · {selected.reference}
-            </div>
-            <Table<JournalLine>
-              size="small"
-              rowKey={(l) => `${l.account}-${l.debit}-${l.credit}`}
-              columns={lineColumns}
-              dataSource={selected.lines}
-              pagination={false}
-              scroll={{ x: "max-content" }}
-              summary={() => (
-                <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={2}>
-                    <strong>{t("common.total")}</strong>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={2} align="right">
-                    <strong className="num">
-                      {money(sumDebit(selected.lines))}
-                    </strong>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={3} align="right">
-                    <strong className="num">
-                      {money(sumCredit(selected.lines))}
-                    </strong>
-                  </Table.Summary.Cell>
-                </Table.Summary.Row>
-              )}
-            />
-          </Panel>
-        ) : null}
-      </div>
+      )}
 
       <RecordModal<FormValues>
         variant="drawer"
