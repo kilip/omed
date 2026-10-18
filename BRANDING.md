@@ -121,7 +121,7 @@ Sentence case for all labels, buttons, and titles. No ALL CAPS.
 
 ## 5. Density and shape
 
-- Ant Design uses `compactAlgorithm` + 13px font, and `ConfigProvider` sets `componentSize="small"`. Use `size="small"` on tables and forms by default, not only when the data is dense.
+- Ant Design uses a 13px base font, and `ConfigProvider` sets `componentSize="small"`. Use `size="small"` on tables and forms by default, not only when the data is dense.
 - Spacing scale: **4, 8, 12, 16, 24**. Card and panel padding 10, gap between cards 8 to 12, auth cards 20.
 - Radius: small 4 (tags, checkboxes), default 6 (buttons, inputs, search bar), large 8 (cards, modals, drawers), extra large 16 (app tile icons only).
 - Navbar height 46px. Sidebar width 200px, 52px collapsed. Menu item height 30px. Chatter width about 340px.

@@ -60,10 +60,7 @@ export function getAntdTheme(mode: ThemeMode): ThemeConfig {
   const p = palette[mode];
 
   return {
-    algorithm: [
-      theme.compactAlgorithm,
-      mode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
-    ],
+    algorithm: mode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
     token: {
       colorPrimary: p.primary,
       colorPrimaryHover: p.primaryHover,
