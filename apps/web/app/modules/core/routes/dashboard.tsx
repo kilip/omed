@@ -1,7 +1,5 @@
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Statistic, Table, type TableProps, Tag } from "antd";
+import { Statistic, Table, type TableProps, Tag } from "antd";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { api, orForbidden, unwrapList, unwrapOne } from "~/lib/api";
@@ -43,7 +41,6 @@ export default function CoreDashboard({ loaderData }: Route.ComponentProps) {
   const { workspaces, members, invitations, permissions, wid } = loaderData;
   const { label: roleName } = useRoles(wid);
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
 
   const activeInvitations = invitations.filter(
     (i) => invitationStatus(i) === "active",
@@ -69,18 +66,7 @@ export default function CoreDashboard({ loaderData }: Route.ComponentProps) {
   ];
 
   return (
-    <Page
-      title={t("core.menu.dashboard")}
-      actions={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => navigate("/core/workspaces")}
-        >
-          {t("core.workspaces.new")}
-        </Button>
-      }
-    >
+    <Page title={t("core.menu.dashboard")}>
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
         <Panel>
           <Statistic

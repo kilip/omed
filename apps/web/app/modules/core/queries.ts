@@ -13,10 +13,6 @@ export const roleKeys = {
   all: (wid: number) => ["core", "workspaces", wid, "roles"] as const,
 };
 
-export const workspaceKeys = {
-  list: (name?: string) => ["core", "workspace-list", { name }] as const,
-};
-
 /** Roles that can be assigned in a workspace, with their display names. */
 export const rolesQueryOptions = (wid: number) =>
   queryOptions({
@@ -50,15 +46,5 @@ export const invitationsQueryOptions = (wid: number) =>
           params: { path: { wid } },
           body: { limit: 100 },
         }),
-      ),
-  });
-
-/** Workspaces visible to the caller, optionally filtered by name. */
-export const workspacesQueryOptions = (name?: string) =>
-  queryOptions({
-    queryKey: workspaceKeys.list(name),
-    queryFn: () =>
-      unwrapList(
-        api.POST("/workspaces/search", { body: { name, limit: 100 } }),
       ),
   });

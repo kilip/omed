@@ -99,7 +99,6 @@ export const id: Translation = {
     description: "Workspace, anggota, dan tautan undangan",
     menu: {
       dashboard: "Dashboard",
-      workspaces: "Workspace",
       members: "Anggota",
       invitations: "Undangan",
     },
@@ -113,12 +112,9 @@ export const id: Translation = {
       owner: "Pemilik",
     },
     workspaces: {
-      new: "Workspace baru",
-      edit: "Ubah workspace",
       owner: "Pemilik",
       personal: "Pribadi",
       shared: "Bersama",
-      deleteConfirm: "Hapus workspace ini beserta seluruh isinya?",
     },
     members: {
       user: "Pengguna",

@@ -20,12 +20,6 @@ export default defineModule({
       icon: DashboardOutlined,
     },
     {
-      key: "workspaces",
-      path: "workspaces",
-      labelKey: "core.menu.workspaces",
-      icon: ApartmentOutlined,
-    },
-    {
       key: "members",
       path: "members",
       labelKey: "core.menu.members",

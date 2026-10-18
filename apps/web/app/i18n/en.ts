@@ -97,7 +97,6 @@ export const en = {
     description: "Workspaces, members and invitation links",
     menu: {
       dashboard: "Dashboard",
-      workspaces: "Workspaces",
       members: "Members",
       invitations: "Invitations",
     },
@@ -111,12 +110,9 @@ export const en = {
       owner: "Owner",
     },
     workspaces: {
-      new: "New workspace",
-      edit: "Edit workspace",
       owner: "Owner",
       personal: "Personal",
       shared: "Shared",
-      deleteConfirm: "Delete this workspace and everything in it?",
     },
     members: {
       user: "User",
