@@ -3,70 +3,84 @@
 :root {
   color-scheme: light;
 
-  --omed-brand: #9a5b48;
-  --omed-brand-accent: #cfa04a;
-  --omed-primary: #9a5b48;
-  --omed-primary-hover: #874d3c;
-  --omed-primary-active: #74402f;
+  --omed-brand: #714b67;
+  --omed-brand-accent: #017e84;
+  --omed-primary: #714b67;
+  --omed-primary-hover: #5f3e56;
+  --omed-primary-active: #4d3246;
   --omed-on-primary: #ffffff;
-  --omed-tint: rgba(154, 91, 72, 0.1);
-  --omed-tint-text: #6e3a2b;
+  --omed-tint: rgba(113, 75, 103, 0.1);
+  --omed-tint-text: #5a3a51;
 
-  --omed-bg: #fbf9f6;
+  --omed-bg: #f9fafb;
   --omed-surface: #ffffff;
-  --omed-surface-muted: #f4f1ec;
-  --omed-text: #2f2b26;
-  --omed-text-secondary: #736b61;
-  --omed-text-muted: #8c8479;
-  --omed-border: #e9e4dc;
-  --omed-border-soft: #f0ebe3;
+  --omed-surface-muted: #f3f4f6;
+  --omed-text: #1f2430;
+  --omed-text-secondary: #5f636f;
+  --omed-text-muted: #8a8d97;
+  --omed-border: #e1e3e8;
+  --omed-border-soft: #edeef1;
 
   /* Fill colors (dots, icons, borders). Use the -text variants for text. */
-  --omed-success: #5f8767;
-  --omed-warning: #cfa04a;
-  --omed-danger: #bc4b44;
-  --omed-info: #3f727a;
-  --omed-success-text: #476b4f;
-  --omed-warning-text: #8a6420;
-  --omed-danger-text: #bc4b44;
-  --omed-info-text: #3f727a;
+  --omed-success: #2e9e6b;
+  --omed-warning: #e3a008;
+  --omed-danger: #c8423a;
+  --omed-info: #017e84;
+  --omed-success-text: #1f7a4f;
+  --omed-warning-text: #8a5a00;
+  --omed-danger-text: #b3342d;
+  --omed-info-text: #017e84;
+
+  /* App icon tiles on the launcher. Cycled by module order. */
+  --omed-app-1: #714b67;
+  --omed-app-2: #017e84;
+  --omed-app-3: #d9604f;
+  --omed-on-app: #ffffff;
 
   --omed-radius-sm: 4px;
   --omed-radius: 6px;
   --omed-radius-lg: 8px;
-  --omed-header-height: 40px;
-  --omed-sider-width: 140px;
+  --omed-radius-xl: 16px;
+  --omed-header-height: 46px;
+  --omed-sider-width: 200px;
+  --omed-sider-width-collapsed: 52px;
+  --omed-chatter-width: 340px;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --omed-brand: #c99480;
-  --omed-brand-accent: #ddb462;
-  --omed-primary: #c99480;
-  --omed-primary-hover: #d6a793;
-  --omed-primary-active: #b98068;
-  --omed-on-primary: #1b1917;
-  --omed-tint: rgba(201, 148, 128, 0.16);
-  --omed-tint-text: #eacbbe;
+  --omed-brand: #c79bbb;
+  --omed-brand-accent: #4fb8be;
+  --omed-primary: #c79bbb;
+  --omed-primary-hover: #d6b0cb;
+  --omed-primary-active: #b889ab;
+  --omed-on-primary: #1b1620;
+  --omed-tint: rgba(199, 155, 187, 0.16);
+  --omed-tint-text: #e8d0e1;
 
-  --omed-bg: #1b1917;
-  --omed-surface: #242120;
-  --omed-surface-muted: #2e2a28;
-  --omed-text: #ece8e3;
-  --omed-text-secondary: #a09890;
-  --omed-text-muted: #7c746c;
-  --omed-border: #3d3835;
-  --omed-border-soft: #322e2b;
+  --omed-bg: #17191d;
+  --omed-surface: #1f2227;
+  --omed-surface-muted: #2a2d34;
+  --omed-text: #e8e9ec;
+  --omed-text-secondary: #a0a4ae;
+  --omed-text-muted: #7b7f8a;
+  --omed-border: #363a42;
+  --omed-border-soft: #2b2e35;
 
-  --omed-success: #82ad8a;
-  --omed-warning: #ddb462;
-  --omed-danger: #de7570;
-  --omed-info: #7fb1b6;
-  --omed-success-text: #82ad8a;
-  --omed-warning-text: #ddb462;
-  --omed-danger-text: #de7570;
-  --omed-info-text: #7fb1b6;
+  --omed-success: #6cc596;
+  --omed-warning: #e8b454;
+  --omed-danger: #ef7b72;
+  --omed-info: #5cc1c6;
+  --omed-success-text: #6cc596;
+  --omed-warning-text: #e8b454;
+  --omed-danger-text: #ef7b72;
+  --omed-info-text: #5cc1c6;
+
+  --omed-app-1: #7c5473;
+  --omed-app-2: #1e8f95;
+  --omed-app-3: #c95545;
+  --omed-on-app: #ffffff;
 }
 
 *,
@@ -113,4 +127,56 @@ a {
 .num {
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+
+/* Launcher backdrop: a pale dotted grid, the only decorative element. */
+.home-backdrop {
+  background-color: var(--omed-bg);
+  background-image: radial-gradient(var(--omed-border) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* App tile on the launcher: a rounded colored icon with its label below. */
+.app-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border-radius: var(--omed-radius-lg);
+  color: var(--omed-text);
+  text-align: center;
+}
+
+.app-tile:hover {
+  background: var(--omed-surface);
+  color: var(--omed-text);
+}
+
+.app-tile:focus-visible {
+  outline: 2px solid var(--omed-primary);
+  outline-offset: 2px;
+}
+
+.app-tile__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  font-size: 30px;
+  color: var(--omed-on-app);
+  border-radius: var(--omed-radius-xl);
+}
+
+.app-tile--1 .app-tile__icon {
+  background: var(--omed-app-1);
+}
+
+.app-tile--2 .app-tile__icon {
+  background: var(--omed-app-2);
+}
+
+.app-tile--3 .app-tile__icon {
+  background: var(--omed-app-3);
 }
