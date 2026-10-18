@@ -1,5 +1,6 @@
 import { AppstoreOutlined, LogoutOutlined } from "@ant-design/icons";
-import { Avatar, Button, Dropdown, Select } from "antd";
+import { Avatar, Button, Dropdown, Menu, Select } from "antd";
+import { createElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
 import { Logo } from "~/components/Logo";
@@ -16,8 +17,9 @@ type NavBarProps = {
 };
 
 /**
- * Odoo-style navbar. Left: the app switcher button, the brand and the current
- * app name. Right (the "systray"): workspace, language, theme and user.
+ * Odoo-style navbar. Left: the app switcher button, the brand, the current
+ * app name and its menu. Right (the "systray"): workspace, language, theme
+ * and user.
  */
 export function NavBar({
   user,
@@ -29,6 +31,18 @@ export function NavBar({
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const meta = findModule(pathname);
+
+  const base = meta ? `/${meta.id}` : "";
+  const selected = meta
+    ? meta.menu
+        .filter((item) =>
+          item.path
+            ? pathname === `${base}/${item.path}` ||
+              pathname.startsWith(`${base}/${item.path}/`)
+            : pathname === base,
+        )
+        .map((item) => item.key)
+    : [];
 
   return (
     <header
@@ -52,17 +66,41 @@ export function NavBar({
         Omed
       </Link>
       {meta ? (
-        <span
-          className="ml-2 border-0 border-l border-solid pl-3 font-medium"
-          style={{
-            borderColor: "var(--omed-border)",
-            color: "var(--omed-primary-text)",
-          }}
-        >
-          {t(meta.labelKey)}
-        </span>
-      ) : null}
-      <span className="flex-1" />
+        <>
+          <Link
+            to={base}
+            className="ml-2 flex items-center gap-1.5 border-0 border-l border-solid pl-3 pr-2 font-medium"
+            style={{
+              borderColor: "var(--omed-border)",
+              color: "var(--omed-primary-text)",
+            }}
+          >
+            <span className="flex text-base">{createElement(meta.icon)}</span>
+            <span>{t(meta.labelKey)}</span>
+          </Link>
+          <Menu
+            mode="horizontal"
+            selectedKeys={selected}
+            style={{
+              background: "transparent",
+              borderBottom: 0,
+              flex: 1,
+              minWidth: 0,
+            }}
+            items={meta.menu.map((item) => ({
+              key: item.key,
+              icon: item.icon ? createElement(item.icon) : undefined,
+              label: (
+                <Link to={item.path ? `${base}/${item.path}` : base}>
+                  {t(item.labelKey)}
+                </Link>
+              ),
+            }))}
+          />
+        </>
+      ) : (
+        <span className="flex-1" />
+      )}
       {workspaces.length > 0 ? (
         <Select
           aria-label={t("shell.workspace")}

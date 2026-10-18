@@ -43,7 +43,7 @@ Related files:
 | Token | Light | Dark | Used for |
 | --- | --- | --- | --- |
 | `--omed-bg` | `#F9FAFB` | `#17191D` | Page background |
-| `--omed-surface` | `#FFFFFF` | `#1F2227` | Navbar, sidebar, cards, chatter, modals |
+| `--omed-surface` | `#FFFFFF` | `#1F2227` | Navbar, cards, chatter, modals |
 | `--omed-surface-muted` | `#F3F4F6` | `#2A2D34` | Light cards, hover background, notes |
 | `--omed-text` | `#1F2430` | `#E8E9EC` | Body text |
 | `--omed-text-secondary` | `#5F636F` | `#A0A4AE` | Supporting text |
@@ -90,7 +90,7 @@ When the colors change, edit the three SVGs and regenerate the PNGs and `favicon
 
 | Class | Fill | Used for |
 | --- | --- | --- |
-| `.surface` | `--omed-surface` | Navbar, sidebar, dense panels (tables and forms), chatter, login and invite cards |
+| `.surface` | `--omed-surface` | Navbar, dense panels (tables and forms), chatter, login and invite cards |
 | `.surface-muted` | `--omed-surface-muted` | Light cards |
 | `.home-backdrop` | `--omed-bg` with a dot grid | Launcher only |
 
@@ -124,7 +124,7 @@ Sentence case for all labels, buttons, and titles. No ALL CAPS.
 - Ant Design uses a 13px base font, and `ConfigProvider` sets `componentSize="small"`. Use `size="small"` on tables and forms by default, not only when the data is dense.
 - Spacing scale: **4, 8, 12, 16, 24**. Card and panel padding 10, gap between cards 8 to 12, auth cards 20.
 - Radius: small 4 (tags, checkboxes), default 6 (buttons, inputs, search bar), large 8 (cards, modals, drawers), extra large 16 (app tile icons only).
-- Navbar height 46px. Sidebar width 200px, 52px collapsed. Menu item height 30px. Chatter width about 340px.
+- Navbar height 46px. Menu item height 30px. Chatter width about 340px.
 - Table cells: 4px vertical padding, 10px horizontal.
 
 ## 6. Layout
@@ -133,9 +133,8 @@ The shell follows Odoo's structure. Each part is a component in `apps/web/app/co
 
 | Part | Component | Behavior |
 | --- | --- | --- |
-| Navbar | `NavBar` | White surface with a hairline. Left: app switcher button, logo, and the current app name in primary. Right: workspace select, language, theme, user menu |
+| Navbar | `NavBar` | White surface with a hairline. Left: app switcher button, logo, current app name and icon in primary, then the horizontal module menu from `module.ts`. Right: workspace select, language, theme, user menu |
 | App switcher | `routes/launcher.tsx` | Centered grid of app tiles on `.home-backdrop`. A tile is a 64px rounded icon (`.app-tile__icon`) with the label and description below. Modules are discovered from `module.ts`, so a new module gets a tile automatically |
-| Sidebar | `ModuleLayout` | The module name and icon on top, then the menu from `module.ts`. Collapses to icons with the button at the bottom. The choice is stored in `localStorage` under `omed.sider`. Starts collapsed below the `md` breakpoint |
 | Control panel | `ControlPanel` (through `Page`) | One row. Left: breadcrumb and action buttons. Middle: the search bar. Right: the record counter and the view switcher |
 | Search bar | `SearchBar` | One box holding facet pills, the text input, and an optional filter dropdown. Facets use `tint` and can be removed one by one |
 | View switcher | `ViewSwitcher` | Icon-only segmented control for `list`, `kanban`, and `form`. Hidden when a screen has fewer than two views |
@@ -154,7 +153,7 @@ Usage notes:
 | Component | Rule |
 | --- | --- |
 | Button | One `type="primary"` per screen (dark label on the orange fill), plus the one that moves a record forward in a form (for example "Post"). The rest are default or text. No shadow. `size="small"` |
-| Menu / sider | Active item: `tint` background + primary text, no active bar. Hover: `surface-muted` |
+| Menu | Active item: `tint` background + primary text, no active bar. Hover: `surface-muted` |
 | Table | Transparent header, `surface-muted` on hover, `tint` on selected rows, `border-soft` borders, no border on the last row. Rows that open a record are clickable with a pointer cursor |
 | Card | Use `.surface` or `.surface-muted`. Don't set a background color manually |
 | Kanban card | A `Panel strong` with the identity on top, tags in the middle, and metadata and actions at the bottom. Grid of at least 240px columns |

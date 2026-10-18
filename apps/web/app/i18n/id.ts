@@ -45,8 +45,6 @@ export const id: Translation = {
     you: "Anda",
   },
   shell: {
-    collapseMenu: "Ciutkan menu",
-    expandMenu: "Bentangkan menu",
     apps: "Aplikasi",
     language: "Bahasa",
     theme: "Tema",

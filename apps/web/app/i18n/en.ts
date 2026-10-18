@@ -43,8 +43,6 @@ export const en = {
     you: "You",
   },
   shell: {
-    collapseMenu: "Collapse menu",
-    expandMenu: "Expand menu",
     apps: "Apps",
     language: "Language",
     theme: "Theme",

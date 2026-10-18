@@ -48,9 +48,9 @@ export default function Shell({ loaderData }: Route.ComponentProps) {
         }}
         onSignOut={signOut}
       />
-      <div className="flex flex-1 flex-col">
+      <main className="flex min-w-0 flex-1 flex-col">
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 }
