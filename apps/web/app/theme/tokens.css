@@ -3,14 +3,15 @@
 :root {
   color-scheme: light;
 
-  --omed-brand: #714b67;
+  --omed-brand: #f97316;
   --omed-brand-accent: #017e84;
-  --omed-primary: #714b67;
-  --omed-primary-hover: #5f3e56;
-  --omed-primary-active: #4d3246;
-  --omed-on-primary: #ffffff;
-  --omed-tint: rgba(113, 75, 103, 0.1);
-  --omed-tint-text: #5a3a51;
+  --omed-primary: #f97316;
+  --omed-primary-text: #c2410c;
+  --omed-primary-hover: #ea580c;
+  --omed-primary-active: #c2410c;
+  --omed-on-primary: #1f2430;
+  --omed-tint: rgba(249, 115, 22, 0.12);
+  --omed-tint-text: #9a3412;
 
   --omed-bg: #f9fafb;
   --omed-surface: #ffffff;
@@ -24,17 +25,17 @@
   /* Fill colors (dots, icons, borders). Use the -text variants for text. */
   --omed-success: #2e9e6b;
   --omed-warning: #e3a008;
-  --omed-danger: #c8423a;
+  --omed-danger: #c62f4b;
   --omed-info: #017e84;
   --omed-success-text: #1f7a4f;
   --omed-warning-text: #8a5a00;
-  --omed-danger-text: #b3342d;
+  --omed-danger-text: #b02440;
   --omed-info-text: #017e84;
 
   /* App icon tiles on the launcher. Cycled by module order. */
-  --omed-app-1: #714b67;
+  --omed-app-1: #ea580c;
   --omed-app-2: #017e84;
-  --omed-app-3: #d9604f;
+  --omed-app-3: #3d5a80;
   --omed-on-app: #ffffff;
 
   --omed-radius-sm: 4px;
@@ -50,14 +51,15 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --omed-brand: #c79bbb;
+  --omed-brand: #fb923c;
   --omed-brand-accent: #4fb8be;
-  --omed-primary: #c79bbb;
-  --omed-primary-hover: #d6b0cb;
-  --omed-primary-active: #b889ab;
-  --omed-on-primary: #1b1620;
-  --omed-tint: rgba(199, 155, 187, 0.16);
-  --omed-tint-text: #e8d0e1;
+  --omed-primary: #fb923c;
+  --omed-primary-text: #fdba74;
+  --omed-primary-hover: #fdba74;
+  --omed-primary-active: #f97316;
+  --omed-on-primary: #1f1308;
+  --omed-tint: rgba(251, 146, 60, 0.16);
+  --omed-tint-text: #fed7aa;
 
   --omed-bg: #17191d;
   --omed-surface: #1f2227;
@@ -70,16 +72,16 @@
 
   --omed-success: #6cc596;
   --omed-warning: #e8b454;
-  --omed-danger: #ef7b72;
+  --omed-danger: #f0707f;
   --omed-info: #5cc1c6;
   --omed-success-text: #6cc596;
   --omed-warning-text: #e8b454;
-  --omed-danger-text: #ef7b72;
+  --omed-danger-text: #f0707f;
   --omed-info-text: #5cc1c6;
 
-  --omed-app-1: #7c5473;
+  --omed-app-1: #c2531a;
   --omed-app-2: #1e8f95;
-  --omed-app-3: #c95545;
+  --omed-app-3: #5470a0;
   --omed-on-app: #ffffff;
 }
 
@@ -106,7 +108,7 @@ body {
 }
 
 a {
-  color: var(--omed-primary);
+  color: var(--omed-primary-text);
   text-decoration: none;
 }
 

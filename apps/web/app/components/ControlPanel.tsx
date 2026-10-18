@@ -47,7 +47,7 @@ export function ControlPanel({
           type="button"
           onClick={crumb.onClick}
           className="cursor-pointer border-0 bg-transparent p-0"
-          style={{ color: "var(--omed-primary)", font: "inherit" }}
+          style={{ color: "var(--omed-primary-text)", font: "inherit" }}
         >
           {crumb.title}
         </button>

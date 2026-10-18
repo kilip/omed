@@ -71,7 +71,7 @@ export function ModuleLayout({ moduleId }: { moduleId: string }) {
       >
         <div
           className="mb-2 flex items-center gap-2 px-2 font-medium"
-          style={{ color: "var(--omed-primary)" }}
+          style={{ color: "var(--omed-primary-text)" }}
         >
           <span className="flex text-base">{createElement(meta.icon)}</span>
           {collapsed ? null : (

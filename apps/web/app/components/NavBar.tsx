@@ -56,7 +56,7 @@ export function NavBar({
           className="ml-2 border-0 border-l border-solid pl-3 font-medium"
           style={{
             borderColor: "var(--omed-border)",
-            color: "var(--omed-primary)",
+            color: "var(--omed-primary-text)",
           }}
         >
           {t(meta.labelKey)}
