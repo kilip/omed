@@ -1,8 +1,8 @@
 # Omed brand guidelines
 
-Style: **light, flat, compact, modern** (Odoo 20 inspired). Component base: Ant Design. Primary color: **plum**, with a **teal** secondary.
+Style: **light, flat, compact, modern** (Odoo 20 inspired). Component base: Ant Design. Primary color: **burnt orange**, with a **teal** secondary.
 
-Omed borrows Odoo's layout patterns and color character: a plum primary, a teal accent, pale cool-gray surfaces, soft borders, rounded app tiles, and a control panel above every list. It does not use Odoo's logo, name, or icons.
+Omed borrows Odoo's layout patterns and color character: a burnt orange primary, a teal accent, pale cool-gray surfaces, soft borders, rounded app tiles, and a control panel above every list. It does not use Odoo's logo, name, or icons.
 
 Related files:
 
@@ -17,7 +17,7 @@ Related files:
 1. **Light and airy.** Neutrals are pale and slightly cool, never pure white on pure white and never warm cream.
 2. **Flat surfaces.** Hairline borders separate surfaces. No blur, no decorative shadows. The dotted launcher backdrop is the only decoration.
 3. **Compact but breathable.** Small controls, 4/8/12/16 spacing, a clear hierarchy. Dense never means cramped.
-4. **One accent per screen.** Plum is only for the main action and active states. Teal marks information and the second app color.
+4. **One accent per screen.** Orange is only for the main action and active states. Teal marks information and the second app color.
 5. **Legible first, pretty second.** Small text must pass AA contrast (4.5:1).
 
 ## 2. Color
@@ -26,16 +26,17 @@ Related files:
 
 | Token | Light | Dark | Used for |
 | --- | --- | --- | --- |
-| `--omed-brand` | `#714B67` | `#C79BBB` | Logo ring and identity accents |
+| `--omed-brand` | `#F97316` | `#FB923C` | Logo ring and identity accents |
 | `--omed-brand-accent` | `#017E84` | `#4FB8BE` | Logo arc only. Not an action or status color |
-| `--omed-primary` | `#714B67` | `#C79BBB` | Primary buttons, links, focus, active menu item |
-| `--omed-primary-hover` | `#5F3E56` | `#D6B0CB` | Hover |
-| `--omed-primary-active` | `#4D3246` | `#B889AB` | Pressed |
-| `--omed-on-primary` | `#FFFFFF` | `#1B1620` | Text on primary buttons and the active statusbar step |
-| `--omed-tint` | `rgba(113,75,103,.10)` | `rgba(199,155,187,.16)` | Selected item background, soft badges, search facets |
-| `--omed-tint-text` | `#5A3A51` | `#E8D0E1` | Text on tint |
+| `--omed-primary` | `#F97316` | `#FB923C` | Fill of primary buttons, focus ring, the active statusbar step |
+| `--omed-primary-text` | `#C2410C` | `#FDBA74` | Orange text on a surface: links, active menu item, breadcrumb, app name |
+| `--omed-primary-hover` | `#EA580C` | `#FDBA74` | Hover |
+| `--omed-primary-active` | `#C2410C` | `#F97316` | Pressed |
+| `--omed-on-primary` | `#1F2430` | `#1F1308` | Text on primary buttons and the active statusbar step |
+| `--omed-tint` | `rgba(249,115,22,.12)` | `rgba(251,146,60,.16)` | Selected item background, soft badges, search facets |
+| `--omed-tint-text` | `#9A3412` | `#FED7AA` | Text on tint |
 
-> Brand and primary are the same color. `#714B67` has 7.2:1 contrast against white, so it passes AA for small text and no separate action color is needed.
+> `#F97316` has only 2.8:1 contrast against white, so it is a fill color. It always carries the dark `--omed-on-primary` text (5.5:1). Orange text on a light surface uses `--omed-primary-text` (`#C2410C`, 5.2:1), never `--omed-primary`. The checkmark of a checked checkbox or switch is white on the fill and sits just under 3:1; the label next to it carries the meaning.
 
 ### Cool neutrals
 
@@ -58,18 +59,18 @@ Related files:
 | --- | --- | --- | --- |
 | Success | `#2E9E6B` | `#1F7A4F` | `#6CC596` |
 | Warning | `#E3A008` | `#8A5A00` | `#E8B454` |
-| Danger | `#C8423A` | `#B3342D` | `#EF7B72` |
+| Danger | `#C62F4B` | `#B02440` | `#F0707F` |
 | Info | `#017E84` | `#017E84` | `#5CC1C6` |
 
 Each role has a fill token (`--omed-success`) and a text token (`--omed-success-text`). Use the fill for dots, icons, and borders, and the text token for text.
 
 - In light mode the success fill is 3.4:1 and the warning fill is 2.3:1 on white. Both are below AA, so they are never used as text.
-- Danger is red and primary is plum, which are close in dark mode. Never rely on color alone for a destructive action: pair it with a label ("Delete member") and an icon.
+- Danger is crimson and primary is orange, which sit close together. Never rely on color alone for a destructive action: pair it with a label ("Delete member") and an icon.
 - Info is teal, so an info message never reads like an action.
 
 ### App tile colors
 
-The launcher cycles three fills by module order: `--omed-app-1` plum, `--omed-app-2` teal, `--omed-app-3` coral (`#714B67`, `#017E84`, `#D9604F` in light mode). Icons on tiles are always `--omed-on-app` (white). Tiles are the one place coral appears; do not use it elsewhere.
+The launcher cycles three fills by module order: `--omed-app-1` orange, `--omed-app-2` teal, `--omed-app-3` slate blue (`#EA580C`, `#017E84`, `#3D5A80` in light mode). Icons on tiles are always `--omed-on-app` (white). Tiles are the one place slate blue appears; do not use it elsewhere. In dark mode the tile fills are darker than the primary so the white icon keeps its contrast.
 
 ### Logo and app icons
 
@@ -77,10 +78,10 @@ The mark is a ring with a quarter arc. Assets live in `apps/web/public`:
 
 | Asset | Colors | Used for |
 | --- | --- | --- |
-| `logo-icon.svg`, `logo-icon-512.png` | Ring `#714B67`, arc `#017E84`, transparent | Light backgrounds |
+| `logo-icon.svg`, `logo-icon-512.png` | Ring `#F97316`, arc `#017E84`, transparent | Light backgrounds |
 | `favicon.svg` | Same as above, switches to the dark pair with `prefers-color-scheme` | Browser tab |
 | `favicon-16x16.png`, `favicon-32x32.png`, `favicon.ico` | Same as `logo-icon.svg` | Fallback favicons |
-| `icon-rounded.svg`, `icon-192.png`, `icon-512.png` | Ring `#C79BBB`, arc `#4FB8BE` on `#17191D` | App icons with rounded corners |
+| `icon-rounded.svg`, `icon-192.png`, `icon-512.png` | Ring `#FB923C`, arc `#4FB8BE` on `#17191D` | App icons with rounded corners |
 | `icon-maskable-512.png`, `apple-touch-icon.png` | Same as `icon-rounded.svg`, full bleed | Maskable and iOS icons |
 
 When the colors change, edit the three SVGs and regenerate the PNGs and `favicon.ico` from them, so the files never drift apart. The in-app `Logo` component reads `--omed-brand` and `--omed-brand-accent`, so it follows the active theme.
@@ -152,7 +153,7 @@ Usage notes:
 
 | Component | Rule |
 | --- | --- |
-| Button | One `type="primary"` per screen, plus the one that moves a record forward in a form (for example "Post"). The rest are default or text. No shadow. `size="small"` |
+| Button | One `type="primary"` per screen (dark label on the orange fill), plus the one that moves a record forward in a form (for example "Post"). The rest are default or text. No shadow. `size="small"` |
 | Menu / sider | Active item: `tint` background + primary text, no active bar. Hover: `surface-muted` |
 | Table | Transparent header, `surface-muted` on hover, `tint` on selected rows, `border-soft` borders, no border on the last row. Rows that open a record are clickable with a pointer cursor |
 | Card | Use `.surface` or `.surface-muted`. Don't set a background color manually |
@@ -174,11 +175,11 @@ Usage notes:
 | Do | Don't |
 | --- | --- |
 | Use tokens (`var(--omed-*)` or the antd theme) | Hardcode hex values in components |
-| Plum for the main action and active states | Plum as decoration everywhere |
+| Orange fill for the main action, `--omed-primary-text` for orange text | `--omed-primary` as a text color on light surfaces |
 | Flat surfaces with hairline borders | Blur, gradients, or heavy shadows (the launcher dot grid is the only exception) |
 | Check contrast in both light and dark | `--omed-text-muted` or fill-only colors for readable text |
-| Pale cool neutrals with a plum and teal accent | Warm cream or cocoa tones mixed into the theme |
-| Coral only on launcher tiles | Coral for actions or status |
+| Pale cool neutrals with an orange and teal accent | Warm cream or cocoa tones mixed into the theme |
+| Slate blue only on launcher tiles | Slate blue for actions or status |
 | Pair danger with a label and icon | Danger shown by color alone |
 | Reuse `Page`, `FormView`, and `Chatter` | Rebuild breadcrumbs, statusbars, or message lists per screen |
 
