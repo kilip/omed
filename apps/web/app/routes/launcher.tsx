@@ -3,49 +3,41 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { modules } from "~/lib/modules";
 
+const APP_COLORS = 3;
+
+/** Odoo-style home menu: rounded app tiles on a dotted backdrop. */
 export default function Launcher() {
   const { t } = useTranslation();
 
   return (
-    <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6 px-4 py-10">
-      <div>
-        <h1 className="m-0 text-2xl font-medium">{t("launcher.title")}</h1>
-        <p style={{ color: "var(--omed-text-secondary)" }}>
-          {t("launcher.subtitle")}
-        </p>
-      </div>
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
-        {modules.map((m) => (
-          <Link
-            key={m.id}
-            to={`/${m.id}`}
-            className="surface-muted flex min-w-0 flex-col gap-2 p-3"
-            style={{
-              borderRadius: "var(--omed-radius-lg)",
-              color: "var(--omed-text)",
-            }}
-          >
-            <span
-              className="flex h-11 w-11 items-center justify-center text-[22px]"
-              style={{
-                borderRadius: "var(--omed-radius-lg)",
-                background: "var(--omed-tint)",
-                color: "var(--omed-tint-text)",
-              }}
+    <div className="home-backdrop flex flex-1 justify-center">
+      <div className="flex w-full max-w-[880px] flex-col gap-6 px-4 py-10">
+        <div className="text-center">
+          <h1 className="m-0 text-2xl font-medium">{t("launcher.title")}</h1>
+          <p style={{ color: "var(--omed-text-secondary)" }}>
+            {t("launcher.subtitle")}
+          </p>
+        </div>
+        <div className="grid justify-center gap-2 [grid-template-columns:repeat(auto-fill,minmax(132px,1fr))]">
+          {modules.map((m, index) => (
+            <Link
+              key={m.id}
+              to={`/${m.id}`}
+              className={`app-tile app-tile--${(index % APP_COLORS) + 1}`}
             >
-              {createElement(m.icon)}
-            </span>
-            <div>
-              <div className="font-medium">{t(m.labelKey)}</div>
-              <div
-                className="text-xs"
-                style={{ color: "var(--omed-text-secondary)" }}
-              >
-                {t(m.descriptionKey)}
-              </div>
-            </div>
-          </Link>
-        ))}
+              <span className="app-tile__icon">{createElement(m.icon)}</span>
+              <span className="min-w-0">
+                <span className="block font-medium">{t(m.labelKey)}</span>
+                <span
+                  className="block text-xs"
+                  style={{ color: "var(--omed-text-secondary)" }}
+                >
+                  {t(m.descriptionKey)}
+                </span>
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
