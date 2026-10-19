@@ -50,4 +50,11 @@ export class FinAccountsPage extends BasePage {
       `Expected account with code "${code}" to be in table, got "${text}"`,
     );
   }
+
+  async clickAccountLedger(code: string): Promise<void> {
+    const row = this.tableRows.filter({ hasText: code });
+    await row.first().waitFor({ state: "visible" });
+    const ledgerLink = row.first().getByRole("link", { name: code });
+    await ledgerLink.click();
+  }
 }

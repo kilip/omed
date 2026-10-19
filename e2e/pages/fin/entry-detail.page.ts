@@ -94,4 +94,12 @@ export class FinEntryDetailPage extends BasePage {
     await this.reverseModal.waitFor({ state: "visible" });
     await this.reverseModalOkButton.click();
   }
+
+  async clickPostingAccount(accountCode: string): Promise<void> {
+    const link = this.page.getByRole("link", {
+      name: new RegExp(`^${accountCode}\\s*-`),
+    });
+    await link.first().waitFor({ state: "visible" });
+    await link.first().click();
+  }
 }

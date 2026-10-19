@@ -313,7 +313,7 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
         const acc = accounts.find((a) => a.id === record.accountId);
         return acc ? (
           <Link
-            to={`/fin/ledger?accountId=${acc.id}`}
+            to={`/fin/ledger?account=${acc.id}`}
             className="text-primary hover:underline"
           >
             {acc.code} - {acc.name}

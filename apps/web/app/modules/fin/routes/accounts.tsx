@@ -1,4 +1,5 @@
 import {
+  BookOutlined,
   DeleteOutlined,
   EditOutlined,
   PlusOutlined,
@@ -147,9 +148,33 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
       title: t("fin.accounts.code"),
       dataIndex: "code",
       width: 140,
-      render: (code: string) => <code>{code}</code>,
+      render: (code: string, account) =>
+        account.id ? (
+          <Link
+            to={`/fin/ledger?account=${account.id}`}
+            className="font-mono text-primary hover:underline"
+          >
+            {code}
+          </Link>
+        ) : (
+          <code>{code}</code>
+        ),
     },
-    { title: t("common.name"), dataIndex: "name" },
+    {
+      title: t("common.name"),
+      dataIndex: "name",
+      render: (name: string, account) =>
+        account.id ? (
+          <Link
+            to={`/fin/ledger?account=${account.id}`}
+            className="text-foreground hover:underline"
+          >
+            {name}
+          </Link>
+        ) : (
+          name
+        ),
+    },
     {
       title: t("common.type"),
       dataIndex: "type",
@@ -189,6 +214,17 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
       align: "right",
       render: (_, account) => (
         <div className="flex justify-end gap-1">
+          {account.id && (
+            <Tooltip title={t("fin.menu.ledger")}>
+              <Link to={`/fin/ledger?account=${account.id}`}>
+                <Button
+                  type="text"
+                  icon={<BookOutlined />}
+                  aria-label={t("fin.menu.ledger")}
+                />
+              </Link>
+            </Tooltip>
+          )}
           <Tooltip title={t("common.edit")}>
             <Button
               type="text"

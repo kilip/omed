@@ -10,6 +10,7 @@ import { FinAccountsPage } from "./fin/accounts.page";
 import { FinDashboardPage } from "./fin/dashboard.page";
 import { FinEntriesPage } from "./fin/entries.page";
 import { FinEntryDetailPage } from "./fin/entry-detail.page";
+import { FinLedgerPage } from "./fin/ledger.page";
 import { FinSetupPage } from "./fin/setup.page";
 import { FinTransactionDetailPage } from "./fin/transaction-detail.page";
 import { FinTransactionsPage } from "./fin/transactions.page";
@@ -32,6 +33,7 @@ export const createPages = (page: Page) => ({
     accounts: new FinAccountsPage(page),
     entries: new FinEntriesPage(page),
     entryDetail: new FinEntryDetailPage(page),
+    ledger: new FinLedgerPage(page),
     transactions: new FinTransactionsPage(page),
     transactionDetail: new FinTransactionDetailPage(page),
   },
