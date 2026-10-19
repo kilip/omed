@@ -260,5 +260,56 @@ export const id: Translation = {
     },
     ledger: { balance: "Saldo", opening: "Saldo awal" },
     trial: { asOf: "Per {{date}}" },
+    errors: {
+      ENTRY_NOT_BALANCED: "Jumlah debit dan kredit harus seimbang.",
+      ENTRY_BASE_NOT_BALANCED:
+        "Jumlah debit dan kredit mata uang dasar harus seimbang.",
+      ENTRY_MIN_POSTINGS: "Jurnal harus memiliki minimal dua baris pembukuan.",
+      ENTRY_DATE_OUTSIDE_PERIOD:
+        "Tanggal jurnal berada di luar rentang tanggal periode akuntansi.",
+      ENTRY_NOT_FOUND: "Jurnal tidak ditemukan.",
+      ENTRY_NOT_DRAFT:
+        "Hanya jurnal berstatus draf yang dapat diubah, dihapus, atau diposting.",
+      ENTRY_ALREADY_REVERSED: "Jurnal ini sudah pernah dibalik sebelumnya.",
+      TRANSACTION_NOT_FOUND: "Transaksi tidak ditemukan.",
+      TRANSACTION_NUMBER_TAKEN: "Nomor transaksi sudah digunakan.",
+      TRANSACTION_HAS_POSTED_ENTRIES:
+        "Transaksi tidak dapat diubah atau dihapus karena sudah memiliki jurnal yang diposting.",
+      POSTING_ACCOUNT_NOT_POSTABLE:
+        "Akun yang dipilih adalah akun induk dan tidak dapat menerima pembukuan.",
+      POSTING_ACCOUNT_INACTIVE:
+        "Akun yang dipilih tidak aktif dan tidak dapat menerima pembukuan.",
+      POSTING_CURRENCY_MISMATCH:
+        "Mata uang pembukuan tidak sesuai dengan mata uang yang dibatasi pada akun.",
+      POSTING_INVALID_AMOUNT: "Jumlah pembukuan harus lebih besar dari nol.",
+      PERIOD_NOT_FOUND: "Periode akuntansi tidak ditemukan.",
+      PERIOD_CLOSED:
+        "Periode akuntansi sudah ditutup dan tidak dapat menerima perubahan.",
+      PERIOD_ALREADY_CLOSED: "Periode akuntansi sudah ditutup.",
+      PERIOD_ALREADY_OPEN: "Periode akuntansi sudah dibuka.",
+      PERIOD_HAS_DRAFT_ENTRIES:
+        "Periode tidak dapat ditutup selama masih ada jurnal draf.",
+      PERIOD_ALREADY_REVALUED:
+        "Saldo mata uang asing sudah pernah direvaluasi untuk periode ini.",
+      PERIOD_INVALID_DATES:
+        "Tanggal awal periode harus sebelum atau sama dengan tanggal akhir.",
+      PERIOD_OVERLAP:
+        "Rentang tanggal periode bertabrakan dengan periode lain di workspace ini.",
+      CURRENCY_NOT_FOUND: "Mata uang tidak ditemukan.",
+      EXCHANGE_RATE_NOT_FOUND:
+        "Kurs mata uang tidak ditemukan untuk pasangan mata uang dan tanggal tersebut.",
+      EXCHANGE_RATE_DUPLICATE:
+        "Kurs mata uang sudah ada untuk pasangan mata uang dan tanggal tersebut.",
+      EXCHANGE_RATE_INVALID: "Kurs mata uang harus lebih besar dari nol.",
+      BASE_CURRENCY_LOCKED:
+        "Mata uang dasar tidak dapat diubah setelah ada jurnal yang diposting.",
+      ACCOUNT_CODE_TAKEN: "Kode akun sudah digunakan di workspace ini.",
+      ACCOUNT_HAS_CHILDREN:
+        "Tidak dapat menghapus akun yang memiliki sub-akun.",
+      ACCOUNT_PARENT_NOT_FOUND: "Akun induk tidak ditemukan.",
+      ACCOUNT_CYCLIC_PARENT:
+        "Akun tidak dapat menjadi induk bagi dirinya sendiri.",
+      INVALID_CURSOR: "Kursor pagination tidak valid.",
+    },
   },
 };

@@ -3,6 +3,8 @@ import { App } from "antd";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRevalidator } from "react-router";
+import i18n from "~/i18n";
+import { ApiError } from "./api";
 
 /**
  * Runs a mutation, reports success or failure, then revalidates the route
@@ -27,9 +29,14 @@ export function useAction() {
         ]);
         return true;
       } catch (error) {
-        message.error(
-          error instanceof Error ? error.message : t("common.error"),
-        );
+        let msg = t("common.error");
+        if (error instanceof ApiError && error.code) {
+          const translationKey = `fin.errors.${error.code}`;
+          msg = i18n.exists(translationKey) ? t(translationKey) : error.message;
+        } else if (error instanceof Error) {
+          msg = error.message;
+        }
+        message.error(msg);
         return false;
       } finally {
         setPending(false);

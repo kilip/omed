@@ -259,6 +259,56 @@ export const en = {
     },
     ledger: { balance: "Balance", opening: "Opening balance" },
     trial: { asOf: "As of {{date}}" },
+    errors: {
+      ENTRY_NOT_BALANCED: "Debit and credit amounts must be equal.",
+      ENTRY_BASE_NOT_BALANCED:
+        "Debit and credit base currency amounts must be equal.",
+      ENTRY_MIN_POSTINGS: "An entry must have at least two line items.",
+      ENTRY_DATE_OUTSIDE_PERIOD:
+        "Entry date is outside the accounting period date range.",
+      ENTRY_NOT_FOUND: "Journal entry not found.",
+      ENTRY_NOT_DRAFT:
+        "Only draft entries can be modified, deleted, or posted.",
+      ENTRY_ALREADY_REVERSED: "This entry has already been reversed.",
+      TRANSACTION_NOT_FOUND: "Transaction not found.",
+      TRANSACTION_NUMBER_TAKEN: "Transaction number is already taken.",
+      TRANSACTION_HAS_POSTED_ENTRIES:
+        "Transaction cannot be modified or deleted because it has posted entries.",
+      POSTING_ACCOUNT_NOT_POSTABLE:
+        "The selected account is a summary account and cannot accept postings.",
+      POSTING_ACCOUNT_INACTIVE:
+        "The selected account is inactive and cannot accept postings.",
+      POSTING_CURRENCY_MISMATCH:
+        "Posting currency does not match the account's restricted currency.",
+      POSTING_INVALID_AMOUNT: "Posting amount must be greater than zero.",
+      PERIOD_NOT_FOUND: "Accounting period not found.",
+      PERIOD_CLOSED:
+        "The accounting period is closed and cannot accept modifications.",
+      PERIOD_ALREADY_CLOSED: "Accounting period is already closed.",
+      PERIOD_ALREADY_OPEN: "Accounting period is already open.",
+      PERIOD_HAS_DRAFT_ENTRIES:
+        "Period cannot be closed while draft entries still exist.",
+      PERIOD_ALREADY_REVALUED:
+        "Foreign currency balances have already been revalued for this period.",
+      PERIOD_INVALID_DATES:
+        "Period start date must be before or equal to end date.",
+      PERIOD_OVERLAP:
+        "Period date range overlaps with an existing period in this workspace.",
+      CURRENCY_NOT_FOUND: "Currency not found.",
+      EXCHANGE_RATE_NOT_FOUND:
+        "No exchange rate found for the given currency pair and date.",
+      EXCHANGE_RATE_DUPLICATE:
+        "Exchange rate already exists for this currency pair and date.",
+      EXCHANGE_RATE_INVALID: "Exchange rate must be greater than zero.",
+      BASE_CURRENCY_LOCKED:
+        "Base currency cannot be changed once posted entries exist.",
+      ACCOUNT_CODE_TAKEN: "Account code is already in use in this workspace.",
+      ACCOUNT_HAS_CHILDREN:
+        "Cannot delete an account with existing sub-accounts.",
+      ACCOUNT_PARENT_NOT_FOUND: "Parent account not found.",
+      ACCOUNT_CYCLIC_PARENT: "An account cannot be its own ancestor.",
+      INVALID_CURSOR: "Invalid pagination cursor.",
+    },
   },
 };
 
