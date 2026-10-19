@@ -244,6 +244,7 @@ export const id: Translation = {
       amount: "Jumlah",
       POSTED: "Diposting",
       DRAFT: "Draf",
+      VOID: "Dibatalkan",
       account: "Akun",
       debit: "Debit",
       credit: "Kredit",

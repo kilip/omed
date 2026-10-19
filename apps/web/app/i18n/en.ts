@@ -243,6 +243,7 @@ export const en = {
       amount: "Amount",
       POSTED: "Posted",
       DRAFT: "Draft",
+      VOID: "Void",
       account: "Account",
       debit: "Debit",
       credit: "Credit",
