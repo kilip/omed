@@ -9,9 +9,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/currency"
+	"github.com/kilip/omed/api/ent/entry"
+	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/session"
+	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/useraccount"
 	"github.com/kilip/omed/api/ent/workspace"
@@ -102,6 +107,87 @@ func (f TraverseAccount) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.AccountQuery", q)
 }
 
+// The CurrencyFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CurrencyFunc func(context.Context, *ent.CurrencyQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CurrencyFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CurrencyQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CurrencyQuery", q)
+}
+
+// The TraverseCurrency type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCurrency func(context.Context, *ent.CurrencyQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCurrency) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCurrency) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CurrencyQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CurrencyQuery", q)
+}
+
+// The EntryFunc type is an adapter to allow the use of ordinary function as a Querier.
+type EntryFunc func(context.Context, *ent.EntryQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f EntryFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.EntryQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.EntryQuery", q)
+}
+
+// The TraverseEntry type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseEntry func(context.Context, *ent.EntryQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseEntry) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseEntry) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EntryQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.EntryQuery", q)
+}
+
+// The ExchangeRateFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ExchangeRateFunc func(context.Context, *ent.ExchangeRateQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f ExchangeRateFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.ExchangeRateQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ExchangeRateQuery", q)
+}
+
+// The TraverseExchangeRate type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseExchangeRate func(context.Context, *ent.ExchangeRateQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseExchangeRate) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseExchangeRate) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ExchangeRateQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.ExchangeRateQuery", q)
+}
+
 // The PeriodFunc type is an adapter to allow the use of ordinary function as a Querier.
 type PeriodFunc func(context.Context, *ent.PeriodQuery) (ent.Value, error)
 
@@ -129,6 +215,33 @@ func (f TraversePeriod) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.PeriodQuery", q)
 }
 
+// The PostingFunc type is an adapter to allow the use of ordinary function as a Querier.
+type PostingFunc func(context.Context, *ent.PostingQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f PostingFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.PostingQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.PostingQuery", q)
+}
+
+// The TraversePosting type is an adapter to allow the use of ordinary function as Traverser.
+type TraversePosting func(context.Context, *ent.PostingQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraversePosting) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraversePosting) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.PostingQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.PostingQuery", q)
+}
+
 // The SessionFunc type is an adapter to allow the use of ordinary function as a Querier.
 type SessionFunc func(context.Context, *ent.SessionQuery) (ent.Value, error)
 
@@ -154,6 +267,33 @@ func (f TraverseSession) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.SessionQuery", q)
+}
+
+// The TransactionFunc type is an adapter to allow the use of ordinary function as a Querier.
+type TransactionFunc func(context.Context, *ent.TransactionQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f TransactionFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.TransactionQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.TransactionQuery", q)
+}
+
+// The TraverseTransaction type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseTransaction func(context.Context, *ent.TransactionQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseTransaction) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseTransaction) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.TransactionQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.TransactionQuery", q)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -296,10 +436,20 @@ func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
 	case *ent.AccountQuery:
 		return &query[*ent.AccountQuery, predicate.Account, account.OrderOption]{typ: ent.TypeAccount, tq: q}, nil
+	case *ent.CurrencyQuery:
+		return &query[*ent.CurrencyQuery, predicate.Currency, currency.OrderOption]{typ: ent.TypeCurrency, tq: q}, nil
+	case *ent.EntryQuery:
+		return &query[*ent.EntryQuery, predicate.Entry, entry.OrderOption]{typ: ent.TypeEntry, tq: q}, nil
+	case *ent.ExchangeRateQuery:
+		return &query[*ent.ExchangeRateQuery, predicate.ExchangeRate, exchangerate.OrderOption]{typ: ent.TypeExchangeRate, tq: q}, nil
 	case *ent.PeriodQuery:
 		return &query[*ent.PeriodQuery, predicate.Period, period.OrderOption]{typ: ent.TypePeriod, tq: q}, nil
+	case *ent.PostingQuery:
+		return &query[*ent.PostingQuery, predicate.Posting, posting.OrderOption]{typ: ent.TypePosting, tq: q}, nil
 	case *ent.SessionQuery:
 		return &query[*ent.SessionQuery, predicate.Session, session.OrderOption]{typ: ent.TypeSession, tq: q}, nil
+	case *ent.TransactionQuery:
+		return &query[*ent.TransactionQuery, predicate.Transaction, transaction.OrderOption]{typ: ent.TypeTransaction, tq: q}, nil
 	case *ent.UserQuery:
 		return &query[*ent.UserQuery, predicate.User, user.OrderOption]{typ: ent.TypeUser, tq: q}, nil
 	case *ent.UserAccountQuery:

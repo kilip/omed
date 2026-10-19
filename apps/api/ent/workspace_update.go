@@ -113,6 +113,20 @@ func (_u *WorkspaceUpdate) SetNillableOwnerID(v *int64) *WorkspaceUpdate {
 	return _u
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (_u *WorkspaceUpdate) SetBaseCurrency(v string) *WorkspaceUpdate {
+	_u.mutation.SetBaseCurrency(v)
+	return _u
+}
+
+// SetNillableBaseCurrency sets the "base_currency" field if the given value is not nil.
+func (_u *WorkspaceUpdate) SetNillableBaseCurrency(v *string) *WorkspaceUpdate {
+	if v != nil {
+		_u.SetBaseCurrency(*v)
+	}
+	return _u
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_u *WorkspaceUpdate) SetCreatorID(id int64) *WorkspaceUpdate {
 	_u.mutation.SetCreatorID(id)
@@ -242,6 +256,11 @@ func (_u *WorkspaceUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Workspace.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.BaseCurrency(); ok {
+		if err := workspace.BaseCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Workspace.base_currency": %w`, err)}
+		}
+	}
 	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Workspace.creator"`)
 	}
@@ -277,6 +296,9 @@ func (_u *WorkspaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(workspace.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.BaseCurrency(); ok {
+		_spec.SetField(workspace.FieldBaseCurrency, field.TypeString, value)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -523,6 +545,20 @@ func (_u *WorkspaceUpdateOne) SetNillableOwnerID(v *int64) *WorkspaceUpdateOne {
 	return _u
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (_u *WorkspaceUpdateOne) SetBaseCurrency(v string) *WorkspaceUpdateOne {
+	_u.mutation.SetBaseCurrency(v)
+	return _u
+}
+
+// SetNillableBaseCurrency sets the "base_currency" field if the given value is not nil.
+func (_u *WorkspaceUpdateOne) SetNillableBaseCurrency(v *string) *WorkspaceUpdateOne {
+	if v != nil {
+		_u.SetBaseCurrency(*v)
+	}
+	return _u
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_u *WorkspaceUpdateOne) SetCreatorID(id int64) *WorkspaceUpdateOne {
 	_u.mutation.SetCreatorID(id)
@@ -665,6 +701,11 @@ func (_u *WorkspaceUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Workspace.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.BaseCurrency(); ok {
+		if err := workspace.BaseCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Workspace.base_currency": %w`, err)}
+		}
+	}
 	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Workspace.creator"`)
 	}
@@ -717,6 +758,9 @@ func (_u *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, er
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(workspace.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.BaseCurrency(); ok {
+		_spec.SetField(workspace.FieldBaseCurrency, field.TypeString, value)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{

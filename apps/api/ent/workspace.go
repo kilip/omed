@@ -34,6 +34,8 @@ type Workspace struct {
 	OwnerID int64 `json:"owner_id,omitempty"`
 	// Personal holds the value of the "personal" field.
 	Personal bool `json:"personal,omitempty"`
+	// BaseCurrency holds the value of the "base_currency" field.
+	BaseCurrency string `json:"base_currency,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkspaceQuery when eager-loading is set.
 	Edges        WorkspaceEdges `json:"edges"`
@@ -106,7 +108,7 @@ func (*Workspace) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case workspace.FieldID, workspace.FieldCreatedBy, workspace.FieldUpdatedBy, workspace.FieldOwnerID:
 			values[i] = new(sql.NullInt64)
-		case workspace.FieldName, workspace.FieldDescription:
+		case workspace.FieldName, workspace.FieldDescription, workspace.FieldBaseCurrency:
 			values[i] = new(sql.NullString)
 		case workspace.FieldCreatedAt, workspace.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -178,6 +180,12 @@ func (_m *Workspace) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field personal", values[i])
 			} else if value.Valid {
 				_m.Personal = value.Bool
+			}
+		case workspace.FieldBaseCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field base_currency", values[i])
+			} else if value.Valid {
+				_m.BaseCurrency = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -258,6 +266,9 @@ func (_m *Workspace) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("personal=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Personal))
+	builder.WriteString(", ")
+	builder.WriteString("base_currency=")
+	builder.WriteString(_m.BaseCurrency)
 	builder.WriteByte(')')
 	return builder.String()
 }

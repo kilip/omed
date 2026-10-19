@@ -39,6 +39,7 @@ func (Account) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.Enum("type").Values("ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"),
 		field.Enum("normal_balance").Values("DEBIT", "CREDIT"),
+		field.String("currency").MinLen(3).MaxLen(3).Optional().Nillable(),
 		field.Int64("parent_id").Optional().Nillable(),
 		field.String("description").Optional(),
 		field.Bool("is_active").Default(true),

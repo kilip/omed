@@ -14,10 +14,20 @@ type Tx struct {
 	config
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
+	// Currency is the client for interacting with the Currency builders.
+	Currency *CurrencyClient
+	// Entry is the client for interacting with the Entry builders.
+	Entry *EntryClient
+	// ExchangeRate is the client for interacting with the ExchangeRate builders.
+	ExchangeRate *ExchangeRateClient
 	// Period is the client for interacting with the Period builders.
 	Period *PeriodClient
+	// Posting is the client for interacting with the Posting builders.
+	Posting *PostingClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
+	// Transaction is the client for interacting with the Transaction builders.
+	Transaction *TransactionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAccount is the client for interacting with the UserAccount builders.
@@ -160,8 +170,13 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
+	tx.Currency = NewCurrencyClient(tx.config)
+	tx.Entry = NewEntryClient(tx.config)
+	tx.ExchangeRate = NewExchangeRateClient(tx.config)
 	tx.Period = NewPeriodClient(tx.config)
+	tx.Posting = NewPostingClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
+	tx.Transaction = NewTransactionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAccount = NewUserAccountClient(tx.config)
 	tx.Workspace = NewWorkspaceClient(tx.config)

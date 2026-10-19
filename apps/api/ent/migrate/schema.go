@@ -19,6 +19,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"}},
 		{Name: "normal_balance", Type: field.TypeEnum, Enums: []string{"DEBIT", "CREDIT"}},
+		{Name: "currency", Type: field.TypeString, Nullable: true, Size: 3},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "is_postable", Type: field.TypeBool, Default: true},
@@ -36,31 +37,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "accounts_workspaces_workspace",
-				Columns:    []*schema.Column{AccountsColumns[11]},
+				Columns:    []*schema.Column{AccountsColumns[12]},
 				RefColumns: []*schema.Column{WorkspacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "accounts_users_creator",
-				Columns:    []*schema.Column{AccountsColumns[12]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "accounts_users_updater",
 				Columns:    []*schema.Column{AccountsColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "accounts_users_deleter",
+				Symbol:     "accounts_users_updater",
 				Columns:    []*schema.Column{AccountsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "accounts_users_deleter",
+				Columns:    []*schema.Column{AccountsColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "accounts_accounts_children",
-				Columns:    []*schema.Column{AccountsColumns[15]},
+				Columns:    []*schema.Column{AccountsColumns[16]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -69,7 +70,7 @@ var (
 			{
 				Name:    "account_workspace_id_code",
 				Unique:  true,
-				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[4]},
+				Columns: []*schema.Column{AccountsColumns[12], AccountsColumns[4]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -77,17 +78,235 @@ var (
 			{
 				Name:    "account_workspace_id_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[15]},
+				Columns: []*schema.Column{AccountsColumns[12], AccountsColumns[16]},
 			},
 			{
 				Name:    "account_workspace_id_deleted_at",
 				Unique:  false,
-				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[3]},
+				Columns: []*schema.Column{AccountsColumns[12], AccountsColumns[3]},
 			},
 			{
 				Name:    "account_workspace_id_is_postable",
 				Unique:  false,
-				Columns: []*schema.Column{AccountsColumns[11], AccountsColumns[10]},
+				Columns: []*schema.Column{AccountsColumns[12], AccountsColumns[11]},
+			},
+		},
+	}
+	// CurrenciesColumns holds the columns for the "currencies" table.
+	CurrenciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Unique: true, Size: 3},
+		{Name: "name", Type: field.TypeString},
+		{Name: "symbol", Type: field.TypeString},
+		{Name: "decimals", Type: field.TypeInt},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+	}
+	// CurrenciesTable holds the schema information for the "currencies" table.
+	CurrenciesTable = &schema.Table{
+		Name:       "currencies",
+		Columns:    CurrenciesColumns,
+		PrimaryKey: []*schema.Column{CurrenciesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "currencies_users_creator",
+				Columns:    []*schema.Column{CurrenciesColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "currencies_users_updater",
+				Columns:    []*schema.Column{CurrenciesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "currency_code",
+				Unique:  true,
+				Columns: []*schema.Column{CurrenciesColumns[3]},
+			},
+		},
+	}
+	// EntriesColumns holds the columns for the "entries" table.
+	EntriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "number", Type: field.TypeString},
+		{Name: "entry_date", Type: field.TypeTime},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "POSTED", "VOID"}, Default: "DRAFT"},
+		{Name: "posted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "period_id", Type: field.TypeInt64},
+		{Name: "posted_by", Type: field.TypeInt64, Nullable: true},
+		{Name: "reversal_of_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "transaction_id", Type: field.TypeInt64},
+	}
+	// EntriesTable holds the schema information for the "entries" table.
+	EntriesTable = &schema.Table{
+		Name:       "entries",
+		Columns:    EntriesColumns,
+		PrimaryKey: []*schema.Column{EntriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entries_workspaces_workspace",
+				Columns:    []*schema.Column{EntriesColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "entries_users_creator",
+				Columns:    []*schema.Column{EntriesColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "entries_users_updater",
+				Columns:    []*schema.Column{EntriesColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "entries_users_deleter",
+				Columns:    []*schema.Column{EntriesColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entries_periods_period",
+				Columns:    []*schema.Column{EntriesColumns[13]},
+				RefColumns: []*schema.Column{PeriodsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "entries_users_poster",
+				Columns:    []*schema.Column{EntriesColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entries_entries_reversals",
+				Columns:    []*schema.Column{EntriesColumns[15]},
+				RefColumns: []*schema.Column{EntriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entries_transactions_entries",
+				Columns:    []*schema.Column{EntriesColumns[16]},
+				RefColumns: []*schema.Column{TransactionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entry_workspace_id_number",
+				Unique:  true,
+				Columns: []*schema.Column{EntriesColumns[9], EntriesColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "entry_workspace_id_transaction_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntriesColumns[9], EntriesColumns[16]},
+			},
+			{
+				Name:    "entry_workspace_id_period_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{EntriesColumns[9], EntriesColumns[13], EntriesColumns[7]},
+			},
+			{
+				Name:    "entry_workspace_id_entry_date",
+				Unique:  false,
+				Columns: []*schema.Column{EntriesColumns[9], EntriesColumns[5]},
+			},
+			{
+				Name:    "entry_workspace_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{EntriesColumns[9], EntriesColumns[7]},
+			},
+			{
+				Name:    "entry_workspace_id_reversal_of_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntriesColumns[9], EntriesColumns[15]},
+			},
+			{
+				Name:    "entry_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{EntriesColumns[9], EntriesColumns[3]},
+			},
+		},
+	}
+	// ExchangeRatesColumns holds the columns for the "exchange_rates" table.
+	ExchangeRatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "from_currency", Type: field.TypeString, Size: 3},
+		{Name: "to_currency", Type: field.TypeString, Size: 3},
+		{Name: "rate", Type: field.TypeFloat64},
+		{Name: "effective_date", Type: field.TypeTime},
+		{Name: "source", Type: field.TypeEnum, Enums: []string{"MANUAL", "IMPORT"}, Default: "MANUAL"},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// ExchangeRatesTable holds the schema information for the "exchange_rates" table.
+	ExchangeRatesTable = &schema.Table{
+		Name:       "exchange_rates",
+		Columns:    ExchangeRatesColumns,
+		PrimaryKey: []*schema.Column{ExchangeRatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "exchange_rates_workspaces_workspace",
+				Columns:    []*schema.Column{ExchangeRatesColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "exchange_rates_users_creator",
+				Columns:    []*schema.Column{ExchangeRatesColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "exchange_rates_users_updater",
+				Columns:    []*schema.Column{ExchangeRatesColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "exchange_rates_users_deleter",
+				Columns:    []*schema.Column{ExchangeRatesColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "exchangerate_workspace_id_from_currency_to_currency_effective_date",
+				Unique:  true,
+				Columns: []*schema.Column{ExchangeRatesColumns[9], ExchangeRatesColumns[4], ExchangeRatesColumns[5], ExchangeRatesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "exchangerate_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRatesColumns[9], ExchangeRatesColumns[3]},
 			},
 		},
 	}
@@ -162,6 +381,82 @@ var (
 			},
 		},
 	}
+	// PostingsColumns holds the columns for the "postings" table.
+	PostingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "direction", Type: field.TypeEnum, Enums: []string{"DEBIT", "CREDIT"}},
+		{Name: "amount", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(20,4)"}},
+		{Name: "base_amount", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric(20,4)"}},
+		{Name: "position", Type: field.TypeInt, Default: 0},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "entry_id", Type: field.TypeInt64},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "account_id", Type: field.TypeInt64},
+	}
+	// PostingsTable holds the schema information for the "postings" table.
+	PostingsTable = &schema.Table{
+		Name:       "postings",
+		Columns:    PostingsColumns,
+		PrimaryKey: []*schema.Column{PostingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "postings_entries_postings",
+				Columns:    []*schema.Column{PostingsColumns[8]},
+				RefColumns: []*schema.Column{EntriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "postings_workspaces_workspace",
+				Columns:    []*schema.Column{PostingsColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "postings_users_creator",
+				Columns:    []*schema.Column{PostingsColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "postings_users_updater",
+				Columns:    []*schema.Column{PostingsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "postings_accounts_account",
+				Columns:    []*schema.Column{PostingsColumns[12]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "posting_entry_id_position",
+				Unique:  true,
+				Columns: []*schema.Column{PostingsColumns[8], PostingsColumns[6]},
+			},
+			{
+				Name:    "posting_workspace_id_entry_id",
+				Unique:  false,
+				Columns: []*schema.Column{PostingsColumns[9], PostingsColumns[8]},
+			},
+			{
+				Name:    "posting_workspace_id_account_id",
+				Unique:  false,
+				Columns: []*schema.Column{PostingsColumns[9], PostingsColumns[12]},
+			},
+			{
+				Name:    "posting_workspace_id_account_id_direction",
+				Unique:  false,
+				Columns: []*schema.Column{PostingsColumns[9], PostingsColumns[12], PostingsColumns[3]},
+			},
+		},
+	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -196,6 +491,81 @@ var (
 				Name:    "session_user_id",
 				Unique:  false,
 				Columns: []*schema.Column{SessionsColumns[7]},
+			},
+		},
+	}
+	// TransactionsColumns holds the columns for the "transactions" table.
+	TransactionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "number", Type: field.TypeString},
+		{Name: "transaction_date", Type: field.TypeTime},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "reference", Type: field.TypeString, Nullable: true},
+		{Name: "currency", Type: field.TypeString, Size: 3, Default: "IDR"},
+		{Name: "exchange_rate", Type: field.TypeFloat64, Default: 1},
+		{Name: "source", Type: field.TypeEnum, Enums: []string{"MANUAL", "IMPORT", "SYSTEM"}, Default: "MANUAL"},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// TransactionsTable holds the schema information for the "transactions" table.
+	TransactionsTable = &schema.Table{
+		Name:       "transactions",
+		Columns:    TransactionsColumns,
+		PrimaryKey: []*schema.Column{TransactionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "transactions_workspaces_workspace",
+				Columns:    []*schema.Column{TransactionsColumns[11]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "transactions_users_creator",
+				Columns:    []*schema.Column{TransactionsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "transactions_users_updater",
+				Columns:    []*schema.Column{TransactionsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "transactions_users_deleter",
+				Columns:    []*schema.Column{TransactionsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "transaction_workspace_id_number",
+				Unique:  true,
+				Columns: []*schema.Column{TransactionsColumns[11], TransactionsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "transaction_workspace_id_transaction_date",
+				Unique:  false,
+				Columns: []*schema.Column{TransactionsColumns[11], TransactionsColumns[5]},
+			},
+			{
+				Name:    "transaction_workspace_id_reference",
+				Unique:  false,
+				Columns: []*schema.Column{TransactionsColumns[11], TransactionsColumns[7]},
+			},
+			{
+				Name:    "transaction_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{TransactionsColumns[11], TransactionsColumns[3]},
 			},
 		},
 	}
@@ -264,6 +634,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "personal", Type: field.TypeBool, Default: false},
+		{Name: "base_currency", Type: field.TypeString, Size: 3, Default: "IDR"},
 		{Name: "created_by", Type: field.TypeInt64},
 		{Name: "updated_by", Type: field.TypeInt64},
 		{Name: "owner_id", Type: field.TypeInt64},
@@ -276,19 +647,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "workspaces_users_creator",
-				Columns:    []*schema.Column{WorkspacesColumns[6]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "workspaces_users_updater",
 				Columns:    []*schema.Column{WorkspacesColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "workspaces_users_owner",
+				Symbol:     "workspaces_users_updater",
 				Columns:    []*schema.Column{WorkspacesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspaces_users_owner",
+				Columns:    []*schema.Column{WorkspacesColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -297,7 +668,7 @@ var (
 			{
 				Name:    "workspace_personal_owner",
 				Unique:  true,
-				Columns: []*schema.Column{WorkspacesColumns[8]},
+				Columns: []*schema.Column{WorkspacesColumns[9]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "personal",
 				},
@@ -415,8 +786,13 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
+		CurrenciesTable,
+		EntriesTable,
+		ExchangeRatesTable,
 		PeriodsTable,
+		PostingsTable,
 		SessionsTable,
+		TransactionsTable,
 		UsersTable,
 		UserAccountsTable,
 		WorkspacesTable,
@@ -431,11 +807,34 @@ func init() {
 	AccountsTable.ForeignKeys[2].RefTable = UsersTable
 	AccountsTable.ForeignKeys[3].RefTable = UsersTable
 	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
+	CurrenciesTable.ForeignKeys[0].RefTable = UsersTable
+	CurrenciesTable.ForeignKeys[1].RefTable = UsersTable
+	EntriesTable.ForeignKeys[0].RefTable = WorkspacesTable
+	EntriesTable.ForeignKeys[1].RefTable = UsersTable
+	EntriesTable.ForeignKeys[2].RefTable = UsersTable
+	EntriesTable.ForeignKeys[3].RefTable = UsersTable
+	EntriesTable.ForeignKeys[4].RefTable = PeriodsTable
+	EntriesTable.ForeignKeys[5].RefTable = UsersTable
+	EntriesTable.ForeignKeys[6].RefTable = EntriesTable
+	EntriesTable.ForeignKeys[7].RefTable = TransactionsTable
+	ExchangeRatesTable.ForeignKeys[0].RefTable = WorkspacesTable
+	ExchangeRatesTable.ForeignKeys[1].RefTable = UsersTable
+	ExchangeRatesTable.ForeignKeys[2].RefTable = UsersTable
+	ExchangeRatesTable.ForeignKeys[3].RefTable = UsersTable
 	PeriodsTable.ForeignKeys[0].RefTable = WorkspacesTable
 	PeriodsTable.ForeignKeys[1].RefTable = UsersTable
 	PeriodsTable.ForeignKeys[2].RefTable = UsersTable
 	PeriodsTable.ForeignKeys[3].RefTable = UsersTable
+	PostingsTable.ForeignKeys[0].RefTable = EntriesTable
+	PostingsTable.ForeignKeys[1].RefTable = WorkspacesTable
+	PostingsTable.ForeignKeys[2].RefTable = UsersTable
+	PostingsTable.ForeignKeys[3].RefTable = UsersTable
+	PostingsTable.ForeignKeys[4].RefTable = AccountsTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
+	TransactionsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	TransactionsTable.ForeignKeys[1].RefTable = UsersTable
+	TransactionsTable.ForeignKeys[2].RefTable = UsersTable
+	TransactionsTable.ForeignKeys[3].RefTable = UsersTable
 	UserAccountsTable.ForeignKeys[0].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[1].RefTable = UsersTable

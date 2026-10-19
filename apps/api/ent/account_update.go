@@ -160,6 +160,26 @@ func (_u *AccountUpdate) SetNillableNormalBalance(v *account.NormalBalance) *Acc
 	return _u
 }
 
+// SetCurrency sets the "currency" field.
+func (_u *AccountUpdate) SetCurrency(v string) *AccountUpdate {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableCurrency(v *string) *AccountUpdate {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
+// ClearCurrency clears the value of the "currency" field.
+func (_u *AccountUpdate) ClearCurrency() *AccountUpdate {
+	_u.mutation.ClearCurrency()
+	return _u
+}
+
 // SetParentID sets the "parent_id" field.
 func (_u *AccountUpdate) SetParentID(v int64) *AccountUpdate {
 	_u.mutation.SetParentID(v)
@@ -397,6 +417,11 @@ func (_u *AccountUpdate) check() error {
 			return &ValidationError{Name: "normal_balance", err: fmt.Errorf(`ent: validator failed for field "Account.normal_balance": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := account.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Account.currency": %w`, err)}
+		}
+	}
 	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
 	}
@@ -441,6 +466,12 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.NormalBalance(); ok {
 		_spec.SetField(account.FieldNormalBalance, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(account.FieldCurrency, field.TypeString, value)
+	}
+	if _u.mutation.CurrencyCleared() {
+		_spec.ClearField(account.FieldCurrency, field.TypeString)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(account.FieldDescription, field.TypeString, value)
@@ -778,6 +809,26 @@ func (_u *AccountUpdateOne) SetNillableNormalBalance(v *account.NormalBalance) *
 	return _u
 }
 
+// SetCurrency sets the "currency" field.
+func (_u *AccountUpdateOne) SetCurrency(v string) *AccountUpdateOne {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableCurrency(v *string) *AccountUpdateOne {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
+// ClearCurrency clears the value of the "currency" field.
+func (_u *AccountUpdateOne) ClearCurrency() *AccountUpdateOne {
+	_u.mutation.ClearCurrency()
+	return _u
+}
+
 // SetParentID sets the "parent_id" field.
 func (_u *AccountUpdateOne) SetParentID(v int64) *AccountUpdateOne {
 	_u.mutation.SetParentID(v)
@@ -1028,6 +1079,11 @@ func (_u *AccountUpdateOne) check() error {
 			return &ValidationError{Name: "normal_balance", err: fmt.Errorf(`ent: validator failed for field "Account.normal_balance": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := account.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Account.currency": %w`, err)}
+		}
+	}
 	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Account.workspace"`)
 	}
@@ -1089,6 +1145,12 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 	}
 	if value, ok := _u.mutation.NormalBalance(); ok {
 		_spec.SetField(account.FieldNormalBalance, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(account.FieldCurrency, field.TypeString, value)
+	}
+	if _u.mutation.CurrencyCleared() {
+		_spec.ClearField(account.FieldCurrency, field.TypeString)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(account.FieldDescription, field.TypeString, value)

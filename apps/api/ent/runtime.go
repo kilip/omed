@@ -6,9 +6,14 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/currency"
+	"github.com/kilip/omed/api/ent/entry"
+	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/schema"
 	"github.com/kilip/omed/api/ent/session"
+	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/useraccount"
 	"github.com/kilip/omed/api/ent/workspace"
@@ -43,14 +48,152 @@ func init() {
 	accountDescName := accountFields[2].Descriptor()
 	// account.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	account.NameValidator = accountDescName.Validators[0].(func(string) error)
+	// accountDescCurrency is the schema descriptor for currency field.
+	accountDescCurrency := accountFields[5].Descriptor()
+	// account.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	account.CurrencyValidator = func() func(string) error {
+		validators := accountDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// accountDescIsActive is the schema descriptor for is_active field.
-	accountDescIsActive := accountFields[7].Descriptor()
+	accountDescIsActive := accountFields[8].Descriptor()
 	// account.DefaultIsActive holds the default value on creation for the is_active field.
 	account.DefaultIsActive = accountDescIsActive.Default.(bool)
 	// accountDescIsPostable is the schema descriptor for is_postable field.
-	accountDescIsPostable := accountFields[8].Descriptor()
+	accountDescIsPostable := accountFields[9].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
+	currencyMixin := schema.Currency{}.Mixin()
+	currencyMixinFields0 := currencyMixin[0].Fields()
+	_ = currencyMixinFields0
+	currencyFields := schema.Currency{}.Fields()
+	_ = currencyFields
+	// currencyDescCreatedAt is the schema descriptor for created_at field.
+	currencyDescCreatedAt := currencyMixinFields0[2].Descriptor()
+	// currency.DefaultCreatedAt holds the default value on creation for the created_at field.
+	currency.DefaultCreatedAt = currencyDescCreatedAt.Default.(func() time.Time)
+	// currencyDescUpdatedAt is the schema descriptor for updated_at field.
+	currencyDescUpdatedAt := currencyMixinFields0[3].Descriptor()
+	// currency.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	currency.DefaultUpdatedAt = currencyDescUpdatedAt.Default.(func() time.Time)
+	// currency.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	currency.UpdateDefaultUpdatedAt = currencyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// currencyDescCode is the schema descriptor for code field.
+	currencyDescCode := currencyFields[1].Descriptor()
+	// currency.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	currency.CodeValidator = func() func(string) error {
+		validators := currencyDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// currencyDescName is the schema descriptor for name field.
+	currencyDescName := currencyFields[2].Descriptor()
+	// currency.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	currency.NameValidator = currencyDescName.Validators[0].(func(string) error)
+	// currencyDescSymbol is the schema descriptor for symbol field.
+	currencyDescSymbol := currencyFields[3].Descriptor()
+	// currency.SymbolValidator is a validator for the "symbol" field. It is called by the builders before save.
+	currency.SymbolValidator = currencyDescSymbol.Validators[0].(func(string) error)
+	// currencyDescDecimals is the schema descriptor for decimals field.
+	currencyDescDecimals := currencyFields[4].Descriptor()
+	// currency.DecimalsValidator is a validator for the "decimals" field. It is called by the builders before save.
+	currency.DecimalsValidator = currencyDescDecimals.Validators[0].(func(int) error)
+	entryMixin := schema.Entry{}.Mixin()
+	entryMixinFields1 := entryMixin[1].Fields()
+	_ = entryMixinFields1
+	entryFields := schema.Entry{}.Fields()
+	_ = entryFields
+	// entryDescCreatedAt is the schema descriptor for created_at field.
+	entryDescCreatedAt := entryMixinFields1[2].Descriptor()
+	// entry.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entry.DefaultCreatedAt = entryDescCreatedAt.Default.(func() time.Time)
+	// entryDescUpdatedAt is the schema descriptor for updated_at field.
+	entryDescUpdatedAt := entryMixinFields1[3].Descriptor()
+	// entry.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	entry.DefaultUpdatedAt = entryDescUpdatedAt.Default.(func() time.Time)
+	// entry.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	entry.UpdateDefaultUpdatedAt = entryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// entryDescNumber is the schema descriptor for number field.
+	entryDescNumber := entryFields[3].Descriptor()
+	// entry.NumberValidator is a validator for the "number" field. It is called by the builders before save.
+	entry.NumberValidator = entryDescNumber.Validators[0].(func(string) error)
+	exchangerateMixin := schema.ExchangeRate{}.Mixin()
+	exchangerateMixinFields1 := exchangerateMixin[1].Fields()
+	_ = exchangerateMixinFields1
+	exchangerateFields := schema.ExchangeRate{}.Fields()
+	_ = exchangerateFields
+	// exchangerateDescCreatedAt is the schema descriptor for created_at field.
+	exchangerateDescCreatedAt := exchangerateMixinFields1[2].Descriptor()
+	// exchangerate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	exchangerate.DefaultCreatedAt = exchangerateDescCreatedAt.Default.(func() time.Time)
+	// exchangerateDescUpdatedAt is the schema descriptor for updated_at field.
+	exchangerateDescUpdatedAt := exchangerateMixinFields1[3].Descriptor()
+	// exchangerate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	exchangerate.DefaultUpdatedAt = exchangerateDescUpdatedAt.Default.(func() time.Time)
+	// exchangerate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	exchangerate.UpdateDefaultUpdatedAt = exchangerateDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// exchangerateDescFromCurrency is the schema descriptor for from_currency field.
+	exchangerateDescFromCurrency := exchangerateFields[1].Descriptor()
+	// exchangerate.FromCurrencyValidator is a validator for the "from_currency" field. It is called by the builders before save.
+	exchangerate.FromCurrencyValidator = func() func(string) error {
+		validators := exchangerateDescFromCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(from_currency string) error {
+			for _, fn := range fns {
+				if err := fn(from_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangerateDescToCurrency is the schema descriptor for to_currency field.
+	exchangerateDescToCurrency := exchangerateFields[2].Descriptor()
+	// exchangerate.ToCurrencyValidator is a validator for the "to_currency" field. It is called by the builders before save.
+	exchangerate.ToCurrencyValidator = func() func(string) error {
+		validators := exchangerateDescToCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(to_currency string) error {
+			for _, fn := range fns {
+				if err := fn(to_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangerateDescRate is the schema descriptor for rate field.
+	exchangerateDescRate := exchangerateFields[3].Descriptor()
+	// exchangerate.RateValidator is a validator for the "rate" field. It is called by the builders before save.
+	exchangerate.RateValidator = exchangerateDescRate.Validators[0].(func(float64) error)
 	periodMixin := schema.Period{}.Mixin()
 	periodMixinFields1 := periodMixin[1].Fields()
 	_ = periodMixinFields1
@@ -70,6 +213,35 @@ func init() {
 	periodDescName := periodFields[1].Descriptor()
 	// period.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	period.NameValidator = periodDescName.Validators[0].(func(string) error)
+	postingMixin := schema.Posting{}.Mixin()
+	postingMixinFields1 := postingMixin[1].Fields()
+	_ = postingMixinFields1
+	postingFields := schema.Posting{}.Fields()
+	_ = postingFields
+	// postingDescCreatedAt is the schema descriptor for created_at field.
+	postingDescCreatedAt := postingMixinFields1[2].Descriptor()
+	// posting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	posting.DefaultCreatedAt = postingDescCreatedAt.Default.(func() time.Time)
+	// postingDescUpdatedAt is the schema descriptor for updated_at field.
+	postingDescUpdatedAt := postingMixinFields1[3].Descriptor()
+	// posting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	posting.DefaultUpdatedAt = postingDescUpdatedAt.Default.(func() time.Time)
+	// posting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	posting.UpdateDefaultUpdatedAt = postingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// postingDescAmount is the schema descriptor for amount field.
+	postingDescAmount := postingFields[4].Descriptor()
+	// posting.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
+	posting.AmountValidator = postingDescAmount.Validators[0].(func(float64) error)
+	// postingDescBaseAmount is the schema descriptor for base_amount field.
+	postingDescBaseAmount := postingFields[5].Descriptor()
+	// posting.BaseAmountValidator is a validator for the "base_amount" field. It is called by the builders before save.
+	posting.BaseAmountValidator = postingDescBaseAmount.Validators[0].(func(float64) error)
+	// postingDescPosition is the schema descriptor for position field.
+	postingDescPosition := postingFields[6].Descriptor()
+	// posting.DefaultPosition holds the default value on creation for the position field.
+	posting.DefaultPosition = postingDescPosition.Default.(int)
+	// posting.PositionValidator is a validator for the "position" field. It is called by the builders before save.
+	posting.PositionValidator = postingDescPosition.Validators[0].(func(int) error)
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescToken is the schema descriptor for token field.
@@ -86,6 +258,51 @@ func init() {
 	session.DefaultUpdatedAt = sessionDescUpdatedAt.Default.(func() time.Time)
 	// session.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	session.UpdateDefaultUpdatedAt = sessionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	transactionMixin := schema.Transaction{}.Mixin()
+	transactionMixinFields1 := transactionMixin[1].Fields()
+	_ = transactionMixinFields1
+	transactionFields := schema.Transaction{}.Fields()
+	_ = transactionFields
+	// transactionDescCreatedAt is the schema descriptor for created_at field.
+	transactionDescCreatedAt := transactionMixinFields1[2].Descriptor()
+	// transaction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	transaction.DefaultCreatedAt = transactionDescCreatedAt.Default.(func() time.Time)
+	// transactionDescUpdatedAt is the schema descriptor for updated_at field.
+	transactionDescUpdatedAt := transactionMixinFields1[3].Descriptor()
+	// transaction.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	transaction.DefaultUpdatedAt = transactionDescUpdatedAt.Default.(func() time.Time)
+	// transaction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	transaction.UpdateDefaultUpdatedAt = transactionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// transactionDescNumber is the schema descriptor for number field.
+	transactionDescNumber := transactionFields[1].Descriptor()
+	// transaction.NumberValidator is a validator for the "number" field. It is called by the builders before save.
+	transaction.NumberValidator = transactionDescNumber.Validators[0].(func(string) error)
+	// transactionDescCurrency is the schema descriptor for currency field.
+	transactionDescCurrency := transactionFields[5].Descriptor()
+	// transaction.DefaultCurrency holds the default value on creation for the currency field.
+	transaction.DefaultCurrency = transactionDescCurrency.Default.(string)
+	// transaction.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	transaction.CurrencyValidator = func() func(string) error {
+		validators := transactionDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// transactionDescExchangeRate is the schema descriptor for exchange_rate field.
+	transactionDescExchangeRate := transactionFields[6].Descriptor()
+	// transaction.DefaultExchangeRate holds the default value on creation for the exchange_rate field.
+	transaction.DefaultExchangeRate = transactionDescExchangeRate.Default.(float64)
+	// transaction.ExchangeRateValidator is a validator for the "exchange_rate" field. It is called by the builders before save.
+	transaction.ExchangeRateValidator = transactionDescExchangeRate.Validators[0].(func(float64) error)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.
@@ -149,6 +366,26 @@ func init() {
 	workspaceDescPersonal := workspaceFields[4].Descriptor()
 	// workspace.DefaultPersonal holds the default value on creation for the personal field.
 	workspace.DefaultPersonal = workspaceDescPersonal.Default.(bool)
+	// workspaceDescBaseCurrency is the schema descriptor for base_currency field.
+	workspaceDescBaseCurrency := workspaceFields[5].Descriptor()
+	// workspace.DefaultBaseCurrency holds the default value on creation for the base_currency field.
+	workspace.DefaultBaseCurrency = workspaceDescBaseCurrency.Default.(string)
+	// workspace.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	workspace.BaseCurrencyValidator = func() func(string) error {
+		validators := workspaceDescBaseCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(base_currency string) error {
+			for _, fn := range fns {
+				if err := fn(base_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	workspaceinvitationMixin := schema.WorkspaceInvitation{}.Mixin()
 	workspaceinvitationMixinFields1 := workspaceinvitationMixin[1].Fields()
 	_ = workspaceinvitationMixinFields1

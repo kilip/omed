@@ -41,6 +41,8 @@ type Account struct {
 	Type account.Type `json:"type,omitempty"`
 	// NormalBalance holds the value of the "normal_balance" field.
 	NormalBalance account.NormalBalance `json:"normal_balance,omitempty"`
+	// Currency holds the value of the "currency" field.
+	Currency *string `json:"currency,omitempty"`
 	// ParentID holds the value of the "parent_id" field.
 	ParentID *int64 `json:"parent_id,omitempty"`
 	// Description holds the value of the "description" field.
@@ -147,7 +149,7 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case account.FieldID, account.FieldWorkspaceID, account.FieldCreatedBy, account.FieldUpdatedBy, account.FieldDeletedByID, account.FieldParentID:
 			values[i] = new(sql.NullInt64)
-		case account.FieldCode, account.FieldName, account.FieldType, account.FieldNormalBalance, account.FieldDescription:
+		case account.FieldCode, account.FieldName, account.FieldType, account.FieldNormalBalance, account.FieldCurrency, account.FieldDescription:
 			values[i] = new(sql.NullString)
 		case account.FieldCreatedAt, account.FieldUpdatedAt, account.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -239,6 +241,13 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field normal_balance", values[i])
 			} else if value.Valid {
 				_m.NormalBalance = account.NormalBalance(value.String)
+			}
+		case account.FieldCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field currency", values[i])
+			} else if value.Valid {
+				_m.Currency = new(string)
+				*_m.Currency = value.String
 			}
 		case account.FieldParentID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -367,6 +376,11 @@ func (_m *Account) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("normal_balance=")
 	builder.WriteString(fmt.Sprintf("%v", _m.NormalBalance))
+	builder.WriteString(", ")
+	if v := _m.Currency; v != nil {
+		builder.WriteString("currency=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	if v := _m.ParentID; v != nil {
 		builder.WriteString("parent_id=")

@@ -37,6 +37,7 @@ func (Workspace) Fields() []ent.Field {
 		field.String("description").Optional(),
 		field.Int64("owner_id"),
 		field.Bool("personal").Default(false).Immutable(),
+		field.String("base_currency").MinLen(3).MaxLen(3).Default("IDR"),
 	}
 }
 

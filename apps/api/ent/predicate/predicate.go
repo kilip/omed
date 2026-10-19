@@ -9,11 +9,26 @@ import (
 // Account is the predicate function for account builders.
 type Account func(*sql.Selector)
 
+// Currency is the predicate function for currency builders.
+type Currency func(*sql.Selector)
+
+// Entry is the predicate function for entry builders.
+type Entry func(*sql.Selector)
+
+// ExchangeRate is the predicate function for exchangerate builders.
+type ExchangeRate func(*sql.Selector)
+
 // Period is the predicate function for period builders.
 type Period func(*sql.Selector)
 
+// Posting is the predicate function for posting builders.
+type Posting func(*sql.Selector)
+
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)
+
+// Transaction is the predicate function for transaction builders.
+type Transaction func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

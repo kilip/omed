@@ -13,8 +13,13 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/currency"
+	"github.com/kilip/omed/api/ent/entry"
+	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/session"
+	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/useraccount"
 	"github.com/kilip/omed/api/ent/workspace"
@@ -81,8 +86,13 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			account.Table:             account.ValidColumn,
+			currency.Table:            currency.ValidColumn,
+			entry.Table:               entry.ValidColumn,
+			exchangerate.Table:        exchangerate.ValidColumn,
 			period.Table:              period.ValidColumn,
+			posting.Table:             posting.ValidColumn,
 			session.Table:             session.ValidColumn,
+			transaction.Table:         transaction.ValidColumn,
 			user.Table:                user.ValidColumn,
 			useraccount.Table:         useraccount.ValidColumn,
 			workspace.Table:           workspace.ValidColumn,

@@ -37,6 +37,8 @@ const (
 	FieldType = "type"
 	// FieldNormalBalance holds the string denoting the normal_balance field in the database.
 	FieldNormalBalance = "normal_balance"
+	// FieldCurrency holds the string denoting the currency field in the database.
+	FieldCurrency = "currency"
 	// FieldParentID holds the string denoting the parent_id field in the database.
 	FieldParentID = "parent_id"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -111,6 +113,7 @@ var Columns = []string{
 	FieldName,
 	FieldType,
 	FieldNormalBalance,
+	FieldCurrency,
 	FieldParentID,
 	FieldDescription,
 	FieldIsActive,
@@ -138,6 +141,8 @@ var (
 	CodeValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	CurrencyValidator func(string) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
 	// DefaultIsPostable holds the default value on creation for the "is_postable" field.
@@ -254,6 +259,11 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 // ByNormalBalance orders the results by the normal_balance field.
 func ByNormalBalance(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNormalBalance, opts...).ToFunc()
+}
+
+// ByCurrency orders the results by the currency field.
+func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
 }
 
 // ByParentID orders the results by the parent_id field.

@@ -104,6 +104,20 @@ func (_c *WorkspaceCreate) SetNillablePersonal(v *bool) *WorkspaceCreate {
 	return _c
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (_c *WorkspaceCreate) SetBaseCurrency(v string) *WorkspaceCreate {
+	_c.mutation.SetBaseCurrency(v)
+	return _c
+}
+
+// SetNillableBaseCurrency sets the "base_currency" field if the given value is not nil.
+func (_c *WorkspaceCreate) SetNillableBaseCurrency(v *string) *WorkspaceCreate {
+	if v != nil {
+		_c.SetBaseCurrency(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *WorkspaceCreate) SetID(v int64) *WorkspaceCreate {
 	_c.mutation.SetID(v)
@@ -199,6 +213,10 @@ func (_c *WorkspaceCreate) defaults() {
 		v := workspace.DefaultPersonal
 		_c.mutation.SetPersonal(v)
 	}
+	if _, ok := _c.mutation.BaseCurrency(); !ok {
+		v := workspace.DefaultBaseCurrency
+		_c.mutation.SetBaseCurrency(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -228,6 +246,14 @@ func (_c *WorkspaceCreate) check() error {
 	}
 	if _, ok := _c.mutation.Personal(); !ok {
 		return &ValidationError{Name: "personal", err: errors.New(`ent: missing required field "Workspace.personal"`)}
+	}
+	if _, ok := _c.mutation.BaseCurrency(); !ok {
+		return &ValidationError{Name: "base_currency", err: errors.New(`ent: missing required field "Workspace.base_currency"`)}
+	}
+	if v, ok := _c.mutation.BaseCurrency(); ok {
+		if err := workspace.BaseCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Workspace.base_currency": %w`, err)}
+		}
 	}
 	if len(_c.mutation.CreatorIDs()) == 0 {
 		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "Workspace.creator"`)}
@@ -291,6 +317,10 @@ func (_c *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Personal(); ok {
 		_spec.SetField(workspace.FieldPersonal, field.TypeBool, value)
 		_node.Personal = value
+	}
+	if value, ok := _c.mutation.BaseCurrency(); ok {
+		_spec.SetField(workspace.FieldBaseCurrency, field.TypeString, value)
+		_node.BaseCurrency = value
 	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -493,6 +523,18 @@ func (u *WorkspaceUpsert) UpdateOwnerID() *WorkspaceUpsert {
 	return u
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (u *WorkspaceUpsert) SetBaseCurrency(v string) *WorkspaceUpsert {
+	u.Set(workspace.FieldBaseCurrency, v)
+	return u
+}
+
+// UpdateBaseCurrency sets the "base_currency" field to the value that was provided on create.
+func (u *WorkspaceUpsert) UpdateBaseCurrency() *WorkspaceUpsert {
+	u.SetExcluded(workspace.FieldBaseCurrency)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -635,6 +677,20 @@ func (u *WorkspaceUpsertOne) SetOwnerID(v int64) *WorkspaceUpsertOne {
 func (u *WorkspaceUpsertOne) UpdateOwnerID() *WorkspaceUpsertOne {
 	return u.Update(func(s *WorkspaceUpsert) {
 		s.UpdateOwnerID()
+	})
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (u *WorkspaceUpsertOne) SetBaseCurrency(v string) *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.SetBaseCurrency(v)
+	})
+}
+
+// UpdateBaseCurrency sets the "base_currency" field to the value that was provided on create.
+func (u *WorkspaceUpsertOne) UpdateBaseCurrency() *WorkspaceUpsertOne {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.UpdateBaseCurrency()
 	})
 }
 
@@ -946,6 +1002,20 @@ func (u *WorkspaceUpsertBulk) SetOwnerID(v int64) *WorkspaceUpsertBulk {
 func (u *WorkspaceUpsertBulk) UpdateOwnerID() *WorkspaceUpsertBulk {
 	return u.Update(func(s *WorkspaceUpsert) {
 		s.UpdateOwnerID()
+	})
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (u *WorkspaceUpsertBulk) SetBaseCurrency(v string) *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.SetBaseCurrency(v)
+	})
+}
+
+// UpdateBaseCurrency sets the "base_currency" field to the value that was provided on create.
+func (u *WorkspaceUpsertBulk) UpdateBaseCurrency() *WorkspaceUpsertBulk {
+	return u.Update(func(s *WorkspaceUpsert) {
+		s.UpdateBaseCurrency()
 	})
 }
 

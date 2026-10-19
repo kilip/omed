@@ -122,6 +122,20 @@ func (_c *AccountCreate) SetNormalBalance(v account.NormalBalance) *AccountCreat
 	return _c
 }
 
+// SetCurrency sets the "currency" field.
+func (_c *AccountCreate) SetCurrency(v string) *AccountCreate {
+	_c.mutation.SetCurrency(v)
+	return _c
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableCurrency(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetCurrency(*v)
+	}
+	return _c
+}
+
 // SetParentID sets the "parent_id" field.
 func (_c *AccountCreate) SetParentID(v int64) *AccountCreate {
 	_c.mutation.SetParentID(v)
@@ -352,6 +366,11 @@ func (_c *AccountCreate) check() error {
 			return &ValidationError{Name: "normal_balance", err: fmt.Errorf(`ent: validator failed for field "Account.normal_balance": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.Currency(); ok {
+		if err := account.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Account.currency": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "Account.is_active"`)}
 	}
@@ -428,6 +447,10 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.NormalBalance(); ok {
 		_spec.SetField(account.FieldNormalBalance, field.TypeEnum, value)
 		_node.NormalBalance = value
+	}
+	if value, ok := _c.mutation.Currency(); ok {
+		_spec.SetField(account.FieldCurrency, field.TypeString, value)
+		_node.Currency = &value
 	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(account.FieldDescription, field.TypeString, value)
@@ -720,6 +743,24 @@ func (u *AccountUpsert) UpdateNormalBalance() *AccountUpsert {
 	return u
 }
 
+// SetCurrency sets the "currency" field.
+func (u *AccountUpsert) SetCurrency(v string) *AccountUpsert {
+	u.Set(account.FieldCurrency, v)
+	return u
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateCurrency() *AccountUpsert {
+	u.SetExcluded(account.FieldCurrency)
+	return u
+}
+
+// ClearCurrency clears the value of the "currency" field.
+func (u *AccountUpsert) ClearCurrency() *AccountUpsert {
+	u.SetNull(account.FieldCurrency)
+	return u
+}
+
 // SetParentID sets the "parent_id" field.
 func (u *AccountUpsert) SetParentID(v int64) *AccountUpsert {
 	u.Set(account.FieldParentID, v)
@@ -971,6 +1012,27 @@ func (u *AccountUpsertOne) SetNormalBalance(v account.NormalBalance) *AccountUps
 func (u *AccountUpsertOne) UpdateNormalBalance() *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
 		s.UpdateNormalBalance()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *AccountUpsertOne) SetCurrency(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateCurrency() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// ClearCurrency clears the value of the "currency" field.
+func (u *AccountUpsertOne) ClearCurrency() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearCurrency()
 	})
 }
 
@@ -1401,6 +1463,27 @@ func (u *AccountUpsertBulk) SetNormalBalance(v account.NormalBalance) *AccountUp
 func (u *AccountUpsertBulk) UpdateNormalBalance() *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
 		s.UpdateNormalBalance()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *AccountUpsertBulk) SetCurrency(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateCurrency() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// ClearCurrency clears the value of the "currency" field.
+func (u *AccountUpsertBulk) ClearCurrency() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearCurrency()
 	})
 }
 

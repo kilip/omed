@@ -3,6 +3,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
@@ -13,9 +14,8 @@ import (
 // Posting holds the schema definition for the Posting entity.
 //
 // A posting is a single debit or credit line against an account. The amount is
-// always positive and stored in minor units (e.g. cents) of the parent
-// transaction's currency; the direction decides which side of the ledger it
-// lands on. Postings have no soft delete: they live and die with their entry
+// always positive; the direction decides which side of the ledger it lands on.
+// Postings have no soft delete: they live and die with their entry
 // (only DRAFT entries can be removed, which cascades to their postings).
 type Posting struct {
 	ent.Schema
@@ -43,7 +43,8 @@ func (Posting) Fields() []ent.Field {
 		field.Int64("entry_id").Immutable(),
 		field.Int64("account_id"),
 		field.Enum("direction").Values("DEBIT", "CREDIT"),
-		field.Int64("amount").Positive(),
+		field.Float("amount").Positive().SchemaType(map[string]string{dialect.Postgres: "numeric(20,4)"}),
+		field.Float("base_amount").Positive().SchemaType(map[string]string{dialect.Postgres: "numeric(20,4)"}),
 		field.Int("position").NonNegative().Default(0),
 		field.String("description").Optional(),
 	}

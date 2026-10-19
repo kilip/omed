@@ -30,6 +30,8 @@ const (
 	FieldOwnerID = "owner_id"
 	// FieldPersonal holds the string denoting the personal field in the database.
 	FieldPersonal = "personal"
+	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
+	FieldBaseCurrency = "base_currency"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeUpdater holds the string denoting the updater edge name in mutations.
@@ -81,6 +83,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldOwnerID,
 	FieldPersonal,
+	FieldBaseCurrency,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -104,6 +107,10 @@ var (
 	NameValidator func(string) error
 	// DefaultPersonal holds the default value on creation for the "personal" field.
 	DefaultPersonal bool
+	// DefaultBaseCurrency holds the default value on creation for the "base_currency" field.
+	DefaultBaseCurrency string
+	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	BaseCurrencyValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Workspace queries.
@@ -152,6 +159,11 @@ func ByOwnerID(opts ...sql.OrderTermOption) OrderOption {
 // ByPersonal orders the results by the personal field.
 func ByPersonal(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPersonal, opts...).ToFunc()
+}
+
+// ByBaseCurrency orders the results by the base_currency field.
+func ByBaseCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBaseCurrency, opts...).ToFunc()
 }
 
 // ByCreatorField orders the results by creator field.

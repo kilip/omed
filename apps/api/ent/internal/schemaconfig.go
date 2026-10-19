@@ -8,8 +8,13 @@ import "context"
 // that can be passed at runtime.
 type SchemaConfig struct {
 	Account             string // Account table.
+	Currency            string // Currency table.
+	Entry               string // Entry table.
+	ExchangeRate        string // ExchangeRate table.
 	Period              string // Period table.
+	Posting             string // Posting table.
 	Session             string // Session table.
+	Transaction         string // Transaction table.
 	User                string // User table.
 	UserAccount         string // UserAccount table.
 	Workspace           string // Workspace table.

@@ -44,6 +44,7 @@ func (Transaction) Fields() []ent.Field {
 		field.String("description").Optional(),
 		field.String("reference").Optional(),
 		field.String("currency").MinLen(3).MaxLen(3).Default("IDR"),
+		field.Float("exchange_rate").Default(1).Positive(),
 		field.Enum("source").Values("MANUAL", "IMPORT", "SYSTEM").Default("MANUAL"),
 	}
 }
