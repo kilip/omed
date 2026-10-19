@@ -1,9 +1,8 @@
 /**
- * PROVISIONAL DATA. `apps/api` only exposes the chart of accounts today, so
- * journal entries, ledger and trial balance run on this in-memory sample.
- * When the backend ships those endpoints, regenerate `@omed/openapi` and
- * replace these types and functions with `openapi-fetch` calls in the route
- * loaders. Amounts are whole rupiah.
+ * PROVISIONAL DATA. Dashboard and trial balance run on this in-memory sample.
+ * Journal entries, transactions, and ledger are wired to the real API.
+ * When the backend ships dashboard and trial balance endpoints, replace these
+ * with API queries. Amounts are whole rupiah.
  */
 
 export type AccountType =
@@ -276,15 +275,6 @@ export const monthlyHistory = [
 export const sumDebit = (lines: JournalLine[]) =>
   lines.reduce((total, l) => total + l.debit, 0);
 
-export const sumCredit = (lines: JournalLine[]) =>
-  lines.reduce((total, l) => total + l.credit, 0);
-
-export const accountName = (code: string) =>
-  mockAccounts.find((a) => a.code === code)?.name ?? code;
-
-export const defaultNormalBalance = (type: AccountType): NormalBalance =>
-  type === "ASSET" || type === "EXPENSE" ? "DEBIT" : "CREDIT";
-
 const movement = (account: MockAccount, line: JournalLine) =>
   account.normalBalance === "DEBIT"
     ? line.debit - line.credit
@@ -320,43 +310,6 @@ export function trialBalance(entries: JournalEntry[]): TrialBalanceRow[] {
       credit: debitSide ? 0 : amount,
     };
   });
-}
-
-export type LedgerRow = {
-  date: string;
-  number: string;
-  label: string;
-  debit: number;
-  credit: number;
-  balance: number;
-};
-
-export function ledgerFor(code: string, entries: JournalEntry[]) {
-  const account = mockAccounts.find((a) => a.code === code);
-  if (!account) return { account, opening: 0, rows: [], closing: 0 };
-
-  let running = account.opening;
-  const rows: LedgerRow[] = entries
-    .filter((e) => e.status === "POSTED")
-    .slice()
-    .sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id)
-    .flatMap((entry) =>
-      entry.lines
-        .filter((l) => l.account === code)
-        .map((line) => {
-          running += movement(account, line);
-          return {
-            date: entry.date,
-            number: entry.number,
-            label: line.label,
-            debit: line.debit,
-            credit: line.credit,
-            balance: running,
-          };
-        }),
-    );
-
-  return { account, opening: account.opening, rows, closing: running };
 }
 
 export function summary(entries: JournalEntry[]) {
