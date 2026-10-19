@@ -100,4 +100,21 @@ export class FinTransactionDetailPage extends BasePage {
     const count = await this.deleteButton.count();
     assert.equal(count, 0, "Expected delete transaction button to be hidden");
   }
+
+  async expectNoAddEntryButton(): Promise<void> {
+    const count = await this.addEntryButton.count();
+    assert.equal(count, 0, "Expected add entry button to be hidden");
+  }
+
+  async expectAddEntryButtonVisible(): Promise<void> {
+    await this.addEntryButton.waitFor({ state: "visible" });
+  }
+
+  async expectEditButtonVisible(): Promise<void> {
+    await this.editButton.waitFor({ state: "visible" });
+  }
+
+  async expectDeleteButtonVisible(): Promise<void> {
+    await this.deleteButton.waitFor({ state: "visible" });
+  }
 }

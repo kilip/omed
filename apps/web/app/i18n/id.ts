@@ -3,6 +3,7 @@ import type { Translation } from "./en";
 export const id: Translation = {
   common: {
     error: "Terjadi kesalahan. Coba lagi.",
+    forbidden: "Anda tidak memiliki izin untuk melakukan tindakan ini.",
     save: "Simpan",
     cancel: "Batal",
     saved: "Tersimpan",

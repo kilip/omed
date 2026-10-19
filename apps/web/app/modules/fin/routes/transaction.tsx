@@ -17,7 +17,9 @@ import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
+import { permissionsQueryOptions } from "~/modules/core/queries";
 import { CreateEntryDrawer, EntryStatusTag, MoneyCell } from "../components";
+import { useFinPermissions } from "../hooks";
 import { transactionKeys, transactionQueryOptions } from "../queries";
 import type { Route } from "./+types/transaction";
 
@@ -27,7 +29,10 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const wid = await requireWorkspaceId();
   const id = Number(params.id);
   const queryClient = getQueryClient();
-  await queryClient.ensureQueryData(transactionQueryOptions(wid, id));
+  await Promise.all([
+    queryClient.ensureQueryData(transactionQueryOptions(wid, id)),
+    queryClient.ensureQueryData(permissionsQueryOptions(wid)),
+  ]);
   return { wid, id };
 }
 
@@ -37,6 +42,8 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { run, pending } = useAction();
+  const { canEditTransaction, canDeleteTransaction, canCreateEntry } =
+    useFinPermissions(wid);
 
   const { data: transaction } = useSuspenseQuery(
     transactionQueryOptions(wid, id),
@@ -111,24 +118,28 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
     <div className="flex flex-wrap items-center gap-2">
       {!hasPostedEntries && !isEditing && (
         <>
-          <Button icon={<EditOutlined />} onClick={startEdit}>
-            {t("fin.transactions.edit", "Edit transaction")}
-          </Button>
-          <Popconfirm
-            title={t(
-              "fin.transactions.deleteConfirm",
-              "Are you sure you want to delete this transaction?",
-            )}
-            onConfirm={handleDelete}
-          >
-            <Button danger icon={<DeleteOutlined />} loading={pending}>
-              {t("fin.transactions.delete", "Delete transaction")}
+          {canEditTransaction && (
+            <Button icon={<EditOutlined />} onClick={startEdit}>
+              {t("fin.transactions.edit", "Edit transaction")}
             </Button>
-          </Popconfirm>
+          )}
+          {canDeleteTransaction && (
+            <Popconfirm
+              title={t(
+                "fin.transactions.deleteConfirm",
+                "Are you sure you want to delete this transaction?",
+              )}
+              onConfirm={handleDelete}
+            >
+              <Button danger icon={<DeleteOutlined />} loading={pending}>
+                {t("fin.transactions.delete", "Delete transaction")}
+              </Button>
+            </Popconfirm>
+          )}
         </>
       )}
 
-      {isEditing && (
+      {isEditing && canEditTransaction && (
         <>
           <Button type="primary" loading={pending} onClick={handleSaveEdit}>
             {t("fin.transactions.saveChanges", "Save changes")}
@@ -137,13 +148,15 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
         </>
       )}
 
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={() => setCreateEntryDrawerOpen(true)}
-      >
-        {t("fin.transactions.addEntry", "Add entry")}
-      </Button>
+      {canCreateEntry && (
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setCreateEntryDrawerOpen(true)}
+        >
+          {t("fin.transactions.addEntry", "Add entry")}
+        </Button>
+      )}
     </div>
   );
 

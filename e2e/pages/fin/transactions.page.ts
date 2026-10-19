@@ -95,4 +95,12 @@ export class FinTransactionsPage extends BasePage {
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query);
   }
+
+  async expectNewTransactionVisible(): Promise<void> {
+    await this.newTransactionButton.waitFor({ state: "visible" });
+  }
+
+  async expectNewTransactionHidden(): Promise<void> {
+    await this.newTransactionButton.waitFor({ state: "hidden" });
+  }
 }

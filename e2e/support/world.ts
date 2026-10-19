@@ -20,6 +20,9 @@ export class OmedWorld extends World {
   workspace?: TestWorkspace;
   recipientUser?: TestUser;
   invitationLink?: string;
+  testTxId?: number;
+  testEntryId?: number;
+  testPostedEntryId?: number;
 
   constructor(options: IWorldOptions) {
     super(options);

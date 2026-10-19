@@ -102,4 +102,49 @@ export class FinEntryDetailPage extends BasePage {
     await link.first().waitFor({ state: "visible" });
     await link.first().click();
   }
+
+  async expectEditButtonVisible(): Promise<void> {
+    await this.editButton.waitFor({ state: "visible" });
+  }
+
+  async expectNoEditButton(): Promise<void> {
+    const count = await this.editButton.count();
+    assert.equal(count, 0, "Expected edit entry button to be hidden");
+  }
+
+  async expectPostButtonVisible(): Promise<void> {
+    await this.postButton.waitFor({ state: "visible" });
+  }
+
+  async expectNoPostButton(): Promise<void> {
+    const count = await this.postButton.count();
+    assert.equal(count, 0, "Expected post entry button to be hidden");
+  }
+
+  async expectDeleteButtonVisible(): Promise<void> {
+    await this.deleteButton.waitFor({ state: "visible" });
+  }
+
+  async expectNoDeleteButton(): Promise<void> {
+    const count = await this.deleteButton.count();
+    assert.equal(count, 0, "Expected delete entry button to be hidden");
+  }
+
+  async expectVoidButtonVisible(): Promise<void> {
+    await this.voidButton.waitFor({ state: "visible" });
+  }
+
+  async expectNoVoidButton(): Promise<void> {
+    const count = await this.voidButton.count();
+    assert.equal(count, 0, "Expected void entry button to be hidden");
+  }
+
+  async expectReverseButtonVisible(): Promise<void> {
+    await this.reverseButton.waitFor({ state: "visible" });
+  }
+
+  async expectNoReverseButton(): Promise<void> {
+    const count = await this.reverseButton.count();
+    assert.equal(count, 0, "Expected reverse entry button to be hidden");
+  }
 }

@@ -30,6 +30,7 @@ import { formatDate, formatDateTime } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
+import { permissionsQueryOptions } from "~/modules/core/queries";
 import {
   apiToPostingLines,
   calculatePostingsSummary,
@@ -38,6 +39,7 @@ import {
   PostingsEditor,
   postingLinesToApi,
 } from "../components";
+import { useFinPermissions } from "../hooks";
 import {
   accountsQueryOptions,
   entryQueryOptions,
@@ -56,6 +58,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
     queryClient.ensureQueryData(entryQueryOptions(wid, id)),
     queryClient.ensureQueryData(accountsQueryOptions(wid)),
     queryClient.ensureQueryData(periodsQueryOptions(wid)),
+    queryClient.ensureQueryData(permissionsQueryOptions(wid)),
   ]);
   return { wid, id };
 }
@@ -65,6 +68,13 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { run, pending } = useAction();
+  const {
+    canEditEntry,
+    canDeleteEntry,
+    canPostEntry,
+    canVoidEntry,
+    canReverseEntry,
+  } = useFinPermissions(wid);
 
   const { data: entry } = useSuspenseQuery(entryQueryOptions(wid, id));
   const { data: accounts = [] } = useSuspenseQuery(accountsQueryOptions(wid));
@@ -224,48 +234,56 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
 
   const status = entry.status ?? "DRAFT";
 
-  // Action buttons depending on entry status
+  // Action buttons depending on entry status and permissions
   const actionButtons = (
     <div className="flex flex-wrap items-center gap-2">
       {status === "DRAFT" && !isEditing && (
         <>
-          <Button
-            type="primary"
-            icon={<CheckOutlined />}
-            loading={pending}
-            onClick={handlePost}
-          >
-            {t("fin.journal.post", "Post")}
-          </Button>
-          <Button icon={<EditOutlined />} onClick={startEdit}>
-            {t("fin.journal.editEntry", "Edit entry")}
-          </Button>
-          <Popconfirm
-            title={t(
-              "fin.journal.deleteConfirm",
-              "Delete this draft journal entry?",
-            )}
-            onConfirm={handleDelete}
-          >
-            <Button danger icon={<DeleteOutlined />} loading={pending}>
-              {t("common.delete", "Delete")}
+          {canPostEntry && (
+            <Button
+              type="primary"
+              icon={<CheckOutlined />}
+              loading={pending}
+              onClick={handlePost}
+            >
+              {t("fin.journal.post", "Post")}
             </Button>
-          </Popconfirm>
-          <Popconfirm
-            title={t(
-              "fin.journal.voidConfirm",
-              "Are you sure you want to void this entry?",
-            )}
-            onConfirm={handleVoid}
-          >
-            <Button icon={<StopOutlined />} loading={pending}>
-              {t("fin.journal.void", "Void")}
+          )}
+          {canEditEntry && (
+            <Button icon={<EditOutlined />} onClick={startEdit}>
+              {t("fin.journal.editEntry", "Edit entry")}
             </Button>
-          </Popconfirm>
+          )}
+          {canDeleteEntry && (
+            <Popconfirm
+              title={t(
+                "fin.journal.deleteConfirm",
+                "Delete this draft journal entry?",
+              )}
+              onConfirm={handleDelete}
+            >
+              <Button danger icon={<DeleteOutlined />} loading={pending}>
+                {t("common.delete", "Delete")}
+              </Button>
+            </Popconfirm>
+          )}
+          {canVoidEntry && (
+            <Popconfirm
+              title={t(
+                "fin.journal.voidConfirm",
+                "Are you sure you want to void this entry?",
+              )}
+              onConfirm={handleVoid}
+            >
+              <Button icon={<StopOutlined />} loading={pending}>
+                {t("fin.journal.void", "Void")}
+              </Button>
+            </Popconfirm>
+          )}
         </>
       )}
 
-      {status === "DRAFT" && isEditing && (
+      {status === "DRAFT" && isEditing && canEditEntry && (
         <>
           <Button type="primary" loading={pending} onClick={handleSaveEdit}>
             {t("fin.journal.saveChanges", "Save changes")}
@@ -276,30 +294,34 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
 
       {status === "POSTED" && (
         <>
-          <Button
-            type="primary"
-            icon={<RollbackOutlined />}
-            onClick={() => {
-              reverseForm.setFieldsValue({
-                entryDate: dayjs(),
-                description: `Reversal of ${entry.number}`,
-              });
-              setReverseModalOpen(true);
-            }}
-          >
-            {t("fin.journal.reverse", "Reverse")}
-          </Button>
-          <Popconfirm
-            title={t(
-              "fin.journal.voidConfirmPosted",
-              "Voiding a posted entry will create a reversing entry and mark this entry as void. Proceed?",
-            )}
-            onConfirm={handleVoid}
-          >
-            <Button danger icon={<StopOutlined />} loading={pending}>
-              {t("fin.journal.void", "Void")}
+          {canReverseEntry && (
+            <Button
+              type="primary"
+              icon={<RollbackOutlined />}
+              onClick={() => {
+                reverseForm.setFieldsValue({
+                  entryDate: dayjs(),
+                  description: `Reversal of ${entry.number}`,
+                });
+                setReverseModalOpen(true);
+              }}
+            >
+              {t("fin.journal.reverse", "Reverse")}
             </Button>
-          </Popconfirm>
+          )}
+          {canVoidEntry && (
+            <Popconfirm
+              title={t(
+                "fin.journal.voidConfirmPosted",
+                "Voiding a posted entry will create a reversing entry and mark this entry as void. Proceed?",
+              )}
+              onConfirm={handleVoid}
+            >
+              <Button danger icon={<StopOutlined />} loading={pending}>
+                {t("fin.journal.void", "Void")}
+              </Button>
+            </Popconfirm>
+          )}
         </>
       )}
     </div>
@@ -541,31 +563,36 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
         )}
       </FormView>
 
-      <Modal
-        open={reverseModalOpen}
-        title={t("fin.journal.reverseModalTitle", "Reverse journal entry")}
-        onCancel={() => setReverseModalOpen(false)}
-        onOk={handleReverseSubmit}
-        confirmLoading={pending}
-      >
-        <Form form={reverseForm} layout="vertical" className="mt-4">
-          <Form.Item
-            name="entryDate"
-            label={t("fin.journal.reverseDate", "Reversal date")}
-            rules={[{ required: true }]}
-          >
-            <DatePicker className="w-full" />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label={t("fin.journal.reverseDescription", "Reversal description")}
-          >
-            <Input
-              placeholder={t("fin.journal.reverseDescription", "Description")}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+      {canReverseEntry && (
+        <Modal
+          open={reverseModalOpen}
+          title={t("fin.journal.reverseModalTitle", "Reverse journal entry")}
+          onCancel={() => setReverseModalOpen(false)}
+          onOk={handleReverseSubmit}
+          confirmLoading={pending}
+        >
+          <Form form={reverseForm} layout="vertical" className="mt-4">
+            <Form.Item
+              name="entryDate"
+              label={t("fin.journal.reverseDate", "Reversal date")}
+              rules={[{ required: true }]}
+            >
+              <DatePicker className="w-full" />
+            </Form.Item>
+            <Form.Item
+              name="description"
+              label={t(
+                "fin.journal.reverseDescription",
+                "Reversal description",
+              )}
+            >
+              <Input
+                placeholder={t("fin.journal.reverseDescription", "Description")}
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+      )}
     </Page>
   );
 }

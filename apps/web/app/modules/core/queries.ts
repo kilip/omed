@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { api, unwrapList } from "~/lib/api";
+import { api, orForbidden, unwrapList, unwrapOne } from "~/lib/api";
 
 export const memberKeys = {
   all: (wid: number) => ["core", "workspaces", wid, "members"] as const,
@@ -12,6 +12,20 @@ export const invitationKeys = {
 export const roleKeys = {
   all: (wid: number) => ["core", "workspaces", wid, "roles"] as const,
 };
+
+export const permissionKeys = {
+  all: (wid: number) => ["core", "workspaces", wid, "permissions"] as const,
+};
+
+/** Current user permissions and roles in a workspace. */
+export const permissionsQueryOptions = (wid: number) =>
+  queryOptions({
+    queryKey: permissionKeys.all(wid),
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/permissions", { params: { path: { wid } } }),
+      ).catch(orForbidden({ roles: [], permissions: [], owner: false })),
+  });
 
 /** Roles that can be assigned in a workspace, with their display names. */
 export const rolesQueryOptions = (wid: number) =>

@@ -1,6 +1,7 @@
 export const en = {
   common: {
     error: "Something went wrong. Try again.",
+    forbidden: "You do not have permission to perform this action.",
     save: "Save",
     cancel: "Cancel",
     saved: "Saved",

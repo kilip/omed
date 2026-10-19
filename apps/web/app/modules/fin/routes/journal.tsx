@@ -11,7 +11,9 @@ import type { SearchFacet } from "~/components/SearchBar";
 import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { requireWorkspaceId } from "~/lib/workspace";
+import { permissionsQueryOptions } from "~/modules/core/queries";
 import { CreateEntryDrawer, EntryStatusTag, MoneyCell } from "../components";
+import { useFinPermissions } from "../hooks";
 import {
   accountsQueryOptions,
   entriesInfiniteQueryOptions,
@@ -35,6 +37,7 @@ export async function clientLoader() {
     ),
     queryClient.ensureQueryData(accountsQueryOptions(wid)),
     queryClient.ensureQueryData(periodsQueryOptions(wid)),
+    queryClient.ensureQueryData(permissionsQueryOptions(wid)),
   ]);
   return { wid };
 }
@@ -43,6 +46,7 @@ export default function JournalRoute({ loaderData }: Route.ComponentProps) {
   const { wid } = loaderData;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { canCreateEntry } = useFinPermissions(wid);
 
   const { data: accounts = [] } = useSuspenseQuery(accountsQueryOptions(wid));
   const { data: periods = [] } = useSuspenseQuery(periodsQueryOptions(wid));
@@ -245,15 +249,17 @@ export default function JournalRoute({ loaderData }: Route.ComponentProps) {
         onFilterSelect: handleFilterSelect,
       }}
       actions={
-        <div className="flex gap-2">
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateDrawerOpen(true)}
-          >
-            {t("fin.journal.new", "New entry")}
-          </Button>
-        </div>
+        canCreateEntry ? (
+          <div className="flex gap-2">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setCreateDrawerOpen(true)}
+            >
+              {t("fin.journal.new", "New entry")}
+            </Button>
+          </div>
+        ) : undefined
       }
       count={entries.length}
     >

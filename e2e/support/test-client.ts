@@ -91,6 +91,16 @@ export class TestClient {
     return (await response.json()) as T;
   }
 
+  async authenticatedRequest<T>(
+    token: string,
+    path: string,
+    options: RequestInit = {},
+  ): Promise<T> {
+    const headers = new Headers(options.headers);
+    headers.set("Cookie", `omed_session=${token}`);
+    return this.request<T>(path, { ...options, headers });
+  }
+
   async createUser(data: {
     id?: number;
     name: string;

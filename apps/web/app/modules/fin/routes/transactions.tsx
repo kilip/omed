@@ -11,7 +11,9 @@ import type { SearchFacet } from "~/components/SearchBar";
 import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { requireWorkspaceId } from "~/lib/workspace";
+import { permissionsQueryOptions } from "~/modules/core/queries";
 import { CreateTransactionDrawer } from "../components";
+import { useFinPermissions } from "../hooks";
 import {
   currenciesQueryOptions,
   transactionsInfiniteQueryOptions,
@@ -31,6 +33,7 @@ export async function clientLoader() {
       transactionsInfiniteQueryOptions(wid, {}),
     ),
     queryClient.ensureQueryData(currenciesQueryOptions(wid)),
+    queryClient.ensureQueryData(permissionsQueryOptions(wid)),
   ]);
   return { wid };
 }
@@ -41,6 +44,7 @@ export default function TransactionsRoute({
   const { wid } = loaderData;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { canCreateTransaction } = useFinPermissions(wid);
 
   // Preload currencies for CreateTransactionDrawer
   useSuspenseQuery(currenciesQueryOptions(wid));
@@ -189,13 +193,15 @@ export default function TransactionsRoute({
         onFilterSelect: handleFilterSelect,
       }}
       actions={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setCreateDrawerOpen(true)}
-        >
-          {t("fin.transactions.new", "New transaction")}
-        </Button>
+        canCreateTransaction ? (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateDrawerOpen(true)}
+          >
+            {t("fin.transactions.new", "New transaction")}
+          </Button>
+        ) : undefined
       }
     >
       <Panel>

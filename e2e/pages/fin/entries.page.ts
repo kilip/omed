@@ -101,4 +101,12 @@ export class FinEntriesPage extends BasePage {
     const row = this.tableRows.filter({ hasText: text });
     await row.first().click();
   }
+
+  async expectNewEntryVisible(): Promise<void> {
+    await this.newEntryButton.waitFor({ state: "visible" });
+  }
+
+  async expectNewEntryHidden(): Promise<void> {
+    await this.newEntryButton.waitFor({ state: "hidden" });
+  }
 }

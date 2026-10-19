@@ -33,6 +33,8 @@ export function useAction() {
         if (error instanceof ApiError && error.code) {
           const translationKey = `fin.errors.${error.code}`;
           msg = i18n.exists(translationKey) ? t(translationKey) : error.message;
+        } else if (error instanceof ApiError && error.status === 403) {
+          msg = error.message || t("common.forbidden");
         } else if (error instanceof Error) {
           msg = error.message;
         }
