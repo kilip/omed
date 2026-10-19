@@ -19,6 +19,8 @@ type AccountRepository interface {
 	Delete(c context.Context, id int64) error
 	HasActiveChildren(c context.Context, id int64) (bool, error)
 	FindByCode(c context.Context, code string) (domain.Account, error)
+	Count(c context.Context) (int, error)
+	Seed(c context.Context, template, lang string) (int, error)
 }
 
 // AccountService manages business logic and validation for Chart of Accounts.
@@ -149,4 +151,18 @@ func (s AccountService) Delete(c context.Context, id int64) error {
 	}
 
 	return s.repo.Delete(c, id)
+}
+
+// Seed populates the workspace with a predefined Chart of Accounts template.
+func (s AccountService) Seed(c context.Context, req model.SeedAccountsRequest) (model.SeedAccountsResponse, error) {
+	if req.Template == "" || req.Lang == "" {
+		return model.SeedAccountsResponse{}, domain.ErrAccountTemplateNotFound
+	}
+
+	count, err := s.repo.Seed(c, req.Template, req.Lang)
+	if err != nil {
+		return model.SeedAccountsResponse{}, err
+	}
+
+	return model.SeedAccountsResponse{Count: count}, nil
 }

@@ -12,6 +12,7 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	ctl := controller.NewAccountController(mod.AccountService)
 
 	accounts.Post("/search", az.Require(domain.ObjAccount, "read"), ctl.Search)
+	accounts.Post("/seed", az.Require(domain.ObjAccount, "create"), ctl.Seed)
 	accounts.Post("/", az.Require(domain.ObjAccount, "create"), ctl.Create)
 	accounts.Get("/:id", az.Require(domain.ObjAccount, "read"), ctl.GetByID)
 	accounts.Put("/:id", az.Require(domain.ObjAccount, "update"), ctl.Update)

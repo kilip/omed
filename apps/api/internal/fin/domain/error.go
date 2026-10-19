@@ -23,6 +23,10 @@ var (
 	ErrAccountInvalidType = errors.New("ACCOUNT_INVALID_TYPE")
 	// ErrAccountInvalidBalance indicates an invalid normal balance was provided.
 	ErrAccountInvalidBalance = errors.New("ACCOUNT_INVALID_BALANCE")
+	// ErrAccountWorkspaceNotEmpty indicates accounts cannot be seeded because the workspace already has accounts.
+	ErrAccountWorkspaceNotEmpty = errors.New("ACCOUNT_WORKSPACE_NOT_EMPTY")
+	// ErrAccountTemplateNotFound indicates the requested COA template or language was not found.
+	ErrAccountTemplateNotFound = errors.New("ACCOUNT_TEMPLATE_NOT_FOUND")
 )
 
 func init() {
@@ -33,4 +37,6 @@ func init() {
 	base.AddToErrorMap(ErrAccountParentWorkspaceMismatch, fiber.StatusBadRequest, "parent account belongs to a different workspace")
 	base.AddToErrorMap(ErrAccountInvalidType, fiber.StatusUnprocessableEntity, "invalid account type")
 	base.AddToErrorMap(ErrAccountInvalidBalance, fiber.StatusUnprocessableEntity, "invalid normal balance")
+	base.AddToErrorMap(ErrAccountWorkspaceNotEmpty, fiber.StatusConflict, "workspace already has accounts, cannot seed template")
+	base.AddToErrorMap(ErrAccountTemplateNotFound, fiber.StatusBadRequest, "account template or language not found")
 }

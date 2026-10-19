@@ -268,6 +268,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_SeedAccountsResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.SeedAccountsResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_SendInvitationResponse": {
                 "properties": {
                     "data": {
@@ -629,6 +642,29 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "ownerId": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SeedAccountsRequest": {
+                "properties": {
+                    "lang": {
+                        "type": "string"
+                    },
+                    "template": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "lang",
+                    "template"
+                ],
+                "type": "object"
+            },
+            "model.SeedAccountsResponse": {
+                "properties": {
+                    "count": {
                         "type": "integer"
                     }
                 },
@@ -1807,6 +1843,106 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Search accounts",
+                "tags": [
+                    "Finance Accounts"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/accounts/seed": {
+            "post": {
+                "description": "Populate workspace with a standard Chart of Accounts template",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SeedAccountsRequest",
+                                "summary": "request",
+                                "description": "Seed template request"
+                            }
+                        }
+                    },
+                    "description": "Seed template request",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_SeedAccountsResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Seed Chart of Accounts",
                 "tags": [
                     "Finance Accounts"
                 ]

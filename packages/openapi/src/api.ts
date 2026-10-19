@@ -920,6 +920,98 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/fin/accounts/seed": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Seed Chart of Accounts
+     * @description Populate workspace with a standard Chart of Accounts template
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Seed template request */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SeedAccountsRequest"];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_SeedAccountsResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/fin/accounts/{id}": {
     parameters: {
       query?: never;
@@ -2120,6 +2212,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_SeedAccountsResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.SeedAccountsResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_SendInvitationResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.SendInvitationResponse"];
@@ -2235,6 +2333,13 @@ export interface components {
       limit?: number;
       name?: string;
       ownerId?: number;
+    };
+    "model.SeedAccountsRequest": {
+      lang: string;
+      template: string;
+    };
+    "model.SeedAccountsResponse": {
+      count?: number;
     };
     "model.SendInvitationRequest": {
       email: string;

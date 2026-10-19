@@ -46,3 +46,14 @@ type UpdateAccountRequest struct {
 // SearchAccountRequest defines request payload for searching accounts in a workspace.
 type SearchAccountRequest struct {
 }
+
+// SeedAccountsRequest defines the payload for seeding a chart of accounts template.
+type SeedAccountsRequest struct {
+	Template string `json:"template" validate:"required"`
+	Lang     string `json:"lang" validate:"required"`
+}
+
+// SeedAccountsResponse represents the outcome of seeding accounts.
+type SeedAccountsResponse struct {
+	Count int `json:"count"`
+}

@@ -1,0 +1,642 @@
+[
+  {
+    "code": "1000",
+    "name": "Assets",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "description": "Total economic resources owned by the business",
+    "is_postable": false
+  },
+  {
+    "code": "1100",
+    "name": "Current Assets",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1000",
+    "description": "Cash, equivalents, receivables, and other liquid assets",
+    "is_postable": false
+  },
+  {
+    "code": "1110",
+    "name": "Cash & Digital Wallets",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Physical cash and digital wallet balances",
+    "is_postable": false
+  },
+  {
+    "code": "1111",
+    "name": "Cash on Hand",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1110",
+    "description": "Petty cash and cash reserves for daily operations",
+    "is_postable": true
+  },
+  {
+    "code": "1112",
+    "name": "Digital Wallets",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1110",
+    "description": "Local e-wallets and instant payment balances",
+    "is_postable": true
+  },
+  {
+    "code": "1120",
+    "name": "Bank Accounts",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Checking and savings operating bank accounts",
+    "is_postable": false
+  },
+  {
+    "code": "1121",
+    "name": "Primary Operating Bank Account",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1120",
+    "description": "Primary business checking account",
+    "is_postable": true
+  },
+  {
+    "code": "1122",
+    "name": "Secondary Operating Bank Account",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1120",
+    "description": "Secondary bank account or digital bank",
+    "is_postable": true
+  },
+  {
+    "code": "1130",
+    "name": "International Platforms & Gateways",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Foreign currency and international payment balances",
+    "is_postable": false
+  },
+  {
+    "code": "1131",
+    "name": "PayPal Balance",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1130",
+    "description": "PayPal business balance",
+    "is_postable": true
+  },
+  {
+    "code": "1132",
+    "name": "Wise Balance",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1130",
+    "description": "Wise multi-currency balance",
+    "is_postable": true
+  },
+  {
+    "code": "1133",
+    "name": "Stripe Holding",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1130",
+    "description": "Pending balance in payment processors before payout",
+    "is_postable": true
+  },
+  {
+    "code": "1140",
+    "name": "Accounts Receivable",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Outstanding client invoices and platform funds",
+    "is_postable": false
+  },
+  {
+    "code": "1141",
+    "name": "Client Invoices Receivable",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1140",
+    "description": "Unpaid invoices issued to clients",
+    "is_postable": true
+  },
+  {
+    "code": "1142",
+    "name": "Platform Escrow Balances",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1140",
+    "description": "Funds held in escrow on freelance platforms (Upwork, Fiverr)",
+    "is_postable": true
+  },
+  {
+    "code": "1150",
+    "name": "Prepaid Expenses",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Advance payments for services such as annual software subscriptions",
+    "is_postable": true
+  },
+  {
+    "code": "1200",
+    "name": "Fixed Assets",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1000",
+    "description": "Long-term tangible assets used in freelance operations",
+    "is_postable": false
+  },
+  {
+    "code": "1210",
+    "name": "Computer & Electronic Equipment",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1200",
+    "description": "Laptops, workstations, monitors, and peripherals",
+    "is_postable": true
+  },
+  {
+    "code": "1220",
+    "name": "Audio Visual & Studio Gear",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1200",
+    "description": "Cameras, microphones, and studio production equipment",
+    "is_postable": true
+  },
+  {
+    "code": "1230",
+    "name": "Office Furniture & Workstation",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1200",
+    "description": "Desks, ergonomic chairs, and office setup",
+    "is_postable": true
+  },
+  {
+    "code": "1290",
+    "name": "Accumulated Depreciation",
+    "type": "ASSET",
+    "normal_balance": "CREDIT",
+    "parent_code": "1200",
+    "description": "Contra asset reducing the book value of fixed assets",
+    "is_postable": true
+  },
+  {
+    "code": "2000",
+    "name": "Liabilities",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "description": "Obligations and debts owed to third parties",
+    "is_postable": false
+  },
+  {
+    "code": "2100",
+    "name": "Current Liabilities",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2000",
+    "description": "Debts and obligations due within one year",
+    "is_postable": false
+  },
+  {
+    "code": "2110",
+    "name": "Accounts Payable",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Unpaid vendor bills and invoices",
+    "is_postable": true
+  },
+  {
+    "code": "2120",
+    "name": "Credit Card Payable",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Outstanding business credit card balances",
+    "is_postable": true
+  },
+  {
+    "code": "2130",
+    "name": "Unearned Revenue",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Client retainers and project deposits received in advance",
+    "is_postable": true
+  },
+  {
+    "code": "2140",
+    "name": "Taxes Payable",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Accrued income and sales tax liabilities",
+    "is_postable": true
+  },
+  {
+    "code": "3000",
+    "name": "Equity",
+    "type": "EQUITY",
+    "normal_balance": "CREDIT",
+    "description": "Owner's residual interest in the business",
+    "is_postable": false
+  },
+  {
+    "code": "3100",
+    "name": "Owner's Capital",
+    "type": "EQUITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "3000",
+    "description": "Capital contributed to the business by the owner",
+    "is_postable": true
+  },
+  {
+    "code": "3200",
+    "name": "Owner's Drawings",
+    "type": "EQUITY",
+    "normal_balance": "DEBIT",
+    "parent_code": "3000",
+    "description": "Withdrawals made by the owner for personal use",
+    "is_postable": true
+  },
+  {
+    "code": "3300",
+    "name": "Retained Earnings",
+    "type": "EQUITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "3000",
+    "description": "Cumulative net income retained from prior periods",
+    "is_postable": true
+  },
+  {
+    "code": "3400",
+    "name": "Current Year Earnings",
+    "type": "EQUITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "3000",
+    "description": "Net income or loss for the current fiscal year",
+    "is_postable": true
+  },
+  {
+    "code": "4000",
+    "name": "Revenue",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "description": "Earnings generated from professional services and products",
+    "is_postable": false
+  },
+  {
+    "code": "4100",
+    "name": "Professional Service Revenue",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4000",
+    "description": "Income earned from client projects and consulting",
+    "is_postable": false
+  },
+  {
+    "code": "4110",
+    "name": "Software & Web Development Income",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4100",
+    "description": "Revenue from engineering, web development, and coding projects",
+    "is_postable": true
+  },
+  {
+    "code": "4120",
+    "name": "Design & Creative Service Income",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4100",
+    "description": "Revenue from UI/UX, branding, and graphic design",
+    "is_postable": true
+  },
+  {
+    "code": "4130",
+    "name": "Consulting & Advisory Income",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4100",
+    "description": "Hourly consulting, technical audits, and mentoring sessions",
+    "is_postable": true
+  },
+  {
+    "code": "4140",
+    "name": "Retainer & Support Revenue",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4100",
+    "description": "Recurring monthly retainer and maintenance contracts",
+    "is_postable": true
+  },
+  {
+    "code": "4200",
+    "name": "Digital Products & Royalty Revenue",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4000",
+    "description": "Passive income from digital assets, courses, and content",
+    "is_postable": false
+  },
+  {
+    "code": "4210",
+    "name": "Digital Product & Template Sales",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4200",
+    "description": "Sales of templates, code libraries, themes, and UI kits",
+    "is_postable": true
+  },
+  {
+    "code": "4220",
+    "name": "Course & Content Royalties",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4200",
+    "description": "Royalties from educational videos, e-books, and workshops",
+    "is_postable": true
+  },
+  {
+    "code": "5000",
+    "name": "Cost of Services",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "description": "Direct costs incurred to deliver client projects",
+    "is_postable": false
+  },
+  {
+    "code": "5100",
+    "name": "Subcontractors & Freelancers",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "5000",
+    "description": "Payments to third-party contractors and assistants",
+    "is_postable": true
+  },
+  {
+    "code": "5200",
+    "name": "Client Project Asset Licenses",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "5000",
+    "description": "Fonts, stock assets, and plugins purchased for specific projects",
+    "is_postable": true
+  },
+  {
+    "code": "5300",
+    "name": "Client Hosting & Infrastructure",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "5000",
+    "description": "Cloud hosting and domain fees directly billable to client projects",
+    "is_postable": true
+  },
+  {
+    "code": "6000",
+    "name": "Operating Expenses",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "description": "General overhead and administrative expenses",
+    "is_postable": false
+  },
+  {
+    "code": "6100",
+    "name": "Communication & Workspace",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Internet, phone, utilities, and desk rental",
+    "is_postable": false
+  },
+  {
+    "code": "6110",
+    "name": "Internet & Mobile Phone",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6100",
+    "description": "High-speed broadband and mobile connectivity",
+    "is_postable": true
+  },
+  {
+    "code": "6120",
+    "name": "Co-Working & Office Rent",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6100",
+    "description": "Desk rental, co-working space passes, and utilities",
+    "is_postable": true
+  },
+  {
+    "code": "6200",
+    "name": "Software & Cloud Subscriptions",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Recurring software tool and cloud subscriptions",
+    "is_postable": false
+  },
+  {
+    "code": "6210",
+    "name": "Developer & Infrastructure Tools",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6200",
+    "description": "GitHub, Vercel, JetBrains, Docker, and developer tools",
+    "is_postable": true
+  },
+  {
+    "code": "6220",
+    "name": "Design & Creative Tools",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6200",
+    "description": "Figma, Adobe Creative Cloud, Framer, and design software",
+    "is_postable": true
+  },
+  {
+    "code": "6230",
+    "name": "AI Services & Subscriptions",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6200",
+    "description": "ChatGPT Plus, Claude Pro, Cursor, Midjourney, and AI APIs",
+    "is_postable": true
+  },
+  {
+    "code": "6240",
+    "name": "Productivity & Collaboration Software",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6200",
+    "description": "Google Workspace, Notion, Slack, and password managers",
+    "is_postable": true
+  },
+  {
+    "code": "6300",
+    "name": "Marketing & Portfolio",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Website hosting, personal domains, and advertising",
+    "is_postable": false
+  },
+  {
+    "code": "6310",
+    "name": "Personal Domain & Web Hosting",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6300",
+    "description": "Portfolio website hosting and custom domain registrations",
+    "is_postable": true
+  },
+  {
+    "code": "6320",
+    "name": "Advertising & Promotion",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6300",
+    "description": "Social media ads, search ads, and job board promotion",
+    "is_postable": true
+  },
+  {
+    "code": "6400",
+    "name": "Banking & Processing Fees",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Financial service charges and platform commission fees",
+    "is_postable": false
+  },
+  {
+    "code": "6410",
+    "name": "Bank Service Charges",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6400",
+    "description": "Monthly bank account maintenance and wire transfer fees",
+    "is_postable": true
+  },
+  {
+    "code": "6420",
+    "name": "Payment Gateway Fees",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6400",
+    "description": "Transaction percentage fees on Stripe, PayPal, and digital wallets",
+    "is_postable": true
+  },
+  {
+    "code": "6430",
+    "name": "Platform Service Commissions",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6400",
+    "description": "Marketplace fees and service cuts (Upwork, Fiverr service fees)",
+    "is_postable": true
+  },
+  {
+    "code": "6500",
+    "name": "Depreciation & Maintenance",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Equipment repairs, servicing, and scheduled depreciation",
+    "is_postable": false
+  },
+  {
+    "code": "6510",
+    "name": "Equipment Repair & Servicing",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6500",
+    "description": "Hardware maintenance, screen replacements, and battery repairs",
+    "is_postable": true
+  },
+  {
+    "code": "6520",
+    "name": "Depreciation Expense",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6500",
+    "description": "Periodic depreciation allocation for laptops and workstation equipment",
+    "is_postable": true
+  },
+  {
+    "code": "6600",
+    "name": "Professional Development",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Education, books, and professional skill enhancement",
+    "is_postable": false
+  },
+  {
+    "code": "6610",
+    "name": "Books & Technical Publications",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6600",
+    "description": "Industry books, e-books, and research subscriptions",
+    "is_postable": true
+  },
+  {
+    "code": "6620",
+    "name": "Courses, Conferences & Certifications",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6600",
+    "description": "Online courses, conference tickets, and professional exam fees",
+    "is_postable": true
+  },
+  {
+    "code": "7000",
+    "name": "Other Income & Expense",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "description": "Non-operational gains, losses, and interest",
+    "is_postable": false
+  },
+  {
+    "code": "7100",
+    "name": "Interest Income",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "7000",
+    "description": "Interest earned on bank deposits",
+    "is_postable": true
+  },
+  {
+    "code": "7200",
+    "name": "Foreign Exchange Gain",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "7000",
+    "description": "Realized and unrealized gains from foreign currency exchange fluctuations",
+    "is_postable": true
+  },
+  {
+    "code": "7300",
+    "name": "Foreign Exchange Loss",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "7000",
+    "description": "Losses from foreign currency exchange rate fluctuations",
+    "is_postable": true
+  },
+  {
+    "code": "8000",
+    "name": "Income Tax Expense",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "description": "National and local business income tax expenses",
+    "is_postable": true
+  }
+]

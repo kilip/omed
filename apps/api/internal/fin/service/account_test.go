@@ -204,6 +204,32 @@ func (s *AccountServiceSuite) Test_Delete_BlockedWithChildren() {
 	s.Require().NoError(err)
 }
 
+func (s *AccountServiceSuite) Test_Seed_SuccessAndErrors() {
+	ctx := s.ctx()
+
+	// Seed invalid template
+	_, err := s.svc.Seed(ctx, model.SeedAccountsRequest{
+		Template: "invalid",
+		Lang:     "id",
+	})
+	s.Require().ErrorIs(err, domain.ErrAccountTemplateNotFound)
+
+	// Seed valid freelancer id template
+	res, err := s.svc.Seed(ctx, model.SeedAccountsRequest{
+		Template: "freelancer",
+		Lang:     "id",
+	})
+	s.Require().NoError(err)
+	s.Greater(res.Count, 40)
+
+	// Second seed should fail with ErrAccountWorkspaceNotEmpty
+	_, err = s.svc.Seed(ctx, model.SeedAccountsRequest{
+		Template: "freelancer",
+		Lang:     "id",
+	})
+	s.Require().ErrorIs(err, domain.ErrAccountWorkspaceNotEmpty)
+}
+
 func TestAccountServiceSuite(t *testing.T) {
 	suite.Run(t, new(AccountServiceSuite))
 }

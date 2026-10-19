@@ -1,0 +1,777 @@
+[
+  {
+    "code": "1000",
+    "name": "Aset",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "description": "Klasifikasi utama seluruh aset dan harta lancar maupun tidak lancar",
+    "is_postable": false
+  },
+  {
+    "code": "1100",
+    "name": "Aset Lancar",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1000",
+    "description": "Kas, setara kas, piutang, dan aset lancar lainnya",
+    "is_postable": false
+  },
+  {
+    "code": "1110",
+    "name": "Kas & E-Wallet",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Kas fisik dan saldo dompet digital operasional",
+    "is_postable": false
+  },
+  {
+    "code": "1111",
+    "name": "Kas Tunai",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1110",
+    "description": "Uang tunai fisik untuk kebutuhan operasional harian",
+    "is_postable": true
+  },
+  {
+    "code": "1112",
+    "name": "GoPay",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1110",
+    "description": "Saldo dompet digital GoPay",
+    "is_postable": true
+  },
+  {
+    "code": "1113",
+    "name": "OVO",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1110",
+    "description": "Saldo dompet digital OVO",
+    "is_postable": true
+  },
+  {
+    "code": "1114",
+    "name": "DANA",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1110",
+    "description": "Saldo dompet digital DANA",
+    "is_postable": true
+  },
+  {
+    "code": "1115",
+    "name": "ShopeePay",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1110",
+    "description": "Saldo dompet digital ShopeePay",
+    "is_postable": true
+  },
+  {
+    "code": "1116",
+    "name": "LinkAja",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1110",
+    "description": "Saldo dompet digital LinkAja",
+    "is_postable": true
+  },
+  {
+    "code": "1120",
+    "name": "Bank Operasional",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Rekening bank domestik operasional",
+    "is_postable": false
+  },
+  {
+    "code": "1121",
+    "name": "Bank BCA",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1120",
+    "description": "Rekening Bank Central Asia (BCA)",
+    "is_postable": true
+  },
+  {
+    "code": "1122",
+    "name": "Bank Mandiri",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1120",
+    "description": "Rekening Bank Mandiri",
+    "is_postable": true
+  },
+  {
+    "code": "1123",
+    "name": "Bank BNI",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1120",
+    "description": "Rekening Bank Negara Indonesia (BNI)",
+    "is_postable": true
+  },
+  {
+    "code": "1124",
+    "name": "Bank BRI",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1120",
+    "description": "Rekening Bank Rakyat Indonesia (BRI)",
+    "is_postable": true
+  },
+  {
+    "code": "1125",
+    "name": "Bank Jago / Jenius",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1120",
+    "description": "Rekening digital banking Bank Jago atau Jenius BTPN",
+    "is_postable": true
+  },
+  {
+    "code": "1130",
+    "name": "Platform & Gateway Internasional",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Saldo platform valuta asing dan gateway pembayaran",
+    "is_postable": false
+  },
+  {
+    "code": "1131",
+    "name": "PayPal Balance",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1130",
+    "description": "Saldo akun PayPal valuta asing/USD",
+    "is_postable": true
+  },
+  {
+    "code": "1132",
+    "name": "Wise Balance",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1130",
+    "description": "Saldo multi-currency akun Wise",
+    "is_postable": true
+  },
+  {
+    "code": "1133",
+    "name": "Stripe / Midtrans Holding",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1130",
+    "description": "Dana tertahan di payment gateway sebelum ditransfer ke rekening",
+    "is_postable": true
+  },
+  {
+    "code": "1140",
+    "name": "Piutang Usaha",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Tagihan invoice ke klien yang belum dibayar",
+    "is_postable": false
+  },
+  {
+    "code": "1141",
+    "name": "Piutang Klien Domestik",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1140",
+    "description": "Invoice aktif ke klien di Indonesia",
+    "is_postable": true
+  },
+  {
+    "code": "1142",
+    "name": "Piutang Klien Luar Negeri",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1140",
+    "description": "Invoice aktif dalam mata uang asing ke klien mancanegara",
+    "is_postable": true
+  },
+  {
+    "code": "1143",
+    "name": "Saldo Escrow Platform",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1140",
+    "description": "Dana dalam escrow Upwork, Fiverr, atau Freelancer.com",
+    "is_postable": true
+  },
+  {
+    "code": "1150",
+    "name": "Biaya Dibayar Dimuka",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1100",
+    "description": "Pembayaran di muka seperti sewa co-working atau langganan tahunan",
+    "is_postable": true
+  },
+  {
+    "code": "1200",
+    "name": "Aset Tetap",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1000",
+    "description": "Peralatan kerja dan properti jangka panjang",
+    "is_postable": false
+  },
+  {
+    "code": "1210",
+    "name": "Komputer & Perangkat Elektronik",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1200",
+    "description": "Laptop, PC desktop, monitor, keyboard, dan gadget penunjang",
+    "is_postable": true
+  },
+  {
+    "code": "1220",
+    "name": "Perlengkapan Audio Visual & Studio",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1200",
+    "description": "Kamera, mikrofon, lighting, dan perlengkapan perekaman",
+    "is_postable": true
+  },
+  {
+    "code": "1230",
+    "name": "Perabot & Workstation",
+    "type": "ASSET",
+    "normal_balance": "DEBIT",
+    "parent_code": "1200",
+    "description": "Meja kerja, kursi ergonomis, dan rak kantor",
+    "is_postable": true
+  },
+  {
+    "code": "1290",
+    "name": "Akumulasi Penyusutan Aset Tetap",
+    "type": "ASSET",
+    "normal_balance": "CREDIT",
+    "parent_code": "1200",
+    "description": "Kontra akun pengurang nilai buku aset tetap",
+    "is_postable": true
+  },
+  {
+    "code": "2000",
+    "name": "Kewajiban",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "description": "Kewajiban dan utang lancar maupun jangka panjang",
+    "is_postable": false
+  },
+  {
+    "code": "2100",
+    "name": "Kewajiban Jangka Pendek",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2000",
+    "description": "Utang usaha, kartu kredit, dan pajak",
+    "is_postable": false
+  },
+  {
+    "code": "2110",
+    "name": "Utang Usaha",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Tagihan vendor atau rekanan yang belum dibayar",
+    "is_postable": true
+  },
+  {
+    "code": "2120",
+    "name": "Utang Kartu Kredit",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Saldo tagihan kartu kredit bisnis/operasional",
+    "is_postable": true
+  },
+  {
+    "code": "2130",
+    "name": "Pendapatan Diterima di Muka",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Uang muka proyek (DP/retainer) yang belum selesai dikerjakan",
+    "is_postable": true
+  },
+  {
+    "code": "2140",
+    "name": "Utang Pajak PPh Final UMKM",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Kewajiban PPh Final PP 55/2022 (0.5%) yang belum disetor",
+    "is_postable": true
+  },
+  {
+    "code": "2150",
+    "name": "Utang Pajak PPh 21 / PPh 23",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Potongan pajak atas subkontraktor/jasa yang belum disetor",
+    "is_postable": true
+  },
+  {
+    "code": "3000",
+    "name": "Ekuitas",
+    "type": "EQUITY",
+    "normal_balance": "CREDIT",
+    "description": "Hak pemilik atas aset setelah dikurangi seluruh kewajiban",
+    "is_postable": false
+  },
+  {
+    "code": "3100",
+    "name": "Modal Pemilik",
+    "type": "EQUITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "3000",
+    "description": "Setoran modal awal atau tambahan dana pribadi ke bisnis freelance",
+    "is_postable": true
+  },
+  {
+    "code": "3200",
+    "name": "Prive Pemilik",
+    "type": "EQUITY",
+    "normal_balance": "DEBIT",
+    "parent_code": "3000",
+    "description": "Penarikan uang usaha untuk keperluan pribadi freelancer",
+    "is_postable": true
+  },
+  {
+    "code": "3300",
+    "name": "Laba Ditahan",
+    "type": "EQUITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "3000",
+    "description": "Akumulasi laba bersih dari periode-periode sebelumnya",
+    "is_postable": true
+  },
+  {
+    "code": "3400",
+    "name": "Laba / Rugi Tahun Berjalan",
+    "type": "EQUITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "3000",
+    "description": "Laba atau rugi bersih periode tahun buku saat ini",
+    "is_postable": true
+  },
+  {
+    "code": "4000",
+    "name": "Pendapatan",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "description": "Seluruh pendapatan dari jasa profesional dan produk digital",
+    "is_postable": false
+  },
+  {
+    "code": "4100",
+    "name": "Pendapatan Jasa Domestik",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4000",
+    "description": "Pendapatan pekerjaan jasa untuk klien Indonesia",
+    "is_postable": false
+  },
+  {
+    "code": "4110",
+    "name": "Pendapatan Pengembangan Web & Software",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4100",
+    "description": "Jasa pembuatan website, backend, frontend, dan aplikasi mobile",
+    "is_postable": true
+  },
+  {
+    "code": "4120",
+    "name": "Pendapatan Desain UI/UX & Grafis",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4100",
+    "description": "Jasa desain antarmuka, branding, ilustrasi, dan aset visual",
+    "is_postable": true
+  },
+  {
+    "code": "4130",
+    "name": "Pendapatan Konsultasi & Mentoring",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4100",
+    "description": "Jasa advisory, audit teknis, konsultasi, dan sesi mentoring",
+    "is_postable": true
+  },
+  {
+    "code": "4140",
+    "name": "Pendapatan Retainer Bulanan",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4100",
+    "description": "Pendapatan bulanan tetap dari pemeliharaan atau asistensi berkala",
+    "is_postable": true
+  },
+  {
+    "code": "4200",
+    "name": "Pendapatan Klien Luar Negeri",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4000",
+    "description": "Pendapatan proyek mancanegara dalam valuta asing",
+    "is_postable": false
+  },
+  {
+    "code": "4210",
+    "name": "Pendapatan Upwork & Freelance Platform",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4200",
+    "description": "Penerimaan dari kontrak Upwork, Fiverr, Toptal, dll",
+    "is_postable": true
+  },
+  {
+    "code": "4220",
+    "name": "Pendapatan Proyek Klien Luar Negeri Langsung",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4200",
+    "description": "Penerimaan langsung via Wise/PayPal dari klien internasional",
+    "is_postable": true
+  },
+  {
+    "code": "4300",
+    "name": "Pendapatan Produk Digital & Pasif",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4000",
+    "description": "Penjualan aset digital dan royalti",
+    "is_postable": false
+  },
+  {
+    "code": "4310",
+    "name": "Penjualan Template & Digital Products",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4300",
+    "description": "Hasil penjualan UI kit, boilerplate code, Notion template, dll",
+    "is_postable": true
+  },
+  {
+    "code": "4320",
+    "name": "Royalti Kursus & Konten Edukasi",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "4300",
+    "description": "Royalti video kursus, e-book, atau platform konten berlangganan",
+    "is_postable": true
+  },
+  {
+    "code": "5000",
+    "name": "Beban Pokok Pendapatan (Biaya Langsung)",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "description": "Biaya yang dikeluarkan langsung untuk menyelesaikan proyek klien",
+    "is_postable": false
+  },
+  {
+    "code": "5100",
+    "name": "Subkontraktor & Pekerja Lepas",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "5000",
+    "description": "Fee untuk freelancer pihak ketiga atau asisten proyek",
+    "is_postable": true
+  },
+  {
+    "code": "5200",
+    "name": "Lisensi Aset Proyek Klien",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "5000",
+    "description": "Pembelian font, stock foto/video, 3D model khusus pesanan klien",
+    "is_postable": true
+  },
+  {
+    "code": "5300",
+    "name": "Cloud Hosting & Domain Proyek Klien",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "5000",
+    "description": "Biaya server atau domain yang dibelikan langsung untuk klien",
+    "is_postable": true
+  },
+  {
+    "code": "6000",
+    "name": "Beban Operasional",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "description": "Pengeluaran rutin operasional freelance",
+    "is_postable": false
+  },
+  {
+    "code": "6100",
+    "name": "Komunikasi & Utilitas",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Beban internet, listrik, dan tempat kerja",
+    "is_postable": false
+  },
+  {
+    "code": "6110",
+    "name": "Beban Internet & Kuota Seluler",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6100",
+    "description": "Tagihan fiber internet rumah/studio dan paket data",
+    "is_postable": true
+  },
+  {
+    "code": "6120",
+    "name": "Beban Listrik Ruang Kerja",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6100",
+    "description": "Alokasi tagihan listrik tempat kerja/studio",
+    "is_postable": true
+  },
+  {
+    "code": "6130",
+    "name": "Biaya Sewa Co-Working Space",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6100",
+    "description": "Sewa meja kerja, hot-desking, atau private office",
+    "is_postable": true
+  },
+  {
+    "code": "6200",
+    "name": "Software & Layanan SaaS",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Langganan perangkat lunak dan layanan cloud",
+    "is_postable": false
+  },
+  {
+    "code": "6210",
+    "name": "Langganan Developer Tools",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6200",
+    "description": "Langganan GitHub, JetBrains, Vercel, Sentry, AWS personal, dll",
+    "is_postable": true
+  },
+  {
+    "code": "6220",
+    "name": "Langganan Design Tools",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6200",
+    "description": "Langganan Figma, Adobe Creative Cloud, Framer, dll",
+    "is_postable": true
+  },
+  {
+    "code": "6230",
+    "name": "Langganan Layanan AI",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6200",
+    "description": "Langganan ChatGPT Plus, Claude Pro, Midjourney, Cursor, Copilot",
+    "is_postable": true
+  },
+  {
+    "code": "6240",
+    "name": "Langganan Produktivitas & Kolaborasi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6200",
+    "description": "Langganan Google Workspace, Notion, Slack, 1Password",
+    "is_postable": true
+  },
+  {
+    "code": "6300",
+    "name": "Pemasaran & Portofolio",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Pengeluaran promosi dan showcase karya",
+    "is_postable": false
+  },
+  {
+    "code": "6310",
+    "name": "Domain & Hosting Portofolio Pribadi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6300",
+    "description": "Biaya tahunan domain pribadi dan hosting web personal",
+    "is_postable": true
+  },
+  {
+    "code": "6320",
+    "name": "Beban Iklan & Promosi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6300",
+    "description": "Iklan LinkedIn, Google Ads, Meta Ads, sponsor newsletter",
+    "is_postable": true
+  },
+  {
+    "code": "6400",
+    "name": "Biaya Keuangan & Administrasi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Potongan bank, platform freelance, dan payment gateway",
+    "is_postable": false
+  },
+  {
+    "code": "6410",
+    "name": "Biaya Administrasi Bank",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6400",
+    "description": "Biaya bulanan rekening bank dan transfer antarbank",
+    "is_postable": true
+  },
+  {
+    "code": "6420",
+    "name": "Biaya Transaksi Payment Gateway & E-Wallet",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6400",
+    "description": "Potongan per transaksi dari Midtrans, Xendit, QRIS, GoPay, DANA",
+    "is_postable": true
+  },
+  {
+    "code": "6430",
+    "name": "Biaya Transaksi Platform Valas & Freelance",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6400",
+    "description": "Potongan komisi Upwork/Fiverr (10%), fee penarikan PayPal, Wise fee",
+    "is_postable": true
+  },
+  {
+    "code": "6500",
+    "name": "Pemeliharaan & Penyusutan",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Perawatan dan penyusutan aset kerja",
+    "is_postable": false
+  },
+  {
+    "code": "6510",
+    "name": "Beban Perbaikan & Servis Alat",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6500",
+    "description": "Servis laptop, ganti baterai, perbaikan layar, dll",
+    "is_postable": true
+  },
+  {
+    "code": "6520",
+    "name": "Beban Penyusutan Peralatan Kerja",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6500",
+    "description": "Alokasi beban penyusutan periodik komputer dan alat kerja",
+    "is_postable": true
+  },
+  {
+    "code": "6600",
+    "name": "Pengembangan Diri & Profesional",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Investasi leher ke atas untuk meningkatkan keterampilan",
+    "is_postable": false
+  },
+  {
+    "code": "6610",
+    "name": "Pembelian Buku & Bahan Referensi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6600",
+    "description": "Buku teknis, e-book, jurnal, dan riset desain",
+    "is_postable": true
+  },
+  {
+    "code": "6620",
+    "name": "Kursus Online, Webinar & Sertifikasi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6600",
+    "description": "Langganan platform belajar (Coursera, Udemy), tiket workshop, ujian sertifikasi",
+    "is_postable": true
+  },
+  {
+    "code": "7000",
+    "name": "Pendapatan & Beban Lain-Lain",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "description": "Penghasilan dan biaya di luar operasional utama",
+    "is_postable": false
+  },
+  {
+    "code": "7100",
+    "name": "Pendapatan Bunga Bank",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "7000",
+    "description": "Bunga dari rekening bank operasional",
+    "is_postable": true
+  },
+  {
+    "code": "7200",
+    "name": "Keuntungan Selisih Kurs Valas",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "7000",
+    "description": "Keuntungan konversi kurs valas (USD ke IDR) saat penarikan",
+    "is_postable": true
+  },
+  {
+    "code": "7300",
+    "name": "Kerugian Selisih Kurs Valas",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "7000",
+    "description": "Kerugian akibat depresiasi mata uang asing pada saldo valas",
+    "is_postable": true
+  },
+  {
+    "code": "8000",
+    "name": "Beban Pajak Penghasilan",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "description": "Kewajiban pajak penghasilan tahunan dan final",
+    "is_postable": false
+  },
+  {
+    "code": "8110",
+    "name": "Beban Pajak PPh Final UMKM",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "8000",
+    "description": "Pajak penghasilan final 0.5% sesuai PP 55/2022",
+    "is_postable": true
+  },
+  {
+    "code": "8120",
+    "name": "Beban Pajak Penghasilan Pribadi (PPh 21/NPPN)",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "8000",
+    "description": "Pajak penghasilan orang pribadi berdasar norma perhitungan penghasilan neto",
+    "is_postable": true
+  }
+]

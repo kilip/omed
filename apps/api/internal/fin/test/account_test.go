@@ -285,6 +285,42 @@ func (s *AccountApiSuite) Test_RBAC_Viewer_Accountant_Admin() {
 	s.OK()
 }
 
+func (s *AccountApiSuite) Test_Seed_Accounts() {
+	ws := s.ensureWorkspace("Clean Workspace", s.User.ID)
+
+	// 1. Invalid template / lang -> 400 Bad Request
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/seed", ws.ID), fiber.MethodPost, model.SeedAccountsRequest{
+		Template: "invalid",
+		Lang:     "id",
+	})
+	s.AssertStatus(fiber.StatusBadRequest)
+
+	// 2. Valid freelancer id template -> 201 Created
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/seed", ws.ID), fiber.MethodPost, model.SeedAccountsRequest{
+		Template: "freelancer",
+		Lang:     "id",
+	})
+	s.Created()
+
+	var seedRes httpx.WebResponse[model.SeedAccountsResponse]
+	err := json.NewDecoder(s.HttpResponse.Body).Decode(&seedRes)
+	s.Require().NoError(err)
+	s.Greater(seedRes.Data.Count, 40)
+
+	// 3. Seeding again on populated workspace -> 409 Conflict
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/seed", ws.ID), fiber.MethodPost, model.SeedAccountsRequest{
+		Template: "freelancer",
+		Lang:     "id",
+	})
+	s.AssertStatus(fiber.StatusConflict)
+
+	// 4. Verify search returns the accounts
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/search", ws.ID), fiber.MethodPost, model.SearchAccountRequest{})
+	s.OK()
+	listRes := s.getListResponse()
+	s.Len(listRes.Data, seedRes.Data.Count)
+}
+
 func TestAccountApiSuite(t *testing.T) {
 	suite.Run(t, new(AccountApiSuite))
 }

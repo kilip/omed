@@ -17,6 +17,7 @@ type AccountServiceContract interface {
 	Create(c context.Context, req model.CreateAccountRequest) (domain.Account, error)
 	Update(c context.Context, id int64, req model.UpdateAccountRequest) (domain.Account, error)
 	Delete(c context.Context, id int64) error
+	Seed(c context.Context, req model.SeedAccountsRequest) (model.SeedAccountsResponse, error)
 }
 
 // AccountController handles HTTP requests for Chart of Accounts.
@@ -178,6 +179,35 @@ func (ctl AccountController) Delete(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.OK(c, httpx.NoContent{})
+}
+
+// Seed populates the workspace with a predefined Chart of Accounts template.
+//
+//	@Summary		Seed Chart of Accounts
+//	@Description	Populate workspace with a standard Chart of Accounts template
+//	@Tags			Finance Accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int							true	"Workspace ID"
+//	@Param			request	body		model.SeedAccountsRequest	true	"Seed template request"
+//	@Success		201		{object}	httpx.WebResponse[model.SeedAccountsResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/accounts/seed [post]
+func (ctl AccountController) Seed(c fiber.Ctx) error {
+	var req model.SeedAccountsRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	res, err := ctl.accounts.Seed(c, req)
+	if err != nil {
+		return err
+	}
+	return httpx.Created(c, res)
 }
 
 func toAccountResponse(a domain.Account) model.AccountResponse {

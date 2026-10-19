@@ -10,6 +10,7 @@ import (
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
+	"github.com/kilip/omed/api/internal/fin/seed"
 	"github.com/kilip/omed/api/internal/platform/entx"
 )
 
@@ -196,6 +197,24 @@ func (r AccountRepository) HasActiveChildren(c context.Context, id int64) (bool,
 			account.DeletedAtIsNil(),
 		).
 		Exist(c)
+}
+
+// Count returns the number of active accounts in the workspace.
+func (r AccountRepository) Count(c context.Context) (int, error) {
+	return r.cli.Account.Query().
+		Where(
+			account.DeletedAtIsNil(),
+		).
+		Count(c)
+}
+
+// Seed populates the workspace with a predefined chart of accounts template.
+func (r AccountRepository) Seed(c context.Context, template, lang string) (int, error) {
+	wsID := base.WorkspaceIDFromContext(c)
+	if wsID <= 0 {
+		return 0, base.ErrNotFound
+	}
+	return seed.Seed(c, r.cli, wsID, template, lang)
 }
 
 // FindByCode finds an active account by workspace and code.
