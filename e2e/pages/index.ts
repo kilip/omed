@@ -4,6 +4,7 @@ import { InvitationsPage } from "./core/invitations.page";
 import { InvitePage } from "./core/invite.page";
 import { LoginPage } from "./core/login.page";
 import { MembersPage } from "./core/members.page";
+import { WorkspacesPage } from "./core/workspaces.page";
 
 /**
  * Page objects grouped by module: `core`, `fin`, etc.
@@ -15,6 +16,7 @@ export const createPages = (page: Page) => ({
     invitations: new InvitationsPage(page),
     invite: new InvitePage(page),
     members: new MembersPage(page),
+    workspaces: new WorkspacesPage(page),
   },
 });
 
