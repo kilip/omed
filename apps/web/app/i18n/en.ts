@@ -113,6 +113,10 @@ export const en = {
       owner: "Owner",
       personal: "Personal",
       shared: "Shared",
+      new: "New workspace",
+      create: "Create workspace",
+      namePlaceholder: "e.g. Acme Corp",
+      descriptionPlaceholder: "Optional workspace description",
     },
     members: {
       user: "User",

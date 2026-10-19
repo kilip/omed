@@ -1,5 +1,7 @@
-import { Statistic, Table, type TableProps, Tag } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Button, Statistic, Table, type TableProps, Tag } from "antd";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { api, orForbidden, unwrapList, unwrapOne } from "~/lib/api";
@@ -41,6 +43,7 @@ export default function CoreDashboard({ loaderData }: Route.ComponentProps) {
   const { workspaces, members, invitations, permissions, wid } = loaderData;
   const { label: roleName } = useRoles(wid);
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   const activeInvitations = invitations.filter(
     (i) => invitationStatus(i) === "active",
@@ -98,6 +101,16 @@ export default function CoreDashboard({ loaderData }: Route.ComponentProps) {
         <Panel
           strong
           title={t("core.dashboard.yourWorkspaces")}
+          extra={
+            <Button
+              type="primary"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/core/workspaces/new")}
+            >
+              {t("core.workspaces.new")}
+            </Button>
+          }
           className="flex-[2_1_520px]"
         >
           <Table

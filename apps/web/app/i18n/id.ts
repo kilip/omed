@@ -115,6 +115,10 @@ export const id: Translation = {
       owner: "Pemilik",
       personal: "Pribadi",
       shared: "Bersama",
+      new: "Workspace baru",
+      create: "Buat workspace",
+      namePlaceholder: "mis. Acme Corp",
+      descriptionPlaceholder: "Deskripsi workspace opsional",
     },
     members: {
       user: "Pengguna",
