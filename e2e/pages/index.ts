@@ -6,6 +6,10 @@ import { LoginPage } from "./core/login.page";
 import { MembersPage } from "./core/members.page";
 import { WorkspacesPage } from "./core/workspaces.page";
 
+import { FinAccountsPage } from "./fin/accounts.page";
+import { FinDashboardPage } from "./fin/dashboard.page";
+import { FinSetupPage } from "./fin/setup.page";
+
 /**
  * Page objects grouped by module: `core`, `fin`, etc.
  */
@@ -17,6 +21,11 @@ export const createPages = (page: Page) => ({
     invite: new InvitePage(page),
     members: new MembersPage(page),
     workspaces: new WorkspacesPage(page),
+  },
+  fin: {
+    dashboard: new FinDashboardPage(page),
+    setup: new FinSetupPage(page),
+    accounts: new FinAccountsPage(page),
   },
 });
 
