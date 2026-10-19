@@ -42,6 +42,53 @@ var (
 	ErrPeriodAlreadyOpen = errors.New("PERIOD_ALREADY_OPEN")
 	// ErrPeriodInvalidFiscalYear indicates an invalid fiscal year.
 	ErrPeriodInvalidFiscalYear = errors.New("PERIOD_INVALID_FISCAL_YEAR")
+
+	// ErrTransactionNotFound indicates the requested transaction was not found.
+	ErrTransactionNotFound = errors.New("TRANSACTION_NOT_FOUND")
+	// ErrTransactionNumberTaken indicates the transaction number is already in use.
+	ErrTransactionNumberTaken = errors.New("TRANSACTION_NUMBER_TAKEN")
+	// ErrTransactionHasPostedEntries indicates the transaction cannot be modified or deleted because it has posted entries.
+	ErrTransactionHasPostedEntries = errors.New("TRANSACTION_HAS_POSTED_ENTRIES")
+
+	// ErrEntryNotFound indicates the requested journal entry was not found.
+	ErrEntryNotFound = errors.New("ENTRY_NOT_FOUND")
+	// ErrEntryNotDraft indicates the entry is not in draft status.
+	ErrEntryNotDraft = errors.New("ENTRY_NOT_DRAFT")
+	// ErrEntryNotBalanced indicates total debits and credits do not balance in transaction currency.
+	ErrEntryNotBalanced = errors.New("ENTRY_NOT_BALANCED")
+	// ErrEntryBaseNotBalanced indicates total debits and credits do not balance in base currency.
+	ErrEntryBaseNotBalanced = errors.New("ENTRY_BASE_NOT_BALANCED")
+	// ErrEntryMinPostings indicates an entry must have at least two postings.
+	ErrEntryMinPostings = errors.New("ENTRY_MIN_POSTINGS")
+	// ErrEntryDateOutsidePeriod indicates the entry date does not fall within the accounting period.
+	ErrEntryDateOutsidePeriod = errors.New("ENTRY_DATE_OUTSIDE_PERIOD")
+	// ErrEntryAlreadyReversed indicates the entry has already been reversed.
+	ErrEntryAlreadyReversed = errors.New("ENTRY_ALREADY_REVERSED")
+
+	// ErrPostingAccountNotPostable indicates an account cannot accept direct postings.
+	ErrPostingAccountNotPostable = errors.New("POSTING_ACCOUNT_NOT_POSTABLE")
+	// ErrPostingAccountInactive indicates an account is inactive and cannot accept postings.
+	ErrPostingAccountInactive = errors.New("POSTING_ACCOUNT_INACTIVE")
+	// ErrPostingCurrencyMismatch indicates the posting currency does not match the account's restricted currency.
+	ErrPostingCurrencyMismatch = errors.New("POSTING_CURRENCY_MISMATCH")
+	// ErrPostingInvalidAmount indicates the posting amount is non-positive or invalid.
+	ErrPostingInvalidAmount = errors.New("POSTING_INVALID_AMOUNT")
+
+	// ErrPeriodHasDraftEntries indicates a period cannot be closed while it still has draft entries.
+	ErrPeriodHasDraftEntries = errors.New("PERIOD_HAS_DRAFT_ENTRIES")
+	// ErrPeriodAlreadyRevalued indicates foreign currency balances have already been revalued for this period.
+	ErrPeriodAlreadyRevalued = errors.New("PERIOD_ALREADY_REVALUED")
+
+	// ErrCurrencyNotFound indicates the requested currency was not found.
+	ErrCurrencyNotFound = errors.New("CURRENCY_NOT_FOUND")
+	// ErrExchangeRateNotFound indicates no exchange rate was found for the currency pair on the given date.
+	ErrExchangeRateNotFound = errors.New("EXCHANGE_RATE_NOT_FOUND")
+	// ErrExchangeRateDuplicate indicates an exchange rate already exists for the given workspace, currency pair, and date.
+	ErrExchangeRateDuplicate = errors.New("EXCHANGE_RATE_DUPLICATE")
+	// ErrExchangeRateInvalid indicates an exchange rate is non-positive or invalid.
+	ErrExchangeRateInvalid = errors.New("EXCHANGE_RATE_INVALID")
+	// ErrBaseCurrencyLocked indicates the workspace base currency cannot be changed once posted entries exist.
+	ErrBaseCurrencyLocked = errors.New("BASE_CURRENCY_LOCKED")
 )
 
 func init() {
@@ -62,4 +109,31 @@ func init() {
 	base.AddToErrorMap(ErrPeriodAlreadyClosed, fiber.StatusConflict, "period is already closed")
 	base.AddToErrorMap(ErrPeriodAlreadyOpen, fiber.StatusConflict, "period is already open")
 	base.AddToErrorMap(ErrPeriodInvalidFiscalYear, fiber.StatusUnprocessableEntity, "fiscal year must be a positive integer")
+
+	base.AddToErrorMap(ErrTransactionNotFound, fiber.StatusNotFound, "transaction not found")
+	base.AddToErrorMap(ErrTransactionNumberTaken, fiber.StatusConflict, "transaction number already in use")
+	base.AddToErrorMap(ErrTransactionHasPostedEntries, fiber.StatusConflict, "transaction has posted entries")
+
+	base.AddToErrorMap(ErrEntryNotFound, fiber.StatusNotFound, "entry not found")
+	base.AddToErrorMap(ErrEntryNotDraft, fiber.StatusConflict, "entry is not in draft status")
+	base.AddToErrorMap(ErrEntryNotBalanced, fiber.StatusUnprocessableEntity, "entry postings debit and credit are not balanced")
+	base.AddToErrorMap(ErrEntryBaseNotBalanced, fiber.StatusUnprocessableEntity, "entry base amounts debit and credit are not balanced")
+	base.AddToErrorMap(ErrEntryMinPostings, fiber.StatusUnprocessableEntity, "entry must have at least two postings")
+	base.AddToErrorMap(ErrEntryDateOutsidePeriod, fiber.StatusUnprocessableEntity, "entry date is outside the accounting period")
+	base.AddToErrorMap(ErrEntryAlreadyReversed, fiber.StatusConflict, "entry has already been reversed")
+
+	base.AddToErrorMap(ErrPostingAccountNotPostable, fiber.StatusUnprocessableEntity, "account is not postable")
+	base.AddToErrorMap(ErrPostingAccountInactive, fiber.StatusUnprocessableEntity, "account is inactive")
+	base.AddToErrorMap(ErrPostingCurrencyMismatch, fiber.StatusUnprocessableEntity, "posting currency does not match account currency")
+	base.AddToErrorMap(ErrPostingInvalidAmount, fiber.StatusUnprocessableEntity, "posting amount must be positive")
+
+	base.AddToErrorMap(ErrPeriodHasDraftEntries, fiber.StatusConflict, "period has draft entries")
+	base.AddToErrorMap(ErrPeriodAlreadyRevalued, fiber.StatusConflict, "period has already been revalued")
+
+	base.AddToErrorMap(ErrCurrencyNotFound, fiber.StatusNotFound, "currency not found")
+	base.AddToErrorMap(ErrExchangeRateNotFound, fiber.StatusNotFound, "exchange rate not found")
+	base.AddToErrorMap(ErrExchangeRateDuplicate, fiber.StatusConflict, "exchange rate already exists for this date and currency pair")
+	base.AddToErrorMap(ErrExchangeRateInvalid, fiber.StatusUnprocessableEntity, "exchange rate must be positive")
+	base.AddToErrorMap(ErrBaseCurrencyLocked, fiber.StatusConflict, "base currency is locked once posted entries exist")
 }
+

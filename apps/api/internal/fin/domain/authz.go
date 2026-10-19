@@ -8,6 +8,10 @@ const (
 	ObjAccount = "fin:account"
 	// ObjPeriod is the permission object for Accounting Period management.
 	ObjPeriod = "fin:period"
+	// ObjTransaction is the permission object for Transaction management.
+	ObjTransaction = "fin:transaction"
+	// ObjEntry is the permission object for Journal Entry management.
+	ObjEntry = "fin:entry"
 )
 
 // Built-in fin role IDs assignable per workspace.
@@ -28,6 +32,8 @@ func init() {
 		Permissions: []authz.Permission{
 			{Object: ObjAccount, Action: "read"},
 			{Object: ObjPeriod, Action: "read"},
+			{Object: ObjTransaction, Action: "read"},
+			{Object: ObjEntry, Action: "read"},
 		},
 	})
 	authz.AddRole(authz.Role{
@@ -40,6 +46,12 @@ func init() {
 			{Object: ObjAccount, Action: "update"},
 			{Object: ObjPeriod, Action: "create"},
 			{Object: ObjPeriod, Action: "update"},
+			{Object: ObjTransaction, Action: "create"},
+			{Object: ObjTransaction, Action: "update"},
+			{Object: ObjTransaction, Action: "delete"},
+			{Object: ObjEntry, Action: "create"},
+			{Object: ObjEntry, Action: "update"},
+			{Object: ObjEntry, Action: "delete"},
 		},
 	})
 	authz.AddRole(authz.Role{
