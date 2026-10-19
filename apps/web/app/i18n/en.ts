@@ -188,6 +188,38 @@ export const en = {
       allTypes: "All types",
       facetType: "Type: {{type}}",
       parent: "Parent account",
+      emptyTitle: "No accounts found",
+      emptyDesc:
+        "Get started by applying a standard template or create your first account manually.",
+      setupTemplate: "Setup template",
+    },
+    setup: {
+      title: "Setup chart of accounts",
+      subtitle:
+        "Choose a standard chart of accounts template matching your business model.",
+      template: "Template",
+      language: "Account language",
+      preview: "Key accounts preview",
+      apply: "Apply template",
+      cancel: "Cancel",
+      success:
+        "Chart of accounts seeded successfully ({{count}} accounts created)",
+      alreadyConfigured:
+        "Chart of accounts has already been configured for this workspace.",
+      freelancerTitle: "Indonesian Freelancer",
+      freelancerDesc:
+        "Tailored for Indonesian freelancers and solopreneurs. Includes Bank (BCA, Mandiri, BNI), E-Wallets (GoPay, OVO, DANA), Escrow, Owner's Drawings (Prive), SaaS & Software, and Final Income Tax (PP 55 PPh Final).",
+      tags: {
+        banks: "BCA, Mandiri, BNI",
+        ewallet: "GoPay, OVO, DANA",
+        prive: "Prive / Drawings",
+        tax: "PPh Final (PP 55)",
+        saas: "Software & SaaS",
+      },
+      languages: {
+        id: "Bahasa Indonesia (Indonesian)",
+        en: "English",
+      },
     },
     dashboard: {
       revenue: "Revenue",
@@ -200,6 +232,10 @@ export const en = {
       revenueVsExpense: "Revenue and expense",
       accountsByType: "Accounts by type",
       recentEntries: "Recent journal entries",
+      setupBannerTitle: "Chart of accounts not configured",
+      setupBannerDesc:
+        "This workspace has no chart of accounts yet. Get started instantly with a standard freelancer template or set up accounts manually.",
+      setupAction: "Setup chart of accounts",
     },
     journal: {
       number: "Number",

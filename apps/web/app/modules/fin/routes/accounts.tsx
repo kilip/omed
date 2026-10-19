@@ -1,8 +1,14 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  RocketOutlined,
+} from "@ant-design/icons";
 import type { components } from "@omed/openapi";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Button,
+  Empty,
   Form,
   Input,
   Popconfirm,
@@ -15,6 +21,7 @@ import {
 } from "antd";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { RecordModal } from "~/components/RecordModal";
@@ -242,13 +249,22 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
           ),
       }}
       actions={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setEditing("new")}
-        >
-          {t("fin.accounts.new")}
-        </Button>
+        <div className="flex items-center gap-2">
+          {accounts.length === 0 && (
+            <Link to="/fin/setup">
+              <Button icon={<RocketOutlined />}>
+                {t("fin.accounts.setupTemplate")}
+              </Button>
+            </Link>
+          )}
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setEditing("new")}
+          >
+            {t("fin.accounts.new")}
+          </Button>
+        </div>
       }
     >
       <Panel strong>
@@ -260,6 +276,35 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
           pagination={false}
           expandable={{ defaultExpandAllRows: true }}
           scroll={{ x: "max-content" }}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  <div className="flex flex-col gap-1 py-2">
+                    <span
+                      className="font-medium text-sm"
+                      style={{ color: "var(--omed-text)" }}
+                    >
+                      {t("fin.accounts.emptyTitle")}
+                    </span>
+                    <span
+                      className="text-xs"
+                      style={{ color: "var(--omed-text-secondary)" }}
+                    >
+                      {t("fin.accounts.emptyDesc")}
+                    </span>
+                  </div>
+                }
+              >
+                <Link to="/fin/setup">
+                  <Button type="primary" icon={<RocketOutlined />}>
+                    {t("fin.accounts.setupTemplate")}
+                  </Button>
+                </Link>
+              </Empty>
+            ),
+          }}
         />
       </Panel>
 

@@ -191,6 +191,36 @@ export const id: Translation = {
       allTypes: "Semua tipe",
       facetType: "Tipe: {{type}}",
       parent: "Akun induk",
+      emptyTitle: "Belum ada akun",
+      emptyDesc:
+        "Mulai dengan menerapkan template standar atau buat akun pertama Anda secara manual.",
+      setupTemplate: "Setup template",
+    },
+    setup: {
+      title: "Setup bagan akun",
+      subtitle:
+        "Pilih template bagan akun standar yang sesuai dengan model bisnis Anda.",
+      template: "Template",
+      language: "Bahasa akun",
+      preview: "Pratinjau akun utama",
+      apply: "Terapkan template",
+      cancel: "Batal",
+      success: "Bagan akun berhasil dimuat ({{count}} akun dibuat)",
+      alreadyConfigured: "Bagan akun workspace ini sudah terisi.",
+      freelancerTitle: "Freelancer Indonesia",
+      freelancerDesc:
+        "Cocok untuk pekerja lepas & solopreneur di Indonesia. Mencakup Bank (BCA, Mandiri, BNI), E-Wallet (GoPay, OVO, DANA), Escrow, Prive, Biaya SaaS/Software, dan Pajak PP 55 PPh Final.",
+      tags: {
+        banks: "BCA, Mandiri, BNI",
+        ewallet: "GoPay, OVO, DANA",
+        prive: "Prive",
+        tax: "PPh Final (PP 55)",
+        saas: "Software & SaaS",
+      },
+      languages: {
+        id: "Bahasa Indonesia",
+        en: "English",
+      },
     },
     dashboard: {
       revenue: "Pendapatan",
@@ -203,6 +233,10 @@ export const id: Translation = {
       revenueVsExpense: "Pendapatan dan beban",
       accountsByType: "Akun menurut tipe",
       recentEntries: "Jurnal terbaru",
+      setupBannerTitle: "Bagan akun belum dikonfigurasi",
+      setupBannerDesc:
+        "Workspace ini belum memiliki bagan akun. Mulai pembukuan secara instan dengan template standar freelancer atau buat akun manual.",
+      setupAction: "Setup bagan akun",
     },
     journal: {
       number: "Nomor",

@@ -1,6 +1,8 @@
+import { RocketOutlined } from "@ant-design/icons";
 import type { components } from "@omed/openapi";
-import { Progress, Statistic, Table, type TableProps, Tag } from "antd";
+import { Button, Progress, Statistic, Table, type TableProps, Tag } from "antd";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { api, unwrapList } from "~/lib/api";
@@ -71,6 +73,39 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page title={t("fin.menu.dashboard")}>
+      {accounts.length === 0 && (
+        <div
+          className="surface flex flex-wrap items-center justify-between gap-4 p-4"
+          style={{
+            borderRadius: "var(--omed-radius-lg)",
+            borderLeft: "4px solid var(--omed-primary)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <RocketOutlined
+              style={{ fontSize: 24, color: "var(--omed-primary)" }}
+            />
+            <div>
+              <div
+                className="font-semibold"
+                style={{ color: "var(--omed-text)" }}
+              >
+                {t("fin.dashboard.setupBannerTitle")}
+              </div>
+              <div
+                className="text-xs"
+                style={{ color: "var(--omed-text-secondary)" }}
+              >
+                {t("fin.dashboard.setupBannerDesc")}
+              </div>
+            </div>
+          </div>
+          <Link to="/fin/setup">
+            <Button type="primary">{t("fin.dashboard.setupAction")}</Button>
+          </Link>
+        </div>
+      )}
+
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
         <Panel extra={provisional}>
           <Statistic
