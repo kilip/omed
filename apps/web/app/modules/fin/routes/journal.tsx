@@ -1,391 +1,291 @@
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import {
-  Alert,
-  App,
-  Button,
-  DatePicker,
-  Form,
-  type FormInstance,
-  Input,
-  InputNumber,
-  Select,
-  Table,
-  type TableProps,
-  Tag,
-} from "antd";
-import { useState } from "react";
+import { PlusOutlined } from "@ant-design/icons";
+import type { components, paths } from "@omed/openapi";
+import { useInfiniteQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { Button, Empty, type MenuProps, Table, type TableProps } from "antd";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Chatter, type ChatterMessage } from "~/components/Chatter";
-import { FormView } from "~/components/FormView";
+import { Link, useNavigate } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
-import { RecordModal } from "~/components/RecordModal";
-import { StatusBar } from "~/components/StatusBar";
-import { formatDate, formatIDR } from "~/lib/format";
+import type { SearchFacet } from "~/components/SearchBar";
+import { formatDate } from "~/lib/format";
+import { getQueryClient } from "~/lib/query-client";
+import { requireWorkspaceId } from "~/lib/workspace";
+import { EntryStatusTag, MoneyCell } from "../components";
 import {
-  accountName,
-  type JournalEntry,
-  type JournalLine,
-  mockAccounts,
-  mockEntries,
-  sumCredit,
-  sumDebit,
-} from "../mock";
+  accountsQueryOptions,
+  entriesInfiniteQueryOptions,
+  periodsQueryOptions,
+} from "../queries";
+import type { Route } from "./+types/journal";
 
-type LineValue = { account?: string; debit?: number; credit?: number };
+type Entry = components["schemas"]["model.EntryResponse"];
+type SearchFilters = NonNullable<
+  paths["/workspaces/{wid}/fin/entries/search"]["post"]["requestBody"]
+>["content"]["application/json"];
 
-type FormValues = {
-  date: { format: (pattern: string) => string };
-  reference: string;
-  lines: LineValue[];
-};
-
-function LinesEditor({ form }: { form: FormInstance<FormValues> }) {
-  const { t, i18n } = useTranslation();
-  const lines = Form.useWatch("lines", form) as LineValue[] | undefined;
-
-  const debit = (lines ?? []).reduce((sum, l) => sum + (l?.debit ?? 0), 0);
-  const credit = (lines ?? []).reduce((sum, l) => sum + (l?.credit ?? 0), 0);
-  const balanced = debit === credit && debit > 0;
-
-  return (
-    <>
-      <Form.List name="lines">
-        {(fields, { add, remove }) => (
-          <div className="flex flex-col gap-2">
-            {fields.map((field) => (
-              <div key={field.key} className="flex flex-wrap items-start gap-2">
-                <Form.Item
-                  name={[field.name, "account"]}
-                  className="m-0 min-w-[160px] flex-[2_1_160px]"
-                  rules={[{ required: true }]}
-                >
-                  <Select
-                    showSearch
-                    optionFilterProp="label"
-                    placeholder={t("fin.journal.account")}
-                    options={mockAccounts.map((a) => ({
-                      value: a.code,
-                      label: `${a.code} ${a.name}`,
-                    }))}
-                  />
-                </Form.Item>
-                <Form.Item
-                  name={[field.name, "debit"]}
-                  className="m-0 w-[110px]"
-                >
-                  <InputNumber
-                    min={0}
-                    controls={false}
-                    placeholder={t("fin.journal.debit")}
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-                <Form.Item
-                  name={[field.name, "credit"]}
-                  className="m-0 w-[110px]"
-                >
-                  <InputNumber
-                    min={0}
-                    controls={false}
-                    placeholder={t("fin.journal.credit")}
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-                <Button
-                  type="text"
-                  icon={<MinusCircleOutlined />}
-                  aria-label={t("common.delete")}
-                  disabled={fields.length <= 2}
-                  onClick={() => remove(field.name)}
-                />
-              </div>
-            ))}
-            <Button
-              type="dashed"
-              icon={<PlusOutlined />}
-              onClick={() => add({})}
-            >
-              {t("fin.journal.addLine")}
-            </Button>
-          </div>
-        )}
-      </Form.List>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px]">
-        <span className="num">
-          {t("fin.journal.debit")} {formatIDR(debit, i18n.language)}
-          {" · "}
-          {t("fin.journal.credit")} {formatIDR(credit, i18n.language)}
-        </span>
-        <Tag color={balanced ? "success" : "warning"}>
-          {balanced ? t("fin.journal.balanced") : t("fin.journal.unbalanced")}
-        </Tag>
-      </div>
-    </>
-  );
+export async function clientLoader() {
+  const wid = await requireWorkspaceId();
+  const queryClient = getQueryClient();
+  await Promise.all([
+    queryClient.ensureInfiniteQueryData(entriesInfiniteQueryOptions(wid, {})),
+    queryClient.ensureQueryData(accountsQueryOptions(wid)),
+    queryClient.ensureQueryData(periodsQueryOptions(wid)),
+  ]);
+  return { wid };
 }
 
-export default function Journal() {
+export default function JournalRoute({ loaderData }: Route.ComponentProps) {
+  const { wid } = loaderData;
   const { t, i18n } = useTranslation();
-  const { message } = App.useApp();
-  const [entries, setEntries] = useState<JournalEntry[]>(mockEntries);
-  const [openId, setOpenId] = useState<number | undefined>();
-  const [creating, setCreating] = useState(false);
-  const [messages, setMessages] = useState<Record<number, ChatterMessage[]>>(
-    {},
-  );
+  const navigate = useNavigate();
 
-  const money = (value: number) => formatIDR(value, i18n.language);
-  const opened = entries.find((e) => e.id === openId);
+  const { data: accounts = [] } = useSuspenseQuery(accountsQueryOptions(wid));
+  const { data: periods = [] } = useSuspenseQuery(periodsQueryOptions(wid));
 
-  const addMessage = (
-    entryId: number,
-    kind: ChatterMessage["kind"],
-    body: string,
-  ) =>
-    setMessages((all) => {
-      const current = all[entryId] ?? [];
-      const id = Math.max(0, ...current.map((m) => m.id)) + 1;
-      const message: ChatterMessage = {
-        id,
-        kind,
-        body,
-        author: t("chatter.you"),
-        at: new Date().toLocaleString(i18n.language),
-      };
-      return { ...all, [entryId]: [message, ...current] };
-    });
+  const [queryText, setQueryText] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    SearchFilters["status"] | undefined
+  >();
+  const [periodFilter, setPeriodFilter] = useState<number | undefined>();
+  const [accountFilter, setAccountFilter] = useState<number | undefined>();
+  const [dateRange, setDateRange] = useState<[string, string] | undefined>();
 
-  const setStatus = (entry: JournalEntry, status: JournalEntry["status"]) => {
-    setEntries((all) =>
-      all.map((e) => (e.id === entry.id ? { ...e, status } : e)),
-    );
-    addMessage(
-      entry.id,
-      "tracking",
-      t(
-        status === "POSTED"
-          ? "fin.journal.trackPosted"
-          : "fin.journal.trackDraft",
-      ),
-    );
-  };
-
-  const create = async (values: FormValues) => {
-    const lines: JournalLine[] = values.lines
-      .filter((l) => l.account && (l.debit || l.credit))
-      .map((l) => ({
-        account: l.account ?? "",
-        label: values.reference,
-        debit: l.debit ?? 0,
-        credit: l.credit ?? 0,
-      }));
-
-    if (
-      lines.length < 2 ||
-      sumDebit(lines) !== sumCredit(lines) ||
-      sumDebit(lines) === 0
-    ) {
-      message.error(t("fin.journal.mustBalance"));
-      return false;
-    }
-
-    const id = Math.max(0, ...entries.map((e) => e.id)) + 1;
-    const entry: JournalEntry = {
-      id,
-      number: `JE/2026/${String(id).padStart(4, "0")}`,
-      date: values.date.format("YYYY-MM-DD"),
-      reference: values.reference,
-      status: "DRAFT",
-      lines,
+  const filters = useMemo<SearchFilters>(() => {
+    return {
+      status: statusFilter,
+      periodId: periodFilter,
+      accountId: accountFilter,
+      dateFrom: dateRange?.[0],
+      dateTo: dateRange?.[1],
     };
-    setEntries([entry, ...entries]);
-    setOpenId(id);
-    message.success(t("common.saved"));
-    return true;
+  }, [statusFilter, periodFilter, accountFilter, dateRange]);
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery(entriesInfiniteQueryOptions(wid, filters));
+
+  const entries = useMemo(() => {
+    const list = data?.pages.flatMap((page) => page.items) ?? [];
+    if (!queryText.trim()) return list;
+    const lower = queryText.toLowerCase().trim();
+    return list.filter(
+      (e) =>
+        e.number?.toLowerCase().includes(lower) ||
+        e.description?.toLowerCase().includes(lower),
+    );
+  }, [data, queryText]);
+
+  // Compute total debit/credit amount for each entry from its postings
+  const entryAmounts = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const entry of entries) {
+      if (!entry.id) continue;
+      const totalDebit = (entry.postings ?? []).reduce(
+        (sum, p) => (p.direction === "DEBIT" ? sum + (p.amount ?? 0) : sum),
+        0,
+      );
+      map.set(entry.id, totalDebit);
+    }
+    return map;
+  }, [entries]);
+
+  const facets = useMemo<SearchFacet[]>(() => {
+    const items: SearchFacet[] = [];
+    if (statusFilter) {
+      items.push({
+        key: `status-${statusFilter}`,
+        label: t("fin.journal.filterStatus", {
+          status: t(`fin.journal.${statusFilter}`, statusFilter),
+        }),
+        onRemove: () => setStatusFilter(undefined),
+      });
+    }
+    if (periodFilter) {
+      const p = periods.find((item) => item.id === periodFilter);
+      items.push({
+        key: `period-${periodFilter}`,
+        label: t("fin.journal.filterPeriod", {
+          period: p?.name ?? String(periodFilter),
+        }),
+        onRemove: () => setPeriodFilter(undefined),
+      });
+    }
+    if (accountFilter) {
+      const a = accounts.find((item) => item.id === accountFilter);
+      items.push({
+        key: `account-${accountFilter}`,
+        label: t("fin.journal.filterAccount", {
+          account: a ? `${a.code} - ${a.name}` : String(accountFilter),
+        }),
+        onRemove: () => setAccountFilter(undefined),
+      });
+    }
+    if (dateRange) {
+      items.push({
+        key: `date-${dateRange[0]}-${dateRange[1]}`,
+        label: t("fin.journal.filterDate", {
+          range: `${dateRange[0]} ~ ${dateRange[1]}`,
+        }),
+        onRemove: () => setDateRange(undefined),
+      });
+    }
+    return items;
+  }, [
+    statusFilter,
+    periodFilter,
+    accountFilter,
+    dateRange,
+    periods,
+    accounts,
+    t,
+  ]);
+
+  const filterMenuItems: MenuProps["items"] = [
+    {
+      key: "status-group",
+      label: t("fin.journal.status", "Status"),
+      type: "group",
+      children: [
+        { key: "status:DRAFT", label: t("fin.journal.DRAFT", "Draft") },
+        { key: "status:POSTED", label: t("fin.journal.POSTED", "Posted") },
+        { key: "status:VOID", label: t("fin.journal.VOID", "Void") },
+      ],
+    },
+    {
+      key: "period-group",
+      label: t("fin.journal.period", "Period"),
+      type: "group",
+      children: periods.slice(0, 5).map((p) => ({
+        key: `period:${p.id}`,
+        label: p.name,
+      })),
+    },
+  ];
+
+  const handleFilterSelect = (key: string) => {
+    if (key.startsWith("status:")) {
+      const val = key.replace("status:", "") as SearchFilters["status"];
+      setStatusFilter((curr) => (curr === val ? undefined : val));
+    } else if (key.startsWith("period:")) {
+      const val = Number(key.replace("period:", ""));
+      setPeriodFilter((curr) => (curr === val ? undefined : val));
+    }
   };
 
-  const listColumns: TableProps<JournalEntry>["columns"] = [
-    { title: t("fin.journal.number"), dataIndex: "number" },
+  const columns: TableProps<Entry>["columns"] = [
     {
-      title: t("common.date"),
-      render: (_, e) => formatDate(e.date, i18n.language),
-    },
-    { title: t("fin.journal.reference"), dataIndex: "reference" },
-    {
-      title: t("fin.journal.amount"),
-      align: "right",
-      render: (_, e) => <span className="num">{money(sumDebit(e.lines))}</span>,
-    },
-    {
-      title: t("common.status"),
-      render: (_, e) => (
-        <Tag color={e.status === "POSTED" ? "success" : "default"}>
-          {t(`fin.journal.${e.status}`)}
-        </Tag>
+      title: t("fin.journal.number", "Number"),
+      dataIndex: "number",
+      key: "number",
+      render: (num, record) => (
+        <span className="font-semibold text-primary">
+          {num || `#${record.id}`}
+        </span>
       ),
     },
-  ];
-
-  const lineColumns: TableProps<JournalLine>["columns"] = [
     {
-      title: t("fin.journal.account"),
-      render: (_, l) => `${l.account} ${accountName(l.account)}`,
+      title: t("common.date", "Date"),
+      dataIndex: "entryDate",
+      key: "entryDate",
+      render: (val) => formatDate(val, i18n.language),
     },
-    { title: t("fin.journal.label"), dataIndex: "label" },
     {
-      title: t("fin.journal.debit"),
+      title: t("fin.journal.label", "Description"),
+      dataIndex: "description",
+      key: "description",
+      render: (text) => text || "-",
+    },
+    {
+      title: t("fin.journal.amount", "Amount"),
+      key: "amount",
       align: "right",
-      render: (_, l) =>
-        l.debit ? <span className="num">{money(l.debit)}</span> : "",
+      render: (_, record) => {
+        const amt = record.id ? (entryAmounts.get(record.id) ?? 0) : 0;
+        return <MoneyCell amount={amt} currency="IDR" />;
+      },
     },
     {
-      title: t("fin.journal.credit"),
-      align: "right",
-      render: (_, l) =>
-        l.credit ? <span className="num">{money(l.credit)}</span> : "",
+      title: t("common.status", "Status"),
+      dataIndex: "status",
+      key: "status",
+      render: (st) => <EntryStatusTag status={st} />,
+    },
+    {
+      title: t("fin.journal.transaction", "Transaction"),
+      key: "transaction",
+      render: (_, record) => {
+        if (!record.transactionId) return "-";
+        return (
+          <Link
+            to={`/fin/transactions/${record.transactionId}`}
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs text-primary hover:underline"
+          >
+            #{record.transactionId}
+          </Link>
+        );
+      },
     },
   ];
-
-  const newButton = (
-    <Button
-      type="primary"
-      icon={<PlusOutlined />}
-      onClick={() => setCreating(true)}
-    >
-      {t("fin.journal.new")}
-    </Button>
-  );
 
   return (
     <Page
-      title={opened ? opened.number : t("fin.menu.journal")}
-      trail={
-        opened
-          ? [
-              {
-                title: t("fin.menu.journal"),
-                onClick: () => setOpenId(undefined),
-              },
-            ]
-          : []
-      }
-      count={opened ? undefined : entries.length}
-      actions={newButton}
-    >
-      <Alert type="info" showIcon message={t("common.provisionalNotice")} />
-
-      {opened ? (
-        <FormView
-          title={opened.number}
-          buttons={
-            opened.status === "DRAFT" ? (
-              <Button
-                type="primary"
-                onClick={() => setStatus(opened, "POSTED")}
-              >
-                {t("fin.journal.post")}
-              </Button>
-            ) : (
-              <Button onClick={() => setStatus(opened, "DRAFT")}>
-                {t("fin.journal.resetDraft")}
-              </Button>
-            )
-          }
-          statusbar={
-            <StatusBar
-              label={t("common.status")}
-              current={opened.status}
-              steps={[
-                { value: "DRAFT", label: t("fin.journal.DRAFT") },
-                { value: "POSTED", label: t("fin.journal.POSTED") },
-              ]}
-            />
-          }
-          chatter={
-            <Chatter
-              messages={messages[opened.id] ?? []}
-              onPost={(kind, body) => addMessage(opened.id, kind, body)}
-            />
-          }
-        >
-          <div
-            className="mb-2 text-[13px]"
-            style={{ color: "var(--omed-text-secondary)" }}
+      title={t("fin.menu.journal", "Journal Entries")}
+      search={{
+        value: queryText,
+        onChange: setQueryText,
+        placeholder: t("fin.journal.label", "Search description or number..."),
+        facets,
+        filterItems: filterMenuItems,
+        onFilterSelect: handleFilterSelect,
+      }}
+      actions={
+        <div className="flex gap-2">
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate("/fin/journal?new=true")}
           >
-            {formatDate(opened.date, i18n.language)} · {opened.reference}
-          </div>
-          <Table<JournalLine>
-            size="small"
-            rowKey={(l) => `${l.account}-${l.debit}-${l.credit}`}
-            columns={lineColumns}
-            dataSource={opened.lines}
-            pagination={false}
-            scroll={{ x: "max-content" }}
-            summary={() => (
-              <Table.Summary.Row>
-                <Table.Summary.Cell index={0} colSpan={2}>
-                  <strong>{t("common.total")}</strong>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={2} align="right">
-                  <strong className="num">
-                    {money(sumDebit(opened.lines))}
-                  </strong>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={3} align="right">
-                  <strong className="num">
-                    {money(sumCredit(opened.lines))}
-                  </strong>
-                </Table.Summary.Cell>
-              </Table.Summary.Row>
-            )}
+            {t("fin.journal.new", "New entry")}
+          </Button>
+        </div>
+      }
+      count={entries.length}
+    >
+      <Panel strong>
+        {entries.length === 0 ? (
+          <Empty
+            description={t("fin.journal.emptyDesc", "No journal entries found")}
+            className="py-12"
           />
-        </FormView>
-      ) : (
-        <Panel strong>
-          <Table<JournalEntry>
-            size="small"
-            rowKey="id"
-            columns={listColumns}
-            dataSource={entries}
-            pagination={false}
-            scroll={{ x: "max-content" }}
-            onRow={(entry) => ({
-              onClick: () => setOpenId(entry.id),
-              style: { cursor: "pointer" },
-            })}
-          />
-        </Panel>
-      )}
-
-      <RecordModal<FormValues>
-        variant="drawer"
-        open={creating}
-        title={t("fin.journal.new")}
-        initialValues={{ lines: [{}, {}] }}
-        onClose={() => setCreating(false)}
-        onSubmit={create}
-      >
-        {(form) => (
+        ) : (
           <>
-            <Form.Item
-              name="date"
-              label={t("common.date")}
-              rules={[{ required: true }]}
-            >
-              <DatePicker style={{ width: "100%" }} />
-            </Form.Item>
-            <Form.Item
-              name="reference"
-              label={t("fin.journal.reference")}
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-            <LinesEditor form={form} />
+            <Table<Entry>
+              size="small"
+              rowKey="id"
+              columns={columns}
+              dataSource={entries}
+              pagination={false}
+              scroll={{ x: "max-content" }}
+              onRow={(record) => ({
+                onClick: () => navigate(`/fin/journal/${record.id}`),
+                style: { cursor: "pointer" },
+              })}
+            />
+
+            {hasNextPage && (
+              <div className="flex justify-center p-4 border-t border-border">
+                <Button
+                  onClick={() => fetchNextPage()}
+                  loading={isFetchingNextPage}
+                >
+                  {t("fin.journal.loadMore", "Load more")}
+                </Button>
+              </div>
+            )}
           </>
         )}
-      </RecordModal>
+      </Panel>
     </Page>
   );
 }
