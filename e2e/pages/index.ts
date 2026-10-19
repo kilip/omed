@@ -8,6 +8,8 @@ import { WorkspacesPage } from "./core/workspaces.page";
 
 import { FinAccountsPage } from "./fin/accounts.page";
 import { FinDashboardPage } from "./fin/dashboard.page";
+import { FinEntriesPage } from "./fin/entries.page";
+import { FinEntryDetailPage } from "./fin/entry-detail.page";
 import { FinSetupPage } from "./fin/setup.page";
 
 /**
@@ -26,6 +28,8 @@ export const createPages = (page: Page) => ({
     dashboard: new FinDashboardPage(page),
     setup: new FinSetupPage(page),
     accounts: new FinAccountsPage(page),
+    entries: new FinEntriesPage(page),
+    entryDetail: new FinEntryDetailPage(page),
   },
 });
 
