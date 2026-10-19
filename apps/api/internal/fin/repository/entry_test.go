@@ -1,0 +1,482 @@
+package repository_test
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/base"
+	"github.com/kilip/omed/api/internal/fin/domain"
+	"github.com/kilip/omed/api/internal/fin/model"
+	"github.com/kilip/omed/api/internal/fin/repository"
+	"github.com/kilip/omed/api/testutil"
+	"github.com/stretchr/testify/suite"
+)
+
+type EntryRepoSuite struct {
+	suite.Suite
+	client        *ent.Client
+	repo          repository.EntryRepository
+	txRepo        repository.TransactionRepository
+	workspaceID   int64
+	userID        int64
+	accountID1    int64
+	accountID2    int64
+	periodID      int64
+	transactionID int64
+}
+
+func (s *EntryRepoSuite) SetupSuite() {
+	s.client = testutil.CreateTestDB("file:entry_repo_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
+	s.repo = repository.NewEntryRepository(s.client)
+	s.txRepo = repository.NewTransactionRepository(s.client)
+}
+
+func (s *EntryRepoSuite) TearDownSuite() {
+	if s.client != nil {
+		_ = s.client.Close()
+	}
+}
+
+func (s *EntryRepoSuite) SetupTest() {
+	ctx := base.WithSkipAuditMutator(context.Background())
+	_, _ = s.client.Posting.Delete().Exec(ctx)
+	_, _ = s.client.Entry.Delete().Exec(ctx)
+	_, _ = s.client.Transaction.Delete().Exec(ctx)
+	_, _ = s.client.Period.Delete().Exec(ctx)
+	_, _ = s.client.Account.Delete().Exec(ctx)
+	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
+	_, _ = s.client.Workspace.Delete().Exec(ctx)
+	_, _ = s.client.User.Delete().Exec(ctx)
+
+	u, err := s.client.User.Create().
+		SetName("Alice").
+		SetEmail("alice@example.com").
+		Save(ctx)
+	s.Require().NoError(err)
+	s.userID = u.ID
+
+	userCtx := context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+		ID:   u.ID,
+		Name: "Alice",
+	})
+	w, err := s.client.Workspace.Create().
+		SetName("Finance WS").
+		SetOwnerID(u.ID).
+		Save(userCtx)
+	s.Require().NoError(err)
+	s.workspaceID = w.ID
+
+	wsCtx := base.WithWorkspaceID(userCtx, w.ID)
+
+	acc1, err := s.client.Account.Create().
+		SetCode("1101").
+		SetName("Cash").
+		SetType("ASSET").
+		SetNormalBalance("DEBIT").
+		Save(wsCtx)
+	s.Require().NoError(err)
+	s.accountID1 = acc1.ID
+
+	acc2, err := s.client.Account.Create().
+		SetCode("4101").
+		SetName("Revenue").
+		SetType("REVENUE").
+		SetNormalBalance("CREDIT").
+		Save(wsCtx)
+	s.Require().NoError(err)
+	s.accountID2 = acc2.ID
+
+	p, err := s.client.Period.Create().
+		SetName("FY2026").
+		SetStartDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
+		SetEndDate(time.Date(2026, 12, 31, 0, 0, 0, 0, time.UTC)).
+		SetFiscalYear(2026).
+		Save(wsCtx)
+	s.Require().NoError(err)
+	s.periodID = p.ID
+
+	t, err := s.txRepo.Create(wsCtx, model.CreateTransactionRequest{
+		TransactionDate: model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)),
+		Description:     "Main TX",
+	})
+	s.Require().NoError(err)
+	s.transactionID = t.ID
+}
+
+func (s *EntryRepoSuite) ctx() context.Context {
+	ctx := context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+		ID:   s.userID,
+		Name: "Alice",
+	})
+	return base.WithWorkspaceID(ctx, s.workspaceID)
+}
+
+func (s *EntryRepoSuite) Test_CreateAndGetByID() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:    s.periodID,
+		EntryDate:   eDate,
+		Description: "Entry description",
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 250000, Description: "Debit"},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 250000, Description: "Credit"},
+		},
+	})
+	s.Require().NoError(err)
+	s.Equal("JE-2026-000001", e.Number)
+	s.Equal(domain.EntryStatusDraft, e.Status)
+	s.Equal(s.transactionID, e.TransactionID)
+	s.Equal(s.periodID, e.PeriodID)
+	s.Require().Len(e.Postings, 2)
+
+	fetched, err := s.repo.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(e.ID, fetched.ID)
+	s.Equal("JE-2026-000001", fetched.Number)
+	s.Len(fetched.Postings, 2)
+}
+
+func (s *EntryRepoSuite) Test_Update_DraftOnly() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	// Update draft entry
+	newDesc := "Updated entry"
+	updated, err := s.repo.Update(ctx, e.ID, model.UpdateEntryRequest{
+		Description: &newDesc,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 200},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+		},
+	})
+	s.Require().NoError(err)
+	s.Equal("Updated entry", updated.Description)
+	s.Require().Len(updated.Postings, 2)
+	s.Equal(200.0, updated.Postings[0].Amount)
+
+	// Post the entry
+	posted, err := s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, posted.Status)
+	s.NotNil(posted.PostedAt)
+	s.Equal(&s.userID, posted.PostedBy)
+
+	// Update on posted entry should fail
+	_, err = s.repo.Update(ctx, e.ID, model.UpdateEntryRequest{
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 300},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 300},
+		},
+	})
+	s.Require().ErrorIs(err, domain.ErrEntryNotDraft)
+}
+
+func (s *EntryRepoSuite) Test_Delete_DraftOnly() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	// Post entry
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Delete should fail
+	err = s.repo.Delete(ctx, e.ID)
+	s.Require().ErrorIs(err, domain.ErrEntryNotDraft)
+
+	// Reset to draft
+	_, err = s.client.Entry.UpdateOneID(e.ID).SetStatus("DRAFT").Save(ctx)
+	s.Require().NoError(err)
+
+	// Delete draft
+	err = s.repo.Delete(ctx, e.ID)
+	s.Require().NoError(err)
+
+	// Verify not found
+	_, err = s.repo.GetByID(ctx, e.ID)
+	s.Require().ErrorIs(err, domain.ErrEntryNotFound)
+
+	// Verify postings were deleted
+	count, err := s.client.Posting.Query().Where().Count(ctx)
+	s.Require().NoError(err)
+	s.Equal(0, count)
+}
+
+func (s *EntryRepoSuite) Test_Post_DraftOnly() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	posted, err := s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, posted.Status)
+
+	// Post again should fail with ErrEntryNotDraft
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().ErrorIs(err, domain.ErrEntryNotDraft)
+}
+
+func (s *EntryRepoSuite) Test_Reverse() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 500, Description: "Orig Debit"},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 500, Description: "Orig Credit"},
+		},
+	})
+	s.Require().NoError(err)
+
+	// Post the original entry
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	revDate := time.Date(2026, 1, 16, 0, 0, 0, 0, time.UTC)
+	rev, err := s.repo.Reverse(ctx, e.ID, s.userID, revDate, "Correction")
+	s.Require().NoError(err)
+	s.Equal("JE-2026-000002", rev.Number)
+	s.Equal(domain.EntryStatusPosted, rev.Status)
+	s.Equal(&e.ID, rev.ReversalOfID)
+	s.Equal("Correction", rev.Description)
+	s.Require().Len(rev.Postings, 2)
+
+	// Check direction swapped
+	p1 := rev.Postings[0]
+	s.Equal(s.accountID1, p1.AccountID)
+	s.Equal("CREDIT", p1.Direction)
+	s.Equal(500.0, p1.Amount)
+
+	p2 := rev.Postings[1]
+	s.Equal(s.accountID2, p2.AccountID)
+	s.Equal("DEBIT", p2.Direction)
+	s.Equal(500.0, p2.Amount)
+
+	// Reverse again should fail with ErrEntryAlreadyReversed
+	_, err = s.repo.Reverse(ctx, e.ID, s.userID, revDate, "Second reversal")
+	s.Require().ErrorIs(err, domain.ErrEntryAlreadyReversed)
+}
+
+func (s *EntryRepoSuite) Test_Void() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	voided, err := s.repo.Void(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusVoid, voided.Status)
+}
+
+func (s *EntryRepoSuite) Test_Search() {
+	ctx := s.ctx()
+	d1 := model.Date(time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC))
+	d2 := model.Date(time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC))
+
+	e1, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: d1,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	e2, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: d2,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 200},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.repo.Post(ctx, e1.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Search all
+	all, _, err := s.repo.Search(ctx, model.SearchEntryRequest{})
+	s.Require().NoError(err)
+	s.Len(all, 2)
+
+	// Filter by status POSTED
+	postedStatus := domain.EntryStatusPosted
+	postedItems, _, err := s.repo.Search(ctx, model.SearchEntryRequest{
+		Status: &postedStatus,
+	})
+	s.Require().NoError(err)
+	s.Len(postedItems, 1)
+	s.Equal(e1.ID, postedItems[0].ID)
+
+	// Filter by account
+	accItems, _, err := s.repo.Search(ctx, model.SearchEntryRequest{
+		AccountID: &s.accountID1,
+	})
+	s.Require().NoError(err)
+	s.Len(accItems, 2)
+
+	// Delete draft e2
+	err = s.repo.Delete(ctx, e2.ID)
+	s.Require().NoError(err)
+
+	allAfterDelete, _, err := s.repo.Search(ctx, model.SearchEntryRequest{})
+	s.Require().NoError(err)
+	s.Len(allAfterDelete, 1)
+}
+
+func (s *EntryRepoSuite) Test_GetAccountLedger() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	// Create draft entry (should NOT appear in ledger until posted)
+	e1, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 1000},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 1000},
+		},
+	})
+	s.Require().NoError(err)
+
+	// Ledger before posting should be empty
+	postings, total, err := s.repo.GetAccountLedger(ctx, s.accountID1, 1, 10)
+	s.Require().NoError(err)
+	s.Equal(int64(0), total)
+	s.Empty(postings)
+
+	// Post entry
+	_, err = s.repo.Post(ctx, e1.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Ledger after posting should have 1 item
+	postings, total, err = s.repo.GetAccountLedger(ctx, s.accountID1, 1, 10)
+	s.Require().NoError(err)
+	s.Equal(int64(1), total)
+	s.Require().Len(postings, 1)
+	s.Equal(1000.0, postings[0].Amount)
+	s.Equal("DEBIT", postings[0].Direction)
+
+	// Create second entry and post it
+	e2, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "CREDIT", Amount: 300},
+			{AccountID: s.accountID2, Direction: "DEBIT", Amount: 300},
+		},
+	})
+	s.Require().NoError(err)
+	_, err = s.repo.Post(ctx, e2.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Check pagination: page 1 limit 1
+	p1, total, err := s.repo.GetAccountLedger(ctx, s.accountID1, 1, 1)
+	s.Require().NoError(err)
+	s.Equal(int64(2), total)
+	s.Len(p1, 1)
+	s.Equal(1000.0, p1[0].Amount)
+
+	// Page 2 limit 1
+	p2, total, err := s.repo.GetAccountLedger(ctx, s.accountID1, 2, 1)
+	s.Require().NoError(err)
+	s.Equal(int64(2), total)
+	s.Len(p2, 1)
+	s.Equal(300.0, p2[0].Amount)
+}
+
+func (s *EntryRepoSuite) Test_ConcurrentNumbering() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC))
+
+	concurrency := 5
+	var wg sync.WaitGroup
+	errCh := make(chan error, concurrency)
+	numbers := make(chan string, concurrency)
+
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+				PeriodID:    s.periodID,
+				EntryDate:   eDate,
+				Description: fmt.Sprintf("Concurrent %d", idx),
+				Postings: []model.CreatePostingRequest{
+					{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+					{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+				},
+			})
+			if err != nil {
+				errCh <- err
+				return
+			}
+			numbers <- e.Number
+		}(i)
+	}
+
+	wg.Wait()
+	close(errCh)
+	close(numbers)
+
+	for err := range errCh {
+		s.Require().NoError(err)
+	}
+
+	seen := make(map[string]bool)
+	for num := range numbers {
+		s.False(seen[num], "duplicate entry number: %s", num)
+		seen[num] = true
+	}
+	s.Len(seen, concurrency)
+}
+
+func TestEntryRepoSuite(t *testing.T) {
+	suite.Run(t, new(EntryRepoSuite))
+}
