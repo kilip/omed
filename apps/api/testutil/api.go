@@ -287,6 +287,15 @@ func (s *ApiTestSuite[T]) PagedResponse() httpx.WebResponse[[]T] {
 	return env
 }
 
+// GetErrorResponse decodes the HTTP response JSON body into an httpx.ErrorResponse.
+func (s *ApiTestSuite[T]) GetErrorResponse() httpx.ErrorResponse {
+	var env httpx.ErrorResponse
+	s.T().Helper()
+	defer s.HttpResponse.Body.Close()
+	require.NoError(s.T(), json.NewDecoder(s.HttpResponse.Body).Decode(&env))
+	return env
+}
+
 // DecodeOther decodes the response body into an arbitrary WebResponse[R] envelope.
 func DecodeOther[R any](s interface{ GetHttpResponse() *http.Response }) httpx.WebResponse[R] {
 	var env httpx.WebResponse[R]

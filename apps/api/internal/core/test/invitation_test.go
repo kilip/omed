@@ -57,6 +57,25 @@ func (s *InvitationSuite) Test_Create_InvalidRole() {
 	s.AssertStatus(fiber.StatusUnprocessableEntity)
 }
 
+func (s *InvitationSuite) Test_Create_PersonalWorkspace_Conflict() {
+	owner := s.AsUser("pw-owner-inv@example.com", "PW Owner Inv")
+	client := testutil.GetEntCli()
+	pw, err := client.Workspace.Create().
+		SetName("Personal Workspace").
+		SetOwnerID(owner.ID).
+		SetPersonal(true).
+		Save(s.Context)
+	s.Require().NoError(err)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations", pw.ID), fiber.MethodPost, model.CreateInvitationRequest{
+		Roles: []string{"core:member"},
+	})
+	s.AssertStatus(fiber.StatusConflict)
+
+	errRes := s.GetErrorResponse()
+	s.Equal("WORKSPACE_PERSONAL_MEMBER", errRes.Error.Code)
+}
+
 func (s *InvitationSuite) Test_Create_ForbiddenForNormalMember() {
 	ws := s.ensureWorkspace("Acme Corp", s.User.ID)
 
@@ -209,6 +228,31 @@ func (s *InvitationSuite) Test_Accept_MaxUsesReached() {
 	s.AsUser("user2@example.com", "User Two")
 	s.Request(fmt.Sprintf("/invitations/%s/accept", token), fiber.MethodPost, nil)
 	s.AssertStatus(fiber.StatusUnprocessableEntity)
+}
+
+func (s *InvitationSuite) Test_Accept_PersonalWorkspace_Conflict() {
+	owner := s.EnsureUser(ent.User{Name: "PW Owner Accept", Email: "pw-owner-accept@example.com"})
+	client := testutil.GetEntCli()
+	pw, err := client.Workspace.Create().
+		SetName("Personal Workspace").
+		SetOwnerID(owner.ID).
+		SetPersonal(true).
+		Save(s.Context)
+	s.Require().NoError(err)
+
+	inv, err := client.WorkspaceInvitation.Create().
+		SetWorkspaceID(pw.ID).
+		SetToken("personal-token-test").
+		SetRoles([]string{"core:member"}).
+		Save(s.Context)
+	s.Require().NoError(err)
+
+	s.AsUser("bob@example.com", "Bob")
+	s.Request(fmt.Sprintf("/invitations/%s/accept", inv.Token), fiber.MethodPost, nil)
+	s.AssertStatus(fiber.StatusConflict)
+
+	errRes := s.GetErrorResponse()
+	s.Equal("WORKSPACE_PERSONAL_MEMBER", errRes.Error.Code)
 }
 
 func (s *InvitationSuite) Test_Revoke_Successfully() {

@@ -62,6 +62,26 @@ func (s *MemberSuite) Test_Invite_OwnerImmutable() {
 	s.AssertStatus(fiber.StatusConflict)
 }
 
+func (s *MemberSuite) Test_Invite_PersonalWorkspace_Conflict() {
+	owner := s.AsUser("pw-owner-member@example.com", "PW Owner Member")
+	client := testutil.GetEntCli()
+	pw, err := client.Workspace.Create().
+		SetName("Personal Workspace").
+		SetOwnerID(owner.ID).
+		SetPersonal(true).
+		Save(s.Context)
+	s.Require().NoError(err)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/members", pw.ID), fiber.MethodPost, model.InviteMemberRequest{
+		Email: "newmember@example.com",
+		Roles: []string{"core:member"},
+	})
+	s.AssertStatus(fiber.StatusConflict)
+
+	errRes := s.GetErrorResponse()
+	s.Equal("WORKSPACE_PERSONAL_MEMBER", errRes.Error.Code)
+}
+
 func (s *MemberSuite) Test_Invite_ForbiddenForNormalMember() {
 	ws := s.ensureWorkspace("Acme Corp", s.User.ID)
 

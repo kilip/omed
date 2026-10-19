@@ -1226,6 +1226,15 @@ export interface paths {
             "application/json": components["schemas"]["httpx.ErrorResponse"];
           };
         };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
         /** @description Unprocessable Entity */
         422: {
           headers: {

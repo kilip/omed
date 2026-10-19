@@ -43,6 +43,7 @@ func NewInvitationController(invitations InvitationServiceContract) InvitationCo
 //	@Failure		400		{object}	httpx.ErrorResponse
 //	@Failure		403		{object}	httpx.ErrorResponse
 //	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
 //	@Failure		422		{object}	httpx.ErrorResponse
 //	@Failure		500		{object}	httpx.ErrorResponse
 //	@Security		BearerAuth

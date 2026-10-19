@@ -87,6 +87,10 @@ func (s MemberService) Invite(ctx context.Context, wid int64, req model.InviteMe
 		return domain.Member{}, err
 	}
 
+	if ws.Personal {
+		return domain.Member{}, domain.ErrPersonalWorkspaceMember
+	}
+
 	if err := s.validateRoles(req.Roles); err != nil {
 		return domain.Member{}, err
 	}

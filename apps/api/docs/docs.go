@@ -2177,6 +2177,16 @@ const docTemplate = `{
                         },
                         "description": "Not Found"
                     },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
                     "422": {
                         "content": {
                             "application/json": {

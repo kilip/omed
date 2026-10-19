@@ -73,6 +73,10 @@ func (s InvitationService) Create(ctx context.Context, wid int64, req model.Crea
 		return domain.Invitation{}, err
 	}
 
+	if ws.Personal {
+		return domain.Invitation{}, domain.ErrPersonalWorkspaceMember
+	}
+
 	if err := s.validateRoles(req.Roles); err != nil {
 		return domain.Invitation{}, err
 	}
@@ -211,6 +215,10 @@ func (s InvitationService) Accept(ctx context.Context, token string, userID int6
 	ws, err := s.workspaces.GetByID(ctx, inv.WorkspaceID)
 	if err != nil {
 		return domain.Member{}, err
+	}
+
+	if ws.Personal {
+		return domain.Member{}, domain.ErrPersonalWorkspaceMember
 	}
 
 	if ws.OwnerID == userID {
