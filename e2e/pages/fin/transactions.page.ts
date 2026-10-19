@@ -1,0 +1,98 @@
+import assert from "node:assert/strict";
+import type { Locator } from "playwright";
+import { BasePage } from "../base.page";
+
+export class FinTransactionsPage extends BasePage {
+  readonly path = "/fin/transactions";
+
+  get newTransactionButton(): Locator {
+    return this.page.getByRole("button", { name: "New transaction" });
+  }
+
+  get tableRows(): Locator {
+    return this.page.locator(".ant-table-tbody .ant-table-row");
+  }
+
+  get emptyState(): Locator {
+    return this.page.locator(".ant-empty");
+  }
+
+  get searchInput(): Locator {
+    return this.page.getByPlaceholder("Search number or description...");
+  }
+
+  // Drawer locators
+  get drawer(): Locator {
+    return this.page.locator(".ant-drawer");
+  }
+
+  get drawerSaveButton(): Locator {
+    return this.drawer.getByRole("button", { name: "Save" });
+  }
+
+  get descriptionInput(): Locator {
+    return this.drawer.getByPlaceholder("Description");
+  }
+
+  get referenceInput(): Locator {
+    return this.drawer.getByPlaceholder("Reference");
+  }
+
+  get currencySelect(): Locator {
+    return this.drawer.locator(".ant-select").first();
+  }
+
+  get exchangeRateInput(): Locator {
+    return this.drawer.locator(".ant-input-number-input").first();
+  }
+
+  async clickNewTransaction(): Promise<void> {
+    await this.newTransactionButton.waitFor({ state: "visible" });
+    await this.newTransactionButton.click();
+  }
+
+  async expectDrawerVisible(): Promise<void> {
+    await this.drawer.waitFor({ state: "visible" });
+  }
+
+  async fillDescription(desc: string): Promise<void> {
+    await this.descriptionInput.fill(desc);
+  }
+
+  async fillReference(ref: string): Promise<void> {
+    await this.referenceInput.fill(ref);
+  }
+
+  async selectCurrency(currency: string): Promise<void> {
+    await this.currencySelect.click();
+    await this.page.keyboard.type(currency);
+    await this.page.locator(".ant-select-item-option").first().click();
+  }
+
+  async fillExchangeRate(rate: number): Promise<void> {
+    await this.exchangeRateInput.fill(String(rate));
+  }
+
+  async saveDrawer(): Promise<void> {
+    await this.drawerSaveButton.click();
+  }
+
+  async expectTransactionInTable(text: string): Promise<void> {
+    const row = this.tableRows.filter({ hasText: text });
+    await row.first().waitFor({ state: "visible" });
+    const rowText = await row.first().innerText();
+    assert.ok(
+      rowText.includes(text),
+      `Expected row to contain "${text}", got "${rowText}"`,
+    );
+  }
+
+  async clickRow(text: string): Promise<void> {
+    const row = this.tableRows.filter({ hasText: text });
+    await row.first().click();
+  }
+
+  async search(query: string): Promise<void> {
+    await this.searchInput.fill(query);
+  }
+}

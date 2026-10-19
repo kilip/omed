@@ -11,6 +11,8 @@ import { FinDashboardPage } from "./fin/dashboard.page";
 import { FinEntriesPage } from "./fin/entries.page";
 import { FinEntryDetailPage } from "./fin/entry-detail.page";
 import { FinSetupPage } from "./fin/setup.page";
+import { FinTransactionDetailPage } from "./fin/transaction-detail.page";
+import { FinTransactionsPage } from "./fin/transactions.page";
 
 /**
  * Page objects grouped by module: `core`, `fin`, etc.
@@ -30,6 +32,8 @@ export const createPages = (page: Page) => ({
     accounts: new FinAccountsPage(page),
     entries: new FinEntriesPage(page),
     entryDetail: new FinEntryDetailPage(page),
+    transactions: new FinTransactionsPage(page),
+    transactionDetail: new FinTransactionDetailPage(page),
   },
 });
 

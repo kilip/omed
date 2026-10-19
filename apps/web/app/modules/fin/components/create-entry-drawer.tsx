@@ -46,6 +46,7 @@ export type CreateEntryFormValues = {
 export type CreateEntryDrawerProps = {
   wid: number;
   open: boolean;
+  defaultTransactionId?: number;
   onClose: () => void;
   onSuccess?: (entryId: number) => void;
 };
@@ -164,6 +165,7 @@ function EntryDrawerFormFields({
 export function CreateEntryDrawer({
   wid,
   open,
+  defaultTransactionId,
   onClose,
   onSuccess,
 }: CreateEntryDrawerProps) {
@@ -184,7 +186,8 @@ export function CreateEntryDrawer({
   }, [txPages]);
 
   const initialValues: Partial<CreateEntryFormValues> = {
-    transactionMode: "new",
+    transactionMode: defaultTransactionId ? "existing" : "new",
+    transactionId: defaultTransactionId,
     date: dayjs(),
     postings: [
       {
