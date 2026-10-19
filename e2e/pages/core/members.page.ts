@@ -73,4 +73,25 @@ export class MembersPage extends BasePage {
       `Expected member ${email} to have role containing "${roleName}", got "${text}"`,
     );
   }
+
+  get personalNotice(): Locator {
+    return this.page.getByText(
+      "Personal workspaces are for single-user use and cannot have members.",
+    );
+  }
+
+  async expectPersonalNotice(): Promise<void> {
+    await this.personalNotice.waitFor({ state: "visible" });
+  }
+
+  async expectMenuHidden(name: string): Promise<void> {
+    const menuItem = this.page
+      .locator(".ant-menu-item")
+      .filter({ hasText: name });
+    assert.equal(
+      await menuItem.count(),
+      0,
+      `Expected menu "${name}" to be hidden, but found visible elements`,
+    );
+  }
 }

@@ -24,3 +24,11 @@ Feature: Workspace Member Roles
     Then I am on "/core/members"
     And "newmember@omed.test" should be listed with role "Admin"
     And "newmember@omed.test" should be listed with role "Accountant"
+
+  Scenario: Personal workspace hides members navigation and shows notice
+    Given I have a personal workspace
+    When I open "/core"
+    Then the "Members" menu should not be visible
+    And the "Invitations" menu should not be visible
+    When I open "/core/members"
+    Then I should see the personal workspace notice

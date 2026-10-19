@@ -27,6 +27,7 @@ export interface TestWorkspace {
   slug: string;
   description?: string;
   ownerId: number;
+  personal?: boolean;
 }
 
 export interface PlaywrightCookie {
@@ -121,6 +122,7 @@ export class TestClient {
     slug: string;
     description?: string;
     ownerId: number;
+    personal?: boolean;
   }): Promise<TestWorkspace> {
     return this.request<TestWorkspace>("/test/workspaces", {
       method: "POST",
