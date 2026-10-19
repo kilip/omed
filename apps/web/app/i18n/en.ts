@@ -320,7 +320,19 @@ export const en = {
         "No exchange rate found for this date. Enter rate manually.",
       initialEntry: "Initial entry (optional)",
     },
-    ledger: { balance: "Balance", opening: "Opening balance" },
+    ledger: {
+      balance: "Balance",
+      baseBalance: "Base balance",
+      normalBalance: "Normal balance",
+      opening: "Opening balance",
+      selectAccount: "Select account",
+      selectAccountPlaceholder: "Select an account to view ledger",
+      selectAccountPrompt:
+        "Please select an account to view its general ledger postings.",
+      noPostings: "No postings found for this account.",
+      postingId: "Posting #",
+      entry: "Entry #",
+    },
     trial: { asOf: "As of {{date}}" },
     errors: {
       ENTRY_NOT_BALANCED: "Debit and credit amounts must be equal.",
