@@ -41,6 +41,16 @@ omed/
 - Authorization in `apps/api` is **workspace based**: every user gets a personal workspace, can create more, and can invite other users. Roles are assigned per workspace membership, and a user can only access or read workspace resources when they are a member or owner of that workspace.
 - Modules in `apps/api` register their roles & permissions in code via `authz.AddRole` in `init()` (e.g. `fin:accountant` -> `fin:invoice read`). Permissions are verified per-request using an in-memory Casbin enforcer based on resolved workspace membership.
 - The dashboard is split into modules (`core`, `fin`, `cms`), each under `apps/web/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
+  - **Finance (`fin`) module routes & capabilities:**
+    - `/fin`: Finance dashboard with financial overview and status metrics.
+    - `/fin/setup`: Template-based initial Chart of Accounts setup (`POST /workspaces/{wid}/fin/accounts/seed`).
+    - `/fin/accounts`: Tree-table Chart of Accounts with account type, balance classification, active state, and ledger navigation.
+    - `/fin/transactions`: Business transactions list with search and filtering by reference/source/date, and drawer for creating transactions with optional inline entries.
+    - `/fin/transactions/:id`: Transaction detail screen with editable header (for draft entries), list of associated journal entries, and entry creation modal.
+    - `/fin/journal`: Journal entries list with search and filtering by status/date/period, and drawer for creating balanced double-entry vouchers (`PostingsEditor`).
+    - `/fin/journal/:id`: Journal entry detail view with status workflow (post, reverse with date override, void) and individual postings linked to the ledger.
+    - `/fin/ledger`: General Ledger view (`GET /workspaces/{wid}/fin/accounts/{id}/ledger`) with account selector, running balances, and direct deep-links to journal entries.
+    - `/fin/trial-balance`: Financial trial balance reports and summaries.
 
 ## Tech Stack
 
