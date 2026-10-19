@@ -28,10 +28,16 @@ export default defineModule({
       icon: ClusterOutlined,
     },
     {
+      key: "transactions",
+      path: "transactions",
+      labelKey: "fin.menu.transactions",
+      icon: FileTextOutlined,
+    },
+    {
       key: "journal",
       path: "journal",
       labelKey: "fin.menu.journal",
-      icon: FileTextOutlined,
+      icon: BookOutlined,
     },
     {
       key: "ledger",
