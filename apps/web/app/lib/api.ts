@@ -71,3 +71,25 @@ export async function unwrapVoid(
   const { error, response } = await request;
   if (error !== undefined || !response.ok) throw toApiError(error, response);
 }
+
+type PageResult<T> = {
+  data?: {
+    data?: T[];
+    meta?: {
+      cursor?: string;
+    };
+  };
+  error?: unknown;
+  response: Response;
+};
+
+export async function unwrapPage<T>(
+  request: Promise<PageResult<T>>,
+): Promise<{ items: T[]; cursor?: string }> {
+  const { data, error, response } = await request;
+  if (error !== undefined || !response.ok) throw toApiError(error, response);
+  return {
+    items: data?.data ?? [],
+    cursor: data?.meta?.cursor || undefined,
+  };
+}
