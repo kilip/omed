@@ -122,12 +122,46 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_CurrencyResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.CurrencyResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_EntryResponse": {
                 "properties": {
                     "data": {
                         "description": "Data contains the response payload.",
                         "items": {
                             "$ref": "#/components/schemas/model.EntryResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-array_model_ExchangeRateResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.ExchangeRateResponse"
                         },
                         "type": "array",
                         "uniqueItems": false
@@ -293,6 +327,32 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_ExchangeRateLookupResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.ExchangeRateLookupResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_ExchangeRateResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.ExchangeRateResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_InvitationResponse": {
                 "properties": {
                     "data": {
@@ -388,6 +448,19 @@ const docTemplate = `{
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.TransactionResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_WorkspaceBaseCurrencyResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.WorkspaceBaseCurrencyResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -586,6 +659,41 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.CreateExchangeRateRequest": {
+                "properties": {
+                    "effectiveDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "fromCurrency": {
+                        "example": "USD",
+                        "type": "string"
+                    },
+                    "rate": {
+                        "example": 16250,
+                        "type": "number"
+                    },
+                    "source": {
+                        "enum": [
+                            "MANUAL",
+                            "IMPORT"
+                        ],
+                        "example": "MANUAL",
+                        "type": "string"
+                    },
+                    "toCurrency": {
+                        "example": "IDR",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "effectiveDate",
+                    "fromCurrency",
+                    "rate",
+                    "toCurrency"
+                ],
+                "type": "object"
+            },
             "model.CreateInvitationRequest": {
                 "properties": {
                     "email": {
@@ -715,6 +823,26 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.CurrencyResponse": {
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "decimals": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "symbol": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.EntryResponse": {
                 "properties": {
                     "auditMeta": {
@@ -758,6 +886,65 @@ const docTemplate = `{
                     },
                     "transactionId": {
                         "type": "integer"
+                    },
+                    "workspaceId": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.ExchangeRateLookupResponse": {
+                "properties": {
+                    "date": {
+                        "type": "string"
+                    },
+                    "fromCurrency": {
+                        "example": "USD",
+                        "type": "string"
+                    },
+                    "rate": {
+                        "example": 16250,
+                        "type": "number"
+                    },
+                    "toCurrency": {
+                        "example": "IDR",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.ExchangeRateResponse": {
+                "properties": {
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "$ref": "#/components/schemas/base.ByUser"
+                    },
+                    "effectiveDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "fromCurrency": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "rate": {
+                        "type": "number"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "toCurrency": {
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    },
+                    "updatedBy": {
+                        "$ref": "#/components/schemas/base.ByUser"
                     },
                     "workspaceId": {
                         "type": "integer"
@@ -1055,6 +1242,35 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.SearchExchangeRateRequest": {
+                "properties": {
+                    "cursor": {
+                        "type": "string"
+                    },
+                    "endDate": {
+                        "example": "2026-12-31",
+                        "type": "string"
+                    },
+                    "fromCurrency": {
+                        "example": "USD",
+                        "type": "string"
+                    },
+                    "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "startDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "toCurrency": {
+                        "example": "IDR",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.SearchInvitationRequest": {
                 "properties": {
                     "cursor": {
@@ -1327,6 +1543,17 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.UpdateBaseCurrencyRequest": {
+                "properties": {
+                    "baseCurrency": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "baseCurrency"
+                ],
+                "type": "object"
+            },
             "model.UpdateEntryRequest": {
                 "properties": {
                     "description": {
@@ -1343,6 +1570,31 @@ const docTemplate = `{
                 },
                 "required": [
                     "postings"
+                ],
+                "type": "object"
+            },
+            "model.UpdateExchangeRateRequest": {
+                "properties": {
+                    "effectiveDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "rate": {
+                        "example": 16300,
+                        "type": "number"
+                    },
+                    "source": {
+                        "enum": [
+                            "MANUAL",
+                            "IMPORT"
+                        ],
+                        "example": "MANUAL",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "effectiveDate",
+                    "rate"
                 ],
                 "type": "object"
             },
@@ -1454,6 +1706,20 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "updatedAt": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.WorkspaceBaseCurrencyResponse": {
+                "properties": {
+                    "baseCurrency": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
                         "type": "string"
                     }
                 },
@@ -2940,6 +3206,73 @@ const docTemplate = `{
                 ]
             }
         },
+        "/workspaces/{wid}/fin/currencies": {
+            "get": {
+                "description": "Retrieve all supported reference currencies conforming to ISO 4217",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_CurrencyResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List currencies",
+                "tags": [
+                    "Finance Currencies"
+                ]
+            }
+        },
         "/workspaces/{wid}/fin/entries": {
             "post": {
                 "description": "Add a draft journal entry to an existing transaction",
@@ -3797,6 +4130,586 @@ const docTemplate = `{
                 ]
             }
         },
+        "/workspaces/{wid}/fin/exchange-rates": {
+            "post": {
+                "description": "Create a new exchange rate entry in the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreateExchangeRateRequest",
+                                "summary": "request",
+                                "description": "Exchange rate creation payload"
+                            }
+                        }
+                    },
+                    "description": "Exchange rate creation payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ExchangeRateResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create exchange rate",
+                "tags": [
+                    "Finance Exchange Rates"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/exchange-rates/lookup": {
+            "get": {
+                "description": "Find the best exchange rate for a currency pair effective on or before the given date",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "From currency code (e.g. USD)",
+                        "in": "query",
+                        "name": "from",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "To currency code (e.g. IDR)",
+                        "in": "query",
+                        "name": "to",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Effective date (YYYY-MM-DD)",
+                        "in": "query",
+                        "name": "date",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ExchangeRateLookupResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Lookup exchange rate",
+                "tags": [
+                    "Finance Exchange Rates"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/exchange-rates/search": {
+            "post": {
+                "description": "Search exchange rates in the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SearchExchangeRateRequest",
+                                "summary": "request",
+                                "description": "Search criteria"
+                            }
+                        }
+                    },
+                    "description": "Search criteria",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_ExchangeRateResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Search exchange rates",
+                "tags": [
+                    "Finance Exchange Rates"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/exchange-rates/{id}": {
+            "delete": {
+                "description": "Soft delete an exchange rate by ID",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Exchange Rate ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete exchange rate",
+                "tags": [
+                    "Finance Exchange Rates"
+                ]
+            },
+            "get": {
+                "description": "Retrieve exchange rate detail by ID within the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Exchange Rate ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ExchangeRateResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get exchange rate by ID",
+                "tags": [
+                    "Finance Exchange Rates"
+                ]
+            },
+            "put": {
+                "description": "Update an existing exchange rate by ID",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Exchange Rate ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateExchangeRateRequest",
+                                "summary": "request",
+                                "description": "Exchange rate update payload"
+                            }
+                        }
+                    },
+                    "description": "Exchange rate update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ExchangeRateResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update exchange rate",
+                "tags": [
+                    "Finance Exchange Rates"
+                ]
+            }
+        },
         "/workspaces/{wid}/fin/periods": {
             "post": {
                 "description": "Create a new accounting period entry in the workspace",
@@ -4473,6 +5386,116 @@ const docTemplate = `{
                 "summary": "Reopen period",
                 "tags": [
                     "Finance Periods"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/settings/base-currency": {
+            "put": {
+                "description": "Update workspace base currency setting. Rejected if posted entries exist.",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateBaseCurrencyRequest",
+                                "summary": "request",
+                                "description": "Base currency payload"
+                            }
+                        }
+                    },
+                    "description": "Base currency payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_WorkspaceBaseCurrencyResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update workspace base currency",
+                "tags": [
+                    "Finance Settings"
                 ]
             }
         },

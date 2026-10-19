@@ -2,11 +2,13 @@
 package fin
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/fin/repository"
+	"github.com/kilip/omed/api/internal/fin/seed"
 	"github.com/kilip/omed/api/internal/fin/service"
 	"github.com/kilip/omed/api/internal/platform/authz"
 )
@@ -20,16 +22,25 @@ type Config struct {
 
 // FinModule represents the finance module implementing config.Module.
 type FinModule struct {
-	cfg                Config
-	AccountService     service.AccountService
-	PeriodService      service.PeriodService
-	TransactionService service.TransactionService
-	EntryService       service.EntryService
-	Authorizer         *authz.Authorizer
+	cfg                 Config
+	AccountService      service.AccountService
+	PeriodService       service.PeriodService
+	TransactionService  service.TransactionService
+	EntryService        service.EntryService
+	CurrencyService     service.CurrencyService
+	ExchangeRateService service.ExchangeRateService
+	Authorizer          *authz.Authorizer
 }
 
 // New constructs a new FinModule instance.
 func New(cfg Config) *FinModule {
+	currencyRepo := repository.NewCurrencyRepository(cfg.EntCli)
+	entryRepo := repository.NewEntryRepository(cfg.EntCli)
+	currencySvc := service.NewCurrencyService(currencyRepo, entryRepo)
+
+	rateRepo := repository.NewExchangeRateRepository(cfg.EntCli)
+	rateSvc := service.NewExchangeRateService(rateRepo, currencyRepo)
+
 	accountRepo := repository.NewAccountRepository(cfg.EntCli)
 	accountSvc := service.NewAccountService(accountRepo)
 
@@ -37,17 +48,18 @@ func New(cfg Config) *FinModule {
 	periodSvc := service.NewPeriodService(periodRepo)
 
 	txRepo := repository.NewTransactionRepository(cfg.EntCli)
-	txSvc := service.NewTransactionService(txRepo, periodRepo, accountRepo)
+	txSvc := service.NewTransactionService(txRepo, periodRepo, accountRepo, rateRepo, currencyRepo)
 
-	entryRepo := repository.NewEntryRepository(cfg.EntCli)
-	entrySvc := service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo)
+	entrySvc := service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo, rateRepo, currencyRepo)
 
 	return &FinModule{
-		cfg:                cfg,
-		AccountService:     accountSvc,
-		PeriodService:      periodSvc,
-		TransactionService: txSvc,
-		EntryService:       entrySvc,
+		cfg:                 cfg,
+		AccountService:      accountSvc,
+		PeriodService:       periodSvc,
+		TransactionService:  txSvc,
+		EntryService:        entrySvc,
+		CurrencyService:     currencySvc,
+		ExchangeRateService: rateSvc,
 	}
 }
 
@@ -61,8 +73,11 @@ func (m *FinModule) PreBoot() error {
 	return nil
 }
 
-// Boot registers routes for the finance module.
+// Boot registers routes for the finance module and seeds initial currencies if needed.
 func (m *FinModule) Boot() error {
+	if err := seed.SeedCurrencies(context.Background(), m.cfg.EntCli); err != nil {
+		return err
+	}
 	initRoutes(*m, m.cfg.FiberApp, m.Authorizer)
 	return nil
 }

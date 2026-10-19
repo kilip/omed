@@ -2,6 +2,8 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
@@ -25,9 +27,7 @@ func (Currency) Annotations() []schema.Annotation {
 
 // Mixin of the Currency entity.
 func (Currency) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		AuditMixin{},
-	}
+	return nil
 }
 
 // Fields of the Currency entity.
@@ -38,6 +38,8 @@ func (Currency) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("symbol").NotEmpty(),
 		field.Int("decimals").NonNegative(),
+		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

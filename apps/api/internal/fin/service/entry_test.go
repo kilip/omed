@@ -36,7 +36,9 @@ func (s *EntryServiceSuite) SetupSuite() {
 	s.txRepo = repository.NewTransactionRepository(s.client)
 	s.periodRepo = repository.NewPeriodRepository(s.client)
 	s.accountRepo = repository.NewAccountRepository(s.client)
-	s.svc = service.NewEntryService(entryRepo, s.txRepo, s.periodRepo, s.accountRepo)
+	rateRepo := repository.NewExchangeRateRepository(s.client)
+	currencyRepo := repository.NewCurrencyRepository(s.client)
+	s.svc = service.NewEntryService(entryRepo, s.txRepo, s.periodRepo, s.accountRepo, rateRepo, currencyRepo)
 }
 
 func (s *EntryServiceSuite) TearDownSuite() {

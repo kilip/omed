@@ -14,18 +14,15 @@ import (
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
-	"github.com/kilip/omed/api/ent/user"
 )
 
 // CurrencyQuery is the builder for querying Currency entities.
 type CurrencyQuery struct {
 	config
-	ctx         *QueryContext
-	order       []currency.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.Currency
-	withCreator *UserQuery
-	withUpdater *UserQuery
+	ctx        *QueryContext
+	order      []currency.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Currency
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,56 +57,6 @@ func (_q *CurrencyQuery) Unique(unique bool) *CurrencyQuery {
 func (_q *CurrencyQuery) Order(o ...currency.OrderOption) *CurrencyQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryCreator chains the current query on the "creator" edge.
-func (_q *CurrencyQuery) QueryCreator() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(currency.Table, currency.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, currency.CreatorTable, currency.CreatorColumn),
-		)
-		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.Currency
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryUpdater chains the current query on the "updater" edge.
-func (_q *CurrencyQuery) QueryUpdater() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(currency.Table, currency.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, currency.UpdaterTable, currency.UpdaterColumn),
-		)
-		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.User
-		step.Edge.Schema = schemaConfig.Currency
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first Currency entity from the query.
@@ -299,39 +246,15 @@ func (_q *CurrencyQuery) Clone() *CurrencyQuery {
 		return nil
 	}
 	return &CurrencyQuery{
-		config:      _q.config,
-		ctx:         _q.ctx.Clone(),
-		order:       append([]currency.OrderOption{}, _q.order...),
-		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.Currency{}, _q.predicates...),
-		withCreator: _q.withCreator.Clone(),
-		withUpdater: _q.withUpdater.Clone(),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]currency.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Currency{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithCreator tells the query-builder to eager-load the nodes that are connected to
-// the "creator" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CurrencyQuery) WithCreator(opts ...func(*UserQuery)) *CurrencyQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withCreator = query
-	return _q
-}
-
-// WithUpdater tells the query-builder to eager-load the nodes that are connected to
-// the "updater" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CurrencyQuery) WithUpdater(opts ...func(*UserQuery)) *CurrencyQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withUpdater = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -340,12 +263,12 @@ func (_q *CurrencyQuery) WithUpdater(opts ...func(*UserQuery)) *CurrencyQuery {
 // Example:
 //
 //	var v []struct {
-//		CreatedBy int64 `json:"created_by,omitempty"`
+//		Code string `json:"code,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Currency.Query().
-//		GroupBy(currency.FieldCreatedBy).
+//		GroupBy(currency.FieldCode).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *CurrencyQuery) GroupBy(field string, fields ...string) *CurrencyGroupBy {
@@ -363,11 +286,11 @@ func (_q *CurrencyQuery) GroupBy(field string, fields ...string) *CurrencyGroupB
 // Example:
 //
 //	var v []struct {
-//		CreatedBy int64 `json:"created_by,omitempty"`
+//		Code string `json:"code,omitempty"`
 //	}
 //
 //	client.Currency.Query().
-//		Select(currency.FieldCreatedBy).
+//		Select(currency.FieldCode).
 //		Scan(ctx, &v)
 func (_q *CurrencyQuery) Select(fields ...string) *CurrencySelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -410,12 +333,8 @@ func (_q *CurrencyQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *CurrencyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Currency, error) {
 	var (
-		nodes       = []*Currency{}
-		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withCreator != nil,
-			_q.withUpdater != nil,
-		}
+		nodes = []*Currency{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Currency).scanValues(nil, columns)
@@ -423,7 +342,6 @@ func (_q *CurrencyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cur
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Currency{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	_spec.Node.Schema = _q.schemaConfig.Currency
@@ -437,78 +355,7 @@ func (_q *CurrencyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cur
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withCreator; query != nil {
-		if err := _q.loadCreator(ctx, query, nodes, nil,
-			func(n *Currency, e *User) { n.Edges.Creator = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withUpdater; query != nil {
-		if err := _q.loadUpdater(ctx, query, nodes, nil,
-			func(n *Currency, e *User) { n.Edges.Updater = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *CurrencyQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Currency, init func(*Currency), assign func(*Currency, *User)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*Currency)
-	for i := range nodes {
-		fk := nodes[i].CreatedBy
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *CurrencyQuery) loadUpdater(ctx context.Context, query *UserQuery, nodes []*Currency, init func(*Currency), assign func(*Currency, *User)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*Currency)
-	for i := range nodes {
-		fk := nodes[i].UpdatedBy
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "updated_by" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (_q *CurrencyQuery) sqlCount(ctx context.Context) (int, error) {
@@ -537,12 +384,6 @@ func (_q *CurrencyQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != currency.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withCreator != nil {
-			_spec.Node.AddColumnOnce(currency.FieldCreatedBy)
-		}
-		if _q.withUpdater != nil {
-			_spec.Node.AddColumnOnce(currency.FieldUpdatedBy)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

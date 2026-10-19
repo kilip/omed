@@ -32,7 +32,9 @@ func (s *TransactionServiceSuite) SetupSuite() {
 	txRepo := repository.NewTransactionRepository(s.client)
 	periodRepo := repository.NewPeriodRepository(s.client)
 	accountRepo := repository.NewAccountRepository(s.client)
-	s.svc = service.NewTransactionService(txRepo, periodRepo, accountRepo)
+	rateRepo := repository.NewExchangeRateRepository(s.client)
+	currencyRepo := repository.NewCurrencyRepository(s.client)
+	s.svc = service.NewTransactionService(txRepo, periodRepo, accountRepo, rateRepo, currencyRepo)
 	s.entryRepo = repository.NewEntryRepository(s.client)
 }
 

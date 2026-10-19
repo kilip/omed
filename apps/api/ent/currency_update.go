@@ -14,7 +14,6 @@ import (
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
-	"github.com/kilip/omed/api/ent/user"
 )
 
 // CurrencyUpdate is the builder for updating Currency entities.
@@ -27,40 +26,6 @@ type CurrencyUpdate struct {
 // Where appends a list predicates to the CurrencyUpdate builder.
 func (_u *CurrencyUpdate) Where(ps ...predicate.Currency) *CurrencyUpdate {
 	_u.mutation.Where(ps...)
-	return _u
-}
-
-// SetCreatedBy sets the "created_by" field.
-func (_u *CurrencyUpdate) SetCreatedBy(v int64) *CurrencyUpdate {
-	_u.mutation.SetCreatedBy(v)
-	return _u
-}
-
-// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
-func (_u *CurrencyUpdate) SetNillableCreatedBy(v *int64) *CurrencyUpdate {
-	if v != nil {
-		_u.SetCreatedBy(*v)
-	}
-	return _u
-}
-
-// SetUpdatedBy sets the "updated_by" field.
-func (_u *CurrencyUpdate) SetUpdatedBy(v int64) *CurrencyUpdate {
-	_u.mutation.SetUpdatedBy(v)
-	return _u
-}
-
-// SetNillableUpdatedBy sets the "updated_by" field if the given value is not nil.
-func (_u *CurrencyUpdate) SetNillableUpdatedBy(v *int64) *CurrencyUpdate {
-	if v != nil {
-		_u.SetUpdatedBy(*v)
-	}
-	return _u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (_u *CurrencyUpdate) SetUpdatedAt(v time.Time) *CurrencyUpdate {
-	_u.mutation.SetUpdatedAt(v)
 	return _u
 }
 
@@ -127,43 +92,15 @@ func (_u *CurrencyUpdate) AddDecimals(v int) *CurrencyUpdate {
 	return _u
 }
 
-// SetCreatorID sets the "creator" edge to the User entity by ID.
-func (_u *CurrencyUpdate) SetCreatorID(id int64) *CurrencyUpdate {
-	_u.mutation.SetCreatorID(id)
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *CurrencyUpdate) SetUpdatedAt(v time.Time) *CurrencyUpdate {
+	_u.mutation.SetUpdatedAt(v)
 	return _u
-}
-
-// SetCreator sets the "creator" edge to the User entity.
-func (_u *CurrencyUpdate) SetCreator(v *User) *CurrencyUpdate {
-	return _u.SetCreatorID(v.ID)
-}
-
-// SetUpdaterID sets the "updater" edge to the User entity by ID.
-func (_u *CurrencyUpdate) SetUpdaterID(id int64) *CurrencyUpdate {
-	_u.mutation.SetUpdaterID(id)
-	return _u
-}
-
-// SetUpdater sets the "updater" edge to the User entity.
-func (_u *CurrencyUpdate) SetUpdater(v *User) *CurrencyUpdate {
-	return _u.SetUpdaterID(v.ID)
 }
 
 // Mutation returns the CurrencyMutation object of the builder.
 func (_u *CurrencyUpdate) Mutation() *CurrencyMutation {
 	return _u.mutation
-}
-
-// ClearCreator clears the "creator" edge to the User entity.
-func (_u *CurrencyUpdate) ClearCreator() *CurrencyUpdate {
-	_u.mutation.ClearCreator()
-	return _u
-}
-
-// ClearUpdater clears the "updater" edge to the User entity.
-func (_u *CurrencyUpdate) ClearUpdater() *CurrencyUpdate {
-	_u.mutation.ClearUpdater()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -224,12 +161,6 @@ func (_u *CurrencyUpdate) check() error {
 			return &ValidationError{Name: "decimals", err: fmt.Errorf(`ent: validator failed for field "Currency.decimals": %w`, err)}
 		}
 	}
-	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Currency.creator"`)
-	}
-	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Currency.updater"`)
-	}
 	return nil
 }
 
@@ -244,9 +175,6 @@ func (_u *CurrencyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(currency.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(currency.FieldCode, field.TypeString, value)
@@ -263,67 +191,8 @@ func (_u *CurrencyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedDecimals(); ok {
 		_spec.AddField(currency.FieldDecimals, field.TypeInt, value)
 	}
-	if _u.mutation.CreatorCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.CreatorTable,
-			Columns: []string{currency.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Currency
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CreatorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.CreatorTable,
-			Columns: []string{currency.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Currency
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.UpdaterCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.UpdaterTable,
-			Columns: []string{currency.UpdaterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Currency
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UpdaterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.UpdaterTable,
-			Columns: []string{currency.UpdaterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Currency
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(currency.FieldUpdatedAt, field.TypeTime, value)
 	}
 	_spec.Node.Schema = _u.schemaConfig.Currency
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
@@ -345,40 +214,6 @@ type CurrencyUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *CurrencyMutation
-}
-
-// SetCreatedBy sets the "created_by" field.
-func (_u *CurrencyUpdateOne) SetCreatedBy(v int64) *CurrencyUpdateOne {
-	_u.mutation.SetCreatedBy(v)
-	return _u
-}
-
-// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
-func (_u *CurrencyUpdateOne) SetNillableCreatedBy(v *int64) *CurrencyUpdateOne {
-	if v != nil {
-		_u.SetCreatedBy(*v)
-	}
-	return _u
-}
-
-// SetUpdatedBy sets the "updated_by" field.
-func (_u *CurrencyUpdateOne) SetUpdatedBy(v int64) *CurrencyUpdateOne {
-	_u.mutation.SetUpdatedBy(v)
-	return _u
-}
-
-// SetNillableUpdatedBy sets the "updated_by" field if the given value is not nil.
-func (_u *CurrencyUpdateOne) SetNillableUpdatedBy(v *int64) *CurrencyUpdateOne {
-	if v != nil {
-		_u.SetUpdatedBy(*v)
-	}
-	return _u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (_u *CurrencyUpdateOne) SetUpdatedAt(v time.Time) *CurrencyUpdateOne {
-	_u.mutation.SetUpdatedAt(v)
-	return _u
 }
 
 // SetCode sets the "code" field.
@@ -444,43 +279,15 @@ func (_u *CurrencyUpdateOne) AddDecimals(v int) *CurrencyUpdateOne {
 	return _u
 }
 
-// SetCreatorID sets the "creator" edge to the User entity by ID.
-func (_u *CurrencyUpdateOne) SetCreatorID(id int64) *CurrencyUpdateOne {
-	_u.mutation.SetCreatorID(id)
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *CurrencyUpdateOne) SetUpdatedAt(v time.Time) *CurrencyUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
 	return _u
-}
-
-// SetCreator sets the "creator" edge to the User entity.
-func (_u *CurrencyUpdateOne) SetCreator(v *User) *CurrencyUpdateOne {
-	return _u.SetCreatorID(v.ID)
-}
-
-// SetUpdaterID sets the "updater" edge to the User entity by ID.
-func (_u *CurrencyUpdateOne) SetUpdaterID(id int64) *CurrencyUpdateOne {
-	_u.mutation.SetUpdaterID(id)
-	return _u
-}
-
-// SetUpdater sets the "updater" edge to the User entity.
-func (_u *CurrencyUpdateOne) SetUpdater(v *User) *CurrencyUpdateOne {
-	return _u.SetUpdaterID(v.ID)
 }
 
 // Mutation returns the CurrencyMutation object of the builder.
 func (_u *CurrencyUpdateOne) Mutation() *CurrencyMutation {
 	return _u.mutation
-}
-
-// ClearCreator clears the "creator" edge to the User entity.
-func (_u *CurrencyUpdateOne) ClearCreator() *CurrencyUpdateOne {
-	_u.mutation.ClearCreator()
-	return _u
-}
-
-// ClearUpdater clears the "updater" edge to the User entity.
-func (_u *CurrencyUpdateOne) ClearUpdater() *CurrencyUpdateOne {
-	_u.mutation.ClearUpdater()
-	return _u
 }
 
 // Where appends a list predicates to the CurrencyUpdate builder.
@@ -554,12 +361,6 @@ func (_u *CurrencyUpdateOne) check() error {
 			return &ValidationError{Name: "decimals", err: fmt.Errorf(`ent: validator failed for field "Currency.decimals": %w`, err)}
 		}
 	}
-	if _u.mutation.CreatorCleared() && len(_u.mutation.CreatorIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Currency.creator"`)
-	}
-	if _u.mutation.UpdaterCleared() && len(_u.mutation.UpdaterIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Currency.updater"`)
-	}
 	return nil
 }
 
@@ -592,9 +393,6 @@ func (_u *CurrencyUpdateOne) sqlSave(ctx context.Context) (_node *Currency, err 
 			}
 		}
 	}
-	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(currency.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(currency.FieldCode, field.TypeString, value)
 	}
@@ -610,67 +408,8 @@ func (_u *CurrencyUpdateOne) sqlSave(ctx context.Context) (_node *Currency, err 
 	if value, ok := _u.mutation.AddedDecimals(); ok {
 		_spec.AddField(currency.FieldDecimals, field.TypeInt, value)
 	}
-	if _u.mutation.CreatorCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.CreatorTable,
-			Columns: []string{currency.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Currency
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CreatorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.CreatorTable,
-			Columns: []string{currency.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Currency
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.UpdaterCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.UpdaterTable,
-			Columns: []string{currency.UpdaterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Currency
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UpdaterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.UpdaterTable,
-			Columns: []string{currency.UpdaterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _u.schemaConfig.Currency
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(currency.FieldUpdatedAt, field.TypeTime, value)
 	}
 	_spec.Node.Schema = _u.schemaConfig.Currency
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)

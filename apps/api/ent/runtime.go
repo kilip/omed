@@ -74,21 +74,8 @@ func init() {
 	accountDescIsPostable := accountFields[9].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
-	currencyMixin := schema.Currency{}.Mixin()
-	currencyMixinFields0 := currencyMixin[0].Fields()
-	_ = currencyMixinFields0
 	currencyFields := schema.Currency{}.Fields()
 	_ = currencyFields
-	// currencyDescCreatedAt is the schema descriptor for created_at field.
-	currencyDescCreatedAt := currencyMixinFields0[2].Descriptor()
-	// currency.DefaultCreatedAt holds the default value on creation for the created_at field.
-	currency.DefaultCreatedAt = currencyDescCreatedAt.Default.(func() time.Time)
-	// currencyDescUpdatedAt is the schema descriptor for updated_at field.
-	currencyDescUpdatedAt := currencyMixinFields0[3].Descriptor()
-	// currency.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	currency.DefaultUpdatedAt = currencyDescUpdatedAt.Default.(func() time.Time)
-	// currency.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	currency.UpdateDefaultUpdatedAt = currencyDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// currencyDescCode is the schema descriptor for code field.
 	currencyDescCode := currencyFields[1].Descriptor()
 	// currency.CodeValidator is a validator for the "code" field. It is called by the builders before save.
@@ -120,6 +107,16 @@ func init() {
 	currencyDescDecimals := currencyFields[4].Descriptor()
 	// currency.DecimalsValidator is a validator for the "decimals" field. It is called by the builders before save.
 	currency.DecimalsValidator = currencyDescDecimals.Validators[0].(func(int) error)
+	// currencyDescCreatedAt is the schema descriptor for created_at field.
+	currencyDescCreatedAt := currencyFields[5].Descriptor()
+	// currency.DefaultCreatedAt holds the default value on creation for the created_at field.
+	currency.DefaultCreatedAt = currencyDescCreatedAt.Default.(func() time.Time)
+	// currencyDescUpdatedAt is the schema descriptor for updated_at field.
+	currencyDescUpdatedAt := currencyFields[6].Descriptor()
+	// currency.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	currency.DefaultUpdatedAt = currencyDescUpdatedAt.Default.(func() time.Time)
+	// currency.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	currency.UpdateDefaultUpdatedAt = currencyDescUpdatedAt.UpdateDefault.(func() time.Time)
 	entryMixin := schema.Entry{}.Mixin()
 	entryMixinFields1 := entryMixin[1].Fields()
 	_ = entryMixinFields1

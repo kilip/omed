@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent/currency"
-	"github.com/kilip/omed/api/ent/user"
 )
 
 // Currency is the model entity for the Currency schema.
@@ -18,14 +17,6 @@ type Currency struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
-	// CreatedBy holds the value of the "created_by" field.
-	CreatedBy int64 `json:"created_by,omitempty"`
-	// UpdatedBy holds the value of the "updated_by" field.
-	UpdatedBy int64 `json:"updated_by,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
 	// Name holds the value of the "name" field.
@@ -34,43 +25,11 @@ type Currency struct {
 	Symbol string `json:"symbol,omitempty"`
 	// Decimals holds the value of the "decimals" field.
 	Decimals int `json:"decimals,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the CurrencyQuery when eager-loading is set.
-	Edges        CurrencyEdges `json:"edges"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// CurrencyEdges holds the relations/edges for other nodes in the graph.
-type CurrencyEdges struct {
-	// Creator holds the value of the creator edge.
-	Creator *User `json:"creator,omitempty"`
-	// Updater holds the value of the updater edge.
-	Updater *User `json:"updater,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
-}
-
-// CreatorOrErr returns the Creator value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CurrencyEdges) CreatorOrErr() (*User, error) {
-	if e.Creator != nil {
-		return e.Creator, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "creator"}
-}
-
-// UpdaterOrErr returns the Updater value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CurrencyEdges) UpdaterOrErr() (*User, error) {
-	if e.Updater != nil {
-		return e.Updater, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "updater"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -78,7 +37,7 @@ func (*Currency) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case currency.FieldID, currency.FieldCreatedBy, currency.FieldUpdatedBy, currency.FieldDecimals:
+		case currency.FieldID, currency.FieldDecimals:
 			values[i] = new(sql.NullInt64)
 		case currency.FieldCode, currency.FieldName, currency.FieldSymbol:
 			values[i] = new(sql.NullString)
@@ -105,30 +64,6 @@ func (_m *Currency) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int64(value.Int64)
-		case currency.FieldCreatedBy:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field created_by", values[i])
-			} else if value.Valid {
-				_m.CreatedBy = value.Int64
-			}
-		case currency.FieldUpdatedBy:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_by", values[i])
-			} else if value.Valid {
-				_m.UpdatedBy = value.Int64
-			}
-		case currency.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				_m.CreatedAt = value.Time
-			}
-		case currency.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				_m.UpdatedAt = value.Time
-			}
 		case currency.FieldCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
@@ -153,6 +88,18 @@ func (_m *Currency) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Decimals = int(value.Int64)
 			}
+		case currency.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				_m.CreatedAt = value.Time
+			}
+		case currency.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				_m.UpdatedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -164,16 +111,6 @@ func (_m *Currency) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Currency) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryCreator queries the "creator" edge of the Currency entity.
-func (_m *Currency) QueryCreator() *UserQuery {
-	return NewCurrencyClient(_m.config).QueryCreator(_m)
-}
-
-// QueryUpdater queries the "updater" edge of the Currency entity.
-func (_m *Currency) QueryUpdater() *UserQuery {
-	return NewCurrencyClient(_m.config).QueryUpdater(_m)
 }
 
 // Update returns a builder for updating this Currency.
@@ -199,18 +136,6 @@ func (_m *Currency) String() string {
 	var builder strings.Builder
 	builder.WriteString("Currency(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("created_by=")
-	builder.WriteString(fmt.Sprintf("%v", _m.CreatedBy))
-	builder.WriteString(", ")
-	builder.WriteString("updated_by=")
-	builder.WriteString(fmt.Sprintf("%v", _m.UpdatedBy))
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(_m.Code)
 	builder.WriteString(", ")
@@ -222,6 +147,12 @@ func (_m *Currency) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("decimals=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Decimals))
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

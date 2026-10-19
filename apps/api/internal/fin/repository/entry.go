@@ -601,6 +601,17 @@ func toEntryDomain(e *ent.Entry) domain.Entry {
 	return dom
 }
 
+// HasPostedEntries checks whether the specified workspace has any journal entries with POSTED status.
+func (r EntryRepository) HasPostedEntries(c context.Context, workspaceID int64) (bool, error) {
+	return r.cli.Entry.Query().
+		Where(
+			entry.WorkspaceIDEQ(workspaceID),
+			entry.StatusEQ(entry.StatusPOSTED),
+			entry.DeletedAtIsNil(),
+		).
+		Exist(c)
+}
+
 func toPostingDomain(p *ent.Posting) domain.Posting {
 	dom := domain.Posting{
 		ID:          p.ID,

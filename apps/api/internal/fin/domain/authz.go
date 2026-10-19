@@ -12,6 +12,10 @@ const (
 	ObjTransaction = "fin:transaction"
 	// ObjEntry is the permission object for Journal Entry management.
 	ObjEntry = "fin:entry"
+	// ObjExchangeRate is the permission object for Exchange Rate management.
+	ObjExchangeRate = "fin:exchange_rate"
+	// ObjCurrency is the permission object for Currency reference and settings.
+	ObjCurrency = "fin:currency"
 )
 
 // Built-in fin role IDs assignable per workspace.
@@ -34,6 +38,8 @@ func init() {
 			{Object: ObjPeriod, Action: "read"},
 			{Object: ObjTransaction, Action: "read"},
 			{Object: ObjEntry, Action: "read"},
+			{Object: ObjExchangeRate, Action: "read"},
+			{Object: ObjCurrency, Action: "read"},
 		},
 	})
 	authz.AddRole(authz.Role{
@@ -52,6 +58,10 @@ func init() {
 			{Object: ObjEntry, Action: "create"},
 			{Object: ObjEntry, Action: "update"},
 			{Object: ObjEntry, Action: "delete"},
+			{Object: ObjExchangeRate, Action: "create"},
+			{Object: ObjExchangeRate, Action: "update"},
+			{Object: ObjExchangeRate, Action: "delete"},
+			{Object: ObjCurrency, Action: "update"},
 		},
 	})
 	authz.AddRole(authz.Role{

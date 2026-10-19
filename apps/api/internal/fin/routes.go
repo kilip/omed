@@ -50,4 +50,20 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	entries.Post("/:id/post", az.Require(domain.ObjEntry, "update"), entryCtl.Post)
 	entries.Post("/:id/reverse", az.Require(domain.ObjEntry, "create"), entryCtl.Reverse)
 	entries.Post("/:id/void", az.Require(domain.ObjEntry, "delete"), entryCtl.Void)
+
+	currencyCtl := controller.NewCurrencyController(mod.CurrencyService)
+	currencies := r.Group("/workspaces/:wid/fin/currencies")
+	currencies.Get("/", az.Require(domain.ObjCurrency, "read"), currencyCtl.List)
+
+	settings := r.Group("/workspaces/:wid/fin/settings")
+	settings.Put("/base-currency", az.Require(domain.ObjCurrency, "update"), currencyCtl.UpdateBaseCurrency)
+
+	exchangeRates := r.Group("/workspaces/:wid/fin/exchange-rates")
+	rateCtl := controller.NewExchangeRateController(mod.ExchangeRateService)
+	exchangeRates.Post("/search", az.Require(domain.ObjExchangeRate, "read"), rateCtl.Search)
+	exchangeRates.Post("/", az.Require(domain.ObjExchangeRate, "create"), rateCtl.Create)
+	exchangeRates.Get("/lookup", az.Require(domain.ObjExchangeRate, "read"), rateCtl.Lookup)
+	exchangeRates.Get("/:id", az.Require(domain.ObjExchangeRate, "read"), rateCtl.GetByID)
+	exchangeRates.Put("/:id", az.Require(domain.ObjExchangeRate, "update"), rateCtl.Update)
+	exchangeRates.Delete("/:id", az.Require(domain.ObjExchangeRate, "delete"), rateCtl.Delete)
 }

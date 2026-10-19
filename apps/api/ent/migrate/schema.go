@@ -95,39 +95,23 @@ var (
 	// CurrenciesColumns holds the columns for the "currencies" table.
 	CurrenciesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString, Unique: true, Size: 3},
 		{Name: "name", Type: field.TypeString},
 		{Name: "symbol", Type: field.TypeString},
 		{Name: "decimals", Type: field.TypeInt},
-		{Name: "created_by", Type: field.TypeInt64},
-		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 	}
 	// CurrenciesTable holds the schema information for the "currencies" table.
 	CurrenciesTable = &schema.Table{
 		Name:       "currencies",
 		Columns:    CurrenciesColumns,
 		PrimaryKey: []*schema.Column{CurrenciesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "currencies_users_creator",
-				Columns:    []*schema.Column{CurrenciesColumns[7]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "currencies_users_updater",
-				Columns:    []*schema.Column{CurrenciesColumns[8]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "currency_code",
 				Unique:  true,
-				Columns: []*schema.Column{CurrenciesColumns[3]},
+				Columns: []*schema.Column{CurrenciesColumns[1]},
 			},
 		},
 	}
@@ -807,8 +791,6 @@ func init() {
 	AccountsTable.ForeignKeys[2].RefTable = UsersTable
 	AccountsTable.ForeignKeys[3].RefTable = UsersTable
 	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
-	CurrenciesTable.ForeignKeys[0].RefTable = UsersTable
-	CurrenciesTable.ForeignKeys[1].RefTable = UsersTable
 	EntriesTable.ForeignKeys[0].RefTable = WorkspacesTable
 	EntriesTable.ForeignKeys[1].RefTable = UsersTable
 	EntriesTable.ForeignKeys[2].RefTable = UsersTable

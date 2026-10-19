@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/kilip/omed/api/ent/currency"
-	"github.com/kilip/omed/api/ent/user"
 )
 
 // CurrencyCreate is the builder for creating a Currency entity.
@@ -23,15 +22,27 @@ type CurrencyCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetCreatedBy sets the "created_by" field.
-func (_c *CurrencyCreate) SetCreatedBy(v int64) *CurrencyCreate {
-	_c.mutation.SetCreatedBy(v)
+// SetCode sets the "code" field.
+func (_c *CurrencyCreate) SetCode(v string) *CurrencyCreate {
+	_c.mutation.SetCode(v)
 	return _c
 }
 
-// SetUpdatedBy sets the "updated_by" field.
-func (_c *CurrencyCreate) SetUpdatedBy(v int64) *CurrencyCreate {
-	_c.mutation.SetUpdatedBy(v)
+// SetName sets the "name" field.
+func (_c *CurrencyCreate) SetName(v string) *CurrencyCreate {
+	_c.mutation.SetName(v)
+	return _c
+}
+
+// SetSymbol sets the "symbol" field.
+func (_c *CurrencyCreate) SetSymbol(v string) *CurrencyCreate {
+	_c.mutation.SetSymbol(v)
+	return _c
+}
+
+// SetDecimals sets the "decimals" field.
+func (_c *CurrencyCreate) SetDecimals(v int) *CurrencyCreate {
+	_c.mutation.SetDecimals(v)
 	return _c
 }
 
@@ -63,56 +74,10 @@ func (_c *CurrencyCreate) SetNillableUpdatedAt(v *time.Time) *CurrencyCreate {
 	return _c
 }
 
-// SetCode sets the "code" field.
-func (_c *CurrencyCreate) SetCode(v string) *CurrencyCreate {
-	_c.mutation.SetCode(v)
-	return _c
-}
-
-// SetName sets the "name" field.
-func (_c *CurrencyCreate) SetName(v string) *CurrencyCreate {
-	_c.mutation.SetName(v)
-	return _c
-}
-
-// SetSymbol sets the "symbol" field.
-func (_c *CurrencyCreate) SetSymbol(v string) *CurrencyCreate {
-	_c.mutation.SetSymbol(v)
-	return _c
-}
-
-// SetDecimals sets the "decimals" field.
-func (_c *CurrencyCreate) SetDecimals(v int) *CurrencyCreate {
-	_c.mutation.SetDecimals(v)
-	return _c
-}
-
 // SetID sets the "id" field.
 func (_c *CurrencyCreate) SetID(v int64) *CurrencyCreate {
 	_c.mutation.SetID(v)
 	return _c
-}
-
-// SetCreatorID sets the "creator" edge to the User entity by ID.
-func (_c *CurrencyCreate) SetCreatorID(id int64) *CurrencyCreate {
-	_c.mutation.SetCreatorID(id)
-	return _c
-}
-
-// SetCreator sets the "creator" edge to the User entity.
-func (_c *CurrencyCreate) SetCreator(v *User) *CurrencyCreate {
-	return _c.SetCreatorID(v.ID)
-}
-
-// SetUpdaterID sets the "updater" edge to the User entity by ID.
-func (_c *CurrencyCreate) SetUpdaterID(id int64) *CurrencyCreate {
-	_c.mutation.SetUpdaterID(id)
-	return _c
-}
-
-// SetUpdater sets the "updater" edge to the User entity.
-func (_c *CurrencyCreate) SetUpdater(v *User) *CurrencyCreate {
-	return _c.SetUpdaterID(v.ID)
 }
 
 // Mutation returns the CurrencyMutation object of the builder.
@@ -162,18 +127,6 @@ func (_c *CurrencyCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *CurrencyCreate) check() error {
-	if _, ok := _c.mutation.CreatedBy(); !ok {
-		return &ValidationError{Name: "created_by", err: errors.New(`ent: missing required field "Currency.created_by"`)}
-	}
-	if _, ok := _c.mutation.UpdatedBy(); !ok {
-		return &ValidationError{Name: "updated_by", err: errors.New(`ent: missing required field "Currency.updated_by"`)}
-	}
-	if _, ok := _c.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Currency.created_at"`)}
-	}
-	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Currency.updated_at"`)}
-	}
 	if _, ok := _c.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "Currency.code"`)}
 	}
@@ -206,11 +159,11 @@ func (_c *CurrencyCreate) check() error {
 			return &ValidationError{Name: "decimals", err: fmt.Errorf(`ent: validator failed for field "Currency.decimals": %w`, err)}
 		}
 	}
-	if len(_c.mutation.CreatorIDs()) == 0 {
-		return &ValidationError{Name: "creator", err: errors.New(`ent: missing required edge "Currency.creator"`)}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Currency.created_at"`)}
 	}
-	if len(_c.mutation.UpdaterIDs()) == 0 {
-		return &ValidationError{Name: "updater", err: errors.New(`ent: missing required edge "Currency.updater"`)}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Currency.updated_at"`)}
 	}
 	return nil
 }
@@ -246,14 +199,6 @@ func (_c *CurrencyCreate) createSpec() (*Currency, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := _c.mutation.CreatedAt(); ok {
-		_spec.SetField(currency.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := _c.mutation.UpdatedAt(); ok {
-		_spec.SetField(currency.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
-	}
 	if value, ok := _c.mutation.Code(); ok {
 		_spec.SetField(currency.FieldCode, field.TypeString, value)
 		_node.Code = value
@@ -270,41 +215,13 @@ func (_c *CurrencyCreate) createSpec() (*Currency, *sqlgraph.CreateSpec) {
 		_spec.SetField(currency.FieldDecimals, field.TypeInt, value)
 		_node.Decimals = value
 	}
-	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.CreatorTable,
-			Columns: []string{currency.CreatorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _c.schemaConfig.Currency
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.CreatedBy = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(currency.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
 	}
-	if nodes := _c.mutation.UpdaterIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   currency.UpdaterTable,
-			Columns: []string{currency.UpdaterColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
-			},
-		}
-		edge.Schema = _c.schemaConfig.Currency
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.UpdatedBy = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
+	if value, ok := _c.mutation.UpdatedAt(); ok {
+		_spec.SetField(currency.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	return _node, _spec
 }
@@ -313,7 +230,7 @@ func (_c *CurrencyCreate) createSpec() (*Currency, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Currency.Create().
-//		SetCreatedBy(v).
+//		SetCode(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -322,7 +239,7 @@ func (_c *CurrencyCreate) createSpec() (*Currency, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.CurrencyUpsert) {
-//			SetCreatedBy(v+v).
+//			SetCode(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *CurrencyCreate) OnConflict(opts ...sql.ConflictOption) *CurrencyUpsertOne {
@@ -357,42 +274,6 @@ type (
 		*sql.UpdateSet
 	}
 )
-
-// SetCreatedBy sets the "created_by" field.
-func (u *CurrencyUpsert) SetCreatedBy(v int64) *CurrencyUpsert {
-	u.Set(currency.FieldCreatedBy, v)
-	return u
-}
-
-// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
-func (u *CurrencyUpsert) UpdateCreatedBy() *CurrencyUpsert {
-	u.SetExcluded(currency.FieldCreatedBy)
-	return u
-}
-
-// SetUpdatedBy sets the "updated_by" field.
-func (u *CurrencyUpsert) SetUpdatedBy(v int64) *CurrencyUpsert {
-	u.Set(currency.FieldUpdatedBy, v)
-	return u
-}
-
-// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
-func (u *CurrencyUpsert) UpdateUpdatedBy() *CurrencyUpsert {
-	u.SetExcluded(currency.FieldUpdatedBy)
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *CurrencyUpsert) SetUpdatedAt(v time.Time) *CurrencyUpsert {
-	u.Set(currency.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *CurrencyUpsert) UpdateUpdatedAt() *CurrencyUpsert {
-	u.SetExcluded(currency.FieldUpdatedAt)
-	return u
-}
 
 // SetCode sets the "code" field.
 func (u *CurrencyUpsert) SetCode(v string) *CurrencyUpsert {
@@ -448,6 +329,18 @@ func (u *CurrencyUpsert) AddDecimals(v int) *CurrencyUpsert {
 	return u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CurrencyUpsert) SetUpdatedAt(v time.Time) *CurrencyUpsert {
+	u.Set(currency.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CurrencyUpsert) UpdateUpdatedAt() *CurrencyUpsert {
+	u.SetExcluded(currency.FieldUpdatedAt)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -497,48 +390,6 @@ func (u *CurrencyUpsertOne) Update(set func(*CurrencyUpsert)) *CurrencyUpsertOne
 		set(&CurrencyUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetCreatedBy sets the "created_by" field.
-func (u *CurrencyUpsertOne) SetCreatedBy(v int64) *CurrencyUpsertOne {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.SetCreatedBy(v)
-	})
-}
-
-// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
-func (u *CurrencyUpsertOne) UpdateCreatedBy() *CurrencyUpsertOne {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.UpdateCreatedBy()
-	})
-}
-
-// SetUpdatedBy sets the "updated_by" field.
-func (u *CurrencyUpsertOne) SetUpdatedBy(v int64) *CurrencyUpsertOne {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.SetUpdatedBy(v)
-	})
-}
-
-// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
-func (u *CurrencyUpsertOne) UpdateUpdatedBy() *CurrencyUpsertOne {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.UpdateUpdatedBy()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *CurrencyUpsertOne) SetUpdatedAt(v time.Time) *CurrencyUpsertOne {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *CurrencyUpsertOne) UpdateUpdatedAt() *CurrencyUpsertOne {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.UpdateUpdatedAt()
-	})
 }
 
 // SetCode sets the "code" field.
@@ -601,6 +452,20 @@ func (u *CurrencyUpsertOne) AddDecimals(v int) *CurrencyUpsertOne {
 func (u *CurrencyUpsertOne) UpdateDecimals() *CurrencyUpsertOne {
 	return u.Update(func(s *CurrencyUpsert) {
 		s.UpdateDecimals()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CurrencyUpsertOne) SetUpdatedAt(v time.Time) *CurrencyUpsertOne {
+	return u.Update(func(s *CurrencyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CurrencyUpsertOne) UpdateUpdatedAt() *CurrencyUpsertOne {
+	return u.Update(func(s *CurrencyUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 
@@ -739,7 +604,7 @@ func (_c *CurrencyCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.CurrencyUpsert) {
-//			SetCreatedBy(v+v).
+//			SetCode(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *CurrencyCreateBulk) OnConflict(opts ...sql.ConflictOption) *CurrencyUpsertBulk {
@@ -821,48 +686,6 @@ func (u *CurrencyUpsertBulk) Update(set func(*CurrencyUpsert)) *CurrencyUpsertBu
 	return u
 }
 
-// SetCreatedBy sets the "created_by" field.
-func (u *CurrencyUpsertBulk) SetCreatedBy(v int64) *CurrencyUpsertBulk {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.SetCreatedBy(v)
-	})
-}
-
-// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
-func (u *CurrencyUpsertBulk) UpdateCreatedBy() *CurrencyUpsertBulk {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.UpdateCreatedBy()
-	})
-}
-
-// SetUpdatedBy sets the "updated_by" field.
-func (u *CurrencyUpsertBulk) SetUpdatedBy(v int64) *CurrencyUpsertBulk {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.SetUpdatedBy(v)
-	})
-}
-
-// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
-func (u *CurrencyUpsertBulk) UpdateUpdatedBy() *CurrencyUpsertBulk {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.UpdateUpdatedBy()
-	})
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *CurrencyUpsertBulk) SetUpdatedAt(v time.Time) *CurrencyUpsertBulk {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *CurrencyUpsertBulk) UpdateUpdatedAt() *CurrencyUpsertBulk {
-	return u.Update(func(s *CurrencyUpsert) {
-		s.UpdateUpdatedAt()
-	})
-}
-
 // SetCode sets the "code" field.
 func (u *CurrencyUpsertBulk) SetCode(v string) *CurrencyUpsertBulk {
 	return u.Update(func(s *CurrencyUpsert) {
@@ -923,6 +746,20 @@ func (u *CurrencyUpsertBulk) AddDecimals(v int) *CurrencyUpsertBulk {
 func (u *CurrencyUpsertBulk) UpdateDecimals() *CurrencyUpsertBulk {
 	return u.Update(func(s *CurrencyUpsert) {
 		s.UpdateDecimals()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CurrencyUpsertBulk) SetUpdatedAt(v time.Time) *CurrencyUpsertBulk {
+	return u.Update(func(s *CurrencyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CurrencyUpsertBulk) UpdateUpdatedAt() *CurrencyUpsertBulk {
+	return u.Update(func(s *CurrencyUpsert) {
+		s.UpdateUpdatedAt()
 	})
 }
 

@@ -4,13 +4,13 @@ package service
 import (
 	"context"
 	"errors"
-	"math"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
+	"github.com/kilip/omed/api/internal/platform/money"
 )
 
 // EntryRepository defines persistence operations for journal entries and postings.
@@ -25,14 +25,17 @@ type EntryRepository interface {
 	Void(c context.Context, id int64) (domain.Entry, error)
 	GetAccountLedger(c context.Context, accountID int64, page int, limit int) ([]domain.Posting, int64, error)
 	GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (float64, float64, error)
+	HasPostedEntries(c context.Context, workspaceID int64) (bool, error)
 }
 
 // EntryService manages business logic and double-entry validation for Journal Entries.
 type EntryService struct {
-	entryRepo   EntryRepository
-	txRepo      TransactionRepository
-	periodRepo  PeriodRepository
-	accountRepo AccountRepository
+	entryRepo    EntryRepository
+	txRepo       TransactionRepository
+	periodRepo   PeriodRepository
+	accountRepo  AccountRepository
+	rateRepo     ExchangeRateRepository
+	currencyRepo CurrencyRepository
 }
 
 // NewEntryService constructs a new EntryService backed by the given repositories.
@@ -41,18 +44,48 @@ func NewEntryService(
 	txRepo TransactionRepository,
 	periodRepo PeriodRepository,
 	accountRepo AccountRepository,
+	rateRepo ExchangeRateRepository,
+	currencyRepo CurrencyRepository,
 ) EntryService {
 	return EntryService{
-		entryRepo:   entryRepo,
-		txRepo:      txRepo,
-		periodRepo:  periodRepo,
-		accountRepo: accountRepo,
+		entryRepo:    entryRepo,
+		txRepo:       txRepo,
+		periodRepo:   periodRepo,
+		accountRepo:  accountRepo,
+		rateRepo:     rateRepo,
+		currencyRepo: currencyRepo,
 	}
 }
 
 // GetByID retrieves a journal entry by ID.
 func (s EntryService) GetByID(c context.Context, id int64) (domain.Entry, error) {
 	return s.entryRepo.GetByID(c, id)
+}
+
+func (s EntryService) resolveRate(c context.Context, tx domain.Transaction) (float64, error) {
+	if tx.ExchangeRate > 0 {
+		return tx.ExchangeRate, nil
+	}
+	curr := tx.Currency
+	if curr == "" {
+		curr = "IDR"
+	}
+	baseCurrency := "IDR"
+	if s.currencyRepo != nil {
+		wsID := base.WorkspaceIDFromContext(c)
+		if wsID > 0 {
+			if bc, err := s.currencyRepo.GetBaseCurrency(c, wsID); err == nil && bc != "" {
+				baseCurrency = bc
+			}
+		}
+	}
+	if curr == baseCurrency {
+		return 1.0, nil
+	}
+	if s.rateRepo == nil {
+		return 1.0, nil
+	}
+	return s.rateRepo.Lookup(c, curr, baseCurrency, tx.TransactionDate)
 }
 
 // Create validates and creates a new draft journal entry within a transaction.
@@ -66,9 +99,9 @@ func (s EntryService) Create(c context.Context, txID int64, req model.CreateEntr
 	if curr == "" {
 		curr = "IDR"
 	}
-	rate := tx.ExchangeRate
-	if rate <= 0 {
-		rate = 1.0
+	rate, err := s.resolveRate(c, tx)
+	if err != nil {
+		return domain.Entry{}, err
 	}
 
 	if err := validateEntry(
@@ -106,9 +139,9 @@ func (s EntryService) Update(c context.Context, id int64, req model.UpdateEntryR
 	if txCurr == "" {
 		txCurr = "IDR"
 	}
-	rate := tx.ExchangeRate
-	if rate <= 0 {
-		rate = 1.0
+	rate, err := s.resolveRate(c, tx)
+	if err != nil {
+		return domain.Entry{}, err
 	}
 
 	if err := validateEntry(
@@ -164,9 +197,9 @@ func (s EntryService) Post(c context.Context, id int64, postedBy int64) (domain.
 	if txCurr == "" {
 		txCurr = "IDR"
 	}
-	rate := tx.ExchangeRate
-	if rate <= 0 {
-		rate = 1.0
+	rate, err := s.resolveRate(c, tx)
+	if err != nil {
+		return domain.Entry{}, err
 	}
 
 	postings := make([]model.CreatePostingRequest, len(curr.Postings))
@@ -271,6 +304,11 @@ func (s EntryService) GetAccountLedger(c context.Context, accountID int64, page 
 	return postings, total, nil
 }
 
+// HasPostedEntries reports whether any posted journal entries exist in the given workspace.
+func (s EntryService) HasPostedEntries(c context.Context, workspaceID int64) (bool, error) {
+	return s.entryRepo.HasPostedEntries(c, workspaceID)
+}
+
 // validateEntry validates journal entry postings and rules in strict order:
 // 1. Period exists and status OPEN, entry_date within [start_date, end_date]
 // 2. Minimal 2 postings
@@ -341,7 +379,7 @@ func validateEntry(
 			return domain.ErrPostingCurrencyMismatch
 		}
 
-		baseAmt := p.Amount * rate
+		baseAmt := money.Round(p.Amount*rate, 4)
 		if p.BaseAmount != nil && *p.BaseAmount > 0 {
 			baseAmt = *p.BaseAmount
 		}
@@ -359,12 +397,12 @@ func validateEntry(
 	}
 
 	// 5. Balance in transaction currency
-	if math.Abs(debitSum-creditSum) > 1e-4 {
+	if !money.Equal(debitSum, creditSum, 4) {
 		return domain.ErrEntryNotBalanced
 	}
 
 	// 6. Balance in base currency
-	if math.Abs(baseDebitSum-baseCreditSum) > 1e-4 {
+	if !money.Equal(baseDebitSum, baseCreditSum, 4) {
 		return domain.ErrEntryBaseNotBalanced
 	}
 
