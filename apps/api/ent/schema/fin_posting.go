@@ -43,8 +43,8 @@ func (Posting) Fields() []ent.Field {
 		field.Int64("entry_id").Immutable(),
 		field.Int64("account_id"),
 		field.Enum("direction").Values("DEBIT", "CREDIT"),
-		field.Float("amount").Positive().SchemaType(map[string]string{dialect.Postgres: "numeric(20,4)"}),
-		field.Float("base_amount").Positive().SchemaType(map[string]string{dialect.Postgres: "numeric(20,4)"}),
+		field.Float("amount").Min(0).SchemaType(map[string]string{dialect.Postgres: "numeric(20,4)"}),
+		field.Float("base_amount").Min(0).SchemaType(map[string]string{dialect.Postgres: "numeric(20,4)"}),
 		field.Int("position").NonNegative().Default(0),
 		field.String("description").Optional(),
 	}

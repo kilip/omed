@@ -704,6 +704,154 @@ func (s *EntryServiceSuite) Test_GetAccountLedger() {
 	s.Error(err)
 }
 
+func (s *EntryServiceSuite) Test_FXRounding_AutoBalancing() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	// 1. Create FX Rounding account
+	fxAcc, err := s.client.Account.Create().
+		SetCode("7400").
+		SetName("Foreign Exchange Rounding").
+		SetType("EXPENSE").
+		SetNormalBalance("DEBIT").
+		SetIsActive(true).
+		SetIsPostable(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Create USD transaction with rate 10000.5:
+	// 1.00 * 10000.5 = 10000.5 -> round to 0 decimals = 10001
+	// 0.50 * 10000.5 = 5000.25 -> round to 0 decimals = 5000
+	// 0.50 * 10000.5 = 5000.25 -> round to 0 decimals = 5000
+	// BaseDebit = 10001, BaseCredit = 10000 -> Diff = 1 IDR (<= 1 smallest unit)
+	txUSD, err := s.client.Transaction.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetNumber("TRX-USD-ROUND-001").
+		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
+		SetDescription("USD Transaction with 1 IDR rounding diff").
+		SetCurrency("USD").
+		SetExchangeRate(10000.5).
+		SetSource(domain.TransactionSourceManual).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Additional account for second credit posting
+	accCredit2, err := s.client.Account.Create().
+		SetCode("4100").
+		SetName("Service Revenue 2").
+		SetType("REVENUE").
+		SetNormalBalance("CREDIT").
+		SetIsActive(true).
+		SetIsPostable(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	createdEntry, err := s.svc.Create(ctx, txUSD.ID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 1.0},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 0.5},
+			{AccountID: accCredit2.ID, Direction: "CREDIT", Amount: 0.5},
+		},
+	})
+	s.Require().NoError(err)
+
+	// Verify that the entry was auto-balanced by appending an FX Rounding posting
+	s.Require().Len(createdEntry.Postings, 4)
+	fxPosting := createdEntry.Postings[3]
+	s.Equal(fxAcc.ID, fxPosting.AccountID)
+	s.Equal("CREDIT", fxPosting.Direction)
+	s.Equal(0.0, fxPosting.Amount)
+	s.Equal(1.0, fxPosting.BaseAmount)
+
+	// Verify Post succeeds on the auto-balanced entry
+	postedEntry, err := s.svc.Post(ctx, createdEntry.ID, s.userID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, postedEntry.Status)
+
+	// 2. Reject when diff exceeds smallest unit (> 1 IDR)
+	baseAmtDebit := 10005.0
+	baseAmtCredit := 10000.0
+	_, err = s.svc.Create(ctx, txUSD.ID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 1.0, BaseAmount: &baseAmtDebit},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 1.0, BaseAmount: &baseAmtCredit},
+		},
+	})
+	s.Require().ErrorIs(err, domain.ErrEntryBaseNotBalanced)
+}
+
+func (s *EntryServiceSuite) Test_MultiCurrency_LedgerDualBalance() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	// 1. Create a dedicated USD foreign currency account
+	usdAcc, err := s.client.Account.Create().
+		SetCode("1135").
+		SetName("Wise USD Account").
+		SetType("ASSET").
+		SetNormalBalance("DEBIT").
+		SetCurrency("USD").
+		SetIsActive(true).
+		SetIsPostable(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// 2. Attempting to post an IDR transaction to USD account should fail with ErrPostingCurrencyMismatch
+	_, err = s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: 100000},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100000},
+		},
+	})
+	s.Require().ErrorIs(err, domain.ErrPostingCurrencyMismatch)
+
+	// 3. Post a USD transaction to the USD account
+	txUSD, err := s.client.Transaction.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetNumber("TRX-USD-LEDGER-001").
+		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
+		SetDescription("USD Consulting revenue").
+		SetCurrency("USD").
+		SetExchangeRate(15000.0).
+		SetSource(domain.TransactionSourceManual).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	eUSD, err := s.svc.Create(ctx, txUSD.ID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: 100.0},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100.0},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.svc.Post(ctx, eUSD.ID, s.userID)
+	s.Require().NoError(err)
+
+	// 4. Query ledger for the USD account
+	postings, total, err := s.svc.GetAccountLedger(ctx, usdAcc.ID, 1, 10)
+	s.Require().NoError(err)
+	s.Equal(int64(1), total)
+	s.Require().Len(postings, 1)
+
+	p := postings[0]
+	s.Equal(100.0, p.Amount)
+	s.Equal(1500000.0, p.BaseAmount)
+	// Dual running balances
+	s.Equal(100.0, p.Balance)
+	s.Equal(100.0, p.RunningBalance)
+	s.Equal(1500000.0, p.BaseBalance)
+	s.Equal(1500000.0, p.RunningBaseBalance)
+}
+
 func TestEntryServiceSuite(t *testing.T) {
 	suite.Run(t, new(EntryServiceSuite))
 }

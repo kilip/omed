@@ -87,7 +87,23 @@ func (s TransactionService) Create(c context.Context, req model.CreateTransactio
 	req.ExchangeRate = &rate
 
 	if req.Entry != nil {
-		if err := validateEntry(
+		baseCurrency := "IDR"
+		baseDecimals := 0
+		wsID := base.WorkspaceIDFromContext(c)
+		if s.currencyRepo != nil && wsID > 0 {
+			if bc, err := s.currencyRepo.GetBaseCurrency(c, wsID); err == nil && bc != "" {
+				baseCurrency = bc
+			}
+		}
+		if s.currencyRepo != nil {
+			if cur, err := s.currencyRepo.GetByCode(c, baseCurrency); err == nil {
+				baseDecimals = cur.Decimals
+			} else if baseCurrency == "USD" {
+				baseDecimals = 2
+			}
+		}
+
+		balancedPostings, err := validateEntry(
 			c,
 			s.periodRepo,
 			s.accountRepo,
@@ -96,9 +112,12 @@ func (s TransactionService) Create(c context.Context, req model.CreateTransactio
 			req.Entry.Postings,
 			curr,
 			rate,
-		); err != nil {
+			baseDecimals,
+		)
+		if err != nil {
 			return domain.Transaction{}, err
 		}
+		req.Entry.Postings = balancedPostings
 	}
 
 	return s.repo.Create(c, req)

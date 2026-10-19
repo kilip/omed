@@ -137,6 +137,33 @@ func (s *SeederSuite) Test_Seed_SuccessAndHierarchy() {
 	s.True(kasTunai.IsPostable)
 	s.False(kasGroup.IsPostable)
 
+	// Verify FX accounts
+	accByCode := make(map[string]*ent.Account, len(accounts))
+	for _, a := range accounts {
+		accByCode[a.Code] = a
+	}
+	s.Require().NotNil(accByCode["7200"])
+	s.False(accByCode["7200"].IsPostable)
+	s.Require().NotNil(accByCode["7210"])
+	s.True(accByCode["7210"].IsPostable)
+	s.Equal(accByCode["7200"].ID, *accByCode["7210"].ParentID)
+	s.Require().NotNil(accByCode["7220"])
+	s.True(accByCode["7220"].IsPostable)
+	s.Equal(accByCode["7200"].ID, *accByCode["7220"].ParentID)
+
+	s.Require().NotNil(accByCode["7300"])
+	s.False(accByCode["7300"].IsPostable)
+	s.Require().NotNil(accByCode["7310"])
+	s.True(accByCode["7310"].IsPostable)
+	s.Equal(accByCode["7300"].ID, *accByCode["7310"].ParentID)
+	s.Require().NotNil(accByCode["7320"])
+	s.True(accByCode["7320"].IsPostable)
+	s.Equal(accByCode["7300"].ID, *accByCode["7320"].ParentID)
+
+	s.Require().NotNil(accByCode["7400"])
+	s.True(accByCode["7400"].IsPostable)
+	s.Equal(accByCode["7000"].ID, *accByCode["7400"].ParentID)
+
 	// Seeding a second time must fail with ErrAccountWorkspaceNotEmpty
 	_, err = seed.Seed(ctx, s.client, s.workspaceID, "freelancer", "id")
 	s.Require().ErrorIs(err, domain.ErrAccountWorkspaceNotEmpty)

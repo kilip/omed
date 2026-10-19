@@ -619,7 +619,25 @@
     "type": "REVENUE",
     "normal_balance": "CREDIT",
     "parent_code": "7000",
-    "description": "Realized and unrealized gains from foreign currency exchange fluctuations",
+    "description": "Gains from foreign currency exchange fluctuations",
+    "is_postable": false
+  },
+  {
+    "code": "7210",
+    "name": "Realized Foreign Exchange Gain",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "7200",
+    "description": "Realized gains from foreign currency exchange fluctuations",
+    "is_postable": true
+  },
+  {
+    "code": "7220",
+    "name": "Unrealized Foreign Exchange Gain",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "7200",
+    "description": "Unrealized gains from foreign currency revaluations",
     "is_postable": true
   },
   {
@@ -629,6 +647,33 @@
     "normal_balance": "DEBIT",
     "parent_code": "7000",
     "description": "Losses from foreign currency exchange rate fluctuations",
+    "is_postable": false
+  },
+  {
+    "code": "7310",
+    "name": "Realized Foreign Exchange Loss",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "7300",
+    "description": "Realized losses from foreign currency exchange rate fluctuations",
+    "is_postable": true
+  },
+  {
+    "code": "7320",
+    "name": "Unrealized Foreign Exchange Loss",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "7300",
+    "description": "Unrealized losses from foreign currency revaluations",
+    "is_postable": true
+  },
+  {
+    "code": "7400",
+    "name": "Foreign Exchange Rounding",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "7000",
+    "description": "Rounding differences from foreign exchange conversions",
     "is_postable": true
   },
   {

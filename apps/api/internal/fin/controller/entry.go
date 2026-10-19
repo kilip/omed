@@ -299,17 +299,20 @@ func (ctl EntryController) Void(c fiber.Ctx) error {
 
 func toPostingResponse(p domain.Posting) model.PostingResponse {
 	return model.PostingResponse{
-		ID:             p.ID,
-		WorkspaceID:    p.WorkspaceID,
-		EntryID:        p.EntryID,
-		AccountID:      p.AccountID,
-		Direction:      p.Direction,
-		Amount:         p.Amount,
-		BaseAmount:     p.BaseAmount,
-		Position:       p.Position,
-		Description:    p.Description,
-		RunningBalance: p.RunningBalance,
-		AuditMeta:      p.AuditMeta,
+		ID:                 p.ID,
+		WorkspaceID:        p.WorkspaceID,
+		EntryID:            p.EntryID,
+		AccountID:          p.AccountID,
+		Direction:          p.Direction,
+		Amount:             p.Amount,
+		BaseAmount:         p.BaseAmount,
+		Position:           p.Position,
+		Description:        p.Description,
+		RunningBalance:     p.RunningBalance,
+		RunningBaseBalance: p.RunningBaseBalance,
+		Balance:            p.Balance,
+		BaseBalance:        p.BaseBalance,
+		AuditMeta:          p.AuditMeta,
 	}
 }
 

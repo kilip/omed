@@ -4817,6 +4817,10 @@ export interface components {
     };
     "model.AccountLedgerResponse": {
       accountId?: number;
+      /** @example 1000 */
+      balance?: number;
+      /** @example 15000000 */
+      baseBalance?: number;
       limit?: number;
       /** @example DEBIT */
       normalBalance?: string;
@@ -4900,7 +4904,7 @@ export interface components {
     "model.CreatePostingRequest": {
       accountId: number;
       /** @example 100000 */
-      amount: number;
+      amount?: number;
       baseAmount?: number;
       description?: string;
       /**
@@ -5025,7 +5029,11 @@ export interface components {
       amount?: number;
       auditMeta?: components["schemas"]["base.AuditMeta"];
       /** @example 100000 */
+      balance?: number;
+      /** @example 100000 */
       baseAmount?: number;
+      /** @example 100000 */
+      baseBalance?: number;
       description?: string;
       /** @example DEBIT */
       direction?: string;
@@ -5035,6 +5043,8 @@ export interface components {
       position?: number;
       /** @example 100000 */
       runningBalance?: number;
+      /** @example 100000 */
+      runningBaseBalance?: number;
       workspaceId?: number;
     };
     "model.PublicInvitationResponse": {

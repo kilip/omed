@@ -386,9 +386,165 @@ func (s *EntryApiSuite) Test_AccountLedger_Endpoint_Successfully() {
 	err := json.NewDecoder(s.HttpResponse.Body).Decode(&ledgerRes)
 	s.Require().NoError(err)
 	s.Equal(int64(2), ledgerRes.Data.Total)
+	s.Equal(800.0, ledgerRes.Data.Balance)
+	s.Equal(800.0, ledgerRes.Data.BaseBalance)
 	s.Require().Len(ledgerRes.Data.Postings, 2)
 	s.Equal(500.0, ledgerRes.Data.Postings[0].RunningBalance)
+	s.Equal(500.0, ledgerRes.Data.Postings[0].Balance)
+	s.Equal(500.0, ledgerRes.Data.Postings[0].BaseBalance)
 	s.Equal(800.0, ledgerRes.Data.Postings[1].RunningBalance)
+	s.Equal(800.0, ledgerRes.Data.Postings[1].Balance)
+	s.Equal(800.0, ledgerRes.Data.Postings[1].BaseBalance)
+}
+
+func (s *EntryApiSuite) Test_FXRounding_AutoBalancing_Endpoint() {
+	ws := s.ensureWorkspace("Finance FX WS", s.User.ID)
+	accCash := s.ensureAccount(ws.ID, "1000", "Cash", domain.AccountTypeAsset, domain.NormalBalanceDebit)
+	accRev1 := s.ensureAccount(ws.ID, "4000", "Revenue 1", domain.AccountTypeRevenue, domain.NormalBalanceCredit)
+	accRev2 := s.ensureAccount(ws.ID, "4100", "Revenue 2", domain.AccountTypeRevenue, domain.NormalBalanceCredit)
+	fxAcc := s.ensureAccount(ws.ID, "7400", "Foreign Exchange Rounding", domain.AccountTypeExpense, domain.NormalBalanceDebit)
+
+	pID := s.ensurePeriod(ws.ID, "Jan 2026", time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC), 2026)
+	tDate := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
+
+	// Create USD transaction with rate 10000.5
+	client := testutil.GetEntCli()
+	tx, err := client.Transaction.Create().
+		SetWorkspaceID(ws.ID).
+		SetNumber(fmt.Sprintf("TRX-USD-%d", time.Now().UnixNano()%100000)).
+		SetTransactionDate(tDate).
+		SetDescription("USD with rounding diff").
+		SetCurrency("USD").
+		SetExchangeRate(10000.5).
+		SetSource(domain.TransactionSourceManual).
+		Save(s.Context)
+	s.Require().NoError(err)
+
+	// 1. Difference <= 1.0 IDR should auto-balance by adding an FX Rounding line
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{
+		TransactionID: tx.ID,
+		PeriodID:      pID,
+		EntryDate:     model.Date(tDate),
+		Description:   "USD entry with 1 IDR rounding diff",
+		Postings: []model.CreatePostingRequest{
+			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: 1.0},
+			{AccountID: accRev1, Direction: domain.PostingDirectionCredit, Amount: 0.5},
+			{AccountID: accRev2, Direction: domain.PostingDirectionCredit, Amount: 0.5},
+		},
+	})
+	s.Created()
+
+	entryRes := s.GetResponse().Data
+	s.Require().Len(entryRes.Postings, 4)
+	s.Equal(fxAcc, entryRes.Postings[3].AccountID)
+	s.Equal("CREDIT", entryRes.Postings[3].Direction)
+	s.Equal(0.0, entryRes.Postings[3].Amount)
+	s.Equal(1.0, entryRes.Postings[3].BaseAmount)
+
+	// Post the entry
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries/%d/post", ws.ID, entryRes.ID), fiber.MethodPost, nil)
+	s.OK()
+
+	// 2. Difference > 1.0 IDR should reject with ENTRY_BASE_NOT_BALANCED
+	baseAmtDebit := 10005.0
+	baseAmtCredit := 10000.0
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{
+		TransactionID: tx.ID,
+		PeriodID:      pID,
+		EntryDate:     model.Date(tDate),
+		Description:   "USD entry with large base imbalance",
+		Postings: []model.CreatePostingRequest{
+			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: 1.0, BaseAmount: &baseAmtDebit},
+			{AccountID: accRev1, Direction: domain.PostingDirectionCredit, Amount: 1.0, BaseAmount: &baseAmtCredit},
+		},
+	})
+	s.Require().Equal(fiber.StatusUnprocessableEntity, s.HttpResponse.StatusCode)
+	errRes := s.GetErrorResponse()
+	s.Equal(domain.ErrEntryBaseNotBalanced.Error(), errRes.Error.Code)
+}
+
+func (s *EntryApiSuite) Test_MultiCurrency_Ledger_Endpoint() {
+	ws := s.ensureWorkspace("Finance MultiCurrency WS", s.User.ID)
+	client := testutil.GetEntCli()
+
+	// Account restricted to USD
+	usdAcc, err := client.Account.Create().
+		SetWorkspaceID(ws.ID).
+		SetCode("1135").
+		SetName("Wise USD").
+		SetType(account.Type(domain.AccountTypeAsset)).
+		SetNormalBalance(account.NormalBalance(domain.NormalBalanceDebit)).
+		SetCurrency("USD").
+		SetIsActive(true).
+		SetIsPostable(true).
+		Save(s.Context)
+	s.Require().NoError(err)
+
+	accRev := s.ensureAccount(ws.ID, "4000", "Revenue", domain.AccountTypeRevenue, domain.NormalBalanceCredit)
+	pID := s.ensurePeriod(ws.ID, "Jan 2026", time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC), 2026)
+	tDate := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
+
+	// 1. Posting an IDR transaction to USD account should fail with POSTING_CURRENCY_MISMATCH
+	txIDR := s.ensureTransaction(ws.ID, "IDR Tx", "REF-IDR", tDate)
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{
+		TransactionID: txIDR,
+		PeriodID:      pID,
+		EntryDate:     model.Date(tDate),
+		Postings: []model.CreatePostingRequest{
+			{AccountID: usdAcc.ID, Direction: domain.PostingDirectionDebit, Amount: 150000},
+			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: 150000},
+		},
+	})
+	s.Require().Equal(fiber.StatusUnprocessableEntity, s.HttpResponse.StatusCode)
+	errRes := s.GetErrorResponse()
+	s.Equal(domain.ErrPostingCurrencyMismatch.Error(), errRes.Error.Code)
+
+	// 2. Post a USD transaction to the USD account
+	txUSD, err := client.Transaction.Create().
+		SetWorkspaceID(ws.ID).
+		SetNumber(fmt.Sprintf("TRX-USD-%d", time.Now().UnixNano()%100000)).
+		SetTransactionDate(tDate).
+		SetDescription("USD Consulting").
+		SetCurrency("USD").
+		SetExchangeRate(15000.0).
+		SetSource(domain.TransactionSourceManual).
+		Save(s.Context)
+	s.Require().NoError(err)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{
+		TransactionID: txUSD.ID,
+		PeriodID:      pID,
+		EntryDate:     model.Date(tDate),
+		Postings: []model.CreatePostingRequest{
+			{AccountID: usdAcc.ID, Direction: domain.PostingDirectionDebit, Amount: 100.0},
+			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: 100.0},
+		},
+	})
+	s.Created()
+	eID := s.GetResponse().Data.ID
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries/%d/post", ws.ID, eID), fiber.MethodPost, nil)
+	s.OK()
+
+	// 3. Query ledger for USD account: verify dual running balances
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/%d/ledger?page=1&limit=10", ws.ID, usdAcc.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	var ledgerRes httpx.WebResponse[model.AccountLedgerResponse]
+	err = json.NewDecoder(s.HttpResponse.Body).Decode(&ledgerRes)
+	s.Require().NoError(err)
+	s.Equal(int64(1), ledgerRes.Data.Total)
+	s.Equal(100.0, ledgerRes.Data.Balance)
+	s.Equal(1500000.0, ledgerRes.Data.BaseBalance)
+	s.Require().Len(ledgerRes.Data.Postings, 1)
+
+	p := ledgerRes.Data.Postings[0]
+	s.Equal(100.0, p.Amount)
+	s.Equal(1500000.0, p.BaseAmount)
+	s.Equal(100.0, p.Balance)
+	s.Equal(100.0, p.RunningBalance)
+	s.Equal(1500000.0, p.BaseBalance)
+	s.Equal(1500000.0, p.RunningBaseBalance)
 }
 
 func TestEntryApiSuite(t *testing.T) {

@@ -736,7 +736,25 @@
     "type": "REVENUE",
     "normal_balance": "CREDIT",
     "parent_code": "7000",
-    "description": "Keuntungan konversi kurs valas (USD ke IDR) saat penarikan",
+    "description": "Keuntungan akibat perubahan kurs valas",
+    "is_postable": false
+  },
+  {
+    "code": "7210",
+    "name": "Keuntungan Selisih Kurs Terealisasi",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "7200",
+    "description": "Keuntungan konversi kurs valas saat penarikan atau penyelesaian transaksi",
+    "is_postable": true
+  },
+  {
+    "code": "7220",
+    "name": "Keuntungan Selisih Kurs Belum Terealisasi",
+    "type": "REVENUE",
+    "normal_balance": "CREDIT",
+    "parent_code": "7200",
+    "description": "Keuntungan penilaian kembali saldo valas pada akhir periode",
     "is_postable": true
   },
   {
@@ -745,7 +763,34 @@
     "type": "EXPENSE",
     "normal_balance": "DEBIT",
     "parent_code": "7000",
-    "description": "Kerugian akibat depresiasi mata uang asing pada saldo valas",
+    "description": "Kerugian akibat perubahan kurs valas",
+    "is_postable": false
+  },
+  {
+    "code": "7310",
+    "name": "Kerugian Selisih Kurs Terealisasi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "7300",
+    "description": "Kerugian konversi atau penyelesaian transaksi akibat perubahan kurs",
+    "is_postable": true
+  },
+  {
+    "code": "7320",
+    "name": "Kerugian Selisih Kurs Belum Terealisasi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "7300",
+    "description": "Kerugian penilaian kembali saldo valas pada akhir periode",
+    "is_postable": true
+  },
+  {
+    "code": "7400",
+    "name": "Selisih Pembulatan Kurs Valas",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "7000",
+    "description": "Selisih pembulatan konversi mata uang asing",
     "is_postable": true
   },
   {

@@ -488,6 +488,14 @@ const docTemplate = `{
                     "accountId": {
                         "type": "integer"
                     },
+                    "balance": {
+                        "example": 1000,
+                        "type": "number"
+                    },
+                    "baseBalance": {
+                        "example": 15000000,
+                        "type": "number"
+                    },
                     "limit": {
                         "type": "integer"
                     },
@@ -756,6 +764,7 @@ const docTemplate = `{
                     },
                     "amount": {
                         "example": 100000,
+                        "minimum": 0,
                         "type": "number"
                     },
                     "baseAmount": {
@@ -775,7 +784,6 @@ const docTemplate = `{
                 },
                 "required": [
                     "accountId",
-                    "amount",
                     "direction"
                 ],
                 "type": "object"
@@ -1119,7 +1127,15 @@ const docTemplate = `{
                     "auditMeta": {
                         "$ref": "#/components/schemas/base.AuditMeta"
                     },
+                    "balance": {
+                        "example": 100000,
+                        "type": "number"
+                    },
                     "baseAmount": {
+                        "example": 100000,
+                        "type": "number"
+                    },
+                    "baseBalance": {
                         "example": 100000,
                         "type": "number"
                     },
@@ -1141,6 +1157,10 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "runningBalance": {
+                        "example": 100000,
+                        "type": "number"
+                    },
+                    "runningBaseBalance": {
                         "example": 100000,
                         "type": "number"
                     },

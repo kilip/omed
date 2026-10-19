@@ -258,13 +258,20 @@ func (ctl AccountController) Ledger(c fiber.Ctx) error {
 	}
 
 	out := make([]model.PostingResponse, len(postings))
+	var lastBalance, lastBaseBalance float64
 	for i, p := range postings {
 		out[i] = toPostingResponse(p)
+	}
+	if len(postings) > 0 {
+		lastBalance = postings[len(postings)-1].Balance
+		lastBaseBalance = postings[len(postings)-1].BaseBalance
 	}
 
 	return httpx.OK(c, model.AccountLedgerResponse{
 		AccountID:     acc.ID,
 		NormalBalance: acc.NormalBalance,
+		Balance:       lastBalance,
+		BaseBalance:   lastBaseBalance,
 		Total:         total,
 		Page:          page,
 		Limit:         limit,
