@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
@@ -99,6 +100,33 @@ func (f TraverseAccount) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.AccountQuery", q)
+}
+
+// The PeriodFunc type is an adapter to allow the use of ordinary function as a Querier.
+type PeriodFunc func(context.Context, *ent.PeriodQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f PeriodFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.PeriodQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.PeriodQuery", q)
+}
+
+// The TraversePeriod type is an adapter to allow the use of ordinary function as Traverser.
+type TraversePeriod func(context.Context, *ent.PeriodQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraversePeriod) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraversePeriod) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.PeriodQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.PeriodQuery", q)
 }
 
 // The SessionFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -268,6 +296,8 @@ func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
 	case *ent.AccountQuery:
 		return &query[*ent.AccountQuery, predicate.Account, account.OrderOption]{typ: ent.TypeAccount, tq: q}, nil
+	case *ent.PeriodQuery:
+		return &query[*ent.PeriodQuery, predicate.Period, period.OrderOption]{typ: ent.TypePeriod, tq: q}, nil
 	case *ent.SessionQuery:
 		return &query[*ent.SessionQuery, predicate.Session, session.OrderOption]{typ: ent.TypeSession, tq: q}, nil
 	case *ent.UserQuery:

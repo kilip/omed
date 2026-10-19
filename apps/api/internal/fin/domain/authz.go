@@ -6,13 +6,15 @@ import "github.com/kilip/omed/api/internal/platform/authz"
 const (
 	// ObjAccount is the permission object for Chart of Accounts management.
 	ObjAccount = "fin:account"
+	// ObjPeriod is the permission object for Accounting Period management.
+	ObjPeriod = "fin:period"
 )
 
 // Built-in fin role IDs assignable per workspace.
 const (
-	// RoleViewer can view accounts and reports.
+	// RoleViewer can view accounts, periods, and reports.
 	RoleViewer = "fin:viewer"
-	// RoleAccountant can manage accounts, transactions, and journals.
+	// RoleAccountant can manage accounts, periods, transactions, and journals.
 	RoleAccountant = "fin:accountant"
 	// RoleAdmin has full permissions across all financial operations.
 	RoleAdmin = "fin:admin"
@@ -25,6 +27,7 @@ func init() {
 		Description: "View accounts, reports, and financial summaries",
 		Permissions: []authz.Permission{
 			{Object: ObjAccount, Action: "read"},
+			{Object: ObjPeriod, Action: "read"},
 		},
 	})
 	authz.AddRole(authz.Role{
@@ -35,6 +38,8 @@ func init() {
 		Permissions: []authz.Permission{
 			{Object: ObjAccount, Action: "create"},
 			{Object: ObjAccount, Action: "update"},
+			{Object: ObjPeriod, Action: "create"},
+			{Object: ObjPeriod, Action: "update"},
 		},
 	})
 	authz.AddRole(authz.Role{
@@ -44,6 +49,7 @@ func init() {
 		Inherits:    []string{RoleAccountant},
 		Permissions: []authz.Permission{
 			{Object: ObjAccount, Action: "delete"},
+			{Object: ObjPeriod, Action: "delete"},
 			{Object: "fin:*", Action: authz.Wildcard},
 		},
 	})

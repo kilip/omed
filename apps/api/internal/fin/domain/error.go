@@ -27,6 +27,21 @@ var (
 	ErrAccountWorkspaceNotEmpty = errors.New("ACCOUNT_WORKSPACE_NOT_EMPTY")
 	// ErrAccountTemplateNotFound indicates the requested COA template or language was not found.
 	ErrAccountTemplateNotFound = errors.New("ACCOUNT_TEMPLATE_NOT_FOUND")
+
+	// ErrPeriodNotFound indicates the requested accounting period was not found.
+	ErrPeriodNotFound = errors.New("PERIOD_NOT_FOUND")
+	// ErrPeriodInvalidDates indicates start_date is after end_date.
+	ErrPeriodInvalidDates = errors.New("PERIOD_INVALID_DATES")
+	// ErrPeriodOverlap indicates the date range overlaps with an existing period in the workspace.
+	ErrPeriodOverlap = errors.New("PERIOD_OVERLAP")
+	// ErrPeriodClosed indicates the period is closed and cannot be updated or deleted.
+	ErrPeriodClosed = errors.New("PERIOD_CLOSED")
+	// ErrPeriodAlreadyClosed indicates the period is already in closed state.
+	ErrPeriodAlreadyClosed = errors.New("PERIOD_ALREADY_CLOSED")
+	// ErrPeriodAlreadyOpen indicates the period is already in open state.
+	ErrPeriodAlreadyOpen = errors.New("PERIOD_ALREADY_OPEN")
+	// ErrPeriodInvalidFiscalYear indicates an invalid fiscal year.
+	ErrPeriodInvalidFiscalYear = errors.New("PERIOD_INVALID_FISCAL_YEAR")
 )
 
 func init() {
@@ -39,4 +54,12 @@ func init() {
 	base.AddToErrorMap(ErrAccountInvalidBalance, fiber.StatusUnprocessableEntity, "invalid normal balance")
 	base.AddToErrorMap(ErrAccountWorkspaceNotEmpty, fiber.StatusConflict, "workspace already has accounts, cannot seed template")
 	base.AddToErrorMap(ErrAccountTemplateNotFound, fiber.StatusBadRequest, "account template or language not found")
+
+	base.AddToErrorMap(ErrPeriodNotFound, fiber.StatusNotFound, "accounting period not found")
+	base.AddToErrorMap(ErrPeriodInvalidDates, fiber.StatusUnprocessableEntity, "start date must be before or equal to end date")
+	base.AddToErrorMap(ErrPeriodOverlap, fiber.StatusConflict, "period date range overlaps with an existing period in this workspace")
+	base.AddToErrorMap(ErrPeriodClosed, fiber.StatusConflict, "period is closed and cannot be modified or deleted")
+	base.AddToErrorMap(ErrPeriodAlreadyClosed, fiber.StatusConflict, "period is already closed")
+	base.AddToErrorMap(ErrPeriodAlreadyOpen, fiber.StatusConflict, "period is already open")
+	base.AddToErrorMap(ErrPeriodInvalidFiscalYear, fiber.StatusUnprocessableEntity, "fiscal year must be a positive integer")
 }

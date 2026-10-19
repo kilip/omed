@@ -7,6 +7,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/intercept"
+	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/internal/base"
 )
 
@@ -80,6 +81,8 @@ func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error
 	switch q.Type() {
 	case ent.TypeAccount:
 		q.WhereP(sql.FieldEQ(account.FieldWorkspaceID, wsID))
+	case ent.TypePeriod:
+		q.WhereP(sql.FieldEQ(period.FieldWorkspaceID, wsID))
 	}
 	return nil
 }

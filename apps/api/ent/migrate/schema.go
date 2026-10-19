@@ -91,6 +91,77 @@ var (
 			},
 		},
 	}
+	// PeriodsColumns holds the columns for the "periods" table.
+	PeriodsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "fiscal_year", Type: field.TypeInt},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"OPEN", "CLOSED"}, Default: "OPEN"},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// PeriodsTable holds the schema information for the "periods" table.
+	PeriodsTable = &schema.Table{
+		Name:       "periods",
+		Columns:    PeriodsColumns,
+		PrimaryKey: []*schema.Column{PeriodsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "periods_workspaces_workspace",
+				Columns:    []*schema.Column{PeriodsColumns[10]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "periods_users_creator",
+				Columns:    []*schema.Column{PeriodsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "periods_users_updater",
+				Columns:    []*schema.Column{PeriodsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "periods_users_deleter",
+				Columns:    []*schema.Column{PeriodsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "period_workspace_id_fiscal_year",
+				Unique:  false,
+				Columns: []*schema.Column{PeriodsColumns[10], PeriodsColumns[7]},
+			},
+			{
+				Name:    "period_workspace_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{PeriodsColumns[10], PeriodsColumns[8]},
+			},
+			{
+				Name:    "period_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{PeriodsColumns[10], PeriodsColumns[3]},
+			},
+			{
+				Name:    "period_workspace_id_start_date_end_date",
+				Unique:  false,
+				Columns: []*schema.Column{PeriodsColumns[10], PeriodsColumns[5], PeriodsColumns[6]},
+			},
+		},
+	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -344,6 +415,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
+		PeriodsTable,
 		SessionsTable,
 		UsersTable,
 		UserAccountsTable,
@@ -359,6 +431,10 @@ func init() {
 	AccountsTable.ForeignKeys[2].RefTable = UsersTable
 	AccountsTable.ForeignKeys[3].RefTable = UsersTable
 	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
+	PeriodsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	PeriodsTable.ForeignKeys[1].RefTable = UsersTable
+	PeriodsTable.ForeignKeys[2].RefTable = UsersTable
+	PeriodsTable.ForeignKeys[3].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 	UserAccountsTable.ForeignKeys[0].RefTable = UsersTable
 	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable

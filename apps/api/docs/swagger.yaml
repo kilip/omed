@@ -99,6 +99,18 @@ components:
           $ref: '#/components/schemas/httpx.Meta'
           description: Meta contains request metadata such as request ID and timestamps.
       type: object
+    httpx.WebResponse-array_model_PeriodResponse:
+      properties:
+        data:
+          description: Data contains the response payload.
+          items:
+            $ref: '#/components/schemas/model.PeriodResponse'
+          type: array
+          uniqueItems: false
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
     httpx.WebResponse-array_model_RoleResponse:
       properties:
         data:
@@ -154,6 +166,15 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/model.MemberResponse'
+          description: Data contains the response payload.
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
+    httpx.WebResponse-model_PeriodResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/model.PeriodResponse'
           description: Data contains the response payload.
         meta:
           $ref: '#/components/schemas/httpx.Meta'
@@ -279,6 +300,27 @@ components:
       required:
       - roles
       type: object
+    model.CreatePeriodRequest:
+      properties:
+        description:
+          type: string
+        endDate:
+          example: "2026-01-31"
+          type: string
+        fiscalYear:
+          example: 2026
+          type: integer
+        name:
+          type: string
+        startDate:
+          example: "2026-01-01"
+          type: string
+      required:
+      - endDate
+      - fiscalYear
+      - name
+      - startDate
+      type: object
     model.CreateWorkspaceRequest:
       properties:
         description:
@@ -341,6 +383,31 @@ components:
           type: string
         user:
           $ref: '#/components/schemas/model.UserResponse'
+        workspaceId:
+          type: integer
+      type: object
+    model.PeriodResponse:
+      properties:
+        auditMeta:
+          $ref: '#/components/schemas/base.AuditMeta'
+        description:
+          type: string
+        endDate:
+          example: "2026-01-31"
+          type: string
+        fiscalYear:
+          example: 2026
+          type: integer
+        id:
+          type: integer
+        name:
+          type: string
+        startDate:
+          example: "2026-01-01"
+          type: string
+        status:
+          example: OPEN
+          type: string
         workspaceId:
           type: integer
       type: object
@@ -423,6 +490,13 @@ components:
           maximum: 100
           minimum: 1
           type: integer
+      type: object
+    model.SearchPeriodRequest:
+      properties:
+        fiscalYear:
+          type: integer
+        status:
+          type: string
       type: object
     model.SearchWorkspaceRequest:
       properties:
@@ -542,6 +616,27 @@ components:
           uniqueItems: false
       required:
       - roles
+      type: object
+    model.UpdatePeriodRequest:
+      properties:
+        description:
+          type: string
+        endDate:
+          example: "2026-01-31"
+          type: string
+        fiscalYear:
+          example: 2026
+          type: integer
+        name:
+          type: string
+        startDate:
+          example: "2026-01-01"
+          type: string
+      required:
+      - endDate
+      - fiscalYear
+      - name
+      - startDate
       type: object
     model.UpdateWorkspaceRequest:
       properties:
@@ -1387,6 +1482,419 @@ paths:
       summary: Seed Chart of Accounts
       tags:
       - Finance Accounts
+  /workspaces/{wid}/fin/periods:
+    post:
+      description: Create a new accounting period entry in the workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.CreatePeriodRequest'
+              description: Period creation payload
+              summary: request
+        description: Period creation payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PeriodResponse'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Create period
+      tags:
+      - Finance Periods
+  /workspaces/{wid}/fin/periods/{id}:
+    delete:
+      description: Soft delete an accounting period by ID within the workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Period ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-httpx_NoContent'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Delete period
+      tags:
+      - Finance Periods
+    get:
+      description: Retrieve accounting period detail by ID within the workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Period ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PeriodResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Get period by ID
+      tags:
+      - Finance Periods
+    put:
+      description: Update an existing accounting period by ID within the workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Period ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.UpdatePeriodRequest'
+              description: Period update payload
+              summary: request
+        description: Period update payload
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PeriodResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Update period
+      tags:
+      - Finance Periods
+  /workspaces/{wid}/fin/periods/{id}/close:
+    post:
+      description: Close an accounting period, preventing new journal postings
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Period ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PeriodResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Close period
+      tags:
+      - Finance Periods
+  /workspaces/{wid}/fin/periods/{id}/reopen:
+    post:
+      description: Reopen a closed accounting period, allowing journal entries again
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Period ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PeriodResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Reopen period
+      tags:
+      - Finance Periods
+  /workspaces/{wid}/fin/periods/search:
+    post:
+      description: Search accounting periods in the workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.SearchPeriodRequest'
+              description: Search criteria
+              summary: request
+        description: Search criteria
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-array_model_PeriodResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Search periods
+      tags:
+      - Finance Periods
   /workspaces/{wid}/invitations:
     post:
       description: Generate a new shareable workspace invitation link with roles,

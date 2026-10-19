@@ -22,17 +22,22 @@ type Config struct {
 type FinModule struct {
 	cfg            Config
 	AccountService service.AccountService
+	PeriodService  service.PeriodService
 	Authorizer     *authz.Authorizer
 }
 
 // New constructs a new FinModule instance.
 func New(cfg Config) *FinModule {
-	repo := repository.NewAccountRepository(cfg.EntCli)
-	svc := service.NewAccountService(repo)
+	accountRepo := repository.NewAccountRepository(cfg.EntCli)
+	accountSvc := service.NewAccountService(accountRepo)
+
+	periodRepo := repository.NewPeriodRepository(cfg.EntCli)
+	periodSvc := service.NewPeriodService(periodRepo)
 
 	return &FinModule{
 		cfg:            cfg,
-		AccountService: svc,
+		AccountService: accountSvc,
+		PeriodService:  periodSvc,
 	}
 }
 

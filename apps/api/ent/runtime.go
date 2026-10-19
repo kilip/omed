@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/schema"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
@@ -50,6 +51,25 @@ func init() {
 	accountDescIsPostable := accountFields[8].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
+	periodMixin := schema.Period{}.Mixin()
+	periodMixinFields1 := periodMixin[1].Fields()
+	_ = periodMixinFields1
+	periodFields := schema.Period{}.Fields()
+	_ = periodFields
+	// periodDescCreatedAt is the schema descriptor for created_at field.
+	periodDescCreatedAt := periodMixinFields1[2].Descriptor()
+	// period.DefaultCreatedAt holds the default value on creation for the created_at field.
+	period.DefaultCreatedAt = periodDescCreatedAt.Default.(func() time.Time)
+	// periodDescUpdatedAt is the schema descriptor for updated_at field.
+	periodDescUpdatedAt := periodMixinFields1[3].Descriptor()
+	// period.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	period.DefaultUpdatedAt = periodDescUpdatedAt.Default.(func() time.Time)
+	// period.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	period.UpdateDefaultUpdatedAt = periodDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// periodDescName is the schema descriptor for name field.
+	periodDescName := periodFields[1].Descriptor()
+	// period.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	period.NameValidator = periodDescName.Validators[0].(func(string) error)
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescToken is the schema descriptor for token field.
