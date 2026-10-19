@@ -1,13 +1,16 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Statistic, Table, type TableProps, Tag } from "antd";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { useNavigate, useRevalidator } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { api, orForbidden, unwrapList, unwrapOne } from "~/lib/api";
-import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
-import { requireWorkspaceId, type Workspace } from "~/lib/workspace";
+import {
+  requireWorkspaceId,
+  setActiveWorkspaceId,
+  type Workspace,
+} from "~/lib/workspace";
 import { useRoles } from "../hooks/use-roles";
 import { invitationStatus } from "../lib";
 import { rolesQueryOptions } from "../queries";
@@ -42,8 +45,9 @@ export async function clientLoader() {
 export default function CoreDashboard({ loaderData }: Route.ComponentProps) {
   const { workspaces, members, invitations, permissions, wid } = loaderData;
   const { label: roleName } = useRoles(wid);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const revalidator = useRevalidator();
 
   const activeInvitations = invitations.filter(
     (i) => invitationStatus(i) === "active",
@@ -62,9 +66,25 @@ export default function CoreDashboard({ loaderData }: Route.ComponentProps) {
         ),
     },
     {
-      title: t("common.created"),
+      title: "",
       align: "right",
-      render: (_, w) => formatDate(w.createdAt, i18n.language),
+      render: (_, w) =>
+        w.id === wid ? (
+          <Tag color="success">{t("common.active")}</Tag>
+        ) : (
+          <Button
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (w.id) {
+                setActiveWorkspaceId(w.id);
+                void revalidator.revalidate();
+              }
+            }}
+          >
+            {t("core.workspaces.switch")}
+          </Button>
+        ),
     },
   ];
 
@@ -120,6 +140,10 @@ export default function CoreDashboard({ loaderData }: Route.ComponentProps) {
             dataSource={workspaces}
             pagination={false}
             scroll={{ x: "max-content" }}
+            onRow={(record) => ({
+              onClick: () => navigate(`/core/workspaces/${record.id}`),
+              className: "cursor-pointer",
+            })}
           />
         </Panel>
 
