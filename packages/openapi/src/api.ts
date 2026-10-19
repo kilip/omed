@@ -3240,6 +3240,178 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/fin/periods/{id}/revalue": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Period-end revaluation
+     * @description Revalue foreign currency balances for the period and post unrealized FX gain/loss
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Period ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_EntryResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/fin/reports/trial-balance": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Generate trial balance report
+     * @description Calculate trial balance for all accounts in base currency as of the specified date with optional currency breakdown
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Trial balance request parameters */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.TrialBalanceRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_TrialBalanceResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/fin/settings/base-currency": {
     parameters: {
       query?: never;
@@ -4803,6 +4975,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_TrialBalanceResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.TrialBalanceResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_WorkspaceBaseCurrencyResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.WorkspaceBaseCurrencyResponse"];
@@ -4927,6 +5105,22 @@ export interface components {
     "model.CreateWorkspaceRequest": {
       description?: string;
       name: string;
+    };
+    "model.CurrencyBreakdownItem": {
+      /** @example 0 */
+      baseCredit?: number;
+      /** @example 1600000 */
+      baseDebit?: number;
+      /** @example 1600000 */
+      baseNet?: number;
+      /** @example 0 */
+      credit?: number;
+      /** @example USD */
+      currency?: string;
+      /** @example 100 */
+      debit?: number;
+      /** @example 100 */
+      netBalance?: number;
     };
     "model.CurrencyResponse": {
       code?: string;
@@ -5176,6 +5370,41 @@ export interface components {
       /** @example 2026-01-01 */
       transactionDate?: string;
       workspaceId?: number;
+    };
+    "model.TrialBalanceAccountItem": {
+      /** @example 1110 */
+      accountCode?: string;
+      accountId?: number;
+      /** @example Bank BCA IDR */
+      accountName?: string;
+      /** @example 0 */
+      credit?: number;
+      currencies?: components["schemas"]["model.CurrencyBreakdownItem"][];
+      /** @example 1000000 */
+      debit?: number;
+      /** @example 1000000 */
+      netBalance?: number;
+      /** @example ASSET */
+      type?: string;
+    };
+    "model.TrialBalanceRequest": {
+      /** @example 2026-01-31 */
+      asOfDate: string;
+      /** @example false */
+      includePerCurrencyBreakdown?: boolean;
+    };
+    "model.TrialBalanceResponse": {
+      accounts?: components["schemas"]["model.TrialBalanceAccountItem"][];
+      /** @example 2026-01-31 */
+      asOfDate?: string;
+      /** @example IDR */
+      baseCurrency?: string;
+      /** @example true */
+      isBalanced?: boolean;
+      /** @example 5000000 */
+      totalCredit?: number;
+      /** @example 5000000 */
+      totalDebit?: number;
     };
     "model.UpdateAccountRequest": {
       code?: string;

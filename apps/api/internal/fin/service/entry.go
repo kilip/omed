@@ -4,6 +4,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
+	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/platform/money"
 )
 
@@ -27,7 +29,18 @@ type EntryRepository interface {
 	Void(c context.Context, id int64) (domain.Entry, error)
 	GetAccountLedger(c context.Context, accountID int64, page int, limit int) ([]domain.Posting, int64, error)
 	GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (float64, float64, float64, float64, error)
+	GetAccountBalancesAsOf(c context.Context, asOfDate time.Time) (map[int64]repository.AccountBalanceSummary, error)
 	HasPostedEntries(c context.Context, workspaceID int64) (bool, error)
+	CreateSystemPostedEntry(
+		c context.Context,
+		periodID int64,
+		entryDate time.Time,
+		trxDescription string,
+		entryDescription string,
+		reference string,
+		postings []model.CreatePostingRequest,
+		postedBy int64,
+	) (domain.Entry, error)
 }
 
 // EntryService manages business logic and double-entry validation for Journal Entries.
@@ -101,40 +114,75 @@ func (s EntryService) resolveRate(c context.Context, tx domain.Transaction) (flo
 	return s.rateRepo.Lookup(c, curr, baseCurrency, tx.TransactionDate)
 }
 
-func findFXRoundingAccount(c context.Context, accountRepo AccountRepository) (domain.Account, error) {
-	// 1. Try finding by code 7400
-	acc, err := accountRepo.FindByCode(c, "7400")
-	if err == nil && acc.ID > 0 && acc.IsActive && acc.IsPostable {
-		return acc, nil
-	}
-
-	// 2. Search all accounts in workspace and match by name or code
-	accounts, _, err := accountRepo.Search(c, model.SearchAccountRequest{})
-	if err == nil {
+func findRealizedFXAccounts(c context.Context, accountRepo AccountRepository) (gain domain.Account, loss domain.Account, err error) {
+	gain, err = accountRepo.FindByCode(c, "7210")
+	if err != nil || gain.ID == 0 {
+		accounts, _, _ := accountRepo.Search(c, model.SearchAccountRequest{})
 		for _, a := range accounts {
-			if !a.IsActive || !a.IsPostable {
-				continue
-			}
-			if a.Code == "7400" ||
-				strings.EqualFold(a.Name, "FX Rounding") ||
-				strings.EqualFold(a.Name, "Foreign Exchange Rounding") ||
-				strings.EqualFold(a.Name, "Selisih Pembulatan Kurs Valas") {
-				return a, nil
-			}
-		}
-		for _, a := range accounts {
-			if !a.IsActive || !a.IsPostable {
-				continue
-			}
-			nameLower := strings.ToLower(a.Name)
-			if strings.Contains(nameLower, "rounding") || strings.Contains(nameLower, "pembulatan") {
-				return a, nil
+			if a.Code == "7210" || strings.EqualFold(a.Name, "Realized Foreign Exchange Gain") || strings.EqualFold(a.Name, "Realized FX Gain") {
+				gain = a
+				break
 			}
 		}
 	}
 
-	return domain.Account{}, domain.ErrEntryBaseNotBalanced
+	loss, err = accountRepo.FindByCode(c, "7310")
+	if err != nil || loss.ID == 0 {
+		accounts, _, _ := accountRepo.Search(c, model.SearchAccountRequest{})
+		for _, a := range accounts {
+			if a.Code == "7310" || strings.EqualFold(a.Name, "Realized Foreign Exchange Loss") || strings.EqualFold(a.Name, "Realized FX Loss") {
+				loss = a
+				break
+			}
+		}
+	}
+
+	if gain.ID == 0 || loss.ID == 0 {
+		return gain, loss, fmt.Errorf("realized fx accounts (7210 / 7310) not found in workspace")
+	}
+
+	return gain, loss, nil
 }
+
+// RealizedFXPosting generates a balancing posting for realized FX gain or loss on foreign currency settlement.
+// isGain indicates whether the FX difference is a gain (true) or loss (false).
+// diff is the absolute difference in base currency.
+func (s EntryService) RealizedFXPosting(c context.Context, isGain bool, diff float64, description string) (model.CreatePostingRequest, error) {
+	gainAcc, lossAcc, err := findRealizedFXAccounts(c, s.accountRepo)
+	if err != nil {
+		return model.CreatePostingRequest{}, err
+	}
+
+	_, baseDecimals := s.getBaseCurrencyAndDecimals(c)
+	roundedDiff := money.Round(math.Abs(diff), baseDecimals)
+
+	if isGain {
+		desc := description
+		if desc == "" {
+			desc = "Realized Foreign Exchange Gain"
+		}
+		return model.CreatePostingRequest{
+			AccountID:   gainAcc.ID,
+			Direction:   domain.PostingDirectionCredit,
+			Amount:      0,
+			BaseAmount:  &roundedDiff,
+			Description: desc,
+		}, nil
+	}
+
+	desc := description
+	if desc == "" {
+		desc = "Realized Foreign Exchange Loss"
+	}
+	return model.CreatePostingRequest{
+		AccountID:   lossAcc.ID,
+		Direction:   domain.PostingDirectionDebit,
+		Amount:      0,
+		BaseAmount:  &roundedDiff,
+		Description: desc,
+	}, nil
+}
+
 
 // Create validates and creates a new draft journal entry within a transaction.
 func (s EntryService) Create(c context.Context, txID int64, req model.CreateEntryRequest) (domain.Entry, error) {
@@ -540,3 +588,39 @@ func validateEntry(
 
 	return nil, domain.ErrEntryBaseNotBalanced
 }
+
+func findFXRoundingAccount(c context.Context, accountRepo AccountRepository) (domain.Account, error) {
+	// 1. Try finding by code 7400
+	acc, err := accountRepo.FindByCode(c, "7400")
+	if err == nil && acc.ID > 0 && acc.IsActive && acc.IsPostable {
+		return acc, nil
+	}
+
+	// 2. Search all accounts in workspace and match by name or code
+	accounts, _, err := accountRepo.Search(c, model.SearchAccountRequest{})
+	if err == nil {
+		for _, a := range accounts {
+			if !a.IsActive || !a.IsPostable {
+				continue
+			}
+			if a.Code == "7400" ||
+				strings.EqualFold(a.Name, "FX Rounding") ||
+				strings.EqualFold(a.Name, "Foreign Exchange Rounding") ||
+				strings.EqualFold(a.Name, "Selisih Pembulatan Kurs Valas") {
+				return a, nil
+			}
+		}
+		for _, a := range accounts {
+			if !a.IsActive || !a.IsPostable {
+				continue
+			}
+			nameLower := strings.ToLower(a.Name)
+			if strings.Contains(nameLower, "rounding") || strings.Contains(nameLower, "pembulatan") {
+				return a, nil
+			}
+		}
+	}
+
+	return domain.Account{}, domain.ErrEntryBaseNotBalanced
+}
+

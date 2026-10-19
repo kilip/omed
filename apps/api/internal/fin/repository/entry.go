@@ -20,6 +20,24 @@ type EntryRepository struct {
 	cli *ent.Client
 }
 
+// AccountBalanceSummary holds aggregated debit and credit sums for an account.
+type AccountBalanceSummary struct {
+	Debit      float64
+	Credit     float64
+	BaseDebit  float64
+	BaseCredit float64
+	Currencies map[string]*CurrencyBalanceSummary
+}
+
+// CurrencyBalanceSummary holds aggregated amounts for a specific currency on an account.
+type CurrencyBalanceSummary struct {
+	Currency   string
+	Debit      float64
+	Credit     float64
+	BaseDebit  float64
+	BaseCredit float64
+}
+
 // NewEntryRepository constructs a new EntryRepository backed by the given Ent client.
 func NewEntryRepository(cli *ent.Client) EntryRepository {
 	return EntryRepository{cli: cli}
@@ -645,4 +663,170 @@ func toPostingDomain(p *ent.Posting) domain.Posting {
 	}
 
 	return dom
+}
+
+// GetAccountBalancesAsOf calculates cumulative debit and credit sums (amount and baseAmount)
+// for all accounts up to and including asOfDate for entries with POSTED status.
+func (r EntryRepository) GetAccountBalancesAsOf(c context.Context, asOfDate time.Time) (map[int64]AccountBalanceSummary, error) {
+	// Truncate to end of the day
+	endOfDay := time.Date(asOfDate.Year(), asOfDate.Month(), asOfDate.Day(), 23, 59, 59, 999999999, asOfDate.Location())
+
+	items, err := r.cli.Posting.Query().
+		Where(
+			posting.HasEntryWith(
+				entry.StatusEQ(entry.Status(domain.EntryStatusPosted)),
+				entry.EntryDateLTE(endOfDay),
+				entry.DeletedAtIsNil(),
+			),
+		).
+		WithEntry(func(eq *ent.EntryQuery) {
+			eq.WithTransaction()
+		}).
+		All(c)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[int64]AccountBalanceSummary)
+	for _, it := range items {
+		bal := result[it.AccountID]
+		if bal.Currencies == nil {
+			bal.Currencies = make(map[string]*CurrencyBalanceSummary)
+		}
+
+		curr := "IDR"
+		if it.Edges.Entry != nil && it.Edges.Entry.Edges.Transaction != nil && it.Edges.Entry.Edges.Transaction.Currency != "" {
+			curr = it.Edges.Entry.Edges.Transaction.Currency
+		}
+
+		cbal := bal.Currencies[curr]
+		if cbal == nil {
+			cbal = &CurrencyBalanceSummary{Currency: curr}
+			bal.Currencies[curr] = cbal
+		}
+
+		if it.Direction == posting.DirectionDEBIT {
+			bal.Debit += it.Amount
+			bal.BaseDebit += it.BaseAmount
+			cbal.Debit += it.Amount
+			cbal.BaseDebit += it.BaseAmount
+		} else {
+			bal.Credit += it.Amount
+			bal.BaseCredit += it.BaseAmount
+			cbal.Credit += it.Amount
+			cbal.BaseCredit += it.BaseAmount
+		}
+		result[it.AccountID] = bal
+	}
+
+	return result, nil
+}
+
+// CreateSystemPostedEntry creates a Transaction with SYSTEM source and an Entry with POSTED status in a single transaction.
+func (r EntryRepository) CreateSystemPostedEntry(
+	c context.Context,
+	periodID int64,
+	entryDate time.Time,
+	trxDescription string,
+	entryDescription string,
+	reference string,
+	postings []model.CreatePostingRequest,
+	postedBy int64,
+) (domain.Entry, error) {
+	var dom domain.Entry
+	var createdEntryID int64
+
+	year := entryDate.Year()
+	const maxRetries = 5
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
+			trxNum, err := GenerateTransactionNumber(c, tx, year)
+			if err != nil {
+				return err
+			}
+
+			tBuilder := tx.Transaction.Create().
+				SetNumber(trxNum).
+				SetTransactionDate(entryDate).
+				SetCurrency("IDR").
+				SetExchangeRate(1.0).
+				SetSource(transaction.Source(domain.TransactionSourceSystem))
+
+			if trxDescription != "" {
+				tBuilder.SetDescription(trxDescription)
+			}
+			if reference != "" {
+				tBuilder.SetReference(reference)
+			}
+
+			t, err := tBuilder.Save(c)
+			if err != nil {
+				return err
+			}
+
+			entryNum, err := GenerateEntryNumber(c, tx, year)
+			if err != nil {
+				return err
+			}
+
+			now := time.Now()
+			eBuilder := tx.Entry.Create().
+				SetTransactionID(t.ID).
+				SetPeriodID(periodID).
+				SetNumber(entryNum).
+				SetEntryDate(entryDate).
+				SetStatus(entry.Status(domain.EntryStatusPosted)).
+				SetPostedAt(now).
+				SetPostedBy(postedBy)
+
+			if entryDescription != "" {
+				eBuilder.SetDescription(entryDescription)
+			}
+
+			e, err := eBuilder.Save(c)
+			if err != nil {
+				return err
+			}
+			createdEntryID = e.ID
+
+			for pos, pReq := range postings {
+				baseAmt := pReq.Amount
+				if pReq.BaseAmount != nil {
+					baseAmt = *pReq.BaseAmount
+				}
+
+				pBuilder := tx.Posting.Create().
+					SetEntryID(e.ID).
+					SetAccountID(pReq.AccountID).
+					SetDirection(posting.Direction(pReq.Direction)).
+					SetAmount(pReq.Amount).
+					SetBaseAmount(baseAmt).
+					SetPosition(pos)
+
+				if pReq.Description != "" {
+					pBuilder.SetDescription(pReq.Description)
+				}
+
+				if _, err := pBuilder.Save(c); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
+
+		if err == nil {
+			return r.GetByID(c, createdEntryID)
+		}
+
+		if ent.IsConstraintError(err) || isLockOrConflictError(err) {
+			time.Sleep(10 * time.Millisecond)
+			continue
+		}
+
+		return dom, err
+	}
+
+	return dom, domain.ErrEntryNotFound
 }

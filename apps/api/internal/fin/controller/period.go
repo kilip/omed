@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
@@ -19,6 +20,7 @@ type PeriodServiceContract interface {
 	Delete(c context.Context, id int64) error
 	Close(c context.Context, id int64) (domain.Period, error)
 	Reopen(c context.Context, id int64) (domain.Period, error)
+	Revalue(c context.Context, periodID int64, requestedBy int64) (domain.Entry, error)
 }
 
 // PeriodController handles HTTP requests for Accounting Periods.
@@ -235,6 +237,35 @@ func (ctl PeriodController) Reopen(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.OK(c, toPeriodResponse(p))
+}
+
+// Revalue executes period-end revaluation of foreign currency balances.
+//
+//	@Summary		Period-end revaluation
+//	@Description	Revalue foreign currency balances for the period and post unrealized FX gain/loss
+//	@Tags			Finance Periods
+//	@Produce		json
+//	@Param			wid	path		int	true	"Workspace ID"
+//	@Param			id	path		int	true	"Period ID"
+//	@Success		200	{object}	httpx.WebResponse[model.EntryResponse]
+//	@Failure		400	{object}	httpx.ErrorResponse
+//	@Failure		403	{object}	httpx.ErrorResponse
+//	@Failure		404	{object}	httpx.ErrorResponse
+//	@Failure		409	{object}	httpx.ErrorResponse
+//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/periods/{id}/revalue [post]
+func (ctl PeriodController) Revalue(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	user := base.UserFromContext(c)
+	entry, err := ctl.periods.Revalue(c, id, user.ID)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, toEntryResponse(entry))
 }
 
 func toPeriodResponse(p domain.Period) model.PeriodResponse {

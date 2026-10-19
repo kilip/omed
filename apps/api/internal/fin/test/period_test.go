@@ -8,8 +8,10 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
+	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
@@ -268,6 +270,128 @@ func (s *PeriodApiSuite) Test_RBAC_Viewer_Accountant_Admin() {
 	s.OK()
 }
 
+func (s *PeriodApiSuite) Test_Revalue_Endpoints() {
+	ws := s.ensureWorkspace("Finance Reval WS", s.User.ID)
+	client := testutil.GetEntCli()
+
+	// Seed COA template via API
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/seed", ws.ID), fiber.MethodPost, model.SeedAccountsRequest{
+		Template: "freelancer",
+		Lang:     "en",
+	})
+	s.Created()
+
+	// Find parent 1110 and 3010
+	ctx := base.WithWorkspaceID(s.Context, ws.ID)
+	accountRepo := repository.NewAccountRepository(client)
+	bankParent, err := accountRepo.FindByCode(ctx, "1110")
+	s.Require().NoError(err)
+
+	capitalAcc, err := accountRepo.FindByCode(ctx, "3100")
+	s.Require().NoError(err)
+
+	// Create USD Bank account via API
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts", ws.ID), fiber.MethodPost, model.CreateAccountRequest{
+		Code:     "1115",
+		Name:     "Wise USD",
+		Type:     "ASSET",
+		ParentID: bankParent.ID,
+		Currency: "USD",
+	})
+	s.Created()
+
+	usdAcc, err := accountRepo.FindByCode(ctx, "1115")
+	s.Require().NoError(err)
+
+	// Create open period
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/periods", ws.ID), fiber.MethodPost, model.CreatePeriodRequest{
+		Name:       "Jan 2026",
+		StartDate:  parseApiDate("2026-01-01"),
+		EndDate:    parseApiDate("2026-01-31"),
+		FiscalYear: 2026,
+	})
+	s.Created()
+	period := s.GetResponse().Data
+
+	// Exchange rates
+	rateRepo := repository.NewExchangeRateRepository(client)
+	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
+		FromCurrency:  "USD",
+		ToCurrency:    "IDR",
+		Rate:          15000,
+		EffectiveDate: parseApiDate("2026-01-01"),
+	})
+	s.Require().NoError(err)
+
+	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
+		FromCurrency:  "USD",
+		ToCurrency:    "IDR",
+		Rate:          16000,
+		EffectiveDate: parseApiDate("2026-01-31"),
+	})
+	s.Require().NoError(err)
+
+	// Initial posted entry: 100 USD @ 15,000 IDR
+	trx, err := client.Transaction.Create().
+		SetWorkspaceID(ws.ID).
+		SetNumber("TRX-2026-000088").
+		SetTransactionDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
+		SetCurrency("USD").
+		SetExchangeRate(15000).
+		SetSource("MANUAL").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	e, err := client.Entry.Create().
+		SetWorkspaceID(ws.ID).
+		SetTransactionID(trx.ID).
+		SetPeriodID(period.ID).
+		SetNumber("JE-2026-000088").
+		SetEntryDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
+		SetStatus("POSTED").
+		SetPostedAt(time.Now()).
+		SetPostedBy(s.User.ID).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = client.Posting.Create().
+		SetWorkspaceID(ws.ID).
+		SetEntryID(e.ID).
+		SetAccountID(usdAcc.ID).
+		SetDirection("DEBIT").
+		SetAmount(100).
+		SetBaseAmount(1500000).
+		SetPosition(0).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = client.Posting.Create().
+		SetWorkspaceID(ws.ID).
+		SetEntryID(e.ID).
+		SetAccountID(capitalAcc.ID).
+		SetDirection("CREDIT").
+		SetAmount(100).
+		SetBaseAmount(1500000).
+		SetPosition(1).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Trigger revaluation via API
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/periods/%d/revalue", ws.ID, period.ID), fiber.MethodPost, nil)
+	s.OK()
+
+	var revalRes httpx.WebResponse[model.EntryResponse]
+	err = json.NewDecoder(s.HttpResponse.Body).Decode(&revalRes)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, revalRes.Data.Status)
+	s.Len(revalRes.Data.Postings, 2)
+
+	// Second revaluation should return 409 Conflict
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/periods/%d/revalue", ws.ID, period.ID), fiber.MethodPost, nil)
+	s.AssertStatus(fiber.StatusConflict)
+}
+
 func TestPeriodApiSuite(t *testing.T) {
 	suite.Run(t, new(PeriodApiSuite))
 }
+

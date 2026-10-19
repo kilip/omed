@@ -256,6 +256,47 @@ func (s *PeriodRepoSuite) Test_HasDraftEntries() {
 	s.False(hasDraft)
 }
 
+func (s *PeriodRepoSuite) Test_HasRevaluationEntry() {
+	ctx := s.ctx()
+
+	p, err := s.repo.Create(ctx, model.CreatePeriodRequest{
+		Name:       "March 2026",
+		StartDate:  parseDate("2026-03-01"),
+		EndDate:    parseDate("2026-03-31"),
+		FiscalYear: 2026,
+	})
+	s.Require().NoError(err)
+
+	hasReval, err := s.repo.HasRevaluationEntry(ctx, p.ID)
+	s.Require().NoError(err)
+	s.False(hasReval)
+
+	ref := domain.PeriodRevaluationReference(p.ID)
+	trx, err := s.client.Transaction.Create().
+		SetNumber("TRX-2026-000003").
+		SetTransactionDate(time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC)).
+		SetCurrency("IDR").
+		SetExchangeRate(1.0).
+		SetReference(ref).
+		SetSource("SYSTEM").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = s.client.Entry.Create().
+		SetTransactionID(trx.ID).
+		SetPeriodID(p.ID).
+		SetNumber("JE-2026-000003").
+		SetEntryDate(time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC)).
+		SetStatus("POSTED").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	hasReval, err = s.repo.HasRevaluationEntry(ctx, p.ID)
+	s.Require().NoError(err)
+	s.True(hasReval)
+}
+
 func TestPeriodRepoSuite(t *testing.T) {
 	suite.Run(t, new(PeriodRepoSuite))
 }
+

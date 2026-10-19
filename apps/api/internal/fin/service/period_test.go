@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -26,7 +27,15 @@ type PeriodServiceSuite struct {
 func (s *PeriodServiceSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:period_svc_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
 	repo := repository.NewPeriodRepository(s.client)
-	s.svc = service.NewPeriodService(repo)
+	accountRepo := repository.NewAccountRepository(s.client)
+	entryRepo := repository.NewEntryRepository(s.client)
+	rateRepo := repository.NewExchangeRateRepository(s.client)
+	currRepo := repository.NewCurrencyRepository(s.client)
+
+	s.svc = service.NewPeriodService(
+		repo,
+		service.WithPeriodDependencies(accountRepo, entryRepo, rateRepo, currRepo),
+	)
 }
 
 func (s *PeriodServiceSuite) TearDownSuite() {
@@ -41,13 +50,15 @@ func (s *PeriodServiceSuite) SetupTest() {
 	_, _ = s.client.Entry.Delete().Exec(ctx)
 	_, _ = s.client.Transaction.Delete().Exec(ctx)
 	_, _ = s.client.Period.Delete().Exec(ctx)
+	_, _ = s.client.Account.Delete().Exec(ctx)
+	_, _ = s.client.Session.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
 	_, _ = s.client.User.Delete().Exec(ctx)
 
 	u, err := s.client.User.Create().
 		SetName("Bob").
-		SetEmail("bob@example.com").
+		SetEmail(fmt.Sprintf("bob-%d@example.com", time.Now().UnixNano())).
 		Save(ctx)
 	s.Require().NoError(err)
 	s.userID = u.ID
@@ -229,6 +240,136 @@ func (s *PeriodServiceSuite) Test_Close_PeriodWithDraftEntriesFails() {
 	s.Equal(domain.PeriodStatusClosed, closed.Status)
 }
 
+func (s *PeriodServiceSuite) Test_Revalue() {
+	ctx := s.ctx()
+
+	// Seed COA template
+	accountRepo := repository.NewAccountRepository(s.client)
+	_, err := accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	// Create USD Bank account
+	bankParent, err := accountRepo.FindByCode(ctx, "1110")
+	s.Require().NoError(err)
+	usdCurr := "USD"
+	usdAcc, err := accountRepo.Create(ctx, model.CreateAccountRequest{
+		Code:     "1115",
+		Name:     "Wise USD",
+		Type:     "ASSET",
+		ParentID: bankParent.ID,
+		Currency: usdCurr,
+	}, "DEBIT")
+	s.Require().NoError(err)
+
+	capitalAcc, err := accountRepo.FindByCode(ctx, "3100")
+	s.Require().NoError(err)
+
+	// Setup Open Period for Jan 2026
+	p, err := s.svc.Create(ctx, model.CreatePeriodRequest{
+		Name:       "Jan 2026",
+		StartDate:  parseDate("2026-01-01"),
+		EndDate:    parseDate("2026-01-31"),
+		FiscalYear: 2026,
+	})
+	s.Require().NoError(err)
+
+	// Seed rate on 2026-01-01: 1 USD = 15,000 IDR
+	rateRepo := repository.NewExchangeRateRepository(s.client)
+	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
+		FromCurrency: "USD",
+		ToCurrency:   "IDR",
+		Rate:         15000,
+		EffectiveDate: model.Date(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)),
+	})
+	s.Require().NoError(err)
+
+	// Post an initial transaction on 2026-01-01 of 100 USD
+	trx, err := s.client.Transaction.Create().
+		SetNumber("TRX-2026-000001").
+		SetTransactionDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
+		SetCurrency("USD").
+		SetExchangeRate(15000).
+		SetSource("MANUAL").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	e, err := s.client.Entry.Create().
+		SetTransactionID(trx.ID).
+		SetPeriodID(p.ID).
+		SetNumber("JE-2026-000001").
+		SetEntryDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
+		SetStatus("POSTED").
+		SetPostedAt(time.Now()).
+		SetPostedBy(s.userID).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// 100 USD = 1,500,000 IDR
+	_, err = s.client.Posting.Create().
+		SetEntryID(e.ID).
+		SetAccountID(usdAcc.ID).
+		SetDirection("DEBIT").
+		SetAmount(100).
+		SetBaseAmount(1500000).
+		SetPosition(0).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = s.client.Posting.Create().
+		SetEntryID(e.ID).
+		SetAccountID(capitalAcc.ID).
+		SetDirection("CREDIT").
+		SetAmount(100).
+		SetBaseAmount(1500000).
+		SetPosition(1).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Set rate on period.EndDate (2026-01-31): 1 USD = 16,000 IDR
+	// New value = 100 * 16000 = 1,600,000 IDR. Diff = +100,000 IDR (Gain)
+	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
+		FromCurrency: "USD",
+		ToCurrency:   "IDR",
+		Rate:         16000,
+		EffectiveDate: model.Date(time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)),
+	})
+	s.Require().NoError(err)
+
+	revalEntry, err := s.svc.Revalue(ctx, p.ID, s.userID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, revalEntry.Status)
+	s.Equal(p.EndDate.Format("2006-01-02"), revalEntry.EntryDate.Format("2006-01-02"))
+	s.Len(revalEntry.Postings, 2)
+
+	// Postings:
+	// DEBIT to usdAcc: amount = 0, base_amount = 100,000
+	// CREDIT to 7220 (Unrealized FX Gain): amount = 0, base_amount = 100,000
+	gainAcc, err := accountRepo.FindByCode(ctx, "7220")
+	s.Require().NoError(err)
+
+	var foundForeign, foundGain bool
+	for _, posting := range revalEntry.Postings {
+		if posting.AccountID == usdAcc.ID {
+			foundForeign = true
+			s.Equal("DEBIT", posting.Direction)
+			s.Equal(0.0, posting.Amount)
+			s.Equal(100000.0, posting.BaseAmount)
+		} else if posting.AccountID == gainAcc.ID {
+			foundGain = true
+			s.Equal("CREDIT", posting.Direction)
+			s.Equal(0.0, posting.Amount)
+			s.Equal(100000.0, posting.BaseAmount)
+		}
+	}
+	s.True(foundForeign)
+	s.True(foundGain)
+
+	// Idempotent test: Re-running revalue should fail with domain.ErrPeriodAlreadyRevalued
+	_, err = s.svc.Revalue(ctx, p.ID, s.userID)
+	s.ErrorIs(err, domain.ErrPeriodAlreadyRevalued)
+}
+
 func TestPeriodServiceSuite(t *testing.T) {
 	suite.Run(t, new(PeriodServiceSuite))
 }
+

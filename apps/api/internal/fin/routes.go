@@ -29,6 +29,7 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	periods.Delete("/:id", az.Require(domain.ObjPeriod, "delete"), periodCtl.Delete)
 	periods.Post("/:id/close", az.Require(domain.ObjPeriod, "update"), periodCtl.Close)
 	periods.Post("/:id/reopen", az.Require(domain.ObjPeriod, "update"), periodCtl.Reopen)
+	periods.Post("/:id/revalue", az.Require(domain.ObjPeriod, "update"), periodCtl.Revalue)
 
 	transactions := r.Group("/workspaces/:wid/fin/transactions")
 	txCtl := controller.NewTransactionController(mod.TransactionService)
@@ -66,4 +67,9 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	exchangeRates.Get("/:id", az.Require(domain.ObjExchangeRate, "read"), rateCtl.GetByID)
 	exchangeRates.Put("/:id", az.Require(domain.ObjExchangeRate, "update"), rateCtl.Update)
 	exchangeRates.Delete("/:id", az.Require(domain.ObjExchangeRate, "delete"), rateCtl.Delete)
+
+	reportCtl := controller.NewReportController(mod.ReportService)
+	reports := r.Group("/workspaces/:wid/fin/reports")
+	reports.Post("/trial-balance", az.Require(domain.ObjAccount, "read"), reportCtl.TrialBalance)
 }
+

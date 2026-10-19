@@ -477,6 +477,39 @@ func (s *EntryRepoSuite) Test_ConcurrentNumbering() {
 	s.Len(seen, concurrency)
 }
 
+func (s *EntryRepoSuite) Test_CreateSystemPostedEntry() {
+	ctx := s.ctx()
+	eDate := time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)
+
+	postings := []model.CreatePostingRequest{
+		{AccountID: s.accountID1, Direction: "DEBIT", Amount: 500},
+		{AccountID: s.accountID2, Direction: "CREDIT", Amount: 500},
+	}
+
+	entry, err := s.repo.CreateSystemPostedEntry(
+		ctx,
+		s.periodID,
+		eDate,
+		"System test trx",
+		"System test entry",
+		"TEST-REF-001",
+		postings,
+		s.userID,
+	)
+	s.Equal(domain.EntryStatusPosted, entry.Status)
+	s.Equal("System test entry", entry.Description)
+	s.Require().NotNil(entry.PostedBy)
+	s.Equal(s.userID, *entry.PostedBy)
+	s.Len(entry.Postings, 2)
+
+	// Check balances as of 2026-01-31
+	bals, err := s.repo.GetAccountBalancesAsOf(ctx, eDate)
+	s.Require().NoError(err)
+	s.Equal(500.0, bals[s.accountID1].Debit)
+	s.Equal(500.0, bals[s.accountID2].Credit)
+}
+
 func TestEntryRepoSuite(t *testing.T) {
 	suite.Run(t, new(EntryRepoSuite))
 }
+

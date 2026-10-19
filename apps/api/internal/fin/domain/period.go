@@ -2,6 +2,7 @@
 package domain
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/kilip/omed/api/internal/base"
@@ -31,3 +32,10 @@ type Period struct {
 	Description string         `json:"description,omitempty"`
 	AuditMeta   base.AuditMeta `json:"auditMeta"`
 }
+
+// PeriodRevaluationReference returns standard reference string for a period's revaluation transaction.
+func PeriodRevaluationReference(periodID int64) string {
+	return fmt.Sprintf("REVAL-PERIOD-%d", periodID)
+}
+
+

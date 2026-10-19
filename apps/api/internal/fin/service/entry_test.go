@@ -852,6 +852,111 @@ func (s *EntryServiceSuite) Test_MultiCurrency_LedgerDualBalance() {
 	s.Equal(1500000.0, p.RunningBaseBalance)
 }
 
+func (s *EntryServiceSuite) Test_RealizedFX_Settlement() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+	settleDate := model.Date(time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC))
+
+	// Clear initial accounts so we can seed COA
+	_, _ = s.client.Account.Delete().Exec(base.WithSkipAuditMutator(context.Background()))
+
+	// Seed COA for FX accounts
+	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	// Fetch AR account (1141 Client Invoices Receivable) and Bank IDR (1111)
+	arAcc, err := s.accountRepo.FindByCode(ctx, "1141")
+	s.Require().NoError(err)
+
+	bankAcc, err := s.accountRepo.FindByCode(ctx, "1111")
+	s.Require().NoError(err)
+
+	revenueAcc, err := s.accountRepo.FindByCode(ctx, "4110")
+	s.Require().NoError(err)
+
+	// 1. Book foreign-currency invoice: 1,000 USD @ 15,000 IDR = 15,000,000 IDR
+	// DEBIT AR 1,000 USD (base: 15,000,000 IDR)
+	// CREDIT Revenue 1,000 USD (base: 15,000,000 IDR)
+	txInvoice, err := s.client.Transaction.Create().
+		SetNumber("TRX-2026-000010").
+		SetTransactionDate(eDate.Time()).
+		SetCurrency("USD").
+		SetExchangeRate(15000.0).
+		SetSource(domain.TransactionSourceManual).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	entryInvoice, err := s.svc.Create(ctx, txInvoice.ID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: arAcc.ID, Direction: "DEBIT", Amount: 1000.0},
+			{AccountID: revenueAcc.ID, Direction: "CREDIT", Amount: 1000.0},
+		},
+	})
+	s.Require().NoError(err)
+	_, err = s.svc.Post(ctx, entryInvoice.ID, s.userID)
+	s.Require().NoError(err)
+
+	// 2. Settlement of invoice at a higher rate: 1,000 USD received in Bank @ 16,000 IDR
+	// Bank receives 16,000,000 IDR (DEBIT)
+	// AR cleared at booked value 15,000,000 IDR (CREDIT)
+	// Realized FX Gain = 1,000,000 IDR (CREDIT to 7210)
+	gainPosting, err := s.svc.RealizedFXPosting(ctx, true, 1000000.0, "Realized FX Gain on invoice TRX-2026-000010")
+	s.Require().NoError(err)
+	s.Equal("CREDIT", gainPosting.Direction)
+	s.Equal(0.0, gainPosting.Amount)
+	s.Require().NotNil(gainPosting.BaseAmount)
+	s.Equal(1000000.0, *gainPosting.BaseAmount)
+
+	gainAcc, err := s.accountRepo.FindByCode(ctx, "7210")
+	s.Require().NoError(err)
+	s.Equal(gainAcc.ID, gainPosting.AccountID)
+
+	// Create settlement transaction in USD (1,000 USD settled at 16,000 IDR rate)
+	usd1k := 1000.0
+	base16m := 16000000.0
+	base15m := 15000000.0
+	txSettle, err := s.client.Transaction.Create().
+		SetNumber("TRX-2026-000011").
+		SetTransactionDate(settleDate.Time()).
+		SetCurrency("USD").
+		SetExchangeRate(16000.0).
+		SetSource(domain.TransactionSourceManual).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	settleEntry, err := s.svc.Create(ctx, txSettle.ID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: settleDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: bankAcc.ID, Direction: "DEBIT", Amount: usd1k, BaseAmount: &base16m},
+			{AccountID: arAcc.ID, Direction: "CREDIT", Amount: usd1k, BaseAmount: &base15m},
+			gainPosting,
+		},
+	})
+	s.Require().NoError(err)
+
+	postedSettle, err := s.svc.Post(ctx, settleEntry.ID, s.userID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, postedSettle.Status)
+	s.Len(postedSettle.Postings, 3)
+
+	// 3. Settlement with FX Loss: Invoice booked at 15,000 IDR, settled at 14,000 IDR
+	// Loss = 1,000,000 IDR
+	lossPosting, err := s.svc.RealizedFXPosting(ctx, false, 1000000.0, "Realized FX Loss on settlement")
+	s.Require().NoError(err)
+	s.Equal("DEBIT", lossPosting.Direction)
+	s.Equal(0.0, lossPosting.Amount)
+	s.Require().NotNil(lossPosting.BaseAmount)
+	s.Equal(1000000.0, *lossPosting.BaseAmount)
+
+	lossAcc, err := s.accountRepo.FindByCode(ctx, "7310")
+	s.Require().NoError(err)
+	s.Equal(lossAcc.ID, lossPosting.AccountID)
+}
+
 func TestEntryServiceSuite(t *testing.T) {
 	suite.Run(t, new(EntryServiceSuite))
 }
+

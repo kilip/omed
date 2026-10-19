@@ -457,6 +457,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_TrialBalanceResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.TrialBalanceResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_WorkspaceBaseCurrencyResponse": {
                 "properties": {
                     "data": {
@@ -829,6 +842,39 @@ const docTemplate = `{
                 "required": [
                     "name"
                 ],
+                "type": "object"
+            },
+            "model.CurrencyBreakdownItem": {
+                "properties": {
+                    "baseCredit": {
+                        "example": 0,
+                        "type": "number"
+                    },
+                    "baseDebit": {
+                        "example": 1600000,
+                        "type": "number"
+                    },
+                    "baseNet": {
+                        "example": 1600000,
+                        "type": "number"
+                    },
+                    "credit": {
+                        "example": 0,
+                        "type": "number"
+                    },
+                    "currency": {
+                        "example": "USD",
+                        "type": "string"
+                    },
+                    "debit": {
+                        "example": 100,
+                        "type": "number"
+                    },
+                    "netBalance": {
+                        "example": 100,
+                        "type": "number"
+                    }
+                },
                 "type": "object"
             },
             "model.CurrencyResponse": {
@@ -1526,6 +1572,93 @@ const docTemplate = `{
                     },
                     "workspaceId": {
                         "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.TrialBalanceAccountItem": {
+                "properties": {
+                    "accountCode": {
+                        "example": "1110",
+                        "type": "string"
+                    },
+                    "accountId": {
+                        "type": "integer"
+                    },
+                    "accountName": {
+                        "example": "Bank BCA IDR",
+                        "type": "string"
+                    },
+                    "credit": {
+                        "example": 0,
+                        "type": "number"
+                    },
+                    "currencies": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.CurrencyBreakdownItem"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "debit": {
+                        "example": 1000000,
+                        "type": "number"
+                    },
+                    "netBalance": {
+                        "example": 1000000,
+                        "type": "number"
+                    },
+                    "type": {
+                        "example": "ASSET",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.TrialBalanceRequest": {
+                "properties": {
+                    "asOfDate": {
+                        "example": "2026-01-31",
+                        "type": "string"
+                    },
+                    "includePerCurrencyBreakdown": {
+                        "example": false,
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "asOfDate"
+                ],
+                "type": "object"
+            },
+            "model.TrialBalanceResponse": {
+                "properties": {
+                    "accounts": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.TrialBalanceAccountItem"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "asOfDate": {
+                        "example": "2026-01-31",
+                        "type": "string"
+                    },
+                    "baseCurrency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "isBalanced": {
+                        "example": true,
+                        "type": "boolean"
+                    },
+                    "totalCredit": {
+                        "example": 5000000,
+                        "type": "number"
+                    },
+                    "totalDebit": {
+                        "example": 5000000,
+                        "type": "number"
                     }
                 },
                 "type": "object"
@@ -5406,6 +5539,192 @@ const docTemplate = `{
                 "summary": "Reopen period",
                 "tags": [
                     "Finance Periods"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/periods/{id}/revalue": {
+            "post": {
+                "description": "Revalue foreign currency balances for the period and post unrealized FX gain/loss",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Period ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_EntryResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Period-end revaluation",
+                "tags": [
+                    "Finance Periods"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/reports/trial-balance": {
+            "post": {
+                "description": "Calculate trial balance for all accounts in base currency as of the specified date with optional currency breakdown",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.TrialBalanceRequest",
+                                "summary": "request",
+                                "description": "Trial balance request parameters"
+                            }
+                        }
+                    },
+                    "description": "Trial balance request parameters",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_TrialBalanceResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Generate trial balance report",
+                "tags": [
+                    "Finance Reports"
                 ]
             }
         },

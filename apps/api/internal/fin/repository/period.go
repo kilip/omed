@@ -8,6 +8,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
@@ -228,6 +229,21 @@ func (r PeriodRepository) HasDraftEntries(c context.Context, periodID int64) (bo
 		).
 		Exist(c)
 }
+
+// HasRevaluationEntry checks if there is already an active posted revaluation entry for the period.
+func (r PeriodRepository) HasRevaluationEntry(c context.Context, periodID int64) (bool, error) {
+	return r.cli.Entry.Query().
+		Where(
+			entry.PeriodIDEQ(periodID),
+			entry.DeletedAtIsNil(),
+			entry.HasTransactionWith(
+				transaction.ReferenceEQ(domain.PeriodRevaluationReference(periodID)),
+				transaction.DeletedAtIsNil(),
+			),
+		).
+		Exist(c)
+}
+
 
 func toPeriodDomain(p *ent.Period) domain.Period {
 	dom := domain.Period{
