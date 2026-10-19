@@ -151,6 +151,102 @@ export class TestClient {
     });
   }
 
+  async addWorkspaceMember(
+    workspaceId: number,
+    userId: number,
+    role: string,
+    sessionToken?: string,
+  ): Promise<void> {
+    if (sessionToken) {
+      await this.authenticatedRequest<void>(sessionToken, "/test/members", {
+        method: "POST",
+        body: JSON.stringify({ workspaceId, userId, role }),
+      });
+    } else {
+      await this.addMember({ workspaceId, userId, role });
+    }
+  }
+
+  async seedCOA(
+    workspaceId: number,
+    sessionToken?: string,
+    template = "freelancer",
+    lang = "en",
+  ): Promise<void> {
+    const options: RequestInit = {
+      method: "POST",
+      body: JSON.stringify({ template, lang }),
+    };
+    if (sessionToken) {
+      await this.authenticatedRequest<void>(
+        sessionToken,
+        `/workspaces/${workspaceId}/fin/accounts/seed`,
+        options,
+      );
+    } else {
+      await this.request<void>(
+        `/workspaces/${workspaceId}/fin/accounts/seed`,
+        options,
+      );
+    }
+  }
+
+  async ensureOpenPeriod(
+    workspaceId: number,
+    sessionToken?: string,
+    fiscalYear = new Date().getFullYear(),
+  ): Promise<{ id: number }> {
+    const searchOptions: RequestInit = {
+      method: "POST",
+      body: JSON.stringify({ fiscalYear, status: "OPEN" }),
+    };
+
+    try {
+      const res = sessionToken
+        ? await this.authenticatedRequest<{ data?: Array<{ id: number }> }>(
+            sessionToken,
+            `/workspaces/${workspaceId}/fin/periods/search`,
+            searchOptions,
+          )
+        : await this.request<{ data?: Array<{ id: number }> }>(
+            `/workspaces/${workspaceId}/fin/periods/search`,
+            searchOptions,
+          );
+
+      if (res.data && res.data.length > 0 && res.data[0]?.id) {
+        return { id: res.data[0].id };
+      }
+    } catch {
+      // Search may fail or return empty; continue to create
+    }
+
+    const startDate = `${fiscalYear}-01-01`;
+    const endDate = `${fiscalYear}-12-31`;
+    const createOptions: RequestInit = {
+      method: "POST",
+      body: JSON.stringify({
+        name: `FY ${fiscalYear}`,
+        startDate,
+        endDate,
+        fiscalYear,
+        description: `Fiscal Year ${fiscalYear}`,
+      }),
+    };
+
+    const created = sessionToken
+      ? await this.authenticatedRequest<{ data?: { id: number } }>(
+          sessionToken,
+          `/workspaces/${workspaceId}/fin/periods`,
+          createOptions,
+        )
+      : await this.request<{ data?: { id: number } }>(
+          `/workspaces/${workspaceId}/fin/periods`,
+          createOptions,
+        );
+
+    return { id: created.data?.id ?? 0 };
+  }
+
   async deleteUser(userId: number): Promise<void> {
     await this.request<void>(`/test/users/${userId}`, {
       method: "DELETE",
