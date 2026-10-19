@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.3.0](https://github.com/kilip/omed/compare/v0.2.0...v0.3.0) (2026-10-19)
+
+
+### Features
+
+* **api:** ✨ add chart of accounts seed template and endpoint ([fc3de8e](https://github.com/kilip/omed/commit/fc3de8e597807a55a1df62aabe57dac4f7cefe8b))
+* **api:** ✨ add endpoint listing assignable roles ([e1c0e28](https://github.com/kilip/omed/commit/e1c0e285ea190b9effdfc1c75c927dee4a600dd3))
+* **api:** ✨ add mailer inspection endpoints to testctl ([a4e0151](https://github.com/kilip/omed/commit/a4e0151e8b1f69eb94bbf0e5c1c903157db6dbf1))
+* **api:** ✨ integrate mailing platform mailx and invitation emails ([1217988](https://github.com/kilip/omed/commit/12179889e901f1dbbc36ebbe477417dae8b3ecc8))
+* **api:** ✨ require a display name on roles ([3b24176](https://github.com/kilip/omed/commit/3b24176febe78c562320ffc07629d5980b483e8b))
+* **api:** ✨ restrict members and invitations in personal workspace ([6124583](https://github.com/kilip/omed/commit/61245834517dca35420d26473a425314b0ee5e17))
+* **web:** ✨ add chart of accounts template setup page and flow ([292265f](https://github.com/kilip/omed/commit/292265fb42b4661a090d49aa392ff7ae66b5ce25))
+* **web:** ✨ add create workspace page and dashboard button ([fe5f0df](https://github.com/kilip/omed/commit/fe5f0df09a9e8a33a2c72b8399a59ca82c74099c))
+* **web:** ✨ add email field and resend action to invitations ([ce42f39](https://github.com/kilip/omed/commit/ce42f39084adaf05791001094d86aa894b74cc7a))
+* **web:** ✨ add odoo-style layout components ([d7e0d69](https://github.com/kilip/omed/commit/d7e0d69ba04d2f2f06ed764d43733969bca48825))
+* **web:** ✨ add warm cocoa compact theme ([279fe3b](https://github.com/kilip/omed/commit/279fe3be0ccf266bf80a01664167e7e468146887))
+* **web:** ✨ add workspace switch button and edit page ([205d88e](https://github.com/kilip/omed/commit/205d88e1848af7dcf785f352c31c7f7f3bf6e5c1))
+* **web:** ✨ enforce single role selection per module ([64b1faf](https://github.com/kilip/omed/commit/64b1fafd4193f436519b39e193911cbc1172ab98))
+* **web:** ✨ group roles by module and use pages for member editing ([9f1db18](https://github.com/kilip/omed/commit/9f1db18fed6a9eaa32522352c8edca113b7007a3))
+* **web:** ✨ hide members and invitations in personal workspace ([aef72a2](https://github.com/kilip/omed/commit/aef72a27048b3821c808c6953fed5aca02d35c60))
+* **web:** ✨ move module menu from sidebar to top navbar ([18a6e02](https://github.com/kilip/omed/commit/18a6e02b8e3923d1d1fd5744bb2dc1fc0c0026e6))
+* **web:** ✨ pick roles from the api with i18n labels ([49a2e37](https://github.com/kilip/omed/commit/49a2e377ce1ca0434ec4d966d0e9f419d574418c))
+* **web:** ✨ recolor logo and app icons to cocoa ([7bc54ee](https://github.com/kilip/omed/commit/7bc54ee163559b0d1dd5b9b804069e104d1980de))
+* **web:** ✨ restyle theme after odoo 20 ([1545962](https://github.com/kilip/omed/commit/1545962d154f812a33cca88f57c56b6204b50b20))
+* **web:** ✨ switch theme to vivid orange ([2cd802c](https://github.com/kilip/omed/commit/2cd802cca942bcfca28448afd21df284674b9d41))
+* **web:** ✨ use control panel and form view in modules ([e1f4d92](https://github.com/kilip/omed/commit/e1f4d928576674c8742b0ca9843fcd87b04c2aeb))
+
+
+### Bug Fixes
+
+* **api:** 🐛 use owner id for testctl workspace audit context ([7fc1fff](https://github.com/kilip/omed/commit/7fc1fff08ea12febe711b2b7c92c2b009dc3ecde))
+* **web:** 🐛 match dark mode font sizes with light mode ([81be2ba](https://github.com/kilip/omed/commit/81be2ba94decb7c4bb23cca4b426e818f6828918))
+
 ## [0.2.0](https://github.com/kilip/omed/compare/v0.1.0...v0.2.0) (2026-10-14)
 
 
