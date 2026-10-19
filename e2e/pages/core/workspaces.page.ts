@@ -62,12 +62,47 @@ export class WorkspacesPage extends BasePage {
   }
 
   async expectActiveWorkspace(name: string): Promise<void> {
-    const selector = this.activeWorkspaceSelector.first();
+    const selector = this.activeWorkspaceSelector
+      .filter({ hasText: name })
+      .first();
     await selector.waitFor({ state: "visible" });
     const text = await selector.innerText();
     assert.ok(
       text.includes(name),
       `Expected active workspace to be "${name}", got "${text}"`,
     );
+  }
+
+  async clickSwitchWorkspace(name: string): Promise<void> {
+    const row = this.tableRows.filter({ hasText: name });
+    await row.waitFor({ state: "visible" });
+    const switchButton = row.getByRole("button", { name: "Switch" });
+    await switchButton.waitFor({ state: "visible" });
+    await switchButton.click();
+  }
+
+  async clickWorkspaceRow(name: string): Promise<void> {
+    const row = this.tableRows.filter({ hasText: name });
+    await row.waitFor({ state: "visible" });
+    await row.locator("td").first().click();
+  }
+
+  async expectActiveTagInRow(name: string): Promise<void> {
+    const row = this.tableRows.filter({ hasText: name });
+    await row.waitFor({ state: "visible" });
+    const tag = row.locator(".ant-tag", { hasText: "Active" });
+    await tag.waitFor({ state: "visible" });
+  }
+
+  async expectSwitchButtonInRow(name: string): Promise<void> {
+    const row = this.tableRows.filter({ hasText: name });
+    await row.waitFor({ state: "visible" });
+    const btn = row.getByRole("button", { name: "Switch" });
+    await btn.waitFor({ state: "visible" });
+  }
+
+  async expectEditPageLoaded(): Promise<void> {
+    await this.nameInput.waitFor({ state: "visible" });
+    await this.saveButton.waitFor({ state: "visible" });
   }
 }

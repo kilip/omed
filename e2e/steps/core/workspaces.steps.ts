@@ -36,3 +36,35 @@ Then(
     await this.pages.core.workspaces.expectActiveWorkspace(name);
   },
 );
+
+When(
+  "I click the switch button for workspace {string}",
+  async function (this: OmedWorld, name: string) {
+    await this.pages.core.workspaces.clickSwitchWorkspace(name);
+  },
+);
+
+When(
+  "I click the workspace row {string}",
+  async function (this: OmedWorld, name: string) {
+    await this.pages.core.workspaces.clickWorkspaceRow(name);
+  },
+);
+
+Then(
+  "workspace {string} has the active tag",
+  async function (this: OmedWorld, name: string) {
+    await this.pages.core.workspaces.expectActiveTagInRow(name);
+  },
+);
+
+Then(
+  "workspace {string} has the switch button",
+  async function (this: OmedWorld, name: string) {
+    await this.pages.core.workspaces.expectSwitchButtonInRow(name);
+  },
+);
+
+Then("I am on workspace edit page", async function (this: OmedWorld) {
+  await this.pages.core.workspaces.expectEditPageLoaded();
+});
