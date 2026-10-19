@@ -109,4 +109,9 @@ export class FinEntriesPage extends BasePage {
   async expectNewEntryHidden(): Promise<void> {
     await this.newEntryButton.waitFor({ state: "hidden" });
   }
+
+  async expectUnbalancedWarning(): Promise<void> {
+    const alert = this.drawer.locator(".ant-alert-warning");
+    await alert.waitFor({ state: "visible" });
+  }
 }

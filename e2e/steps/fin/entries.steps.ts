@@ -91,3 +91,7 @@ When("I confirm the reverse modal", async function (this: OmedWorld) {
 When("I click the void entry button", async function (this: OmedWorld) {
   await this.pages.fin.entryDetail.clickVoid();
 });
+
+Then("I see the entry unbalanced warning", async function (this: OmedWorld) {
+  await this.pages.fin.entries.expectUnbalancedWarning();
+});

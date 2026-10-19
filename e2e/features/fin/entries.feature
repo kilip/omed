@@ -22,6 +22,15 @@ Feature: Finance Journal Entries
     And I save the entry drawer
     Then I see entry "Office Supplies Purchase" in the journal list
 
+  Scenario: Reject unbalanced journal entry
+    When I open "/fin/journal"
+    And I click the new journal entry button
+    Then I see the create entry drawer
+    When I enter entry description "Unbalanced Equipment"
+    And I add a debit line of 100000 for account "5100"
+    And I add a credit line of 50000 for account "1111"
+    Then I see the entry unbalanced warning
+
   Scenario: Edit, Post, and Void a draft journal entry
     When I open "/fin/journal"
     And I click the new journal entry button
