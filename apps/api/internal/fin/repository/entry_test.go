@@ -361,6 +361,46 @@ func (s *EntryRepoSuite) Test_Search() {
 	s.Require().NoError(err)
 	s.Len(accItems, 2)
 
+	// Filter by TransactionID
+	txItems, _, err := s.repo.Search(ctx, model.SearchEntryRequest{
+		TransactionID: &s.transactionID,
+	})
+	s.Require().NoError(err)
+	s.Len(txItems, 2)
+
+	nonExistentTx := int64(999999)
+	emptyTxItems, _, err := s.repo.Search(ctx, model.SearchEntryRequest{
+		TransactionID: &nonExistentTx,
+	})
+	s.Require().NoError(err)
+	s.Empty(emptyTxItems)
+
+	// Pagination with Limit and Cursor
+	limitOne := 1
+	page1, cursor1, err := s.repo.Search(ctx, model.SearchEntryRequest{
+		Limit: &limitOne,
+	})
+	s.Require().NoError(err)
+	s.Len(page1, 1)
+	s.NotEmpty(cursor1)
+	s.Equal(e2.ID, page1[0].ID)
+
+	page2, cursor2, err := s.repo.Search(ctx, model.SearchEntryRequest{
+		Limit:  &limitOne,
+		Cursor: &cursor1,
+	})
+	s.Require().NoError(err)
+	s.Len(page2, 1)
+	s.Empty(cursor2)
+	s.Equal(e1.ID, page2[0].ID)
+
+	// Invalid cursor
+	invalidCursor := "invalid-cursor"
+	_, _, err = s.repo.Search(ctx, model.SearchEntryRequest{
+		Cursor: &invalidCursor,
+	})
+	s.Require().ErrorIs(err, base.ErrInvalidCursor)
+
 	// Delete draft e2
 	err = s.repo.Delete(ctx, e2.ID)
 	s.Require().NoError(err)

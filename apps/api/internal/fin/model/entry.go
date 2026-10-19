@@ -38,11 +38,14 @@ type ReverseEntryRequest struct {
 
 // SearchEntryRequest defines request payload for searching journal entries in a workspace.
 type SearchEntryRequest struct {
-	PeriodID  *int64  `json:"periodId,omitempty"`
-	Status    *string `json:"status,omitempty" validate:"omitempty,oneof=DRAFT POSTED VOID"`
-	AccountID *int64  `json:"accountId,omitempty"`
-	DateFrom  *Date   `json:"dateFrom,omitempty" swaggertype:"string" example:"2026-01-01"`
-	DateTo    *Date   `json:"dateTo,omitempty" swaggertype:"string" example:"2026-01-31"`
+	PeriodID      *int64  `json:"periodId,omitempty"`
+	Status        *string `json:"status,omitempty" validate:"omitempty,oneof=DRAFT POSTED VOID"`
+	AccountID     *int64  `json:"accountId,omitempty"`
+	TransactionID *int64  `json:"transactionId,omitempty"`
+	DateFrom      *Date   `json:"dateFrom,omitempty" swaggertype:"string" example:"2026-01-01"`
+	DateTo        *Date   `json:"dateTo,omitempty" swaggertype:"string" example:"2026-01-31"`
+	Cursor        *string `json:"cursor,omitempty"`
+	Limit         *int    `json:"limit,omitempty" validate:"omitempty,min=1,max=100"`
 }
 
 // EntryResponse represents journal entry metadata returned by API endpoints.

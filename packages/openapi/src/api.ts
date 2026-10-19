@@ -5270,13 +5270,16 @@ export interface components {
     "model.SearchAccountRequest": Record<string, never>;
     "model.SearchEntryRequest": {
       accountId?: number;
+      cursor?: string;
       /** @example 2026-01-01 */
       dateFrom?: string;
       /** @example 2026-01-31 */
       dateTo?: string;
+      limit?: number;
       periodId?: number;
       /** @enum {string} */
       status?: "DRAFT" | "POSTED" | "VOID";
+      transactionId?: number;
     };
     "model.SearchExchangeRateRequest": {
       cursor?: string;
@@ -5303,10 +5306,13 @@ export interface components {
       status?: string;
     };
     "model.SearchTransactionRequest": {
+      cursor?: string;
       /** @example 2026-01-01 */
       dateFrom?: string;
       /** @example 2026-01-31 */
       dateTo?: string;
+      limit?: number;
+      query?: string;
       reference?: string;
       /** @enum {string} */
       source?: "MANUAL" | "IMPORT" | "SYSTEM";

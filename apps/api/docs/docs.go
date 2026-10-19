@@ -1286,6 +1286,9 @@ const docTemplate = `{
                     "accountId": {
                         "type": "integer"
                     },
+                    "cursor": {
+                        "type": "string"
+                    },
                     "dateFrom": {
                         "example": "2026-01-01",
                         "type": "string"
@@ -1293,6 +1296,11 @@ const docTemplate = `{
                     "dateTo": {
                         "example": "2026-01-31",
                         "type": "string"
+                    },
+                    "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
                     },
                     "periodId": {
                         "type": "integer"
@@ -1304,6 +1312,9 @@ const docTemplate = `{
                             "VOID"
                         ],
                         "type": "string"
+                    },
+                    "transactionId": {
+                        "type": "integer"
                     }
                 },
                 "type": "object"
@@ -1376,12 +1387,23 @@ const docTemplate = `{
             },
             "model.SearchTransactionRequest": {
                 "properties": {
+                    "cursor": {
+                        "type": "string"
+                    },
                     "dateFrom": {
                         "example": "2026-01-01",
                         "type": "string"
                     },
                     "dateTo": {
                         "example": "2026-01-31",
+                        "type": "string"
+                    },
+                    "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "query": {
                         "type": "string"
                     },
                     "reference": {

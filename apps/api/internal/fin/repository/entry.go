@@ -3,6 +3,7 @@ package repository
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
@@ -273,6 +274,14 @@ func (r EntryRepository) Delete(c context.Context, id int64) error {
 
 // Search searches active journal entries matching the filter criteria.
 func (r EntryRepository) Search(c context.Context, req model.SearchEntryRequest) ([]domain.Entry, string, error) {
+	limit := 20
+	if req.Limit != nil && *req.Limit > 0 {
+		limit = *req.Limit
+		if limit > 100 {
+			limit = 100
+		}
+	}
+
 	q := r.cli.Entry.Query().
 		Where(
 			entry.DeletedAtIsNil(),
@@ -287,15 +296,26 @@ func (r EntryRepository) Search(c context.Context, req model.SearchEntryRequest)
 	if req.AccountID != nil && *req.AccountID > 0 {
 		q = q.Where(entry.HasPostingsWith(posting.AccountIDEQ(*req.AccountID)))
 	}
+	if req.TransactionID != nil && *req.TransactionID > 0 {
+		q = q.Where(entry.TransactionIDEQ(*req.TransactionID))
+	}
 	if req.DateFrom != nil && !req.DateFrom.IsZero() {
 		q = q.Where(entry.EntryDateGTE(req.DateFrom.Time()))
 	}
 	if req.DateTo != nil && !req.DateTo.IsZero() {
 		q = q.Where(entry.EntryDateLTE(req.DateTo.Time()))
 	}
+	if req.Cursor != nil && *req.Cursor != "" {
+		cursorID, err := strconv.ParseInt(*req.Cursor, 10, 64)
+		if err != nil || cursorID < 0 {
+			return nil, "", base.ErrInvalidCursor
+		}
+		q = q.Where(entry.IDLT(cursorID))
+	}
 
 	items, err := q.
-		Order(ent.Desc(entry.FieldEntryDate), ent.Desc(entry.FieldID)).
+		Order(ent.Desc(entry.FieldID)).
+		Limit(limit + 1).
 		WithCreator().
 		WithUpdater().
 		WithDeleter().
@@ -309,12 +329,18 @@ func (r EntryRepository) Search(c context.Context, req model.SearchEntryRequest)
 		return nil, "", err
 	}
 
+	var cursor string
+	if len(items) > limit {
+		cursor = strconv.FormatInt(items[limit-1].ID, 10)
+		items = items[:limit]
+	}
+
 	res := make([]domain.Entry, len(items))
 	for i, it := range items {
 		res[i] = toEntryDomain(it)
 	}
 
-	return res, "", nil
+	return res, cursor, nil
 }
 
 // Post transitions entry status from DRAFT to POSTED, setting posted_at and posted_by.

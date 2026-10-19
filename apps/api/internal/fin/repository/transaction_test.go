@@ -351,13 +351,60 @@ func (s *TransactionRepoSuite) Test_Search() {
 	s.Require().NoError(err)
 	s.Len(refItems, 2)
 
+	// Filter by Query (matches number or description)
+	tQueryDesc, err := s.repo.Create(ctx, model.CreateTransactionRequest{
+		TransactionDate: d1,
+		Description:     "Special office supplies",
+	})
+	s.Require().NoError(err)
+
+	qDesc := "office supplies"
+	foundByDesc, _, err := s.repo.Search(ctx, model.SearchTransactionRequest{
+		Query: &qDesc,
+	})
+	s.Require().NoError(err)
+	s.Len(foundByDesc, 1)
+	s.Equal(tQueryDesc.ID, foundByDesc[0].ID)
+
+	qNum := tQueryDesc.Number
+	foundByNum, _, err := s.repo.Search(ctx, model.SearchTransactionRequest{
+		Query: &qNum,
+	})
+	s.Require().NoError(err)
+	s.Len(foundByNum, 1)
+	s.Equal(tQueryDesc.ID, foundByNum[0].ID)
+
+	// Pagination with Limit and Cursor
+	limitTwo := 2
+	page1, cursor1, err := s.repo.Search(ctx, model.SearchTransactionRequest{
+		Limit: &limitTwo,
+	})
+	s.Require().NoError(err)
+	s.Len(page1, 2)
+	s.NotEmpty(cursor1)
+
+	page2, cursor2, err := s.repo.Search(ctx, model.SearchTransactionRequest{
+		Limit:  &limitTwo,
+		Cursor: &cursor1,
+	})
+	s.Require().NoError(err)
+	s.Len(page2, 2)
+	s.Empty(cursor2)
+
+	// Invalid cursor
+	invalidCursor := "not-a-valid-cursor"
+	_, _, err = s.repo.Search(ctx, model.SearchTransactionRequest{
+		Cursor: &invalidCursor,
+	})
+	s.Require().ErrorIs(err, base.ErrInvalidCursor)
+
 	// Soft delete t3 and verify search excludes it
 	err = s.repo.Delete(ctx, t3.ID)
 	s.Require().NoError(err)
 
 	allAfterDelete, _, err := s.repo.Search(ctx, model.SearchTransactionRequest{})
 	s.Require().NoError(err)
-	s.Len(allAfterDelete, 2)
+	s.Len(allAfterDelete, 3)
 }
 
 func (s *TransactionRepoSuite) Test_ConcurrentNumbering() {

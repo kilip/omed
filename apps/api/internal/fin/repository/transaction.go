@@ -3,6 +3,7 @@ package repository
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
@@ -262,6 +263,14 @@ func (r TransactionRepository) Delete(c context.Context, id int64) error {
 
 // Search searches active transactions matching the filter criteria.
 func (r TransactionRepository) Search(c context.Context, req model.SearchTransactionRequest) ([]domain.Transaction, string, error) {
+	limit := 20
+	if req.Limit != nil && *req.Limit > 0 {
+		limit = *req.Limit
+		if limit > 100 {
+			limit = 100
+		}
+	}
+
 	q := r.cli.Transaction.Query().
 		Where(
 			transaction.DeletedAtIsNil(),
@@ -279,9 +288,23 @@ func (r TransactionRepository) Search(c context.Context, req model.SearchTransac
 	if req.Source != nil && *req.Source != "" {
 		q = q.Where(transaction.SourceEQ(transaction.Source(*req.Source)))
 	}
+	if req.Query != nil && *req.Query != "" {
+		q = q.Where(transaction.Or(
+			transaction.NumberContainsFold(*req.Query),
+			transaction.DescriptionContainsFold(*req.Query),
+		))
+	}
+	if req.Cursor != nil && *req.Cursor != "" {
+		cursorID, err := strconv.ParseInt(*req.Cursor, 10, 64)
+		if err != nil || cursorID < 0 {
+			return nil, "", base.ErrInvalidCursor
+		}
+		q = q.Where(transaction.IDLT(cursorID))
+	}
 
 	items, err := q.
-		Order(ent.Desc(transaction.FieldTransactionDate), ent.Desc(transaction.FieldID)).
+		Order(ent.Desc(transaction.FieldID)).
+		Limit(limit + 1).
 		WithCreator().
 		WithUpdater().
 		WithDeleter().
@@ -302,12 +325,18 @@ func (r TransactionRepository) Search(c context.Context, req model.SearchTransac
 		return nil, "", err
 	}
 
+	var cursor string
+	if len(items) > limit {
+		cursor = strconv.FormatInt(items[limit-1].ID, 10)
+		items = items[:limit]
+	}
+
 	res := make([]domain.Transaction, len(items))
 	for i, it := range items {
 		res[i] = toTransactionDomain(it)
 	}
 
-	return res, "", nil
+	return res, cursor, nil
 }
 
 func toTransactionDomain(t *ent.Transaction) domain.Transaction {

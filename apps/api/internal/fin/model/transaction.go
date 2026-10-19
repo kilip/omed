@@ -27,6 +27,9 @@ type SearchTransactionRequest struct {
 	DateTo    *Date   `json:"dateTo,omitempty" swaggertype:"string" example:"2026-01-31"`
 	Reference *string `json:"reference,omitempty"`
 	Source    *string `json:"source,omitempty" validate:"omitempty,oneof=MANUAL IMPORT SYSTEM"`
+	Query     *string `json:"query,omitempty"`
+	Cursor    *string `json:"cursor,omitempty"`
+	Limit     *int    `json:"limit,omitempty" validate:"omitempty,min=1,max=100"`
 }
 
 // TransactionResponse represents financial transaction metadata returned by API endpoints.
