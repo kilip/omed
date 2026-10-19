@@ -19,8 +19,8 @@ const config = {
         "docs",
       ],
     ],
-    // Scope is optional (bare `feat: ...` is fine)
-    "scope-empty": [0],
+    // Scope is required
+    "scope-empty": [2, "never"],
   },
 };
 

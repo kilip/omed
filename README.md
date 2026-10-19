@@ -141,7 +141,7 @@ The `build.yml` workflow pushes images to `ghcr.io/<owner>/omed/<app>` (`nightly
 ## Contributing
 
 1. Branch off `main`.
-2. Commit using [Conventional Commits](https://www.conventionalcommits.org). Allowed scopes: `auth`, `web`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs` (validated by commitlint). End every subject with an emoji shortcode, e.g. `feat(api): add auth :rocket:` (see [AGENTS.md](./AGENTS.md)).
+2. Commit using [Conventional Commits](https://www.conventionalcommits.org). Scope is required: `auth`, `web`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs` (validated by commitlint). Prefix the subject with an emoji, e.g. `feat(api): ✨ add auth` (see [AGENTS.md](./AGENTS.md)).
 3. The pre-commit hook runs `biome check --staged`; make sure `bun run lint` and the relevant tests pass.
 4. Open a pull request against `main`. CI runs the API tests and E2E.
 
