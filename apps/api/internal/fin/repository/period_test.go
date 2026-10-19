@@ -35,6 +35,9 @@ func (s *PeriodRepoSuite) TearDownSuite() {
 
 func (s *PeriodRepoSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(context.Background())
+	_, _ = s.client.Posting.Delete().Exec(ctx)
+	_, _ = s.client.Entry.Delete().Exec(ctx)
+	_, _ = s.client.Transaction.Delete().Exec(ctx)
 	_, _ = s.client.Period.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
@@ -206,6 +209,51 @@ func (s *PeriodRepoSuite) Test_Delete() {
 
 	_, err = s.repo.GetByID(ctx, p.ID)
 	s.ErrorIs(err, base.ErrNotFound)
+}
+
+func (s *PeriodRepoSuite) Test_HasDraftEntries() {
+	ctx := s.ctx()
+
+	p, err := s.repo.Create(ctx, model.CreatePeriodRequest{
+		Name:       "Feb 2026",
+		StartDate:  parseDate("2026-02-01"),
+		EndDate:    parseDate("2026-02-28"),
+		FiscalYear: 2026,
+	})
+	s.Require().NoError(err)
+
+	hasDraft, err := s.repo.HasDraftEntries(ctx, p.ID)
+	s.Require().NoError(err)
+	s.False(hasDraft)
+
+	trx, err := s.client.Transaction.Create().
+		SetNumber("TRX-2026-000002").
+		SetTransactionDate(time.Date(2026, 2, 15, 0, 0, 0, 0, time.UTC)).
+		SetCurrency("IDR").
+		SetExchangeRate(1.0).
+		SetSource("MANUAL").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	e, err := s.client.Entry.Create().
+		SetTransactionID(trx.ID).
+		SetPeriodID(p.ID).
+		SetNumber("JE-2026-000002").
+		SetEntryDate(time.Date(2026, 2, 15, 0, 0, 0, 0, time.UTC)).
+		SetStatus("DRAFT").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	hasDraft, err = s.repo.HasDraftEntries(ctx, p.ID)
+	s.Require().NoError(err)
+	s.True(hasDraft)
+
+	_, err = s.client.Entry.UpdateOneID(e.ID).SetStatus("POSTED").Save(ctx)
+	s.Require().NoError(err)
+
+	hasDraft, err = s.repo.HasDraftEntries(ctx, p.ID)
+	s.Require().NoError(err)
+	s.False(hasDraft)
 }
 
 func TestPeriodRepoSuite(t *testing.T) {

@@ -7,10 +7,11 @@ import (
 
 // CreatePostingRequest defines the payload required to create a posting line.
 type CreatePostingRequest struct {
-	AccountID   int64   `json:"accountId" validate:"required"`
-	Direction   string  `json:"direction" validate:"required,oneof=DEBIT CREDIT" example:"DEBIT"`
-	Amount      float64 `json:"amount" validate:"required,gt=0" example:"100000"`
-	Description string  `json:"description,omitempty"`
+	AccountID   int64    `json:"accountId" validate:"required"`
+	Direction   string   `json:"direction" validate:"required,oneof=DEBIT CREDIT" example:"DEBIT"`
+	Amount      float64  `json:"amount" validate:"required,gt=0" example:"100000"`
+	BaseAmount  *float64 `json:"baseAmount,omitempty"`
+	Description string   `json:"description,omitempty"`
 }
 
 // PostingResponse represents posting line metadata returned by API endpoints.

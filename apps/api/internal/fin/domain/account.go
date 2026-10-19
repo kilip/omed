@@ -55,6 +55,7 @@ type Account struct {
 	Name          string         `json:"name"`
 	Type          string         `json:"type"`
 	NormalBalance string         `json:"normalBalance"`
+	Currency      string         `json:"currency,omitempty"`
 	ParentID      int64          `json:"parentId,omitempty"`
 	Description   string         `json:"description,omitempty"`
 	IsActive      bool           `json:"isActive"`

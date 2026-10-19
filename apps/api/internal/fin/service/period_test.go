@@ -37,6 +37,9 @@ func (s *PeriodServiceSuite) TearDownSuite() {
 
 func (s *PeriodServiceSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(context.Background())
+	_, _ = s.client.Posting.Delete().Exec(ctx)
+	_, _ = s.client.Entry.Delete().Exec(ctx)
+	_, _ = s.client.Transaction.Delete().Exec(ctx)
 	_, _ = s.client.Period.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
@@ -181,6 +184,49 @@ func (s *PeriodServiceSuite) Test_CloseAndReopen_IdempotencyChecks() {
 	// Closing already closed period fails
 	_, err = s.svc.Close(ctx, p.ID)
 	s.ErrorIs(err, domain.ErrPeriodAlreadyClosed)
+}
+
+func (s *PeriodServiceSuite) Test_Close_PeriodWithDraftEntriesFails() {
+	ctx := s.ctx()
+
+	p, err := s.svc.Create(ctx, model.CreatePeriodRequest{
+		Name:       "Jan 2026",
+		StartDate:  parseDate("2026-01-01"),
+		EndDate:    parseDate("2026-01-31"),
+		FiscalYear: 2026,
+	})
+	s.Require().NoError(err)
+
+	trx, err := s.client.Transaction.Create().
+		SetNumber("TRX-2026-000001").
+		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
+		SetCurrency("IDR").
+		SetExchangeRate(1.0).
+		SetSource("MANUAL").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	e, err := s.client.Entry.Create().
+		SetTransactionID(trx.ID).
+		SetPeriodID(p.ID).
+		SetNumber("JE-2026-000001").
+		SetEntryDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
+		SetStatus("DRAFT").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Trying to close period with draft entries must fail
+	_, err = s.svc.Close(ctx, p.ID)
+	s.ErrorIs(err, domain.ErrPeriodHasDraftEntries)
+
+	// Update entry status to POSTED
+	_, err = s.client.Entry.UpdateOneID(e.ID).SetStatus("POSTED").Save(ctx)
+	s.Require().NoError(err)
+
+	// Now close succeeds
+	closed, err := s.svc.Close(ctx, p.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.PeriodStatusClosed, closed.Status)
 }
 
 func TestPeriodServiceSuite(t *testing.T) {

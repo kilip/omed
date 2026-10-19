@@ -107,6 +107,9 @@ func (r EntryRepository) Create(c context.Context, txID int64, req model.CreateE
 
 			for pos, pReq := range req.Postings {
 				baseAmt := pReq.Amount * rate
+				if pReq.BaseAmount != nil && *pReq.BaseAmount > 0 {
+					baseAmt = *pReq.BaseAmount
+				}
 				pBuilder := tx.Posting.Create().
 					SetEntryID(createdEntry.ID).
 					SetAccountID(pReq.AccountID).
@@ -187,6 +190,9 @@ func (r EntryRepository) Update(c context.Context, id int64, req model.UpdateEnt
 		// Insert replacement postings
 		for pos, pReq := range req.Postings {
 			baseAmt := pReq.Amount * rate
+			if pReq.BaseAmount != nil && *pReq.BaseAmount > 0 {
+				baseAmt = *pReq.BaseAmount
+			}
 			pBuilder := tx.Posting.Create().
 				SetEntryID(id).
 				SetAccountID(pReq.AccountID).

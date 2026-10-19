@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
@@ -215,6 +216,17 @@ func (r PeriodRepository) HasOverlapping(c context.Context, startDate, endDate t
 		q = q.Where(period.IDNEQ(excludeID))
 	}
 	return q.Exist(c)
+}
+
+// HasDraftEntries checks if there are any active draft entries in the specified period.
+func (r PeriodRepository) HasDraftEntries(c context.Context, periodID int64) (bool, error) {
+	return r.cli.Entry.Query().
+		Where(
+			entry.PeriodIDEQ(periodID),
+			entry.StatusEQ(entry.Status(domain.EntryStatusDraft)),
+			entry.DeletedAtIsNil(),
+		).
+		Exist(c)
 }
 
 func toPeriodDomain(p *ent.Period) domain.Period {

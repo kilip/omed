@@ -88,6 +88,9 @@ func (r AccountRepository) Create(c context.Context, req model.CreateAccountRequ
 		if req.ParentID > 0 {
 			builder.SetParentID(req.ParentID)
 		}
+		if req.Currency != "" {
+			builder.SetCurrency(req.Currency)
+		}
 		if req.Description != "" {
 			builder.SetDescription(req.Description)
 		}
@@ -258,6 +261,9 @@ func toAccountDomain(a *ent.Account) domain.Account {
 
 	if a.ParentID != nil {
 		dom.ParentID = *a.ParentID
+	}
+	if a.Currency != nil {
+		dom.Currency = *a.Currency
 	}
 
 	if a.Edges.Creator != nil {

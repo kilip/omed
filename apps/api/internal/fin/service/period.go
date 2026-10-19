@@ -18,6 +18,7 @@ type PeriodRepository interface {
 	UpdateStatus(c context.Context, id int64, status string) (domain.Period, error)
 	Delete(c context.Context, id int64) error
 	HasOverlapping(c context.Context, startDate, endDate time.Time, excludeID int64) (bool, error)
+	HasDraftEntries(c context.Context, periodID int64) (bool, error)
 }
 
 // PeriodService manages business logic and validation for Accounting Periods.
@@ -109,6 +110,14 @@ func (s PeriodService) Close(c context.Context, id int64) (domain.Period, error)
 	}
 	if curr.Status == domain.PeriodStatusClosed {
 		return domain.Period{}, domain.ErrPeriodAlreadyClosed
+	}
+
+	hasDraft, err := s.repo.HasDraftEntries(c, id)
+	if err != nil {
+		return domain.Period{}, err
+	}
+	if hasDraft {
+		return domain.Period{}, domain.ErrPeriodHasDraftEntries
 	}
 
 	return s.repo.UpdateStatus(c, id, domain.PeriodStatusClosed)

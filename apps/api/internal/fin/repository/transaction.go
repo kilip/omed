@@ -132,6 +132,9 @@ func (r TransactionRepository) Create(c context.Context, req model.CreateTransac
 
 				for pos, pReq := range req.Entry.Postings {
 					baseAmt := pReq.Amount * rate
+					if pReq.BaseAmount != nil && *pReq.BaseAmount > 0 {
+						baseAmt = *pReq.BaseAmount
+					}
 					pBuilder := tx.Posting.Create().
 						SetEntryID(createdEntry.ID).
 						SetAccountID(pReq.AccountID).

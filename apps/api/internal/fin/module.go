@@ -20,10 +20,12 @@ type Config struct {
 
 // FinModule represents the finance module implementing config.Module.
 type FinModule struct {
-	cfg            Config
-	AccountService service.AccountService
-	PeriodService  service.PeriodService
-	Authorizer     *authz.Authorizer
+	cfg                Config
+	AccountService     service.AccountService
+	PeriodService      service.PeriodService
+	TransactionService service.TransactionService
+	EntryService       service.EntryService
+	Authorizer         *authz.Authorizer
 }
 
 // New constructs a new FinModule instance.
@@ -34,10 +36,18 @@ func New(cfg Config) *FinModule {
 	periodRepo := repository.NewPeriodRepository(cfg.EntCli)
 	periodSvc := service.NewPeriodService(periodRepo)
 
+	txRepo := repository.NewTransactionRepository(cfg.EntCli)
+	txSvc := service.NewTransactionService(txRepo, periodRepo, accountRepo)
+
+	entryRepo := repository.NewEntryRepository(cfg.EntCli)
+	entrySvc := service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo)
+
 	return &FinModule{
-		cfg:            cfg,
-		AccountService: accountSvc,
-		PeriodService:  periodSvc,
+		cfg:                cfg,
+		AccountService:     accountSvc,
+		PeriodService:      periodSvc,
+		TransactionService: txSvc,
+		EntryService:       entrySvc,
 	}
 }
 

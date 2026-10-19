@@ -13,6 +13,7 @@ type AccountResponse struct {
 	Name          string         `json:"name"`
 	Type          string         `json:"type"`
 	NormalBalance string         `json:"normalBalance"`
+	Currency      string         `json:"currency,omitempty"`
 	ParentID      int64          `json:"parentId,omitempty"`
 	Description   string         `json:"description,omitempty"`
 	IsActive      bool           `json:"isActive"`
@@ -26,6 +27,7 @@ type CreateAccountRequest struct {
 	Name          string `json:"name" validate:"required"`
 	Type          string `json:"type" validate:"required,oneof=ASSET LIABILITY EQUITY REVENUE EXPENSE"`
 	NormalBalance string `json:"normalBalance,omitempty" validate:"omitempty,oneof=DEBIT CREDIT"`
+	Currency      string `json:"currency,omitempty" validate:"omitempty,len=3"`
 	ParentID      int64  `json:"parentId,omitempty"`
 	Description   string `json:"description,omitempty"`
 	IsActive      *bool  `json:"isActive,omitempty"`
