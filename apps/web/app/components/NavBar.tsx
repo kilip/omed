@@ -31,18 +31,21 @@ export function NavBar({
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const meta = findModule(pathname);
-
   const base = meta ? `/${meta.id}` : "";
-  const selected = meta
-    ? meta.menu
-        .filter((item) =>
-          item.path
-            ? pathname === `${base}/${item.path}` ||
-              pathname.startsWith(`${base}/${item.path}/`)
-            : pathname === base,
-        )
-        .map((item) => item.key)
-    : [];
+
+  const currentWorkspace = workspaces.find((w) => w.id === activeId);
+  const visibleMenuItems = (meta?.menu ?? []).filter(
+    (item) => !(item.hideInPersonalWorkspace && currentWorkspace?.personal),
+  );
+
+  const selected = visibleMenuItems
+    .filter((item) =>
+      item.path
+        ? pathname === `${base}/${item.path}` ||
+          pathname.startsWith(`${base}/${item.path}/`)
+        : pathname === base,
+    )
+    .map((item) => item.key);
 
   return (
     <header
@@ -87,7 +90,7 @@ export function NavBar({
               flex: 1,
               minWidth: 0,
             }}
-            items={meta.menu.map((item) => ({
+            items={visibleMenuItems.map((item) => ({
               key: item.key,
               icon: item.icon ? createElement(item.icon) : undefined,
               label: (

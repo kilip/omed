@@ -1,19 +1,23 @@
 import { Button, Form, Input } from "antd";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { redirect, useNavigate } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { api, unwrapOne } from "~/lib/api";
 import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
-import { requireWorkspaceId } from "~/lib/workspace";
+import { getActiveWorkspace } from "~/lib/workspace";
 import { RoleSelector } from "../components/role-selector";
 import { useRoles } from "../hooks/use-roles";
 import { rolesQueryOptions } from "../queries";
 import type { Route } from "./+types/member-new";
 
 export async function clientLoader() {
-  const wid = await requireWorkspaceId();
+  const workspace = await getActiveWorkspace();
+  if (workspace.personal) {
+    throw redirect("/core/members");
+  }
+  const wid = workspace.id;
   const queryClient = getQueryClient();
   await queryClient.ensureQueryData(rolesQueryOptions(wid));
   return { wid };

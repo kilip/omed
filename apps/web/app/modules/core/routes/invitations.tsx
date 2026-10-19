@@ -9,6 +9,7 @@ import {
   App,
   Button,
   DatePicker,
+  Empty,
   Form,
   Input,
   InputNumber,
@@ -29,20 +30,24 @@ import { env } from "~/lib/env";
 import { formatDateTime } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
-import { requireWorkspaceId } from "~/lib/workspace";
+import { getActiveWorkspace } from "~/lib/workspace";
 import { useRoles } from "../hooks/use-roles";
 import { type Invitation, invitationStatus } from "../lib";
 import { invitationsQueryOptions, rolesQueryOptions } from "../queries";
 import type { Route } from "./+types/invitations";
 
 export async function clientLoader() {
-  const wid = await requireWorkspaceId();
+  const workspace = await getActiveWorkspace();
+  if (workspace.personal) {
+    return { wid: workspace.id, isPersonal: true };
+  }
+  const wid = workspace.id;
   const queryClient = getQueryClient();
   await Promise.all([
     queryClient.ensureQueryData(invitationsQueryOptions(wid)),
     queryClient.ensureQueryData(rolesQueryOptions(wid)),
   ]);
-  return { wid };
+  return { wid, isPersonal: false };
 }
 
 type FormValues = {
@@ -60,7 +65,20 @@ const statusColor = {
 } as const;
 
 export default function Invitations({ loaderData }: Route.ComponentProps) {
-  const { wid } = loaderData;
+  const { t } = useTranslation();
+  if (loaderData.isPersonal) {
+    return (
+      <Page title={t("core.menu.invitations")}>
+        <Panel strong>
+          <Empty description={t("core.invitations.personalNotice")} />
+        </Panel>
+      </Page>
+    );
+  }
+  return <InvitationsContent wid={loaderData.wid} />;
+}
+
+function InvitationsContent({ wid }: { wid: number }) {
   const { data: invitations } = useSuspenseQuery(invitationsQueryOptions(wid));
   const { options: roleOptions, label: roleName } = useRoles(wid);
   const { t, i18n } = useTranslation();

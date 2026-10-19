@@ -124,6 +124,8 @@ export const en = {
       invite: "Invite member",
       rolesPlaceholder: "Select roles",
       search: "Search name or email",
+      personalNotice:
+        "Personal workspaces are for single-user use and cannot have members.",
     },
     invitations: {
       link: "Link",
@@ -146,6 +148,7 @@ export const en = {
       emailHint: "Optional. Send an invitation email directly.",
       sendEmail: "Send email",
       emailSent: "Invitation email sent",
+      personalNotice: "Invitations cannot be created for personal workspaces.",
     },
   },
   fin: {

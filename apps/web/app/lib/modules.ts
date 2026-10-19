@@ -7,6 +7,8 @@ export type ModuleMenuItem = {
   /** i18n key. */
   labelKey: string;
   icon?: ComponentType;
+  /** Whether this menu item should be hidden in a personal workspace. */
+  hideInPersonalWorkspace?: boolean;
 };
 
 export type ModuleMeta = {

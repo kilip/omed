@@ -126,6 +126,8 @@ export const id: Translation = {
       invite: "Undang anggota",
       rolesPlaceholder: "Pilih peran",
       search: "Cari nama atau email",
+      personalNotice:
+        "Workspace pribadi hanya untuk penggunaan perorangan dan tidak dapat memiliki anggota.",
     },
     invitations: {
       link: "Tautan",
@@ -149,6 +151,7 @@ export const id: Translation = {
       emailHint: "Opsional. Kirim email undangan secara langsung.",
       sendEmail: "Kirim email",
       emailSent: "Email undangan telah dikirim",
+      personalNotice: "Undangan tidak dapat dibuat untuk workspace pribadi.",
     },
   },
   fin: {

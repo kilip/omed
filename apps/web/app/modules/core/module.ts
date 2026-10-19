@@ -24,12 +24,14 @@ export default defineModule({
       path: "members",
       labelKey: "core.menu.members",
       icon: TeamOutlined,
+      hideInPersonalWorkspace: true,
     },
     {
       key: "invitations",
       path: "invitations",
       labelKey: "core.menu.invitations",
       icon: LinkOutlined,
+      hideInPersonalWorkspace: true,
     },
   ],
 });

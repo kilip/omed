@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Avatar,
   Button,
+  Empty,
   Popconfirm,
   Table,
   type TableProps,
@@ -20,24 +21,41 @@ import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { moduleLabel } from "~/lib/roles";
 import { useAction } from "~/lib/use-action";
-import { requireWorkspaceId } from "~/lib/workspace";
+import { getActiveWorkspace } from "~/lib/workspace";
 import { useRoles } from "../hooks/use-roles";
 import type { Member } from "../lib";
 import { membersQueryOptions, rolesQueryOptions } from "../queries";
 import type { Route } from "./+types/members";
 
 export async function clientLoader() {
-  const wid = await requireWorkspaceId();
+  const workspace = await getActiveWorkspace();
+  if (workspace.personal) {
+    return { wid: workspace.id, isPersonal: true };
+  }
+  const wid = workspace.id;
   const queryClient = getQueryClient();
   await Promise.all([
     queryClient.ensureQueryData(membersQueryOptions(wid)),
     queryClient.ensureQueryData(rolesQueryOptions(wid)),
   ]);
-  return { wid };
+  return { wid, isPersonal: false };
 }
 
 export default function Members({ loaderData }: Route.ComponentProps) {
-  const { wid } = loaderData;
+  const { t } = useTranslation();
+  if (loaderData.isPersonal) {
+    return (
+      <Page title={t("core.menu.members")}>
+        <Panel strong>
+          <Empty description={t("core.members.personalNotice")} />
+        </Panel>
+      </Page>
+    );
+  }
+  return <MembersContent wid={loaderData.wid} />;
+}
+
+function MembersContent({ wid }: { wid: number }) {
   const { data: members } = useSuspenseQuery(membersQueryOptions(wid));
   const { label: roleName } = useRoles(wid);
   const { t, i18n } = useTranslation();

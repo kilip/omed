@@ -33,11 +33,13 @@ export function refreshWorkspaces(): Promise<Workspace[]> {
   return workspaces;
 }
 
+export type ActiveWorkspace = Workspace & { id: number };
+
 /**
- * Resolves the active workspace id. Falls back to the personal workspace, then
+ * Resolves the active workspace. Falls back to the personal workspace, then
  * to the first one, and remembers the choice.
  */
-export async function requireWorkspaceId(): Promise<number> {
+export async function getActiveWorkspace(): Promise<ActiveWorkspace> {
   const list = await (workspaces ?? refreshWorkspaces());
   const stored = getStoredWorkspaceId();
   const active =
@@ -45,7 +47,18 @@ export async function requireWorkspaceId(): Promise<number> {
     list.find((w) => w.personal) ??
     list[0];
 
-  if (active?.id === undefined) throw new Error("No workspace available");
+  if (active?.id === undefined) {
+    throw new Error("No workspace available");
+  }
   setActiveWorkspaceId(active.id);
+  return active as ActiveWorkspace;
+}
+
+/**
+ * Resolves the active workspace id. Falls back to the personal workspace, then
+ * to the first one, and remembers the choice.
+ */
+export async function requireWorkspaceId(): Promise<number> {
+  const active = await getActiveWorkspace();
   return active.id;
 }
