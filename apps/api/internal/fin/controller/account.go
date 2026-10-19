@@ -3,6 +3,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/internal/fin/domain"
@@ -23,11 +24,12 @@ type AccountServiceContract interface {
 // AccountController handles HTTP requests for Chart of Accounts.
 type AccountController struct {
 	accounts AccountServiceContract
+	entries  EntryServiceContract
 }
 
-// NewAccountController constructs a new AccountController backed by AccountServiceContract.
-func NewAccountController(accounts AccountServiceContract) AccountController {
-	return AccountController{accounts: accounts}
+// NewAccountController constructs a new AccountController backed by AccountServiceContract and EntryServiceContract.
+func NewAccountController(accounts AccountServiceContract, entries EntryServiceContract) AccountController {
+	return AccountController{accounts: accounts, entries: entries}
 }
 
 // Search searches accounts within a workspace based on query parameters.
@@ -208,6 +210,66 @@ func (ctl AccountController) Seed(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.Created(c, res)
+}
+
+// Ledger retrieves postings for an account with running balance (POSTED only, paginated).
+//
+//	@Summary		Get account ledger
+//	@Description	Retrieve posted entries and postings for an account with running balance
+//	@Tags			Finance Accounts
+//	@Produce		json
+//	@Param			wid		path		int	true	"Workspace ID"
+//	@Param			id		path		int	true	"Account ID"
+//	@Param			page	query		int	false	"Page number (default 1)"
+//	@Param			limit	query		int	false	"Page size (default 20, max 100)"
+//	@Success		200		{object}	httpx.WebResponse[model.AccountLedgerResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/accounts/{id}/ledger [get]
+func (ctl AccountController) Ledger(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	page := 1
+	if pStr := c.Query("page"); pStr != "" {
+		if p, err := strconv.Atoi(pStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+	limit := 20
+	if lStr := c.Query("limit"); lStr != "" {
+		if l, err := strconv.Atoi(lStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	acc, err := ctl.accounts.GetByID(c, id)
+	if err != nil {
+		return err
+	}
+
+	postings, total, err := ctl.entries.GetAccountLedger(c, id, page, limit)
+	if err != nil {
+		return err
+	}
+
+	out := make([]model.PostingResponse, len(postings))
+	for i, p := range postings {
+		out[i] = toPostingResponse(p)
+	}
+
+	return httpx.OK(c, model.AccountLedgerResponse{
+		AccountID:     acc.ID,
+		NormalBalance: acc.NormalBalance,
+		Total:         total,
+		Page:          page,
+		Limit:         limit,
+		Postings:      out,
+	})
 }
 
 func toAccountResponse(a domain.Account) model.AccountResponse {

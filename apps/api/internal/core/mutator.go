@@ -6,8 +6,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/intercept"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/posting"
+	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/internal/base"
 )
 
@@ -83,6 +86,12 @@ func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error
 		q.WhereP(sql.FieldEQ(account.FieldWorkspaceID, wsID))
 	case ent.TypePeriod:
 		q.WhereP(sql.FieldEQ(period.FieldWorkspaceID, wsID))
+	case ent.TypeTransaction:
+		q.WhereP(sql.FieldEQ(transaction.FieldWorkspaceID, wsID))
+	case ent.TypeEntry:
+		q.WhereP(sql.FieldEQ(entry.FieldWorkspaceID, wsID))
+	case ent.TypePosting:
+		q.WhereP(sql.FieldEQ(posting.FieldWorkspaceID, wsID))
 	}
 	return nil
 }

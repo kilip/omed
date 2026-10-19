@@ -27,6 +27,7 @@ type Posting struct {
 	Amount      float64        `json:"amount"`
 	BaseAmount  float64        `json:"baseAmount"`
 	Position    int            `json:"position"`
-	Description string         `json:"description,omitempty"`
-	AuditMeta   base.AuditMeta `json:"auditMeta"`
+	Description    string         `json:"description,omitempty"`
+	RunningBalance float64        `json:"runningBalance,omitempty"`
+	AuditMeta      base.AuditMeta `json:"auditMeta"`
 }

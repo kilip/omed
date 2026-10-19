@@ -30,6 +30,12 @@ type UpdateEntryRequest struct {
 	Postings    []CreatePostingRequest `json:"postings" validate:"required,min=2,dive"`
 }
 
+// ReverseEntryRequest defines payload for reversing a posted journal entry.
+type ReverseEntryRequest struct {
+	EntryDate   *Date  `json:"entryDate,omitempty" swaggertype:"string" example:"2026-01-01"`
+	Description string `json:"description,omitempty"`
+}
+
 // SearchEntryRequest defines request payload for searching journal entries in a workspace.
 type SearchEntryRequest struct {
 	PeriodID  *int64  `json:"periodId,omitempty"`

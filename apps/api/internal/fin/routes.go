@@ -9,11 +9,12 @@ import (
 
 func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	accounts := r.Group("/workspaces/:wid/fin/accounts")
-	accountCtl := controller.NewAccountController(mod.AccountService)
+	accountCtl := controller.NewAccountController(mod.AccountService, mod.EntryService)
 
 	accounts.Post("/search", az.Require(domain.ObjAccount, "read"), accountCtl.Search)
 	accounts.Post("/seed", az.Require(domain.ObjAccount, "create"), accountCtl.Seed)
 	accounts.Post("/", az.Require(domain.ObjAccount, "create"), accountCtl.Create)
+	accounts.Get("/:id/ledger", az.Require(domain.ObjAccount, "read"), accountCtl.Ledger)
 	accounts.Get("/:id", az.Require(domain.ObjAccount, "read"), accountCtl.GetByID)
 	accounts.Put("/:id", az.Require(domain.ObjAccount, "update"), accountCtl.Update)
 	accounts.Delete("/:id", az.Require(domain.ObjAccount, "delete"), accountCtl.Delete)
@@ -28,4 +29,25 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	periods.Delete("/:id", az.Require(domain.ObjPeriod, "delete"), periodCtl.Delete)
 	periods.Post("/:id/close", az.Require(domain.ObjPeriod, "update"), periodCtl.Close)
 	periods.Post("/:id/reopen", az.Require(domain.ObjPeriod, "update"), periodCtl.Reopen)
+
+	transactions := r.Group("/workspaces/:wid/fin/transactions")
+	txCtl := controller.NewTransactionController(mod.TransactionService)
+
+	transactions.Post("/search", az.Require(domain.ObjTransaction, "read"), txCtl.Search)
+	transactions.Post("/", az.Require(domain.ObjTransaction, "create"), txCtl.Create)
+	transactions.Get("/:id", az.Require(domain.ObjTransaction, "read"), txCtl.GetByID)
+	transactions.Put("/:id", az.Require(domain.ObjTransaction, "update"), txCtl.Update)
+	transactions.Delete("/:id", az.Require(domain.ObjTransaction, "delete"), txCtl.Delete)
+
+	entries := r.Group("/workspaces/:wid/fin/entries")
+	entryCtl := controller.NewEntryController(mod.EntryService)
+
+	entries.Post("/search", az.Require(domain.ObjEntry, "read"), entryCtl.Search)
+	entries.Post("/", az.Require(domain.ObjEntry, "create"), entryCtl.Create)
+	entries.Get("/:id", az.Require(domain.ObjEntry, "read"), entryCtl.GetByID)
+	entries.Put("/:id", az.Require(domain.ObjEntry, "update"), entryCtl.Update)
+	entries.Delete("/:id", az.Require(domain.ObjEntry, "delete"), entryCtl.Delete)
+	entries.Post("/:id/post", az.Require(domain.ObjEntry, "update"), entryCtl.Post)
+	entries.Post("/:id/reverse", az.Require(domain.ObjEntry, "create"), entryCtl.Reverse)
+	entries.Post("/:id/void", az.Require(domain.ObjEntry, "delete"), entryCtl.Void)
 }

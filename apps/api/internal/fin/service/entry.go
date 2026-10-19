@@ -24,6 +24,7 @@ type EntryRepository interface {
 	Reverse(c context.Context, id int64, postedBy int64, entryDate time.Time, description string) (domain.Entry, error)
 	Void(c context.Context, id int64) (domain.Entry, error)
 	GetAccountLedger(c context.Context, accountID int64, page int, limit int) ([]domain.Posting, int64, error)
+	GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (float64, float64, error)
 }
 
 // EntryService manages business logic and double-entry validation for Journal Entries.
@@ -225,12 +226,49 @@ func (s EntryService) Void(c context.Context, id int64, postedBy int64) (domain.
 
 // GetAccountLedger returns postings for an account with running balance, paginated.
 func (s EntryService) GetAccountLedger(c context.Context, accountID int64, page int, limit int) ([]domain.Posting, int64, error) {
-	_, err := s.accountRepo.GetByID(c, accountID)
+	acc, err := s.accountRepo.GetByID(c, accountID)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return s.entryRepo.GetAccountLedger(c, accountID, page, limit)
+	postings, total, err := s.entryRepo.GetAccountLedger(c, accountID, page, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var startingBalance float64
+	if len(postings) > 0 && page > 1 {
+		firstID := postings[0].ID
+		debits, credits, err := s.entryRepo.GetAccountBalanceBefore(c, accountID, firstID)
+		if err == nil {
+			if acc.NormalBalance == domain.NormalBalanceDebit {
+				startingBalance = debits - credits
+			} else {
+				startingBalance = credits - debits
+			}
+		}
+	}
+
+	running := startingBalance
+	for i := range postings {
+		amt := postings[i].Amount
+		if acc.NormalBalance == domain.NormalBalanceDebit {
+			if postings[i].Direction == domain.PostingDirectionDebit {
+				running += amt
+			} else {
+				running -= amt
+			}
+		} else {
+			if postings[i].Direction == domain.PostingDirectionCredit {
+				running += amt
+			} else {
+				running -= amt
+			}
+		}
+		postings[i].RunningBalance = running
+	}
+
+	return postings, total, nil
 }
 
 // validateEntry validates journal entry postings and rules in strict order:

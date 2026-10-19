@@ -122,6 +122,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_EntryResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.EntryResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_InvitationResponse": {
                 "properties": {
                     "data": {
@@ -190,6 +207,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_TransactionResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.TransactionResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_WorkspaceResponse": {
                 "properties": {
                     "data": {
@@ -220,10 +254,36 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_AccountLedgerResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.AccountLedgerResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_AccountResponse": {
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.AccountResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_EntryResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.EntryResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -324,6 +384,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_TransactionResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.TransactionResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_WorkspaceResponse": {
                 "properties": {
                     "data": {
@@ -337,12 +410,43 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.AccountLedgerResponse": {
+                "properties": {
+                    "accountId": {
+                        "type": "integer"
+                    },
+                    "limit": {
+                        "type": "integer"
+                    },
+                    "normalBalance": {
+                        "example": "DEBIT",
+                        "type": "string"
+                    },
+                    "page": {
+                        "type": "integer"
+                    },
+                    "postings": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.PostingResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "total": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.AccountResponse": {
                 "properties": {
                     "auditMeta": {
                         "$ref": "#/components/schemas/base.AuditMeta"
                     },
                     "code": {
+                        "type": "string"
+                    },
+                    "currency": {
                         "type": "string"
                     },
                     "description": {
@@ -378,6 +482,9 @@ const docTemplate = `{
             "model.CreateAccountRequest": {
                 "properties": {
                     "code": {
+                        "type": "string"
+                    },
+                    "currency": {
                         "type": "string"
                     },
                     "description": {
@@ -417,6 +524,65 @@ const docTemplate = `{
                     "code",
                     "name",
                     "type"
+                ],
+                "type": "object"
+            },
+            "model.CreateEntryInlineRequest": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "entryDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "periodId": {
+                        "type": "integer"
+                    },
+                    "postings": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.CreatePostingRequest"
+                        },
+                        "minItems": 2,
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "required": [
+                    "entryDate",
+                    "periodId",
+                    "postings"
+                ],
+                "type": "object"
+            },
+            "model.CreateEntryRequest": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "entryDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "periodId": {
+                        "type": "integer"
+                    },
+                    "postings": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.CreatePostingRequest"
+                        },
+                        "minItems": 2,
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "transactionId": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "entryDate",
+                    "periodId",
+                    "postings"
                 ],
                 "type": "object"
             },
@@ -475,6 +641,66 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.CreatePostingRequest": {
+                "properties": {
+                    "accountId": {
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "example": 100000,
+                        "type": "number"
+                    },
+                    "baseAmount": {
+                        "type": "number"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "direction": {
+                        "enum": [
+                            "DEBIT",
+                            "CREDIT"
+                        ],
+                        "example": "DEBIT",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "accountId",
+                    "amount",
+                    "direction"
+                ],
+                "type": "object"
+            },
+            "model.CreateTransactionRequest": {
+                "properties": {
+                    "currency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "entry": {
+                        "$ref": "#/components/schemas/model.CreateEntryInlineRequest"
+                    },
+                    "exchangeRate": {
+                        "example": 1,
+                        "type": "number"
+                    },
+                    "reference": {
+                        "type": "string"
+                    },
+                    "transactionDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "transactionDate"
+                ],
+                "type": "object"
+            },
             "model.CreateWorkspaceRequest": {
                 "properties": {
                     "description": {
@@ -487,6 +713,56 @@ const docTemplate = `{
                 "required": [
                     "name"
                 ],
+                "type": "object"
+            },
+            "model.EntryResponse": {
+                "properties": {
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "entryDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "number": {
+                        "type": "string"
+                    },
+                    "periodId": {
+                        "type": "integer"
+                    },
+                    "postedAt": {
+                        "type": "string"
+                    },
+                    "postedBy": {
+                        "type": "integer"
+                    },
+                    "postings": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.PostingResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "reversalOfId": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "example": "DRAFT",
+                        "type": "string"
+                    },
+                    "transactionId": {
+                        "type": "integer"
+                    },
+                    "workspaceId": {
+                        "type": "integer"
+                    }
+                },
                 "type": "object"
             },
             "model.InvitationResponse": {
@@ -644,6 +920,49 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.PostingResponse": {
+                "properties": {
+                    "accountId": {
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "example": 100000,
+                        "type": "number"
+                    },
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "baseAmount": {
+                        "example": 100000,
+                        "type": "number"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "direction": {
+                        "example": "DEBIT",
+                        "type": "string"
+                    },
+                    "entryId": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "position": {
+                        "example": 0,
+                        "type": "integer"
+                    },
+                    "runningBalance": {
+                        "example": 100000,
+                        "type": "number"
+                    },
+                    "workspaceId": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.PublicInvitationResponse": {
                 "properties": {
                     "expiresAt": {
@@ -674,6 +993,18 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.ReverseEntryRequest": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "entryDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.RoleResponse": {
                 "properties": {
                     "description": {
@@ -695,6 +1026,33 @@ const docTemplate = `{
                 "type": "object"
             },
             "model.SearchAccountRequest": {
+                "type": "object"
+            },
+            "model.SearchEntryRequest": {
+                "properties": {
+                    "accountId": {
+                        "type": "integer"
+                    },
+                    "dateFrom": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "dateTo": {
+                        "example": "2026-01-31",
+                        "type": "string"
+                    },
+                    "periodId": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "enum": [
+                            "DRAFT",
+                            "POSTED",
+                            "VOID"
+                        ],
+                        "type": "string"
+                    }
+                },
                 "type": "object"
             },
             "model.SearchInvitationRequest": {
@@ -729,6 +1087,30 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "status": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SearchTransactionRequest": {
+                "properties": {
+                    "dateFrom": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "dateTo": {
+                        "example": "2026-01-31",
+                        "type": "string"
+                    },
+                    "reference": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "enum": [
+                            "MANUAL",
+                            "IMPORT",
+                            "SYSTEM"
+                        ],
                         "type": "string"
                     }
                 },
@@ -866,6 +1248,52 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.TransactionResponse": {
+                "properties": {
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "currency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "entries": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.EntryResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "exchangeRate": {
+                        "example": 1,
+                        "type": "number"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "number": {
+                        "type": "string"
+                    },
+                    "reference": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "example": "MANUAL",
+                        "type": "string"
+                    },
+                    "transactionDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "workspaceId": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.UpdateAccountRequest": {
                 "properties": {
                     "code": {
@@ -896,6 +1324,25 @@ const docTemplate = `{
                 },
                 "required": [
                     "name"
+                ],
+                "type": "object"
+            },
+            "model.UpdateEntryRequest": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "postings": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.CreatePostingRequest"
+                        },
+                        "minItems": 2,
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "required": [
+                    "postings"
                 ],
                 "type": "object"
             },
@@ -942,6 +1389,17 @@ const docTemplate = `{
                     "name",
                     "startDate"
                 ],
+                "type": "object"
+            },
+            "model.UpdateTransactionRequest": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "reference": {
+                        "type": "string"
+                    }
+                },
                 "type": "object"
             },
             "model.UpdateWorkspaceRequest": {
@@ -2380,6 +2838,965 @@ const docTemplate = `{
                 ]
             }
         },
+        "/workspaces/{wid}/fin/accounts/{id}/ledger": {
+            "get": {
+                "description": "Retrieve posted entries and postings for an account with running balance",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Account ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page number (default 1)",
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page size (default 20, max 100)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_AccountLedgerResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get account ledger",
+                "tags": [
+                    "Finance Accounts"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/entries": {
+            "post": {
+                "description": "Add a draft journal entry to an existing transaction",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreateEntryRequest",
+                                "summary": "request",
+                                "description": "Entry creation payload"
+                            }
+                        }
+                    },
+                    "description": "Entry creation payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_EntryResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create entry",
+                "tags": [
+                    "Finance Entries"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/entries/search": {
+            "post": {
+                "description": "Search journal entries in the workspace with filters",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SearchEntryRequest",
+                                "summary": "request",
+                                "description": "Search criteria"
+                            }
+                        }
+                    },
+                    "description": "Search criteria",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_EntryResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Search entries",
+                "tags": [
+                    "Finance Entries"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/entries/{id}": {
+            "delete": {
+                "description": "Delete a journal entry and cascade delete postings (DRAFT only)",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Entry ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete entry",
+                "tags": [
+                    "Finance Entries"
+                ]
+            },
+            "get": {
+                "description": "Retrieve journal entry detail by ID with associated postings",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Entry ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_EntryResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get entry by ID",
+                "tags": [
+                    "Finance Entries"
+                ]
+            },
+            "put": {
+                "description": "Replace postings for a draft journal entry (DRAFT only)",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Entry ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateEntryRequest",
+                                "summary": "request",
+                                "description": "Entry update payload"
+                            }
+                        }
+                    },
+                    "description": "Entry update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_EntryResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update entry",
+                "tags": [
+                    "Finance Entries"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/entries/{id}/post": {
+            "post": {
+                "description": "Transition journal entry from DRAFT to POSTED status",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Entry ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_EntryResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Post entry",
+                "tags": [
+                    "Finance Entries"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/entries/{id}/reverse": {
+            "post": {
+                "description": "Create a POSTED reversing entry for a posted journal entry",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Entry ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.ReverseEntryRequest",
+                                "summary": "request",
+                                "description": "Reversal options"
+                            }
+                        }
+                    },
+                    "description": "Reversal options"
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_EntryResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Reverse entry",
+                "tags": [
+                    "Finance Entries"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/entries/{id}/void": {
+            "post": {
+                "description": "Void a journal entry (reverses if POSTED, then marks VOID)",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Entry ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_EntryResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Void entry",
+                "tags": [
+                    "Finance Entries"
+                ]
+            }
+        },
         "/workspaces/{wid}/fin/periods": {
             "post": {
                 "description": "Create a new accounting period entry in the workspace",
@@ -3056,6 +4473,503 @@ const docTemplate = `{
                 "summary": "Reopen period",
                 "tags": [
                     "Finance Periods"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/transactions": {
+            "post": {
+                "description": "Create a new transaction with optional inline entry and postings",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreateTransactionRequest",
+                                "summary": "request",
+                                "description": "Transaction creation payload"
+                            }
+                        }
+                    },
+                    "description": "Transaction creation payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_TransactionResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create transaction",
+                "tags": [
+                    "Finance Transactions"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/transactions/search": {
+            "post": {
+                "description": "Search transactions in the workspace with filters",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SearchTransactionRequest",
+                                "summary": "request",
+                                "description": "Search criteria"
+                            }
+                        }
+                    },
+                    "description": "Search criteria",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_TransactionResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Search transactions",
+                "tags": [
+                    "Finance Transactions"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/transactions/{id}": {
+            "delete": {
+                "description": "Soft delete a transaction by ID (blocked if any entry is posted)",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Transaction ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete transaction",
+                "tags": [
+                    "Finance Transactions"
+                ]
+            },
+            "get": {
+                "description": "Retrieve transaction detail by ID with associated entries",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Transaction ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_TransactionResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get transaction by ID",
+                "tags": [
+                    "Finance Transactions"
+                ]
+            },
+            "put": {
+                "description": "Update transaction header fields (blocked if any entry is posted)",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Transaction ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateTransactionRequest",
+                                "summary": "request",
+                                "description": "Transaction update payload"
+                            }
+                        }
+                    },
+                    "description": "Transaction update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_TransactionResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update transaction",
+                "tags": [
+                    "Finance Transactions"
                 ]
             }
         },

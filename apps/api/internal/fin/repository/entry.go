@@ -521,6 +521,37 @@ func (r EntryRepository) GetAccountLedger(c context.Context, accountID int64, pa
 	return postings, int64(total), nil
 }
 
+// GetAccountBalanceBefore calculates cumulative debit and credit sums for an account prior to a given posting ID.
+func (r EntryRepository) GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (float64, float64, error) {
+	if beforePostingID <= 0 {
+		return 0, 0, nil
+	}
+
+	items, err := r.cli.Posting.Query().
+		Where(
+			posting.AccountIDEQ(accountID),
+			posting.IDLT(beforePostingID),
+			posting.HasEntryWith(
+				entry.StatusEQ(entry.Status(domain.EntryStatusPosted)),
+				entry.DeletedAtIsNil(),
+			),
+		).
+		All(c)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	var debits, credits float64
+	for _, it := range items {
+		if it.Direction == posting.DirectionDEBIT {
+			debits += it.Amount
+		} else {
+			credits += it.Amount
+		}
+	}
+	return debits, credits, nil
+}
+
 func toEntryDomain(e *ent.Entry) domain.Entry {
 	dom := domain.Entry{
 		ID:            e.ID,

@@ -24,6 +24,17 @@ type PostingResponse struct {
 	Amount      float64        `json:"amount" example:"100000"`
 	BaseAmount  float64        `json:"baseAmount" example:"100000"`
 	Position    int            `json:"position" example:"0"`
-	Description string         `json:"description,omitempty"`
-	AuditMeta   base.AuditMeta `json:"auditMeta"`
+	Description    string         `json:"description,omitempty"`
+	RunningBalance float64        `json:"runningBalance,omitempty" example:"100000"`
+	AuditMeta      base.AuditMeta `json:"auditMeta"`
+}
+
+// AccountLedgerResponse represents an account ledger with postings and running balances.
+type AccountLedgerResponse struct {
+	AccountID     int64             `json:"accountId"`
+	NormalBalance string            `json:"normalBalance" example:"DEBIT"`
+	Total         int64             `json:"total"`
+	Page          int               `json:"page"`
+	Limit         int               `json:"limit"`
+	Postings      []PostingResponse `json:"postings"`
 }
