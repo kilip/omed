@@ -1,3 +1,4 @@
+import { Spin } from "antd";
 import { Outlet, redirect, useNavigate, useRevalidator } from "react-router";
 import { NavBar } from "~/components/NavBar";
 import { authClient } from "~/lib/auth-client";
@@ -24,6 +25,14 @@ export async function clientLoader() {
   }
 
   return { user: data.user, workspaces, activeId, apiError };
+}
+
+export function HydrateFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <Spin size="large" />
+    </div>
+  );
 }
 
 export default function Shell({ loaderData }: Route.ComponentProps) {
