@@ -1,5 +1,6 @@
 import {
   AccountBookOutlined,
+  AuditOutlined,
   BankOutlined,
   BookOutlined,
   CalendarOutlined,
@@ -23,40 +24,47 @@ export default defineModule({
       icon: DashboardOutlined,
     },
     {
-      key: "accounts",
-      path: "accounts",
-      labelKey: "fin.menu.accounts",
-      icon: ClusterOutlined,
-    },
-    {
-      key: "periods",
-      path: "periods",
-      labelKey: "fin.menu.periods",
-      icon: CalendarOutlined,
-    },
-    {
-      key: "transactions",
-      path: "transactions",
-      labelKey: "fin.menu.transactions",
-      icon: FileTextOutlined,
-    },
-    {
-      key: "journal",
-      path: "journal",
-      labelKey: "fin.menu.journal",
-      icon: BookOutlined,
-    },
-    {
-      key: "ledger",
-      path: "ledger",
-      labelKey: "fin.menu.ledger",
-      icon: BookOutlined,
-    },
-    {
-      key: "trial-balance",
-      path: "trial-balance",
-      labelKey: "fin.menu.trialBalance",
-      icon: AccountBookOutlined,
+      key: "accounting",
+      labelKey: "fin.menu.accounting",
+      icon: AuditOutlined,
+      children: [
+        {
+          key: "accounts",
+          path: "accounts",
+          labelKey: "fin.menu.accounts",
+          icon: ClusterOutlined,
+        },
+        {
+          key: "periods",
+          path: "periods",
+          labelKey: "fin.menu.periods",
+          icon: CalendarOutlined,
+        },
+        {
+          key: "transactions",
+          path: "transactions",
+          labelKey: "fin.menu.transactions",
+          icon: FileTextOutlined,
+        },
+        {
+          key: "journal",
+          path: "journal",
+          labelKey: "fin.menu.journal",
+          icon: BookOutlined,
+        },
+        {
+          key: "ledger",
+          path: "ledger",
+          labelKey: "fin.menu.ledger",
+          icon: BookOutlined,
+        },
+        {
+          key: "trial-balance",
+          path: "trial-balance",
+          labelKey: "fin.menu.trialBalance",
+          icon: AccountBookOutlined,
+        },
+      ],
     },
   ],
 });

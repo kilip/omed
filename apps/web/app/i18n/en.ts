@@ -165,6 +165,7 @@ export const en = {
     description: "Accounts, journal entries, ledger and trial balance",
     menu: {
       dashboard: "Dashboard",
+      accounting: "Accounting",
       accounts: "Chart of accounts",
       periods: "Accounting periods",
       transactions: "Transactions",

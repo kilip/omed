@@ -1,12 +1,79 @@
 import { AppstoreOutlined, LogoutOutlined } from "@ant-design/icons";
-import { Avatar, Button, Dropdown, Menu, Select } from "antd";
+import { Avatar, Button, Dropdown, Menu, type MenuProps, Select } from "antd";
 import { createElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
 import { Logo } from "~/components/Logo";
 import { LanguageMenu, ThemeMenu } from "~/components/PreferenceMenus";
-import { findModule } from "~/lib/modules";
+import { findModule, type ModuleMenuItem } from "~/lib/modules";
 import type { Workspace } from "~/lib/workspace";
+
+type MenuItemType = Required<MenuProps>["items"][number];
+
+function filterMenuItems(
+  items: ModuleMenuItem[],
+  isPersonal?: boolean,
+): ModuleMenuItem[] {
+  return items
+    .filter((item) => !(item.hideInPersonalWorkspace && isPersonal))
+    .map((item) => {
+      if (item.children) {
+        return {
+          ...item,
+          children: filterMenuItems(item.children, isPersonal),
+        };
+      }
+      return item;
+    });
+}
+
+function getSelectedKeys(
+  items: ModuleMenuItem[],
+  base: string,
+  pathname: string,
+): string[] {
+  const selected: string[] = [];
+  for (const item of items) {
+    if (item.children && item.children.length > 0) {
+      selected.push(...getSelectedKeys(item.children, base, pathname));
+    } else if (item.path !== undefined) {
+      const matches = item.path
+        ? pathname === `${base}/${item.path}` ||
+          pathname.startsWith(`${base}/${item.path}/`)
+        : pathname === base;
+      if (matches) {
+        selected.push(item.key);
+      }
+    }
+  }
+  return selected;
+}
+
+function mapToMenuItems(
+  items: ModuleMenuItem[],
+  base: string,
+  t: (key: string) => string,
+): MenuItemType[] {
+  return items.map((item) => {
+    if (item.children && item.children.length > 0) {
+      return {
+        key: item.key,
+        icon: item.icon ? createElement(item.icon) : undefined,
+        label: t(item.labelKey),
+        children: mapToMenuItems(item.children, base, t),
+      };
+    }
+    return {
+      key: item.key,
+      icon: item.icon ? createElement(item.icon) : undefined,
+      label: (
+        <Link to={item.path ? `${base}/${item.path}` : base}>
+          {t(item.labelKey)}
+        </Link>
+      ),
+    };
+  });
+}
 
 type NavBarProps = {
   user: { name: string; email: string; image?: string | null };
@@ -34,18 +101,12 @@ export function NavBar({
   const base = meta ? `/${meta.id}` : "";
 
   const currentWorkspace = workspaces.find((w) => w.id === activeId);
-  const visibleMenuItems = (meta?.menu ?? []).filter(
-    (item) => !(item.hideInPersonalWorkspace && currentWorkspace?.personal),
+  const visibleMenuItems = filterMenuItems(
+    meta?.menu ?? [],
+    currentWorkspace?.personal,
   );
 
-  const selected = visibleMenuItems
-    .filter((item) =>
-      item.path
-        ? pathname === `${base}/${item.path}` ||
-          pathname.startsWith(`${base}/${item.path}/`)
-        : pathname === base,
-    )
-    .map((item) => item.key);
+  const selected = getSelectedKeys(visibleMenuItems, base, pathname);
 
   return (
     <header
@@ -90,15 +151,7 @@ export function NavBar({
               flex: 1,
               minWidth: 0,
             }}
-            items={visibleMenuItems.map((item) => ({
-              key: item.key,
-              icon: item.icon ? createElement(item.icon) : undefined,
-              label: (
-                <Link to={item.path ? `${base}/${item.path}` : base}>
-                  {t(item.labelKey)}
-                </Link>
-              ),
-            }))}
+            items={mapToMenuItems(visibleMenuItems, base, t)}
           />
         </>
       ) : (

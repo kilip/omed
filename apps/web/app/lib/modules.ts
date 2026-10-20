@@ -3,12 +3,13 @@ import type { ComponentType } from "react";
 export type ModuleMenuItem = {
   key: string;
   /** Path relative to the module root. Empty string is the module index. */
-  path: string;
+  path?: string;
   /** i18n key. */
   labelKey: string;
   icon?: ComponentType;
   /** Whether this menu item should be hidden in a personal workspace. */
   hideInPersonalWorkspace?: boolean;
+  children?: ModuleMenuItem[];
 };
 
 export type ModuleMeta = {

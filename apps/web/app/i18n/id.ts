@@ -168,6 +168,7 @@ export const id: Translation = {
     description: "Akun, jurnal umum, buku besar, dan neraca saldo",
     menu: {
       dashboard: "Dashboard",
+      accounting: "Akuntansi",
       accounts: "Bagan akun",
       periods: "Periode akuntansi",
       transactions: "Transaksi",
