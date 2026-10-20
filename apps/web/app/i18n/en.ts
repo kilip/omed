@@ -402,6 +402,18 @@ export const en = {
       rateNotFound:
         "No exchange rate found for this date. Enter rate manually.",
       initialEntry: "Initial entry (optional)",
+      attachments: {
+        title: "Attachments",
+        upload: "Upload attachment",
+        empty: "No attachments yet.",
+        preview: "Preview",
+        download: "Download",
+        delete: "Delete attachment",
+        deleteConfirm: "Delete this attachment?",
+        hint: "Allowed: {{types}} (max {{maxSize}} MB)",
+        fileTooLarge: "File exceeds the maximum size of {{maxSize}} MB.",
+        invalidFileType: "Unsupported file type. Allowed: {{types}}.",
+      },
     },
     ledger: {
       balance: "Balance",
@@ -435,6 +447,9 @@ export const en = {
       TRANSACTION_NUMBER_TAKEN: "Transaction number is already taken.",
       TRANSACTION_HAS_POSTED_ENTRIES:
         "Transaction cannot be modified or deleted because it has posted entries.",
+      ATTACHMENT_NOT_FOUND: "Attachment not found.",
+      ATTACHMENT_TOO_LARGE: "Attachment exceeds the maximum allowed file size.",
+      ATTACHMENT_INVALID_TYPE: "Unsupported attachment file type.",
       POSTING_ACCOUNT_NOT_POSTABLE:
         "The selected account is a summary account and cannot accept postings.",
       POSTING_ACCOUNT_INACTIVE:

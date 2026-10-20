@@ -17,7 +17,11 @@ import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { permissionsQueryOptions } from "~/modules/core/queries";
-import { EntryStatusTag, MoneyCell } from "../components";
+import {
+  EntryStatusTag,
+  MoneyCell,
+  TransactionAttachmentsSection,
+} from "../components";
 import { useFinPermissions } from "../hooks";
 import { transactionKeys, transactionQueryOptions } from "../queries";
 import type { Route } from "./+types/transaction";
@@ -261,6 +265,14 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
               })}
             />
           </div>
+
+          {/* Attachments Section */}
+          <TransactionAttachmentsSection
+            wid={wid}
+            transactionId={id}
+            attachments={transaction.attachments ?? []}
+            canModify={!hasPostedEntries && canEditTransaction}
+          />
         </div>
       </FormView>
     </Page>

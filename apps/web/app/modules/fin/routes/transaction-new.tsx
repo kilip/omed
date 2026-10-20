@@ -16,9 +16,11 @@ import { permissionsQueryOptions } from "~/modules/core/queries";
 import {
   CurrencySelect,
   calculatePostingsSummary,
+  PendingAttachmentsPicker,
   type PostingLineValue,
   PostingsEditor,
   postingLinesToApi,
+  uploadTransactionAttachment,
 } from "../components";
 import { useFinPermissions } from "../hooks";
 import {
@@ -69,6 +71,7 @@ export default function TransactionNewRoute({
 
   const [form] = Form.useForm<CreateTransactionFormValues>();
   const [rateNotFound, setRateNotFound] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const selectedCurrency = Form.useWatch("currency", form) ?? "IDR";
   const selectedRate = Form.useWatch("exchangeRate", form) ?? 1;
@@ -184,6 +187,15 @@ export default function TransactionNewRoute({
         }),
       );
       createdId = res.id;
+
+      if (createdId && pendingFiles.length > 0) {
+        const txId = createdId;
+        await Promise.all(
+          pendingFiles.map((file) =>
+            uploadTransactionAttachment(wid, txId, file),
+          ),
+        );
+      }
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: transactionKeys.all(wid) }),
@@ -318,6 +330,12 @@ export default function TransactionNewRoute({
                 exchangeRate={selectedRate}
               />
             </div>
+
+            <PendingAttachmentsPicker
+              files={pendingFiles}
+              onChange={setPendingFiles}
+              disabled={pending || !canCreateTransaction}
+            />
           </div>
         </Form>
       </FormView>

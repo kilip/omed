@@ -5,3 +5,4 @@ export * from "./money-cell";
 export * from "./period-select";
 export * from "./postings-editor";
 export * from "./revenue-chart";
+export * from "./transaction-attachments";

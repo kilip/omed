@@ -403,6 +403,18 @@ export const id: Translation = {
       rateNotFound:
         "Kurs tidak ditemukan untuk tanggal ini. Masukkan kurs manual.",
       initialEntry: "Jurnal awal (opsional)",
+      attachments: {
+        title: "Lampiran",
+        upload: "Unggah lampiran",
+        empty: "Belum ada lampiran.",
+        preview: "Pratinjau",
+        download: "Unduh",
+        delete: "Hapus lampiran",
+        deleteConfirm: "Hapus lampiran ini?",
+        hint: "Format diizinkan: {{types}} (maks {{maxSize}} MB)",
+        fileTooLarge: "Ukuran file melebihi batas maksimal {{maxSize}} MB.",
+        invalidFileType: "Tipe file tidak didukung. Diizinkan: {{types}}.",
+      },
     },
     ledger: {
       balance: "Saldo",
@@ -435,6 +447,10 @@ export const id: Translation = {
       TRANSACTION_NUMBER_TAKEN: "Nomor transaksi sudah digunakan.",
       TRANSACTION_HAS_POSTED_ENTRIES:
         "Transaksi tidak dapat diubah atau dihapus karena sudah memiliki jurnal yang diposting.",
+      ATTACHMENT_NOT_FOUND: "Lampiran tidak ditemukan.",
+      ATTACHMENT_TOO_LARGE:
+        "Ukuran lampiran melebihi batas maksimal yang diizinkan.",
+      ATTACHMENT_INVALID_TYPE: "Tipe file lampiran tidak didukung.",
       POSTING_ACCOUNT_NOT_POSTABLE:
         "Akun yang dipilih adalah akun induk dan tidak dapat menerima pembukuan.",
       POSTING_ACCOUNT_INACTIVE:
