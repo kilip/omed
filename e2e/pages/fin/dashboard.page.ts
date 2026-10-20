@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import type { Locator } from "playwright";
 import { BasePage } from "../base.page";
 
@@ -14,6 +15,16 @@ export class FinDashboardPage extends BasePage {
     return this.page.getByRole("button", { name: "Setup chart of accounts" });
   }
 
+  get provisionalTag(): Locator {
+    return this.page
+      .locator(".ant-tag")
+      .filter({ hasText: /provisional|sementara/i });
+  }
+
+  get revenueChart(): Locator {
+    return this.page.locator("svg[role='img']");
+  }
+
   async expectSetupBannerVisible(): Promise<void> {
     await this.setupBanner.waitFor({ state: "visible" });
   }
@@ -21,5 +32,31 @@ export class FinDashboardPage extends BasePage {
   async clickSetupButton(): Promise<void> {
     await this.setupButton.waitFor({ state: "visible" });
     await this.setupButton.click();
+  }
+
+  async expectNoProvisionalTags(): Promise<void> {
+    const count = await this.provisionalTag.count();
+    assert.equal(count, 0, "Expected no provisional tags on dashboard");
+  }
+
+  async expectStatistic(title: string, expectedValue: string): Promise<void> {
+    const stat = this.page.locator(".ant-statistic").filter({ hasText: title });
+    await stat.first().waitFor({ state: "visible" });
+    const text = await stat.first().innerText();
+    assert.ok(
+      text.includes(expectedValue),
+      `Expected statistic "${title}" to contain "${expectedValue}", got "${text}"`,
+    );
+  }
+
+  async expectRecentEntry(text: string): Promise<void> {
+    const row = this.page
+      .locator(".ant-table-tbody .ant-table-row")
+      .filter({ hasText: text });
+    await row.first().waitFor({ state: "visible" });
+  }
+
+  async expectRevenueChartVisible(): Promise<void> {
+    await this.revenueChart.waitFor({ state: "visible" });
   }
 }
