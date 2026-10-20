@@ -19,6 +19,7 @@ import (
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
+	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/session"
@@ -45,6 +46,8 @@ type Client struct {
 	Entry *EntryClient
 	// ExchangeRate is the client for interacting with the ExchangeRate builders.
 	ExchangeRate *ExchangeRateClient
+	// File is the client for interacting with the File builders.
+	File *FileClient
 	// Period is the client for interacting with the Period builders.
 	Period *PeriodClient
 	// Posting is the client for interacting with the Posting builders.
@@ -78,6 +81,7 @@ func (c *Client) init() {
 	c.Currency = NewCurrencyClient(c.config)
 	c.Entry = NewEntryClient(c.config)
 	c.ExchangeRate = NewExchangeRateClient(c.config)
+	c.File = NewFileClient(c.config)
 	c.Period = NewPeriodClient(c.config)
 	c.Posting = NewPostingClient(c.config)
 	c.Session = NewSessionClient(c.config)
@@ -186,6 +190,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Currency:            NewCurrencyClient(cfg),
 		Entry:               NewEntryClient(cfg),
 		ExchangeRate:        NewExchangeRateClient(cfg),
+		File:                NewFileClient(cfg),
 		Period:              NewPeriodClient(cfg),
 		Posting:             NewPostingClient(cfg),
 		Session:             NewSessionClient(cfg),
@@ -218,6 +223,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Currency:            NewCurrencyClient(cfg),
 		Entry:               NewEntryClient(cfg),
 		ExchangeRate:        NewExchangeRateClient(cfg),
+		File:                NewFileClient(cfg),
 		Period:              NewPeriodClient(cfg),
 		Posting:             NewPostingClient(cfg),
 		Session:             NewSessionClient(cfg),
@@ -256,9 +262,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Account, c.Currency, c.Entry, c.ExchangeRate, c.Period, c.Posting, c.Session,
-		c.Transaction, c.User, c.UserAccount, c.Workspace, c.WorkspaceInvitation,
-		c.WorkspaceMember,
+		c.Account, c.Currency, c.Entry, c.ExchangeRate, c.File, c.Period, c.Posting,
+		c.Session, c.Transaction, c.User, c.UserAccount, c.Workspace,
+		c.WorkspaceInvitation, c.WorkspaceMember,
 	} {
 		n.Use(hooks...)
 	}
@@ -268,9 +274,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Account, c.Currency, c.Entry, c.ExchangeRate, c.Period, c.Posting, c.Session,
-		c.Transaction, c.User, c.UserAccount, c.Workspace, c.WorkspaceInvitation,
-		c.WorkspaceMember,
+		c.Account, c.Currency, c.Entry, c.ExchangeRate, c.File, c.Period, c.Posting,
+		c.Session, c.Transaction, c.User, c.UserAccount, c.Workspace,
+		c.WorkspaceInvitation, c.WorkspaceMember,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -287,6 +293,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Entry.mutate(ctx, m)
 	case *ExchangeRateMutation:
 		return c.ExchangeRate.mutate(ctx, m)
+	case *FileMutation:
+		return c.File.mutate(ctx, m)
 	case *PeriodMutation:
 		return c.Period.mutate(ctx, m)
 	case *PostingMutation:
@@ -1219,6 +1227,215 @@ func (c *ExchangeRateClient) mutate(ctx context.Context, m *ExchangeRateMutation
 		return (&ExchangeRateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ExchangeRate mutation op: %q", m.Op())
+	}
+}
+
+// FileClient is a client for the File schema.
+type FileClient struct {
+	config
+}
+
+// NewFileClient returns a client for the File from the given config.
+func NewFileClient(c config) *FileClient {
+	return &FileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `file.Hooks(f(g(h())))`.
+func (c *FileClient) Use(hooks ...Hook) {
+	c.hooks.File = append(c.hooks.File, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `file.Intercept(f(g(h())))`.
+func (c *FileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.File = append(c.inters.File, interceptors...)
+}
+
+// Create returns a builder for creating a File entity.
+func (c *FileClient) Create() *FileCreate {
+	mutation := newFileMutation(c.config, OpCreate)
+	return &FileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of File entities.
+func (c *FileClient) CreateBulk(builders ...*FileCreate) *FileCreateBulk {
+	return &FileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FileClient) MapCreateBulk(slice any, setFunc func(*FileCreate, int)) *FileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FileCreateBulk{err: fmt.Errorf("calling to FileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for File.
+func (c *FileClient) Update() *FileUpdate {
+	mutation := newFileMutation(c.config, OpUpdate)
+	return &FileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FileClient) UpdateOne(_m *File) *FileUpdateOne {
+	mutation := newFileMutation(c.config, OpUpdateOne, withFile(_m))
+	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FileClient) UpdateOneID(id int64) *FileUpdateOne {
+	mutation := newFileMutation(c.config, OpUpdateOne, withFileID(id))
+	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for File.
+func (c *FileClient) Delete() *FileDelete {
+	mutation := newFileMutation(c.config, OpDelete)
+	return &FileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FileClient) DeleteOne(_m *File) *FileDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FileClient) DeleteOneID(id int64) *FileDeleteOne {
+	builder := c.Delete().Where(file.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FileDeleteOne{builder}
+}
+
+// Query returns a query builder for File.
+func (c *FileClient) Query() *FileQuery {
+	return &FileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a File entity by its id.
+func (c *FileClient) Get(ctx context.Context, id int64) (*File, error) {
+	return c.Query().Where(file.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FileClient) GetX(ctx context.Context, id int64) *File {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a File.
+func (c *FileClient) QueryWorkspace(_m *File) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, file.WorkspaceTable, file.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.File
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a File.
+func (c *FileClient) QueryCreator(_m *File) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, file.CreatorTable, file.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.File
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a File.
+func (c *FileClient) QueryUpdater(_m *File) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, file.UpdaterTable, file.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.File
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeleter queries the deleter edge of a File.
+func (c *FileClient) QueryDeleter(_m *File) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, file.DeleterTable, file.DeleterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.File
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FileClient) Hooks() []Hook {
+	return c.hooks.File
+}
+
+// Interceptors returns the client interceptors.
+func (c *FileClient) Interceptors() []Interceptor {
+	return c.inters.File
+}
+
+func (c *FileClient) mutate(ctx context.Context, m *FileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown File mutation op: %q", m.Op())
 	}
 }
 
@@ -2973,12 +3190,13 @@ func (c *WorkspaceMemberClient) mutate(ctx context.Context, m *WorkspaceMemberMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, Currency, Entry, ExchangeRate, Period, Posting, Session, Transaction,
-		User, UserAccount, Workspace, WorkspaceInvitation, WorkspaceMember []ent.Hook
+		Account, Currency, Entry, ExchangeRate, File, Period, Posting, Session,
+		Transaction, User, UserAccount, Workspace, WorkspaceInvitation,
+		WorkspaceMember []ent.Hook
 	}
 	inters struct {
-		Account, Currency, Entry, ExchangeRate, Period, Posting, Session, Transaction,
-		User, UserAccount, Workspace, WorkspaceInvitation,
+		Account, Currency, Entry, ExchangeRate, File, Period, Posting, Session,
+		Transaction, User, UserAccount, Workspace, WorkspaceInvitation,
 		WorkspaceMember []ent.Interceptor
 	}
 )
@@ -2990,6 +3208,7 @@ var (
 		Currency:            tableSchemas[0],
 		Entry:               tableSchemas[0],
 		ExchangeRate:        tableSchemas[0],
+		File:                tableSchemas[0],
 		Period:              tableSchemas[0],
 		Posting:             tableSchemas[0],
 		Session:             tableSchemas[0],

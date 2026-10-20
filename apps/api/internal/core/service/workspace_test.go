@@ -11,6 +11,7 @@ import (
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/core/service/mock"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 )
@@ -284,6 +285,36 @@ func (s *WorkspaceSuite) Test_SetRepository() {
 	actual, err := s.service.GetByID(ctx, 10)
 	s.NoError(err)
 	s.Equal(expected, actual)
+}
+
+func (s *WorkspaceSuite) Test_CreateAndDelete_ProvisionsAndDeletesS3Bucket() {
+	ctx := s.ctx
+	st, err := s3x.New(s3x.Config{Driver: "memory"})
+	s.Require().NoError(err)
+
+	svcWithStorage := service.NewWorkspaceService(s.mockRepo, st)
+
+	req := model.CreateWorkspaceRequest{Name: "Bucket WS"}
+	owned := req
+	owned.OwnerID = callerID
+	createdWS := domain.Workspace{ID: 88, Name: "Bucket WS", OwnerID: callerID}
+
+	s.mockRepo.EXPECT().Create(ctx, owned).Return(createdWS, nil)
+	ws, err := svcWithStorage.Create(ctx, req)
+	s.Require().NoError(err)
+	s.Equal(int64(88), ws.ID)
+
+	exists, err := st.BucketExists(ctx, "omed-ws-88")
+	s.Require().NoError(err)
+	s.True(exists)
+
+	s.mockRepo.EXPECT().GetByID(ctx, int64(88)).Return(createdWS, nil)
+	s.mockRepo.EXPECT().Delete(ctx, int64(88)).Return(nil)
+	s.Require().NoError(svcWithStorage.Delete(ctx, 88))
+
+	exists, err = st.BucketExists(ctx, "omed-ws-88")
+	s.Require().NoError(err)
+	s.False(exists)
 }
 
 func TestWorkspaceSuite(t *testing.T) {

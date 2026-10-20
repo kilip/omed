@@ -65,6 +65,7 @@ func TestRegistry_Add_AllowsWildcards(t *testing.T) {
 	reg := authz.NewRegistry()
 	assert.NoError(t, reg.Add(authz.Role{ID: "fin:root", Name: "Root", Permissions: []authz.Permission{{Object: "*", Action: "*"}}}))
 	assert.NoError(t, reg.Add(authz.Role{ID: "fin:mod", Name: "Moderator", Permissions: []authz.Permission{{Object: "fin:*", Action: "read"}}}))
+	assert.NoError(t, reg.Add(authz.Role{ID: "fin:uploader", Name: "Uploader", Permissions: []authz.Permission{{Object: "core:file", Action: "write"}}}))
 }
 
 func TestRegistry_Add_Duplicate(t *testing.T) {

@@ -30,6 +30,10 @@ var (
 	ErrInvitationMaxUsesReached = errors.New("INVITATION_MAX_USES_REACHED")
 	// ErrInvitationRevoked indicates that the invitation has been revoked.
 	ErrInvitationRevoked = errors.New("INVITATION_REVOKED")
+	// ErrFileRequired indicates that no file was provided in an upload request.
+	ErrFileRequired = errors.New("FILE_REQUIRED")
+	// ErrFileEmpty indicates that the uploaded file has zero bytes.
+	ErrFileEmpty = errors.New("FILE_EMPTY")
 )
 
 func init() {
@@ -43,4 +47,6 @@ func init() {
 	base.AddToErrorMap(ErrInvitationExpired, fiber.StatusUnprocessableEntity, "invitation has expired")
 	base.AddToErrorMap(ErrInvitationMaxUsesReached, fiber.StatusUnprocessableEntity, "invitation usage limit reached")
 	base.AddToErrorMap(ErrInvitationRevoked, fiber.StatusUnprocessableEntity, "invitation has been revoked")
+	base.AddToErrorMap(ErrFileRequired, fiber.StatusBadRequest, "file is required")
+	base.AddToErrorMap(ErrFileEmpty, fiber.StatusUnprocessableEntity, "uploaded file cannot be empty")
 }

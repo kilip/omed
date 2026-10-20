@@ -173,6 +173,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_FileResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.FileResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_InvitationResponse": {
                 "properties": {
                     "data": {
@@ -357,6 +374,32 @@ const docTemplate = `{
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.ExchangeRateResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_FileDownloadURLResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.FileDownloadURLResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_FileResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.FileResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -1089,6 +1132,58 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.FileDownloadURLResponse": {
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.FileResponse": {
+                "properties": {
+                    "bucket": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "$ref": "#/components/schemas/base.ByUser"
+                    },
+                    "entityId": {
+                        "type": "integer"
+                    },
+                    "entityType": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "mimeType": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "size": {
+                        "type": "integer"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    },
+                    "updatedBy": {
+                        "$ref": "#/components/schemas/base.ByUser"
+                    },
+                    "workspaceId": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.FinancialSummaryResponse": {
                 "properties": {
                     "baseCurrency": {
@@ -1491,6 +1586,31 @@ const docTemplate = `{
                     },
                     "toCurrency": {
                         "example": "IDR",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SearchFileRequest": {
+                "properties": {
+                    "cursor": {
+                        "type": "string"
+                    },
+                    "entityId": {
+                        "type": "integer"
+                    },
+                    "entityType": {
+                        "type": "string"
+                    },
+                    "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "mimeType": {
+                        "type": "string"
+                    },
+                    "name": {
                         "type": "string"
                     }
                 },
@@ -1921,6 +2041,23 @@ const docTemplate = `{
                 "required": [
                     "effectiveDate",
                     "rate"
+                ],
+                "type": "object"
+            },
+            "model.UpdateFileRequest": {
+                "properties": {
+                    "entityId": {
+                        "type": "integer"
+                    },
+                    "entityType": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
                 ],
                 "type": "object"
             },
@@ -2996,6 +3133,674 @@ const docTemplate = `{
                 "summary": "Update workspace",
                 "tags": [
                     "Workspaces"
+                ]
+            }
+        },
+        "/workspaces/{wid}/files": {
+            "post": {
+                "description": "Upload a file via multipart/form-data into the workspace's dedicated S3 bucket",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "entityId": {
+                                        "description": "Optional associated entity ID",
+                                        "type": "integer"
+                                    },
+                                    "entityType": {
+                                        "description": "Optional associated entity type (e.g. fin:transaction)",
+                                        "type": "string"
+                                    },
+                                    "file": {
+                                        "description": "File to upload",
+                                        "format": "binary",
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "description": "Custom display filename",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "file"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "description": "File to upload"
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FileResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Upload workspace file",
+                "tags": [
+                    "Workspace Files"
+                ]
+            }
+        },
+        "/workspaces/{wid}/files/search": {
+            "post": {
+                "description": "Search files in the workspace matching filter criteria with cursor pagination",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SearchFileRequest",
+                                "summary": "request",
+                                "description": "Search filter criteria"
+                            }
+                        }
+                    },
+                    "description": "Search filter criteria",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_FileResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Search workspace files",
+                "tags": [
+                    "Workspace Files"
+                ]
+            }
+        },
+        "/workspaces/{wid}/files/{id}": {
+            "delete": {
+                "description": "Delete the file object from S3 and soft-delete its metadata record in the database",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "File ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete workspace file",
+                "tags": [
+                    "Workspace Files"
+                ]
+            },
+            "get": {
+                "description": "Retrieve file metadata by ID within a workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "File ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FileResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get workspace file by ID",
+                "tags": [
+                    "Workspace Files"
+                ]
+            },
+            "put": {
+                "description": "Update file display name or associated entity reference",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "File ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateFileRequest",
+                                "summary": "request",
+                                "description": "File update payload"
+                            }
+                        }
+                    },
+                    "description": "File update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FileResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update workspace file metadata",
+                "tags": [
+                    "Workspace Files"
+                ]
+            }
+        },
+        "/workspaces/{wid}/files/{id}/download": {
+            "get": {
+                "description": "Download raw file content from the workspace's S3 bucket",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "File ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "file"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Download workspace file",
+                "tags": [
+                    "Workspace Files"
+                ]
+            }
+        },
+        "/workspaces/{wid}/files/{id}/presign": {
+            "get": {
+                "description": "Generate a temporary presigned S3 GET URL for a file",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "File ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FileDownloadURLResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Presign workspace file download URL",
+                "tags": [
+                    "Workspace Files"
                 ]
             }
         },

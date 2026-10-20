@@ -18,6 +18,9 @@ type Entry func(*sql.Selector)
 // ExchangeRate is the predicate function for exchangerate builders.
 type ExchangeRate func(*sql.Selector)
 
+// File is the predicate function for file builders.
+type File func(*sql.Selector)
+
 // Period is the predicate function for period builders.
 type Period func(*sql.Selector)
 

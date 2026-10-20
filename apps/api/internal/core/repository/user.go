@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
@@ -14,18 +15,25 @@ import (
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/platform/entx"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 )
 
 // UserRepository handles user persistence operations against PostgreSQL via Ent ORM.
 type UserRepository struct {
 	base.ServiceRepository[int64, domain.User, model.CreateUserRequest, model.UpdateUserRequest, model.SearchRequest]
-	cli *ent.Client
+	cli     *ent.Client
+	storage s3x.Storage
 }
 
-// NewUserRepository constructs a new UserRepository instance backed by the given Ent client.
-func NewUserRepository(cli *ent.Client) UserRepository {
+// NewUserRepository constructs a new UserRepository instance backed by the given Ent client and optional S3 storage.
+func NewUserRepository(cli *ent.Client, storage ...s3x.Storage) UserRepository {
+	var st s3x.Storage
+	if len(storage) > 0 {
+		st = storage[0]
+	}
 	return UserRepository{
-		cli: cli,
+		cli:     cli,
+		storage: st,
 	}
 }
 
@@ -105,6 +113,7 @@ func (r UserRepository) Search(c context.Context, req model.SearchRequest) ([]do
 // Create persists a new user and creates their personal workspace in a database transaction.
 func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (domain.User, error) {
 	var usr *ent.User
+	var personalWS *ent.Workspace
 	var dom domain.User
 
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
@@ -140,7 +149,7 @@ func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (
 		// Auto-create personal workspace
 		wsName := req.Name + "'s Workspace"
 		wsCtx := context.WithValue(c, base.USER_CONTEXT_KEY, base.UserContext{ID: usr.ID, Name: usr.Name})
-		_, err = tx.Workspace.Create().
+		personalWS, err = tx.Workspace.Create().
 			SetName(wsName).
 			SetOwnerID(usr.ID).
 			SetPersonal(true).
@@ -151,6 +160,10 @@ func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (
 
 	if err != nil {
 		return dom, err
+	}
+
+	if r.storage != nil && personalWS != nil && personalWS.ID > 0 {
+		_, _ = r.storage.EnsureWorkspaceBucket(c, personalWS.ID)
 	}
 
 	return toDomain(usr), nil
@@ -189,10 +202,16 @@ func (r UserRepository) Update(c context.Context, id int64, req model.UpdateUser
 
 // Delete removes a user by ID within a transaction.
 func (r UserRepository) Delete(c context.Context, id int64) error {
-	return entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
+	var ownedWSIDs []int64
+	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
+		unfilteredCtx := base.WithSkipWorkspaceFilter(c)
+		ownedWSIDs, _ = tx.Workspace.Query().Where(workspace.OwnerIDEQ(id)).IDs(unfilteredCtx)
+		if len(ownedWSIDs) > 0 {
+			_, _ = tx.File.Delete().Where(file.WorkspaceIDIn(ownedWSIDs...)).Exec(unfilteredCtx)
+		}
 		// Clean up memberships and owned workspaces
-		_, _ = tx.WorkspaceMember.Delete().Where(workspacemember.UserIDEQ(id)).Exec(c)
-		_, _ = tx.Workspace.Delete().Where(workspace.OwnerIDEQ(id)).Exec(c)
+		_, _ = tx.WorkspaceMember.Delete().Where(workspacemember.UserIDEQ(id)).Exec(unfilteredCtx)
+		_, _ = tx.Workspace.Delete().Where(workspace.OwnerIDEQ(id)).Exec(unfilteredCtx)
 
 		err := tx.User.DeleteOneID(id).Exec(c)
 		if err != nil {
@@ -203,6 +222,15 @@ func (r UserRepository) Delete(c context.Context, id int64) error {
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	if r.storage != nil {
+		for _, wsID := range ownedWSIDs {
+			_ = r.storage.DeleteWorkspaceBucket(c, wsID)
+		}
+	}
+	return nil
 }
 
 func toDomain(u *ent.User) domain.User {

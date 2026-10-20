@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
@@ -292,9 +293,15 @@ func (ctl Controller) DeleteUser(c fiber.Ctx) error {
 
 	wsIDs, _ := ctl.client.Workspace.Query().Where(workspace.OwnerID(id)).IDs(ctx)
 	if len(wsIDs) > 0 {
+		unfiltered := base.WithSkipWorkspaceFilter(ctx)
+		_, _ = ctl.client.File.Delete().Where(file.WorkspaceIDIn(wsIDs...)).Exec(unfiltered)
 		_, _ = ctl.client.WorkspaceInvitation.Delete().Where(workspaceinvitation.WorkspaceIDIn(wsIDs...)).Exec(ctx)
 		_, _ = ctl.client.WorkspaceMember.Delete().Where(workspacemember.WorkspaceIDIn(wsIDs...)).Exec(ctx)
 	}
+	_, _ = ctl.client.File.Delete().Where(file.Or(
+		file.CreatedBy(id),
+		file.UpdatedBy(id),
+	)).Exec(base.WithSkipWorkspaceFilter(ctx))
 	_, _ = ctl.client.WorkspaceInvitation.Delete().Where(workspaceinvitation.Or(
 		workspaceinvitation.CreatedBy(id),
 		workspaceinvitation.UpdatedBy(id),
@@ -322,9 +329,15 @@ func (ctl Controller) Reset(c fiber.Ctx) error {
 		uCtx := harnessCtx(c.Context(), u.ID)
 		wsIDs, _ := ctl.client.Workspace.Query().Where(workspace.OwnerID(u.ID)).IDs(uCtx)
 		if len(wsIDs) > 0 {
+			unfiltered := base.WithSkipWorkspaceFilter(uCtx)
+			_, _ = ctl.client.File.Delete().Where(file.WorkspaceIDIn(wsIDs...)).Exec(unfiltered)
 			_, _ = ctl.client.WorkspaceInvitation.Delete().Where(workspaceinvitation.WorkspaceIDIn(wsIDs...)).Exec(uCtx)
 			_, _ = ctl.client.WorkspaceMember.Delete().Where(workspacemember.WorkspaceIDIn(wsIDs...)).Exec(uCtx)
 		}
+		_, _ = ctl.client.File.Delete().Where(file.Or(
+			file.CreatedBy(u.ID),
+			file.UpdatedBy(u.ID),
+		)).Exec(base.WithSkipWorkspaceFilter(uCtx))
 		_, _ = ctl.client.WorkspaceInvitation.Delete().Where(workspaceinvitation.Or(
 			workspaceinvitation.CreatedBy(u.ID),
 			workspaceinvitation.UpdatedBy(u.ID),

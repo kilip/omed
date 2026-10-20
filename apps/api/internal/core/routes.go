@@ -26,6 +26,7 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	ctlW := controller.NewWorkspaceController(mod.WorkspaceService)
 	ctlM := controller.NewMemberController(mod.MemberService, az)
 	ctlI := controller.NewInvitationController(mod.InvitationService)
+	ctlF := controller.NewFileController(mod.FileService)
 
 	// Workspaces collection
 	workspaces.Post("/search", ctlW.Search)
@@ -53,6 +54,15 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	workspaces.Post("/:wid/invitations", az.Require(domain.ObjInvitation, "create"), ctlI.Create)
 	workspaces.Post("/:wid/invitations/:id/send", az.Require(domain.ObjInvitation, "create"), ctlI.Send)
 	workspaces.Delete("/:wid/invitations/:id", az.Require(domain.ObjInvitation, "delete"), ctlI.Revoke)
+
+	// Workspace files
+	workspaces.Post("/:wid/files/search", az.Require(domain.ObjFile, "read"), ctlF.Search)
+	workspaces.Post("/:wid/files", az.Require(domain.ObjFile, "write"), ctlF.Upload)
+	workspaces.Get("/:wid/files/:id/download", az.Require(domain.ObjFile, "read"), ctlF.Download)
+	workspaces.Get("/:wid/files/:id/presign", az.Require(domain.ObjFile, "read"), ctlF.Presign)
+	workspaces.Get("/:wid/files/:id", az.Require(domain.ObjFile, "read"), ctlF.GetByID)
+	workspaces.Put("/:wid/files/:id", az.Require(domain.ObjFile, "write"), ctlF.Update)
+	workspaces.Delete("/:wid/files/:id", az.Require(domain.ObjFile, "write"), ctlF.Delete)
 
 	// Public & join invitation routes
 	invitations := r.Group("/invitations")

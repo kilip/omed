@@ -40,6 +40,7 @@ func init() {
 			{Object: ObjEntry, Action: "read"},
 			{Object: ObjExchangeRate, Action: "read"},
 			{Object: ObjCurrency, Action: "read"},
+			{Object: "core:file", Action: "read"},
 		},
 	})
 	authz.AddRole(authz.Role{
@@ -62,6 +63,7 @@ func init() {
 			{Object: ObjExchangeRate, Action: "update"},
 			{Object: ObjExchangeRate, Action: "delete"},
 			{Object: ObjCurrency, Action: "update"},
+			{Object: "core:file", Action: "write"},
 		},
 	})
 	authz.AddRole(authz.Role{

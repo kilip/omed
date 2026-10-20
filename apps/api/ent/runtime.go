@@ -9,6 +9,7 @@ import (
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
+	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/schema"
@@ -191,6 +192,41 @@ func init() {
 	exchangerateDescRate := exchangerateFields[3].Descriptor()
 	// exchangerate.RateValidator is a validator for the "rate" field. It is called by the builders before save.
 	exchangerate.RateValidator = exchangerateDescRate.Validators[0].(func(float64) error)
+	fileMixin := schema.File{}.Mixin()
+	fileMixinFields1 := fileMixin[1].Fields()
+	_ = fileMixinFields1
+	fileFields := schema.File{}.Fields()
+	_ = fileFields
+	// fileDescCreatedAt is the schema descriptor for created_at field.
+	fileDescCreatedAt := fileMixinFields1[2].Descriptor()
+	// file.DefaultCreatedAt holds the default value on creation for the created_at field.
+	file.DefaultCreatedAt = fileDescCreatedAt.Default.(func() time.Time)
+	// fileDescUpdatedAt is the schema descriptor for updated_at field.
+	fileDescUpdatedAt := fileMixinFields1[3].Descriptor()
+	// file.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	file.DefaultUpdatedAt = fileDescUpdatedAt.Default.(func() time.Time)
+	// file.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	file.UpdateDefaultUpdatedAt = fileDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// fileDescName is the schema descriptor for name field.
+	fileDescName := fileFields[1].Descriptor()
+	// file.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	file.NameValidator = fileDescName.Validators[0].(func(string) error)
+	// fileDescBucket is the schema descriptor for bucket field.
+	fileDescBucket := fileFields[2].Descriptor()
+	// file.BucketValidator is a validator for the "bucket" field. It is called by the builders before save.
+	file.BucketValidator = fileDescBucket.Validators[0].(func(string) error)
+	// fileDescKey is the schema descriptor for key field.
+	fileDescKey := fileFields[3].Descriptor()
+	// file.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	file.KeyValidator = fileDescKey.Validators[0].(func(string) error)
+	// fileDescMimeType is the schema descriptor for mime_type field.
+	fileDescMimeType := fileFields[4].Descriptor()
+	// file.MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
+	file.MimeTypeValidator = fileDescMimeType.Validators[0].(func(string) error)
+	// fileDescSize is the schema descriptor for size field.
+	fileDescSize := fileFields[5].Descriptor()
+	// file.SizeValidator is a validator for the "size" field. It is called by the builders before save.
+	file.SizeValidator = fileDescSize.Validators[0].(func(int64) error)
 	periodMixin := schema.Period{}.Mixin()
 	periodMixinFields1 := periodMixin[1].Fields()
 	_ = periodMixinFields1

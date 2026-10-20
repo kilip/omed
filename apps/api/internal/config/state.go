@@ -7,6 +7,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"github.com/kilip/omed/api/internal/platform/mailx"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 )
 
 // State holds the shared dependencies and runtime components accessible across modules.
@@ -27,4 +28,6 @@ type State struct {
 	Authz *authz.Authorizer
 	// Mailer is the application-wide email dispatcher.
 	Mailer mailx.Mailer
+	// Storage is the application-wide S3 object storage manager.
+	Storage s3x.Storage
 }

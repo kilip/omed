@@ -11,6 +11,7 @@ type SchemaConfig struct {
 	Currency            string // Currency table.
 	Entry               string // Entry table.
 	ExchangeRate        string // ExchangeRate table.
+	File                string // File table.
 	Period              string // Period table.
 	Posting             string // Posting table.
 	Session             string // Session table.

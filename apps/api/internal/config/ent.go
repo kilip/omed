@@ -21,6 +21,7 @@ func GetEntClient(cfg Config) *ent.Client {
 		Workspace:           "public",
 		WorkspaceInvitation: "public",
 		WorkspaceMember:     "public",
+		File:                "public",
 		Account:             "public",
 	})
 

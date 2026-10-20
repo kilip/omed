@@ -6,8 +6,10 @@ import (
 	"strconv"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
@@ -194,6 +196,11 @@ func (r WorkspaceRepository) Update(c context.Context, id int64, req model.Updat
 // Delete removes a workspace by ID within a transaction.
 func (r WorkspaceRepository) Delete(c context.Context, id int64) error {
 	return entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
+		unfilteredCtx := base.WithSkipWorkspaceFilter(c)
+		_, _ = tx.File.Delete().Where(file.WorkspaceIDEQ(id)).Exec(unfilteredCtx)
+		_, _ = tx.WorkspaceInvitation.Delete().Where(workspaceinvitation.WorkspaceIDEQ(id)).Exec(unfilteredCtx)
+		_, _ = tx.WorkspaceMember.Delete().Where(workspacemember.WorkspaceIDEQ(id)).Exec(unfilteredCtx)
+
 		err := tx.Workspace.DeleteOneID(id).Exec(c)
 		if err != nil {
 			if ent.IsNotFound(err) {

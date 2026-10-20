@@ -20,6 +20,8 @@ type Tx struct {
 	Entry *EntryClient
 	// ExchangeRate is the client for interacting with the ExchangeRate builders.
 	ExchangeRate *ExchangeRateClient
+	// File is the client for interacting with the File builders.
+	File *FileClient
 	// Period is the client for interacting with the Period builders.
 	Period *PeriodClient
 	// Posting is the client for interacting with the Posting builders.
@@ -173,6 +175,7 @@ func (tx *Tx) init() {
 	tx.Currency = NewCurrencyClient(tx.config)
 	tx.Entry = NewEntryClient(tx.config)
 	tx.ExchangeRate = NewExchangeRateClient(tx.config)
+	tx.File = NewFileClient(tx.config)
 	tx.Period = NewPeriodClient(tx.config)
 	tx.Posting = NewPostingClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)

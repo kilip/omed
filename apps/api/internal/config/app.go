@@ -15,6 +15,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin"
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"github.com/kilip/omed/api/internal/platform/mailx"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 	"github.com/kilip/omed/api/internal/testctl"
 	"golang.org/x/sync/errgroup"
 )
@@ -54,6 +55,25 @@ func New(state State) Omed {
 		state.Mailer = mailer
 	}
 
+	if state.Storage == nil {
+		storage, err := s3x.New(s3x.Config{
+			Driver:       state.Config.S3Driver,
+			BucketPrefix: state.Config.S3BucketPrefix,
+			S3: s3x.S3Config{
+				Endpoint:       state.Config.S3Endpoint,
+				AccessKey:      state.Config.S3AccessKey,
+				SecretKey:      state.Config.S3SecretKey,
+				Region:         state.Config.S3Region,
+				ForcePathStyle: state.Config.S3ForcePathStyle,
+			},
+			Logger: state.Logger,
+		})
+		if err != nil {
+			log.Fatalf("failed to initialize s3 storage: %v", err)
+		}
+		state.Storage = storage
+	}
+
 	coreMod := core.New(core.Config{
 		FiberApp:          state.FiberApp,
 		Logger:            state.Logger,
@@ -68,6 +88,7 @@ func New(state State) Omed {
 		GithubSecret:      state.Config.GithubClientSecret,
 		SessionCookieName: state.Config.SessionCookieName,
 		Mailer:            state.Mailer,
+		Storage:           state.Storage,
 	})
 
 	az, err := authz.New(coreMod.MemberService)
@@ -150,6 +171,9 @@ func (a *Omed) Run(ctx context.Context) error {
 		defer cancel()
 		if a.state.Mailer != nil {
 			_ = a.state.Mailer.Close()
+		}
+		if a.state.Storage != nil {
+			_ = a.state.Storage.Close()
 		}
 		return a.state.FiberApp.ShutdownWithContext(sctx)
 	})

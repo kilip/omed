@@ -48,6 +48,20 @@ type Config struct {
 	MailerFromName string `env:"OMED_MAILER_FROM_NAME,default=Omed"`
 	// MailerInsecureTLS allows self-signed TLS certificates for SMTP.
 	MailerInsecureTLS bool `env:"OMED_MAILER_INSECURE_TLS,default=false"`
+	// S3Driver specifies the object storage driver (memory, s3). Defaults to memory.
+	S3Driver string `env:"OMED_S3_DRIVER,default=memory"`
+	// S3Endpoint is the S3/RustFS endpoint URL.
+	S3Endpoint string `env:"OMED_S3_ENDPOINT,default=http://localhost:9000"`
+	// S3AccessKey is the S3 access key ID.
+	S3AccessKey string `env:"OMED_S3_ACCESS_KEY"`
+	// S3SecretKey is the S3 secret access key.
+	S3SecretKey string `env:"OMED_S3_SECRET_KEY"`
+	// S3Region is the S3 region name.
+	S3Region string `env:"OMED_S3_REGION,default=us-east-1"`
+	// S3ForcePathStyle enables path-style S3 addressing (required for RustFS/MinIO).
+	S3ForcePathStyle bool `env:"OMED_S3_FORCE_PATH_STYLE,default=true"`
+	// S3BucketPrefix is the prefix prepended to workspace IDs for workspace bucket names.
+	S3BucketPrefix string `env:"OMED_S3_BUCKET_PREFIX,default=omed-ws-"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
 }
@@ -96,6 +110,22 @@ func GetConfig() Config {
 
 	if config.MailerFromName == "" {
 		config.MailerFromName = "Omed"
+	}
+
+	if config.S3Driver == "" {
+		config.S3Driver = "memory"
+	}
+
+	if config.S3Endpoint == "" {
+		config.S3Endpoint = "http://localhost:9000"
+	}
+
+	if config.S3Region == "" {
+		config.S3Region = "us-east-1"
+	}
+
+	if config.S3BucketPrefix == "" {
+		config.S3BucketPrefix = "omed-ws-"
 	}
 
 	return config

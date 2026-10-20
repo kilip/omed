@@ -12,6 +12,7 @@ import (
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
+	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/predicate"
@@ -186,6 +187,33 @@ func (f TraverseExchangeRate) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.ExchangeRateQuery", q)
+}
+
+// The FileFunc type is an adapter to allow the use of ordinary function as a Querier.
+type FileFunc func(context.Context, *ent.FileQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f FileFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.FileQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.FileQuery", q)
+}
+
+// The TraverseFile type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseFile func(context.Context, *ent.FileQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseFile) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseFile) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.FileQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.FileQuery", q)
 }
 
 // The PeriodFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -442,6 +470,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.EntryQuery, predicate.Entry, entry.OrderOption]{typ: ent.TypeEntry, tq: q}, nil
 	case *ent.ExchangeRateQuery:
 		return &query[*ent.ExchangeRateQuery, predicate.ExchangeRate, exchangerate.OrderOption]{typ: ent.TypeExchangeRate, tq: q}, nil
+	case *ent.FileQuery:
+		return &query[*ent.FileQuery, predicate.File, file.OrderOption]{typ: ent.TypeFile, tq: q}, nil
 	case *ent.PeriodQuery:
 		return &query[*ent.PeriodQuery, predicate.Period, period.OrderOption]{typ: ent.TypePeriod, tq: q}, nil
 	case *ent.PostingQuery:

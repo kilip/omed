@@ -35,6 +35,7 @@ func (s *MutatorSuite) TearDownSuite() {
 
 func (s *MutatorSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(context.Background())
+	_, _ = s.client.File.Delete().Exec(ctx)
 	_, _ = s.client.Account.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
@@ -263,6 +264,30 @@ func (s *MutatorSuite) Test_WorkspaceInterceptor_QueryFilteringAndBypass() {
 	allAccounts, err := s.client.Account.Query().All(ctxBypass)
 	s.Require().NoError(err)
 	s.Len(allAccounts, 2)
+
+	// Verify File entity workspace interceptor
+	_, err = s.client.File.Create().
+		SetName("a.txt").
+		SetBucket("omed-ws-a").
+		SetKey("k1").
+		SetMimeType("text/plain").
+		SetSize(10).
+		Save(ctxA)
+	s.Require().NoError(err)
+
+	_, err = s.client.File.Create().
+		SetName("b.txt").
+		SetBucket("omed-ws-b").
+		SetKey("k2").
+		SetMimeType("text/plain").
+		SetSize(20).
+		Save(ctxB)
+	s.Require().NoError(err)
+
+	filesA, err := s.client.File.Query().All(ctxA)
+	s.Require().NoError(err)
+	s.Len(filesA, 1)
+	s.Equal("a.txt", filesA[0].Name)
 }
 
 func (s *MutatorSuite) Test_SkipAuditMutator() {

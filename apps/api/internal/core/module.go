@@ -11,6 +11,7 @@ import (
 	"github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"github.com/kilip/omed/api/internal/platform/mailx"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 )
 
 type Config struct {
@@ -28,6 +29,7 @@ type Config struct {
 	SessionTTL        time.Duration
 	SessionCookieName string
 	Mailer            mailx.Mailer
+	Storage           s3x.Storage
 }
 
 // CoreModule represents the core module implementing base.Module.
@@ -41,6 +43,8 @@ type CoreModule struct {
 	MemberService service.MemberService
 	// InvitationService handles workspace invitation business logic.
 	InvitationService service.InvitationService
+	// FileService handles workspace file storage business logic.
+	FileService service.FileService
 	// SessionService handles session business logic.
 	SessionService service.SessionService
 	// OAuthService handles third-party OAuth2 authentication.
@@ -54,17 +58,23 @@ type UserModule = CoreModule
 
 // New constructs a new CoreModule instance.
 func New(cfg Config) *CoreModule {
-	users := repository.NewUserRepository(cfg.EntCli)
+	if cfg.Storage == nil {
+		cfg.Storage, _ = s3x.New(s3x.Config{Driver: "memory", Logger: cfg.Logger})
+	}
+
+	users := repository.NewUserRepository(cfg.EntCli, cfg.Storage)
 	workspaces := repository.NewWorkspaceRepository(cfg.EntCli)
 	members := repository.NewMemberRepository(cfg.EntCli)
 	invitations := repository.NewInvitationRepository(cfg.EntCli)
+	files := repository.NewFileRepository(cfg.EntCli)
 	accounts := repository.NewAccountRepository(cfg.EntCli)
 	sessions := repository.NewSessionRepository(cfg.EntCli)
 
 	userSvc := service.NewUserService(users)
-	workspaceSvc := service.NewWorkspaceService(workspaces)
+	workspaceSvc := service.NewWorkspaceService(workspaces, cfg.Storage)
 	memberSvc := service.NewMemberService(members, workspaceSvc, userSvc)
 	invitationSvc := service.NewInvitationService(invitations, workspaceSvc, members, userSvc, cfg.Mailer, cfg.WebURL)
+	fileSvc := service.NewFileService(files, cfg.Storage)
 	sessionSvc := service.NewSessionService(sessions, users, cfg.SessionTTL)
 	oauthSvc := service.NewOAuthService(service.OAuthServiceParams{
 		Accounts:       accounts,
@@ -85,6 +95,7 @@ func New(cfg Config) *CoreModule {
 		WorkspaceService:  workspaceSvc,
 		MemberService:     memberSvc,
 		InvitationService: invitationSvc,
+		FileService:       fileSvc,
 		SessionService:    sessionSvc,
 		OAuthService:      oauthSvc,
 	}

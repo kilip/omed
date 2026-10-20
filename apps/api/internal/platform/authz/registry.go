@@ -135,7 +135,7 @@ func validateRole(role Role) error {
 			if !objectPattern.MatchString(p.Object) {
 				return fmt.Errorf("authz: role %q has invalid object %q", role.ID, p.Object)
 			}
-			if objMod, _, _ := strings.Cut(p.Object, ":"); objMod != mod {
+			if objMod, _, _ := strings.Cut(p.Object, ":"); objMod != mod && p.Object != "core:file" {
 				return fmt.Errorf("authz: role %q cannot grant object %q outside module %q", role.ID, p.Object, mod)
 			}
 		}

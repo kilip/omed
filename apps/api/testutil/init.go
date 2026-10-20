@@ -12,6 +12,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/config"
 	"github.com/kilip/omed/api/internal/platform/mailx"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 )
 
 //go:generate go run go.uber.org/mock/mockgen@latest -destination=cmocks/mock_slog_handler.go -package=cmocks log/slog Handler
@@ -87,4 +88,9 @@ func GetEntCli() *ent.Client {
 // GetMailer returns the global initialized testing Mailer instance.
 func GetMailer() mailx.Mailer {
 	return state.Mailer
+}
+
+// GetStorage returns the global initialized testing Storage instance.
+func GetStorage() s3x.Storage {
+	return state.Storage
 }

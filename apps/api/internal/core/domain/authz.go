@@ -10,6 +10,8 @@ const (
 	ObjMember = "core:member"
 	// ObjInvitation is the permission object for workspace invitation management.
 	ObjInvitation = "core:invitation"
+	// ObjFile is the global permission object for workspace file management.
+	ObjFile = "core:file"
 )
 
 // Built-in core role IDs assignable per workspace.
@@ -28,6 +30,7 @@ func init() {
 		Permissions: []authz.Permission{
 			{Object: ObjWorkspace, Action: "read"},
 			{Object: ObjMember, Action: "read"},
+			{Object: ObjFile, Action: "read"},
 		},
 	})
 	authz.AddRole(authz.Role{

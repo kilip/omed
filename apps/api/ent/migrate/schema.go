@@ -294,6 +294,76 @@ var (
 			},
 		},
 	}
+	// FilesColumns holds the columns for the "files" table.
+	FilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "bucket", Type: field.TypeString},
+		{Name: "key", Type: field.TypeString},
+		{Name: "mime_type", Type: field.TypeString},
+		{Name: "size", Type: field.TypeInt64},
+		{Name: "entity_type", Type: field.TypeString, Nullable: true},
+		{Name: "entity_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// FilesTable holds the schema information for the "files" table.
+	FilesTable = &schema.Table{
+		Name:       "files",
+		Columns:    FilesColumns,
+		PrimaryKey: []*schema.Column{FilesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "files_workspaces_workspace",
+				Columns:    []*schema.Column{FilesColumns[11]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "files_users_creator",
+				Columns:    []*schema.Column{FilesColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "files_users_updater",
+				Columns:    []*schema.Column{FilesColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "files_users_deleter",
+				Columns:    []*schema.Column{FilesColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "file_workspace_id_key",
+				Unique:  true,
+				Columns: []*schema.Column{FilesColumns[11], FilesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "file_workspace_id_entity_type_entity_id",
+				Unique:  false,
+				Columns: []*schema.Column{FilesColumns[11], FilesColumns[9], FilesColumns[10]},
+			},
+			{
+				Name:    "file_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{FilesColumns[11], FilesColumns[3]},
+			},
+		},
+	}
 	// PeriodsColumns holds the columns for the "periods" table.
 	PeriodsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -775,6 +845,7 @@ var (
 		CurrenciesTable,
 		EntriesTable,
 		ExchangeRatesTable,
+		FilesTable,
 		PeriodsTable,
 		PostingsTable,
 		SessionsTable,
@@ -805,6 +876,10 @@ func init() {
 	ExchangeRatesTable.ForeignKeys[1].RefTable = UsersTable
 	ExchangeRatesTable.ForeignKeys[2].RefTable = UsersTable
 	ExchangeRatesTable.ForeignKeys[3].RefTable = UsersTable
+	FilesTable.ForeignKeys[0].RefTable = WorkspacesTable
+	FilesTable.ForeignKeys[1].RefTable = UsersTable
+	FilesTable.ForeignKeys[2].RefTable = UsersTable
+	FilesTable.ForeignKeys[3].RefTable = UsersTable
 	PeriodsTable.ForeignKeys[0].RefTable = WorkspacesTable
 	PeriodsTable.ForeignKeys[1].RefTable = UsersTable
 	PeriodsTable.ForeignKeys[2].RefTable = UsersTable
