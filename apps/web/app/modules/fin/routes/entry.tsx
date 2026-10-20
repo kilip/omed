@@ -127,6 +127,7 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
         values.postings,
         exchangeRate,
         currency,
+        values.description || entry.description,
       );
       const summaryCheck = calculatePostingsSummary(
         values.postings,

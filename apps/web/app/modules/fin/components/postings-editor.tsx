@@ -32,6 +32,7 @@ export function postingLinesToApi(
   lines: PostingLineValue[] | undefined,
   exchangeRate = 1,
   currency = "IDR",
+  defaultDescription?: string,
 ): CreatePostingRequest[] {
   if (!lines) return [];
   const rate = exchangeRate > 0 ? exchangeRate : 1;
@@ -52,7 +53,7 @@ export function postingLinesToApi(
         direction: (isDebit ? "DEBIT" : "CREDIT") as "DEBIT" | "CREDIT",
         amount: roundedAmount,
         baseAmount,
-        description: line.description,
+        description: line.description || defaultDescription,
       };
     });
 }

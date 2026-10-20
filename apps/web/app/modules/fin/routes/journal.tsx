@@ -12,7 +12,7 @@ import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { permissionsQueryOptions } from "~/modules/core/queries";
-import { CreateEntryDrawer, EntryStatusTag, MoneyCell } from "../components";
+import { EntryStatusTag, MoneyCell } from "../components";
 import { useFinPermissions } from "../hooks";
 import {
   accountsQueryOptions,
@@ -51,7 +51,6 @@ export default function JournalRoute({ loaderData }: Route.ComponentProps) {
   const { data: accounts = [] } = useSuspenseQuery(accountsQueryOptions(wid));
   const { data: periods = [] } = useSuspenseQuery(periodsQueryOptions(wid));
 
-  const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
   const [queryText, setQueryText] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     SearchFilters["status"] | undefined
@@ -257,7 +256,7 @@ export default function JournalRoute({ loaderData }: Route.ComponentProps) {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => setCreateDrawerOpen(true)}
+              onClick={() => navigate("/fin/journal/new")}
             >
               {t("fin.journal.new", "New entry")}
             </Button>
@@ -300,16 +299,6 @@ export default function JournalRoute({ loaderData }: Route.ComponentProps) {
           </>
         )}
       </Panel>
-
-      <CreateEntryDrawer
-        wid={wid}
-        open={createDrawerOpen}
-        onClose={() => setCreateDrawerOpen(false)}
-        onSuccess={(entryId) => {
-          setCreateDrawerOpen(false);
-          navigate(`/fin/journal/${entryId}`);
-        }}
-      />
     </Page>
   );
 }

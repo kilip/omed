@@ -158,7 +158,12 @@ export default function TransactionNewRoute({
         periodId,
         entryDate: txDate,
         description: values.description,
-        postings: postingLinesToApi(values.postings, exchangeRate, currency),
+        postings: postingLinesToApi(
+          values.postings,
+          exchangeRate,
+          currency,
+          values.description,
+        ),
       };
     }
 

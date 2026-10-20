@@ -7,7 +7,6 @@ import {
 import type { components } from "@omed/openapi";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Button, Popconfirm, Table, type TableProps } from "antd";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { FormView } from "~/components/FormView";
@@ -18,7 +17,7 @@ import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { permissionsQueryOptions } from "~/modules/core/queries";
-import { CreateEntryDrawer, EntryStatusTag, MoneyCell } from "../components";
+import { EntryStatusTag, MoneyCell } from "../components";
 import { useFinPermissions } from "../hooks";
 import { transactionKeys, transactionQueryOptions } from "../queries";
 import type { Route } from "./+types/transaction";
@@ -48,8 +47,6 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
   const { data: transaction } = useSuspenseQuery(
     transactionQueryOptions(wid, id),
   );
-
-  const [createEntryDrawerOpen, setCreateEntryDrawerOpen] = useState(false);
 
   const entries = transaction.entries ?? [];
   const hasPostedEntries = entries.some((e) => e.status === "POSTED");
@@ -104,7 +101,9 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          onClick={() => setCreateEntryDrawerOpen(true)}
+          onClick={() =>
+            navigate(`/fin/journal/new?transactionId=${transaction.id}`)
+          }
         >
           {t("fin.transactions.addEntry", "Add entry")}
         </Button>
@@ -264,20 +263,6 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
       </FormView>
-
-      <CreateEntryDrawer
-        wid={wid}
-        open={createEntryDrawerOpen}
-        defaultTransactionId={id}
-        onClose={() => setCreateEntryDrawerOpen(false)}
-        onSuccess={async (entryId) => {
-          setCreateEntryDrawerOpen(false);
-          await queryClient.invalidateQueries({
-            queryKey: transactionKeys.detail(wid, id),
-          });
-          navigate(`/fin/journal/${entryId}`);
-        }}
-      />
     </Page>
   );
 }
