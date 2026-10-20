@@ -14,7 +14,7 @@ import {
 } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { RecordModal } from "~/components/RecordModal";
 import { api, unwrapOne } from "~/lib/api";
@@ -66,6 +66,22 @@ function EntryDrawerFormFields({
 }: EntryDrawerFormFieldsProps) {
   const { t } = useTranslation();
   const mode = Form.useWatch("transactionMode", form) ?? "new";
+
+  useEffect(() => {
+    if (!form.getFieldValue("periodId") && periods.length > 0) {
+      const today = dayjs().format("YYYY-MM-DD");
+      const matched = periods.find((p) => {
+        if (p.status !== "OPEN") return false;
+        const start = p.startDate ?? "";
+        const end = p.endDate ?? "9999-12-31";
+        return today >= start && today <= end;
+      });
+      const pid = matched?.id ?? periods.find((p) => p.status === "OPEN")?.id;
+      if (pid) {
+        form.setFieldValue("periodId", pid);
+      }
+    }
+  }, [form, periods]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -185,10 +201,22 @@ export function CreateEntryDrawer({
     return txPages?.pages.flatMap((page) => page.items) ?? [];
   }, [txPages]);
 
+  const currentPeriodId = useMemo(() => {
+    const today = dayjs().format("YYYY-MM-DD");
+    const matched = periods.find((p) => {
+      if (p.status !== "OPEN") return false;
+      const start = p.startDate ?? "";
+      const end = p.endDate ?? "9999-12-31";
+      return today >= start && today <= end;
+    });
+    return matched?.id ?? periods.find((p) => p.status === "OPEN")?.id;
+  }, [periods]);
+
   const initialValues: Partial<CreateEntryFormValues> = {
     transactionMode: defaultTransactionId ? "existing" : "new",
     transactionId: defaultTransactionId,
     date: dayjs(),
+    periodId: currentPeriodId,
     postings: [
       {
         accountId: undefined,
@@ -214,7 +242,10 @@ export function CreateEntryDrawer({
       return false;
     }
 
-    const postings = postingLinesToApi(values.postings, 1, "IDR");
+    const postings = postingLinesToApi(values.postings, 1, "IDR").map((p) => ({
+      ...p,
+      description: p.description || values.description,
+    }));
     if (!values.periodId) {
       return false;
     }

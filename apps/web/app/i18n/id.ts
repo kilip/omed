@@ -291,8 +291,10 @@ export const id: Translation = {
       selectExistingTransaction: "Pilih transaksi yang ada",
       createNewTransaction: "Buat transaksi baru",
       transactionMode: "Mode transaksi",
+      searchPlaceholder: "Cari deskripsi atau nomor...",
     },
     transactions: {
+      searchPlaceholder: "Cari nomor atau deskripsi...",
       number: "Nomor",
       date: "Tanggal",
       reference: "Referensi",

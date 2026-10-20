@@ -147,13 +147,15 @@ export default function TransactionNewRoute({
         const end = p.endDate ?? "9999-12-31";
         return txDate >= start && txDate <= end;
       });
+      const periodId =
+        matched?.id ?? periods.find((p) => p.status === "OPEN")?.id;
 
-      if (!matched?.id) {
+      if (!periodId) {
         return;
       }
 
       inlineEntry = {
-        periodId: matched.id,
+        periodId,
         entryDate: txDate,
         description: values.description,
         postings: postingLinesToApi(values.postings, exchangeRate, currency),

@@ -24,7 +24,7 @@ import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { api, unwrapList, unwrapOne } from "~/lib/api";
 import { requireWorkspaceId } from "~/lib/workspace";
-import { accountKeys } from "../queries";
+import { accountKeys, periodKeys } from "../queries";
 import type { Route } from "./+types/setup";
 
 const { Text, Title, Paragraph } = Typography;
@@ -126,8 +126,24 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
           body: { template, lang },
         }),
       );
+
+      const currentYear = new Date().getFullYear();
+      await api
+        .POST("/workspaces/{wid}/fin/periods", {
+          params: { path: { wid } },
+          body: {
+            name: `FY ${currentYear}`,
+            startDate: `${currentYear}-01-01`,
+            endDate: `${currentYear}-12-31`,
+            fiscalYear: currentYear,
+            description: `Fiscal Year ${currentYear}`,
+          },
+        })
+        .catch(() => {});
+
       message.success(t("fin.setup.success", { count: res?.count ?? 32 }));
       queryClient.removeQueries({ queryKey: accountKeys.all(wid) });
+      queryClient.removeQueries({ queryKey: periodKeys.all(wid) });
       navigate("/fin/accounts");
     } catch (error) {
       message.error(error instanceof Error ? error.message : t("common.error"));

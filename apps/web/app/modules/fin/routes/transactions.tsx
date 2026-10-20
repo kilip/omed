@@ -176,7 +176,7 @@ export default function TransactionsRoute({
         value: queryText,
         onChange: setQueryText,
         placeholder: t(
-          "fin.transactions.description",
+          "fin.transactions.searchPlaceholder",
           "Search number or description...",
         ),
         facets,

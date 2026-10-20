@@ -243,7 +243,10 @@ export default function JournalRoute({ loaderData }: Route.ComponentProps) {
       search={{
         value: queryText,
         onChange: setQueryText,
-        placeholder: t("fin.journal.label", "Search description or number..."),
+        placeholder: t(
+          "fin.journal.searchPlaceholder",
+          "Search description or number...",
+        ),
         facets,
         filterItems: filterMenuItems,
         onFilterSelect: handleFilterSelect,

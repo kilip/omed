@@ -273,6 +273,7 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
                 "fin.journal.voidConfirm",
                 "Are you sure you want to void this entry?",
               )}
+              okButtonProps={{ className: "popconfirm-ok-btn" }}
               onConfirm={handleVoid}
             >
               <Button icon={<StopOutlined />} loading={pending}>
@@ -315,6 +316,7 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
                 "fin.journal.voidConfirmPosted",
                 "Voiding a posted entry will create a reversing entry and mark this entry as void. Proceed?",
               )}
+              okButtonProps={{ className: "popconfirm-ok-btn" }}
               onConfirm={handleVoid}
             >
               <Button danger icon={<StopOutlined />} loading={pending}>

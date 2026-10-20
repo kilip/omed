@@ -290,8 +290,10 @@ export const en = {
       selectExistingTransaction: "Select existing transaction",
       createNewTransaction: "Create new transaction",
       transactionMode: "Transaction mode",
+      searchPlaceholder: "Search description or number...",
     },
     transactions: {
+      searchPlaceholder: "Search number or description...",
       number: "Number",
       date: "Date",
       reference: "Reference",

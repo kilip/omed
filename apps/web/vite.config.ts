@@ -20,6 +20,22 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
+  optimizeDeps: {
+    include: [
+      "@ant-design/icons",
+      "@tanstack/react-query",
+      "antd",
+      "antd/locale/en_US",
+      "antd/locale/id_ID",
+      "dayjs",
+      "i18next",
+      "openapi-fetch",
+      "react",
+      "react-dom",
+      "react-i18next",
+      "react-router",
+    ],
+  },
   server: {
     port: 3000,
   },
