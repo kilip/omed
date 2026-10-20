@@ -1,4 +1,4 @@
-@authenticated @fin
+@authenticated @fin @setup
 Feature: Finance Chart of Accounts Setup
   As a user in a new workspace
   I want to seed standard Chart of Accounts templates
@@ -10,6 +10,7 @@ Feature: Finance Chart of Accounts Setup
     Then I see the setup chart of accounts banner
     When I click the setup chart of accounts banner button
     Then I am on "/fin/setup"
+    And I see account "1111" in the setup preview table
     When I click the apply template button
     Then I am on "/fin/accounts"
     And I see account "1111" in the accounts table

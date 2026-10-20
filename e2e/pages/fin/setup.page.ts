@@ -25,4 +25,15 @@ export class FinSetupPage extends BasePage {
     await this.fiscalYearInput.waitFor({ state: "visible" });
     await this.periodNameInput.waitFor({ state: "visible" });
   }
+
+  get previewTable(): Locator {
+    return this.page.locator(".ant-table");
+  }
+
+  async expectAccountInPreview(code: string): Promise<void> {
+    await this.previewTable
+      .locator(`text=${code}`)
+      .first()
+      .waitFor({ state: "visible" });
+  }
 }

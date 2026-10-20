@@ -47,3 +47,10 @@ Then(
 Then("I see the setup initial period form", async function (this: OmedWorld) {
   await this.pages.fin.setup.expectPeriodFormVisible();
 });
+
+Then(
+  "I see account {string} in the setup preview table",
+  async function (this: OmedWorld, code: string) {
+    await this.pages.fin.setup.expectAccountInPreview(code);
+  },
+);
