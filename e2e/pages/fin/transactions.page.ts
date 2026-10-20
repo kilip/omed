@@ -42,6 +42,18 @@ export class FinTransactionsPage extends BasePage {
     return this.page.locator(".ant-input-number-input").first();
   }
 
+  get attachmentFileInput(): Locator {
+    return this.page.locator('input[type="file"]').first();
+  }
+
+  async attachFile(filename: string, content: string): Promise<void> {
+    await this.attachmentFileInput.setInputFiles({
+      name: filename,
+      mimeType: filename.endsWith(".pdf") ? "application/pdf" : "image/png",
+      buffer: Buffer.from(content, "utf-8"),
+    });
+  }
+
   async clickNewTransaction(): Promise<void> {
     await this.newTransactionButton.waitFor({ state: "visible" });
     await this.newTransactionButton.click();

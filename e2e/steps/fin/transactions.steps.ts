@@ -129,5 +129,47 @@ Then(
   async function (this: OmedWorld) {
     await this.pages.fin.transactionDetail.expectNoEditButton();
     await this.pages.fin.transactionDetail.expectNoDeleteButton();
+    await this.pages.fin.transactionDetail.expectNoUploadAttachmentButton();
+  },
+);
+
+When(
+  "I attach file {string} to the new transaction form",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.transactions.attachFile(
+      filename,
+      "%PDF-1.4 dummy attachment content",
+    );
+  },
+);
+
+When(
+  "I upload attachment {string} on transaction detail",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.transactionDetail.uploadAttachment(
+      filename,
+      "dummy attachment bytes",
+    );
+  },
+);
+
+Then(
+  "I see attachment {string} on transaction detail",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.transactionDetail.expectAttachmentVisible(filename);
+  },
+);
+
+When(
+  "I delete attachment {string} on transaction detail",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.transactionDetail.deleteAttachment(filename);
+  },
+);
+
+Then(
+  "I do not see attachment {string} on transaction detail",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.transactionDetail.expectAttachmentNotVisible(filename);
   },
 );

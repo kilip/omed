@@ -63,6 +63,17 @@ export const config = {
     "OMED_DB_URL",
     "postgres://omed:omed@localhost:5432/omed?sslmode=disable",
   ),
+  s3Driver: env("OMED_S3_DRIVER", "s3"),
+  s3Endpoint: env("OMED_S3_ENDPOINT", "http://localhost:9000"),
+  s3Region: env("OMED_S3_REGION", "us-east-1"),
+  s3AccessKey: env("OMED_S3_ACCESS_KEY", "rustfsadmin"),
+  s3SecretKey: env("OMED_S3_SECRET_KEY", "rustfsadmin"),
+  s3ForcePathStyle: env("OMED_S3_FORCE_PATH_STYLE", "true"),
+  attachmentMaxSizeMB: env("OMED_ATTACHMENT_MAX_SIZE_MB", "10"),
+  attachmentAllowedTypes: env(
+    "OMED_ATTACHMENT_ALLOWED_TYPES",
+    ".pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx",
+  ),
   trustedOrigins: env(
     "OMED_TRUSTED_ORIGINS",
     "http://localhost:3000,http://localhost:8001",

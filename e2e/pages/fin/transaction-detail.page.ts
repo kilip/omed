@@ -39,6 +39,18 @@ export class FinTransactionDetailPage extends BasePage {
     return this.page.locator(".ant-table-tbody .ant-table-row");
   }
 
+  get uploadAttachmentButton(): Locator {
+    return this.page.getByRole("button", { name: "Upload attachment" });
+  }
+
+  get attachmentFileInput(): Locator {
+    return this.page.locator('input[type="file"]').first();
+  }
+
+  get attachmentItems(): Locator {
+    return this.page.getByTestId("transaction-attachment-item");
+  }
+
   async clickEdit(): Promise<void> {
     await this.editButton.waitFor({ state: "visible" });
     await this.editButton.click();
@@ -117,5 +129,36 @@ export class FinTransactionDetailPage extends BasePage {
 
   async expectDeleteButtonVisible(): Promise<void> {
     await this.deleteButton.waitFor({ state: "visible" });
+  }
+
+  async uploadAttachment(filename: string, content: string): Promise<void> {
+    await this.attachmentFileInput.setInputFiles({
+      name: filename,
+      mimeType: filename.endsWith(".pdf") ? "application/pdf" : "image/png",
+      buffer: Buffer.from(content, "utf-8"),
+    });
+  }
+
+  async expectAttachmentVisible(filename: string): Promise<void> {
+    const item = this.attachmentItems.filter({ hasText: filename });
+    await item.first().waitFor({ state: "visible" });
+  }
+
+  async expectAttachmentNotVisible(filename: string): Promise<void> {
+    const item = this.attachmentItems.filter({ hasText: filename });
+    await item.first().waitFor({ state: "hidden" });
+  }
+
+  async deleteAttachment(filename: string): Promise<void> {
+    const item = this.attachmentItems.filter({ hasText: filename }).first();
+    await item.waitFor({ state: "visible" });
+    await item.getByRole("button", { name: "Delete attachment" }).click();
+    await this.popconfirmOkButton.waitFor({ state: "visible" });
+    await this.popconfirmOkButton.click();
+  }
+
+  async expectNoUploadAttachmentButton(): Promise<void> {
+    const count = await this.uploadAttachmentButton.count();
+    assert.equal(count, 0, "Expected upload attachment button to be hidden");
   }
 }

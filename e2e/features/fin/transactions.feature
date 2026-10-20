@@ -18,7 +18,13 @@ Feature: Finance Transactions
     Then I am on "/fin/transactions/new"
     When I enter transaction description "Cloud Hosting Subscription"
     And I enter transaction reference "INV-2026-001"
+    And I attach file "hosting-invoice.pdf" to the new transaction form
     And I save the transaction form
+    Then I see attachment "hosting-invoice.pdf" on transaction detail
+    When I upload attachment "payment-receipt.png" on transaction detail
+    Then I see attachment "payment-receipt.png" on transaction detail
+    When I delete attachment "payment-receipt.png" on transaction detail
+    Then I do not see attachment "payment-receipt.png" on transaction detail
     When I open "/fin/transactions"
     Then I see transaction "Cloud Hosting Subscription" in the transactions list
     When I search transactions for "Hosting"
