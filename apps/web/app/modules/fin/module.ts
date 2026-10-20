@@ -2,6 +2,7 @@ import {
   AccountBookOutlined,
   BankOutlined,
   BookOutlined,
+  CalendarOutlined,
   ClusterOutlined,
   DashboardOutlined,
   FileTextOutlined,
@@ -26,6 +27,12 @@ export default defineModule({
       path: "accounts",
       labelKey: "fin.menu.accounts",
       icon: ClusterOutlined,
+    },
+    {
+      key: "periods",
+      path: "periods",
+      labelKey: "fin.menu.periods",
+      icon: CalendarOutlined,
     },
     {
       key: "transactions",

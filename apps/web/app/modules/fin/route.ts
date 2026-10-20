@@ -8,6 +8,7 @@ import {
 export default prefix("fin", [
   index("modules/fin/routes/dashboard.tsx"),
   route("accounts", "modules/fin/routes/accounts.tsx"),
+  route("periods", "modules/fin/routes/periods.tsx"),
   route("transactions", "modules/fin/routes/transactions.tsx"),
   route("transactions/new", "modules/fin/routes/transaction-new.tsx"),
   route("transactions/:id", "modules/fin/routes/transaction.tsx"),
