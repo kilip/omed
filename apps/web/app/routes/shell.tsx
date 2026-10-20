@@ -1,6 +1,9 @@
+import { useEffect } from "react";
 import { Outlet, redirect, useNavigate, useRevalidator } from "react-router";
 import { NavBar } from "~/components/NavBar";
+import i18n, { setLanguage } from "~/i18n";
 import { authClient } from "~/lib/auth-client";
+import type { Lang } from "~/lib/format";
 import {
   refreshWorkspaces,
   requireWorkspaceId,
@@ -30,6 +33,16 @@ export default function Shell({ loaderData }: Route.ComponentProps) {
   const { user, workspaces, activeId } = loaderData;
   const navigate = useNavigate();
   const revalidator = useRevalidator();
+
+  useEffect(() => {
+    if (
+      user.locale &&
+      (user.locale === "en" || user.locale === "id") &&
+      i18n.language !== user.locale
+    ) {
+      setLanguage(user.locale as Lang);
+    }
+  }, [user.locale]);
 
   const signOut = async () => {
     await authClient.signOut();

@@ -6,6 +6,8 @@ export interface User {
   email: string;
   avatar?: string;
   image?: string;
+  locale?: string;
+  currency?: string;
   emailVerified?: boolean;
 }
 
@@ -50,9 +52,11 @@ export const authClient = {
     async social({
       provider,
       callbackURL,
+      locale,
     }: {
       provider: "google" | "github";
       callbackURL: string;
+      locale?: string;
     }): Promise<{ error?: { message: string } }> {
       try {
         const res = await fetch(`${env.apiUrl}/auth/sign-in/social`, {
@@ -63,6 +67,7 @@ export const authClient = {
             provider,
             callbackURL,
             callbackUrl: callbackURL,
+            locale,
           }),
         });
         if (!res.ok) {
@@ -83,6 +88,34 @@ export const authClient = {
         };
       }
     },
+  },
+
+  async updateUser(data: {
+    name?: string;
+    avatar?: string;
+    locale?: string;
+    currency?: string;
+  }): Promise<{ data?: User; error?: Error }> {
+    try {
+      const res = await fetch(`${env.apiUrl}/users/me`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        return {
+          error: new Error(body?.error?.message || "Failed to update profile"),
+        };
+      }
+      const body = await res.json();
+      return { data: body.data };
+    } catch (err) {
+      return {
+        error: err instanceof Error ? err : new Error(String(err)),
+      };
+    }
   },
 
   async signOut(): Promise<{ error?: Error }> {

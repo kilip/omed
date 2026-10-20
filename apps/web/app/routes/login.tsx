@@ -52,7 +52,7 @@ function Feature({
 }
 
 export default function Login() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { message } = App.useApp();
   const [pending, setPending] = useState<Provider | null>(null);
 
@@ -62,6 +62,7 @@ export default function Login() {
       const { error } = await authClient.signIn.social({
         provider,
         callbackURL: env.publicUrl,
+        locale: i18n.language,
       });
       if (error) {
         setPending(null);

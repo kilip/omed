@@ -25,7 +25,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export default function Invite({ loaderData, params }: Route.ComponentProps) {
   const { preview, signedIn } = loaderData;
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
@@ -51,7 +51,11 @@ export default function Invite({ loaderData, params }: Route.ComponentProps) {
   };
 
   const signIn = (provider: "google" | "github") =>
-    authClient.signIn.social({ provider, callbackURL: window.location.href });
+    authClient.signIn.social({
+      provider,
+      callbackURL: window.location.href,
+      locale: i18n.language,
+    });
 
   return (
     <div className="flex min-h-screen flex-col">

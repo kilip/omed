@@ -2,6 +2,7 @@ import { BulbFilled, BulbOutlined, GlobalOutlined } from "@ant-design/icons";
 import { Button, Dropdown } from "antd";
 import { useTranslation } from "react-i18next";
 import { setLanguage } from "~/i18n";
+import { authClient } from "~/lib/auth-client";
 import type { Lang } from "~/lib/format";
 import { type ThemePreference, useTheme } from "~/theme/theme-context";
 
@@ -18,7 +19,11 @@ export function LanguageMenu() {
           { key: "en", label: "English" },
           { key: "id", label: "Bahasa Indonesia" },
         ],
-        onClick: ({ key }) => setLanguage(key as Lang),
+        onClick: ({ key }) => {
+          const lang = key as Lang;
+          setLanguage(lang);
+          void authClient.updateUser({ locale: lang }).catch(() => {});
+        },
       }}
     >
       <Button
