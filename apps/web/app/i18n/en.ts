@@ -416,7 +416,10 @@ export const en = {
       postingId: "Posting #",
       entry: "Entry #",
     },
-    trial: { asOf: "As of {{date}}" },
+    trial: {
+      asOf: "As of {{date}}",
+      asOfLabel: "As of",
+    },
     errors: {
       ENTRY_NOT_BALANCED: "Debit and credit amounts must be equal.",
       ENTRY_BASE_NOT_BALANCED:

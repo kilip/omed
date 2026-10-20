@@ -50,6 +50,12 @@ export const ledgerKeys = {
     [...ledgerKeys.all(wid), "account", accountId, { page, limit }] as const,
 };
 
+export const reportKeys = {
+  all: (wid: number) => ["fin", "workspaces", wid, "reports"] as const,
+  trialBalance: (wid: number, asOfDate: string) =>
+    [...reportKeys.all(wid), "trial-balance", asOfDate] as const,
+};
+
 /** Full chart of accounts for a workspace (filtering and tree-building happen client-side). */
 export const accountsQueryOptions = (wid: number) =>
   queryOptions({
@@ -150,6 +156,19 @@ export const accountLedgerQueryOptions = (
             path: { wid, id: accountId },
             query: { page, limit },
           },
+        }),
+      ),
+  });
+
+/** Trial balance report as of date. */
+export const trialBalanceQueryOptions = (wid: number, asOfDate: string) =>
+  queryOptions({
+    queryKey: reportKeys.trialBalance(wid, asOfDate),
+    queryFn: () =>
+      unwrapOne(
+        api.POST("/workspaces/{wid}/fin/reports/trial-balance", {
+          params: { path: { wid } },
+          body: { asOfDate },
         }),
       ),
   });

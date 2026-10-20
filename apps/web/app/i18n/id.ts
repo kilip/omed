@@ -416,7 +416,10 @@ export const id: Translation = {
       postingId: "Posting #",
       entry: "Jurnal #",
     },
-    trial: { asOf: "Per {{date}}" },
+    trial: {
+      asOf: "Per {{date}}",
+      asOfLabel: "Per tanggal",
+    },
     errors: {
       ENTRY_NOT_BALANCED: "Jumlah debit dan kredit harus seimbang.",
       ENTRY_BASE_NOT_BALANCED:
