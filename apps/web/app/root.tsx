@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { Spin } from "antd";
 import { Providers } from "./providers";
 import { themeInitScript } from "./theme/init-script";
 
@@ -47,7 +48,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export function HydrateFallback() {
-  return null;
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <Spin size="large" />
+    </div>
+  );
 }
 
 export default function App() {
