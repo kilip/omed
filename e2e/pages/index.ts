@@ -11,6 +11,7 @@ import { FinDashboardPage } from "./fin/dashboard.page";
 import { FinEntriesPage } from "./fin/entries.page";
 import { FinEntryDetailPage } from "./fin/entry-detail.page";
 import { FinLedgerPage } from "./fin/ledger.page";
+import { FinPeriodsPage } from "./fin/periods.page";
 import { FinSetupPage } from "./fin/setup.page";
 import { FinTransactionDetailPage } from "./fin/transaction-detail.page";
 import { FinTransactionsPage } from "./fin/transactions.page";
@@ -31,6 +32,7 @@ export const createPages = (page: Page) => ({
     dashboard: new FinDashboardPage(page),
     setup: new FinSetupPage(page),
     accounts: new FinAccountsPage(page),
+    periods: new FinPeriodsPage(page),
     entries: new FinEntriesPage(page),
     entryDetail: new FinEntryDetailPage(page),
     ledger: new FinLedgerPage(page),
