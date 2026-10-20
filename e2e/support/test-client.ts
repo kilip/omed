@@ -101,6 +101,27 @@ export class TestClient {
     return this.request<T>(path, { ...options, headers });
   }
 
+  async getMe(token: string): Promise<{
+    id: number;
+    name: string;
+    email: string;
+    locale: string;
+    currency: string;
+  }> {
+    const res = await this.authenticatedRequest<{
+      data: {
+        id: number;
+        name: string;
+        email: string;
+        locale: string;
+        currency: string;
+      };
+    }>(token, "/users/me", {
+      method: "GET",
+    });
+    return res.data;
+  }
+
   async createUser(data: {
     id?: number;
     name: string;

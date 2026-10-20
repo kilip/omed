@@ -6,6 +6,10 @@ When("I open {string}", async function (this: OmedWorld, path: string) {
   await this.page.goto(this.web(path));
 });
 
+When("I reload the page", async function (this: OmedWorld) {
+  await this.page.reload();
+});
+
 Then("I am on {string}", async function (this: OmedWorld, path: string) {
   // Auth redirects happen client side, so wait for the final URL.
   await this.page.waitForURL(
