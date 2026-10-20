@@ -54,6 +54,8 @@ export const reportKeys = {
   all: (wid: number) => ["fin", "workspaces", wid, "reports"] as const,
   trialBalance: (wid: number, asOfDate: string) =>
     [...reportKeys.all(wid), "trial-balance", asOfDate] as const,
+  summary: (wid: number, months?: number) =>
+    [...reportKeys.all(wid), "summary", { months }] as const,
 };
 
 /** Full chart of accounts for a workspace (filtering and tree-building happen client-side). */
@@ -169,6 +171,34 @@ export const trialBalanceQueryOptions = (wid: number, asOfDate: string) =>
         api.POST("/workspaces/{wid}/fin/reports/trial-balance", {
           params: { path: { wid } },
           body: { asOfDate },
+        }),
+      ),
+  });
+
+/** Financial summary report (totals and monthly revenue vs expense series). */
+export const financialSummaryQueryOptions = (wid: number, months = 6) =>
+  queryOptions({
+    queryKey: reportKeys.summary(wid, months),
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/fin/reports/summary", {
+          params: {
+            path: { wid },
+            query: { months },
+          },
+        }),
+      ),
+  });
+
+/** Recent journal entries query options. */
+export const recentEntriesQueryOptions = (wid: number, limit = 5) =>
+  queryOptions({
+    queryKey: [...entryKeys.all(wid), "recent", limit] as const,
+    queryFn: () =>
+      unwrapList(
+        api.POST("/workspaces/{wid}/fin/entries/search", {
+          params: { path: { wid } },
+          body: { limit },
         }),
       ),
   });
