@@ -220,6 +220,11 @@ func (r AccountRepository) Seed(c context.Context, template, lang string) (int, 
 	return seed.Seed(c, r.cli, wsID, template, lang)
 }
 
+// LoadTemplate loads account items defined within a COA template.
+func (r AccountRepository) LoadTemplate(template, lang string) ([]seed.AccountItem, error) {
+	return seed.LoadTemplate(template, lang)
+}
+
 // FindByCode finds an active account by workspace and code.
 func (r AccountRepository) FindByCode(c context.Context, code string) (domain.Account, error) {
 	var dom domain.Account

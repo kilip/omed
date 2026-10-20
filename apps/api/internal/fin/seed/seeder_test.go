@@ -79,6 +79,8 @@ func (s *SeederSuite) Test_LoadTemplate() {
 	foundBCA := false
 	foundGoPay := false
 	foundPrive := false
+	foundPayLater := false
+	foundMakan := false
 	for _, item := range itemsID {
 		if item.Code == "1121" && item.Name == "Bank BCA" {
 			foundBCA = true
@@ -89,10 +91,18 @@ func (s *SeederSuite) Test_LoadTemplate() {
 		if item.Code == "3200" && item.Name == "Prive Pemilik" {
 			foundPrive = true
 		}
+		if item.Code == "2160" && item.Name == "Utang PayLater & Pinjaman Singkat" {
+			foundPayLater = true
+		}
+		if item.Code == "6710" && item.Name == "Makanan & Minuman" {
+			foundMakan = true
+		}
 	}
 	s.True(foundBCA, "Bank BCA should be in freelancer ID template")
 	s.True(foundGoPay, "GoPay should be in freelancer ID template")
 	s.True(foundPrive, "Prive Pemilik should be in freelancer ID template")
+	s.True(foundPayLater, "PayLater should be in freelancer ID template")
+	s.True(foundMakan, "Makanan & Minuman should be in freelancer ID template")
 
 	// Valid EN template
 	itemsEN, err := seed.LoadTemplate("freelancer", "en")

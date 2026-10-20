@@ -8,6 +8,7 @@ import (
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
+	"github.com/kilip/omed/api/internal/fin/seed"
 )
 
 // AccountRepository defines the persistence operations required by AccountService.
@@ -21,6 +22,7 @@ type AccountRepository interface {
 	FindByCode(c context.Context, code string) (domain.Account, error)
 	Count(c context.Context) (int, error)
 	Seed(c context.Context, template, lang string) (int, error)
+	LoadTemplate(template, lang string) ([]seed.AccountItem, error)
 }
 
 // AccountService manages business logic and validation for Chart of Accounts.
@@ -165,4 +167,40 @@ func (s AccountService) Seed(c context.Context, req model.SeedAccountsRequest) (
 	}
 
 	return model.SeedAccountsResponse{Count: count}, nil
+}
+
+// PreviewTemplate loads and formats a COA template for preview.
+func (s AccountService) PreviewTemplate(c context.Context, template, lang string) (model.AccountTemplatePreviewResponse, error) {
+	if template == "" || lang == "" {
+		return model.AccountTemplatePreviewResponse{}, domain.ErrAccountTemplateNotFound
+	}
+
+	items, err := s.repo.LoadTemplate(template, lang)
+	if err != nil {
+		return model.AccountTemplatePreviewResponse{}, err
+	}
+
+	accounts := make([]model.AccountTemplateItemResponse, len(items))
+	for i, item := range items {
+		var parentCode *string
+		if item.ParentCode != "" {
+			p := item.ParentCode
+			parentCode = &p
+		}
+		accounts[i] = model.AccountTemplateItemResponse{
+			Code:          item.Code,
+			Name:          item.Name,
+			Type:          item.Type,
+			NormalBalance: item.NormalBalance,
+			ParentCode:    parentCode,
+			Description:   item.Description,
+			IsPostable:    item.IsPostable,
+		}
+	}
+
+	return model.AccountTemplatePreviewResponse{
+		Template: template,
+		Lang:     lang,
+		Accounts: accounts,
+	}, nil
 }

@@ -321,6 +321,25 @@ func (s *AccountApiSuite) Test_Seed_Accounts() {
 	s.Len(listRes.Data, seedRes.Data.Count)
 }
 
+func (s *AccountApiSuite) Test_PreviewTemplate_Accounts() {
+	ws := s.ensureWorkspace("Preview Workspace", s.User.ID)
+
+	// 1. Invalid template -> 404 or 400
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/templates/nonexistent?lang=id", ws.ID), fiber.MethodGet, nil)
+	s.AssertStatus(fiber.StatusBadRequest)
+
+	// 2. Valid freelancer template preview
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/templates/freelancer?lang=id", ws.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	var previewRes httpx.WebResponse[model.AccountTemplatePreviewResponse]
+	err := json.NewDecoder(s.HttpResponse.Body).Decode(&previewRes)
+	s.Require().NoError(err)
+	s.Equal("freelancer", previewRes.Data.Template)
+	s.Equal("id", previewRes.Data.Lang)
+	s.Greater(len(previewRes.Data.Accounts), 40)
+}
+
 func TestAccountApiSuite(t *testing.T) {
 	suite.Run(t, new(AccountApiSuite))
 }

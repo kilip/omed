@@ -230,6 +230,45 @@ func (s *AccountServiceSuite) Test_Seed_SuccessAndErrors() {
 	s.Require().ErrorIs(err, domain.ErrAccountWorkspaceNotEmpty)
 }
 
+func (s *AccountServiceSuite) Test_PreviewTemplate() {
+	ctx := s.ctx()
+
+	// Invalid template
+	_, err := s.svc.PreviewTemplate(ctx, "nonexistent", "id")
+	s.Require().ErrorIs(err, domain.ErrAccountTemplateNotFound)
+
+	// Valid freelancer ID preview
+	resID, err := s.svc.PreviewTemplate(ctx, "freelancer", "id")
+	s.Require().NoError(err)
+	s.Equal("freelancer", resID.Template)
+	s.Equal("id", resID.Lang)
+	s.Greater(len(resID.Accounts), 40)
+
+	// Verify specific personal expense and liability accounts exist
+	has6700 := false
+	has2160 := false
+	for _, acc := range resID.Accounts {
+		if acc.Code == "6700" {
+			has6700 = true
+			s.False(acc.IsPostable)
+			s.Equal("EXPENSE", acc.Type)
+		}
+		if acc.Code == "2160" {
+			has2160 = true
+			s.True(acc.IsPostable)
+			s.Equal("LIABILITY", acc.Type)
+		}
+	}
+	s.True(has6700, "Should contain 6700 Beban Hidup & Pribadi")
+	s.True(has2160, "Should contain 2160 Utang PayLater")
+
+	// Valid freelancer EN preview
+	resEN, err := s.svc.PreviewTemplate(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+	s.Equal("en", resEN.Lang)
+	s.Greater(len(resEN.Accounts), 30)
+}
+
 func TestAccountServiceSuite(t *testing.T) {
 	suite.Run(t, new(AccountServiceSuite))
 }

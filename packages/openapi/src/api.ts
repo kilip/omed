@@ -1012,6 +1012,89 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/fin/accounts/templates/{template}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Preview Chart of Accounts template
+     * @description Retrieve all account definitions within a COA template for preview before seeding
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Language code (id or en, default id) */
+          lang?: string;
+        };
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Template name (e.g. freelancer) */
+          template: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_AccountTemplatePreviewResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/fin/accounts/{id}": {
     parameters: {
       query?: never;
@@ -4909,6 +4992,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_AccountTemplatePreviewResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.AccountTemplatePreviewResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_EntryResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.EntryResponse"];
@@ -5019,6 +5108,20 @@ export interface components {
       parentId?: number;
       type?: string;
       workspaceId?: number;
+    };
+    "model.AccountTemplateItemResponse": {
+      code?: string;
+      description?: string;
+      isPostable?: boolean;
+      name?: string;
+      normalBalance?: string;
+      parentCode?: string;
+      type?: string;
+    };
+    "model.AccountTemplatePreviewResponse": {
+      accounts?: components["schemas"]["model.AccountTemplateItemResponse"][];
+      lang?: string;
+      template?: string;
     };
     "model.CreateAccountRequest": {
       code: string;

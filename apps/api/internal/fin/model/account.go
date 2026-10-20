@@ -59,3 +59,21 @@ type SeedAccountsRequest struct {
 type SeedAccountsResponse struct {
 	Count int `json:"count"`
 }
+
+// AccountTemplateItemResponse represents a single account record in a template preview.
+type AccountTemplateItemResponse struct {
+	Code          string  `json:"code"`
+	Name          string  `json:"name"`
+	Type          string  `json:"type"`
+	NormalBalance string  `json:"normalBalance"`
+	ParentCode    *string `json:"parentCode,omitempty"`
+	Description   string  `json:"description,omitempty"`
+	IsPostable    bool    `json:"isPostable"`
+}
+
+// AccountTemplatePreviewResponse represents the preview payload for a COA template.
+type AccountTemplatePreviewResponse struct {
+	Template string                        `json:"template"`
+	Lang     string                        `json:"lang"`
+	Accounts []AccountTemplateItemResponse `json:"accounts"`
+}

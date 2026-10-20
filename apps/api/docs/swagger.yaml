@@ -210,6 +210,15 @@ components:
           $ref: '#/components/schemas/httpx.Meta'
           description: Meta contains request metadata such as request ID and timestamps.
       type: object
+    httpx.WebResponse-model_AccountTemplatePreviewResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/model.AccountTemplatePreviewResponse'
+          description: Data contains the response payload.
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
     httpx.WebResponse-model_EntryResponse:
       properties:
         data:
@@ -387,6 +396,35 @@ components:
           type: string
         workspaceId:
           type: integer
+      type: object
+    model.AccountTemplateItemResponse:
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        isPostable:
+          type: boolean
+        name:
+          type: string
+        normalBalance:
+          type: string
+        parentCode:
+          type: string
+        type:
+          type: string
+      type: object
+    model.AccountTemplatePreviewResponse:
+      properties:
+        accounts:
+          items:
+            $ref: '#/components/schemas/model.AccountTemplateItemResponse'
+          type: array
+          uniqueItems: false
+        lang:
+          type: string
+        template:
+          type: string
       type: object
     model.CreateAccountRequest:
       properties:
@@ -2172,6 +2210,64 @@ paths:
       security:
       - BearerAuth: []
       summary: Seed Chart of Accounts
+      tags:
+      - Finance Accounts
+  /workspaces/{wid}/fin/accounts/templates/{template}:
+    get:
+      description: Retrieve all account definitions within a COA template for preview
+        before seeding
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Template name (e.g. freelancer)
+        in: path
+        name: template
+        required: true
+        schema:
+          type: string
+      - description: Language code (id or en, default id)
+        in: query
+        name: lang
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_AccountTemplatePreviewResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Preview Chart of Accounts template
       tags:
       - Finance Accounts
   /workspaces/{wid}/fin/currencies:

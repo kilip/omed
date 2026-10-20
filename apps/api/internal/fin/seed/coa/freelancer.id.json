@@ -322,6 +322,15 @@
     "is_postable": true
   },
   {
+    "code": "2160",
+    "name": "Utang PayLater & Pinjaman Singkat",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Tagihan SPayLater, GoPay Later, Kredivo, dan pinjaman jangka pendek",
+    "is_postable": true
+  },
+  {
     "code": "3000",
     "name": "Ekuitas",
     "type": "EQUITY",
@@ -711,6 +720,69 @@
     "normal_balance": "DEBIT",
     "parent_code": "6600",
     "description": "Langganan platform belajar (Coursera, Udemy), tiket workshop, ujian sertifikasi",
+    "is_postable": true
+  },
+  {
+    "code": "6700",
+    "name": "Beban Hidup & Pribadi",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Pengeluaran kebutuhan hidup sehari-hari dan biaya pribadi freelancer",
+    "is_postable": false
+  },
+  {
+    "code": "6710",
+    "name": "Makanan & Minuman",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Biaya makan harian, bahan makanan, kopi, dan pesan antar makanan",
+    "is_postable": true
+  },
+  {
+    "code": "6720",
+    "name": "Transportasi & Kendaraan",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Bensin, tol, parkir, ojek online, tiket transportasi umum, dan servis rutin",
+    "is_postable": true
+  },
+  {
+    "code": "6730",
+    "name": "Belanja & Kebutuhan Rumah Tangga",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Belanja kebutuhan pokok, perlengkapan mandi, dan kebersihan rumah",
+    "is_postable": true
+  },
+  {
+    "code": "6740",
+    "name": "Tempat Tinggal & Sewa",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Sewa kos/kontrakan/apartemen dan iuran pemeliharaan lingkungan",
+    "is_postable": true
+  },
+  {
+    "code": "6750",
+    "name": "Kesehatan & Kebugaran",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Obat-obatan, konsultasi dokter, vitamin, gym, dan premi asuransi kesehatan pribadi",
+    "is_postable": true
+  },
+  {
+    "code": "6760",
+    "name": "Hiburan & Gaya Hidup",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Bioskop, streaming hiburan, hobi, rekreasi, liburan, dan nongkrong",
     "is_postable": true
   },
   {

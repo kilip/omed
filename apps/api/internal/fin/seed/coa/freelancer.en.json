@@ -241,6 +241,15 @@
     "is_postable": true
   },
   {
+    "code": "2160",
+    "name": "PayLater & Short-term Loans",
+    "type": "LIABILITY",
+    "normal_balance": "CREDIT",
+    "parent_code": "2100",
+    "description": "Outstanding SPayLater, GoPay Later, Kredivo, and short-term microloans",
+    "is_postable": true
+  },
+  {
     "code": "3000",
     "name": "Equity",
     "type": "EQUITY",
@@ -594,6 +603,69 @@
     "normal_balance": "DEBIT",
     "parent_code": "6600",
     "description": "Online courses, conference tickets, and professional exam fees",
+    "is_postable": true
+  },
+  {
+    "code": "6700",
+    "name": "Personal & Living Expenses",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6000",
+    "description": "Everyday personal living costs and household expenses",
+    "is_postable": false
+  },
+  {
+    "code": "6710",
+    "name": "Food & Groceries",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Daily meals, groceries, coffee, and food delivery services",
+    "is_postable": true
+  },
+  {
+    "code": "6720",
+    "name": "Transportation & Commute",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Fuel, toll charges, parking, ride-hailing, public transit, and vehicle maintenance",
+    "is_postable": true
+  },
+  {
+    "code": "6730",
+    "name": "Household & Personal Supplies",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Home toiletries, cleaning supplies, and everyday personal essentials",
+    "is_postable": true
+  },
+  {
+    "code": "6740",
+    "name": "Housing & Rent",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Apartment or house rental, community fees, and residential maintenance",
+    "is_postable": true
+  },
+  {
+    "code": "6750",
+    "name": "Health & Wellness",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Medications, doctor visits, gym memberships, and personal health insurance",
+    "is_postable": true
+  },
+  {
+    "code": "6760",
+    "name": "Entertainment & Lifestyle",
+    "type": "EXPENSE",
+    "normal_balance": "DEBIT",
+    "parent_code": "6700",
+    "description": "Movies, streaming subscriptions, hobbies, recreation, and social outings",
     "is_postable": true
   },
   {

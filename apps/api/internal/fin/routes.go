@@ -13,6 +13,7 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 
 	accounts.Post("/search", az.Require(domain.ObjAccount, "read"), accountCtl.Search)
 	accounts.Post("/seed", az.Require(domain.ObjAccount, "create"), accountCtl.Seed)
+	accounts.Get("/templates/:template", az.Require(domain.ObjAccount, "read"), accountCtl.PreviewTemplate)
 	accounts.Post("/", az.Require(domain.ObjAccount, "create"), accountCtl.Create)
 	accounts.Get("/:id/ledger", az.Require(domain.ObjAccount, "read"), accountCtl.Ledger)
 	accounts.Get("/:id", az.Require(domain.ObjAccount, "read"), accountCtl.GetByID)
