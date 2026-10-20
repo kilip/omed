@@ -58,7 +58,14 @@ jobs:
 
       - name: Run Web tests
         working-directory: apps/web
-        run: bun run test
+        run: bun run test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: apps/web/coverage/lcov.info
+          flags: web
 
   e2e:
     name: E2E
