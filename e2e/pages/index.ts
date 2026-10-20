@@ -16,6 +16,7 @@ import { FinPeriodsPage } from "./fin/periods.page";
 import { FinSetupPage } from "./fin/setup.page";
 import { FinTransactionDetailPage } from "./fin/transaction-detail.page";
 import { FinTransactionsPage } from "./fin/transactions.page";
+import { FinTrialBalancePage } from "./fin/trial-balance.page";
 
 /**
  * Page objects grouped by module: `core`, `fin`, etc.
@@ -40,6 +41,7 @@ export const createPages = (page: Page) => ({
     ledger: new FinLedgerPage(page),
     transactions: new FinTransactionsPage(page),
     transactionDetail: new FinTransactionDetailPage(page),
+    trialBalance: new FinTrialBalancePage(page),
   },
 });
 
