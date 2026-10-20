@@ -28,11 +28,11 @@ export class FinTransactionDetailPage extends BasePage {
   }
 
   get editReferenceInput(): Locator {
-    return this.page.locator(".ant-form").getByPlaceholder("Reference");
+    return this.page.locator(".ant-form #reference");
   }
 
   get editDescriptionInput(): Locator {
-    return this.page.locator(".ant-form").getByPlaceholder("Description");
+    return this.page.locator(".ant-form #description");
   }
 
   get entryRows(): Locator {

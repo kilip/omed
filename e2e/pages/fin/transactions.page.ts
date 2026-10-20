@@ -18,7 +18,7 @@ export class FinTransactionsPage extends BasePage {
   }
 
   get searchInput(): Locator {
-    return this.page.getByPlaceholder("Search number or description...");
+    return this.page.getByPlaceholder(/Search number or description/i);
   }
 
   // Form locators
@@ -27,11 +27,11 @@ export class FinTransactionsPage extends BasePage {
   }
 
   get descriptionInput(): Locator {
-    return this.page.getByPlaceholder("Description");
+    return this.page.locator("#description");
   }
 
   get referenceInput(): Locator {
-    return this.page.getByPlaceholder("Reference");
+    return this.page.locator("#reference");
   }
 
   get currencySelect(): Locator {
@@ -62,7 +62,14 @@ export class FinTransactionsPage extends BasePage {
   async selectCurrency(currency: string): Promise<void> {
     await this.currencySelect.click();
     await this.page.keyboard.type(currency);
-    await this.page.locator(".ant-select-item-option").first().click();
+    const option = this.page
+      .locator(
+        ".ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option",
+      )
+      .first();
+    await option.waitFor({ state: "visible" });
+    await option.click();
+    await option.waitFor({ state: "hidden" });
   }
 
   async fillExchangeRate(rate: number): Promise<void> {

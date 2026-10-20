@@ -6,7 +6,7 @@ export class FinLedgerPage extends BasePage {
   readonly path = "/fin/ledger";
 
   get accountSelect(): Locator {
-    return this.page.locator(".ant-select").first();
+    return this.page.locator("main .ant-select").first();
   }
 
   get tableRows(): Locator {
@@ -26,10 +26,13 @@ export class FinLedgerPage extends BasePage {
     await this.page.waitForTimeout(400);
 
     const option = this.page
-      .locator(".ant-select-item-option")
+      .locator(
+        ".ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option",
+      )
       .filter({ hasText: searchQuery });
     await option.first().waitFor({ state: "visible" });
     await option.first().click();
+    await option.first().waitFor({ state: "hidden" });
   }
 
   async expectPostingInTable(text: string): Promise<void> {

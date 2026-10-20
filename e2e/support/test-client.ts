@@ -143,11 +143,18 @@ export class TestClient {
   async addMember(data: {
     workspaceId: number;
     userId: number;
-    role: string;
+    role?: string;
+    roles?: string[];
   }): Promise<void> {
+    const roles = data.roles ?? (data.role ? [data.role] : ["member"]);
     await this.request<void>("/test/members", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        workspaceId: data.workspaceId,
+        userId: data.userId,
+        roles,
+        role: data.role ?? roles[0],
+      }),
     });
   }
 

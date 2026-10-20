@@ -54,12 +54,17 @@ Given(
       accounts.find((a) => a.code === "1111") ??
       accounts.find((a) => a.isPostable && a.id !== debitAcc?.id);
 
+    // Ensure open period exists
+    const period = await testClient.ensureOpenPeriod(ws.id, ownerSession.token);
+    const today = new Date().toISOString().slice(0, 10);
+
     // Create a transaction
     const txRes = await testClient.authenticatedRequest<{
       data?: { id?: number };
     }>(ownerSession.token, `/workspaces/${ws.id}/fin/transactions`, {
       method: "POST",
       body: JSON.stringify({
+        transactionDate: today,
         description: "Permission Sample Transaction",
         reference: "PERM-001",
       }),
@@ -73,8 +78,9 @@ Given(
       method: "POST",
       body: JSON.stringify({
         transactionId: this.testTxId,
+        periodId: period.id,
         description: "Permission Sample Draft Entry",
-        entryDate: new Date().toISOString(),
+        entryDate: today,
         postings: [
           { accountId: debitAcc?.id, amount: 50000, direction: "DEBIT" },
           { accountId: creditAcc?.id, amount: 50000, direction: "CREDIT" },
@@ -83,15 +89,29 @@ Given(
     });
     this.testEntryId = entryRes.data?.id;
 
+    // Create a transaction for posted entry so draft transaction stays unposted/editable
+    const postedTxRes = await testClient.authenticatedRequest<{
+      data?: { id?: number };
+    }>(ownerSession.token, `/workspaces/${ws.id}/fin/transactions`, {
+      method: "POST",
+      body: JSON.stringify({
+        transactionDate: today,
+        description: "Permission Sample Posted Transaction",
+        reference: "PERM-002",
+      }),
+    });
+    const postedTxId = postedTxRes.data?.id;
+
     // Create and post a posted journal entry
     const postedEntryRes = await testClient.authenticatedRequest<{
       data?: { id?: number };
     }>(ownerSession.token, `/workspaces/${ws.id}/fin/entries`, {
       method: "POST",
       body: JSON.stringify({
-        transactionId: this.testTxId,
+        transactionId: postedTxId,
+        periodId: period.id,
         description: "Permission Sample Posted Entry",
-        entryDate: new Date().toISOString(),
+        entryDate: today,
         postings: [
           { accountId: debitAcc?.id, amount: 75000, direction: "DEBIT" },
           { accountId: creditAcc?.id, amount: 75000, direction: "CREDIT" },

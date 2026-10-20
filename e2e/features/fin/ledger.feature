@@ -19,7 +19,7 @@ Feature: Finance General Ledger
     Then I see the create entry drawer
     When I enter entry description "Client Retainer Fee"
     And I add a debit line of 5000000 for account "1111"
-    And I add a credit line of 5000000 for account "4100"
+    And I add a credit line of 5000000 for account "4140"
     And I save the entry drawer
     Then I see entry "Client Retainer Fee" in the journal list
     When I click on entry "Client Retainer Fee" in the list

@@ -71,7 +71,14 @@ export class FinEntriesPage extends BasePage {
     const select = line.locator(".ant-select");
     await select.click();
     await this.page.keyboard.type(opts.accountSearch);
-    await this.page.locator(".ant-select-item-option").first().click();
+    const option = this.page
+      .locator(
+        ".ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option",
+      )
+      .first();
+    await option.waitFor({ state: "visible" });
+    await option.click();
+    await option.waitFor({ state: "hidden" });
 
     // Debit or credit
     if (opts.debit !== undefined) {

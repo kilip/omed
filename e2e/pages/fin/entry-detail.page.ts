@@ -39,8 +39,10 @@ export class FinEntryDetailPage extends BasePage {
 
   get popconfirmOkButton(): Locator {
     return this.page
-      .locator(".ant-popconfirm")
-      .getByRole("button", { name: "OK" });
+      .locator(
+        ".ant-popconfirm .ant-btn-primary, .ant-popover .ant-btn-primary",
+      )
+      .first();
   }
 
   get statusTag(): Locator {
@@ -48,8 +50,9 @@ export class FinEntryDetailPage extends BasePage {
   }
 
   async expectStatus(status: string): Promise<void> {
-    await this.statusTag.first().waitFor({ state: "visible" });
-    const text = await this.statusTag.first().innerText();
+    const tag = this.statusTag.filter({ hasText: new RegExp(status, "i") });
+    await tag.first().waitFor({ state: "visible" });
+    const text = await tag.first().innerText();
     assert.ok(
       text.toLowerCase().includes(status.toLowerCase()),
       `Expected status tag to contain "${status}", got "${text}"`,
@@ -67,7 +70,7 @@ export class FinEntryDetailPage extends BasePage {
   }
 
   async fillDescription(desc: string): Promise<void> {
-    const input = this.page.getByPlaceholder("Description");
+    const input = this.page.locator("form #description");
     await input.fill(desc);
   }
 
@@ -76,13 +79,41 @@ export class FinEntryDetailPage extends BasePage {
   }
 
   async clickDelete(): Promise<void> {
+    await this.page
+      .locator(".ant-btn-loading")
+      .waitFor({ state: "detached" })
+      .catch(() => {});
+    await this.deleteButton.waitFor({ state: "visible" });
     await this.deleteButton.click();
-    await this.popconfirmOkButton.click();
+    const okBtn = this.page.locator(
+      ".ant-popconfirm .ant-btn-primary, .ant-popover .ant-btn-primary, .popconfirm-ok-btn",
+    );
+    try {
+      await okBtn.waitFor({ state: "visible", timeout: 2000 });
+    } catch {
+      await this.deleteButton.click();
+      await okBtn.waitFor({ state: "visible", timeout: 5000 });
+    }
+    await okBtn.click();
   }
 
   async clickVoid(): Promise<void> {
+    await this.page
+      .locator(".ant-btn-loading")
+      .waitFor({ state: "detached" })
+      .catch(() => {});
+    await this.voidButton.waitFor({ state: "visible" });
     await this.voidButton.click();
-    await this.popconfirmOkButton.click();
+    const okBtn = this.page.locator(
+      ".ant-popconfirm .ant-btn-primary, .ant-popover .ant-btn-primary, .popconfirm-ok-btn",
+    );
+    try {
+      await okBtn.waitFor({ state: "visible", timeout: 2000 });
+    } catch {
+      await this.voidButton.click();
+      await okBtn.waitFor({ state: "visible", timeout: 5000 });
+    }
+    await okBtn.click();
   }
 
   async clickReverse(): Promise<void> {
