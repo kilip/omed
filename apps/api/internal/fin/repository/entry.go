@@ -137,8 +137,12 @@ func (r EntryRepository) Create(c context.Context, txID int64, req model.CreateE
 					SetBaseAmount(baseAmt).
 					SetPosition(pos)
 
-				if pReq.Description != "" {
-					pBuilder.SetDescription(pReq.Description)
+				pDesc := pReq.Description
+				if pDesc == "" {
+					pDesc = req.Description
+				}
+				if pDesc != "" {
+					pBuilder.SetDescription(pDesc)
 				}
 
 				if _, err := pBuilder.Save(c); err != nil {
@@ -220,8 +224,12 @@ func (r EntryRepository) Update(c context.Context, id int64, req model.UpdateEnt
 				SetBaseAmount(baseAmt).
 				SetPosition(pos)
 
-			if pReq.Description != "" {
-				pBuilder.SetDescription(pReq.Description)
+			pDesc := pReq.Description
+			if pDesc == "" && req.Description != nil {
+				pDesc = *req.Description
+			}
+			if pDesc != "" {
+				pBuilder.SetDescription(pDesc)
 			}
 
 			if _, err := pBuilder.Save(c); err != nil {
@@ -830,8 +838,12 @@ func (r EntryRepository) CreateSystemPostedEntry(
 					SetBaseAmount(baseAmt).
 					SetPosition(pos)
 
-				if pReq.Description != "" {
-					pBuilder.SetDescription(pReq.Description)
+				pDesc := pReq.Description
+				if pDesc == "" {
+					pDesc = entryDescription
+				}
+				if pDesc != "" {
+					pBuilder.SetDescription(pDesc)
 				}
 
 				if _, err := pBuilder.Save(c); err != nil {

@@ -239,6 +239,7 @@ type addMemberRequest struct {
 	WorkspaceID int64    `json:"workspaceId"`
 	UserID      int64    `json:"userId"`
 	Roles       []string `json:"roles"`
+	Role        string   `json:"role"`
 }
 
 // AddMember adds or updates workspace membership for a user.
@@ -249,6 +250,9 @@ func (ctl Controller) AddMember(c fiber.Ctx) error {
 	}
 	if req.WorkspaceID <= 0 || req.UserID <= 0 {
 		return fiber.NewError(fiber.StatusBadRequest, "workspaceId and userId are required")
+	}
+	if len(req.Roles) == 0 && req.Role != "" {
+		req.Roles = []string{req.Role}
 	}
 	if len(req.Roles) == 0 {
 		req.Roles = []string{"member"}

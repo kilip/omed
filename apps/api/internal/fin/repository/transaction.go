@@ -144,8 +144,12 @@ func (r TransactionRepository) Create(c context.Context, req model.CreateTransac
 						SetBaseAmount(baseAmt).
 						SetPosition(pos)
 
-					if pReq.Description != "" {
-						pBuilder.SetDescription(pReq.Description)
+					pDesc := pReq.Description
+					if pDesc == "" {
+						pDesc = req.Entry.Description
+					}
+					if pDesc != "" {
+						pBuilder.SetDescription(pDesc)
 					}
 
 					if _, err := pBuilder.Save(c); err != nil {
