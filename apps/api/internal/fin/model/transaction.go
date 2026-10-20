@@ -2,7 +2,10 @@
 package model
 
 import (
+	"io"
+
 	"github.com/kilip/omed/api/internal/base"
+	coremodel "github.com/kilip/omed/api/internal/core/model"
 )
 
 // CreateTransactionRequest defines the payload required to create a new financial transaction.
@@ -21,6 +24,15 @@ type UpdateTransactionRequest struct {
 	Reference   *string `json:"reference,omitempty"`
 }
 
+// UploadTransactionAttachmentRequest defines the input required to attach a file to a transaction.
+type UploadTransactionAttachmentRequest struct {
+	WorkspaceID int64
+	Name        string
+	MimeType    string
+	Size        int64
+	Reader      io.Reader
+}
+
 // SearchTransactionRequest defines request payload for searching transactions in a workspace.
 type SearchTransactionRequest struct {
 	DateFrom  *Date   `json:"dateFrom,omitempty" swaggertype:"string" example:"2026-01-01"`
@@ -34,15 +46,16 @@ type SearchTransactionRequest struct {
 
 // TransactionResponse represents financial transaction metadata returned by API endpoints.
 type TransactionResponse struct {
-	ID              int64           `json:"id"`
-	WorkspaceID     int64           `json:"workspaceId"`
-	Number          string          `json:"number"`
-	TransactionDate Date            `json:"transactionDate" swaggertype:"string" example:"2026-01-01"`
-	Description     string          `json:"description,omitempty"`
-	Reference       string          `json:"reference,omitempty"`
-	Currency        string          `json:"currency" example:"IDR"`
-	ExchangeRate    float64         `json:"exchangeRate" example:"1"`
-	Source          string          `json:"source" example:"MANUAL"`
-	Entries         []EntryResponse `json:"entries,omitempty"`
-	AuditMeta       base.AuditMeta  `json:"auditMeta"`
+	ID              int64                    `json:"id"`
+	WorkspaceID     int64                    `json:"workspaceId"`
+	Number          string                   `json:"number"`
+	TransactionDate Date                     `json:"transactionDate" swaggertype:"string" example:"2026-01-01"`
+	Description     string                   `json:"description,omitempty"`
+	Reference       string                   `json:"reference,omitempty"`
+	Currency        string                   `json:"currency" example:"IDR"`
+	ExchangeRate    float64                  `json:"exchangeRate" example:"1"`
+	Source          string                   `json:"source" example:"MANUAL"`
+	Entries         []EntryResponse          `json:"entries,omitempty"`
+	Attachments     []coremodel.FileResponse `json:"attachments,omitempty"`
+	AuditMeta       base.AuditMeta           `json:"auditMeta"`
 }

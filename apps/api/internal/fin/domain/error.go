@@ -49,6 +49,12 @@ var (
 	ErrTransactionNumberTaken = errors.New("TRANSACTION_NUMBER_TAKEN")
 	// ErrTransactionHasPostedEntries indicates the transaction cannot be modified or deleted because it has posted entries.
 	ErrTransactionHasPostedEntries = errors.New("TRANSACTION_HAS_POSTED_ENTRIES")
+	// ErrAttachmentNotFound indicates the requested transaction attachment was not found.
+	ErrAttachmentNotFound = errors.New("ATTACHMENT_NOT_FOUND")
+	// ErrAttachmentTooLarge indicates the uploaded attachment exceeds the maximum allowed size.
+	ErrAttachmentTooLarge = errors.New("ATTACHMENT_TOO_LARGE")
+	// ErrAttachmentInvalidType indicates the uploaded attachment has an unsupported file type.
+	ErrAttachmentInvalidType = errors.New("ATTACHMENT_INVALID_TYPE")
 
 	// ErrEntryNotFound indicates the requested journal entry was not found.
 	ErrEntryNotFound = errors.New("ENTRY_NOT_FOUND")
@@ -113,6 +119,9 @@ func init() {
 	base.AddToErrorMap(ErrTransactionNotFound, fiber.StatusNotFound, "transaction not found")
 	base.AddToErrorMap(ErrTransactionNumberTaken, fiber.StatusConflict, "transaction number already in use")
 	base.AddToErrorMap(ErrTransactionHasPostedEntries, fiber.StatusConflict, "transaction has posted entries")
+	base.AddToErrorMap(ErrAttachmentNotFound, fiber.StatusNotFound, "attachment not found")
+	base.AddToErrorMap(ErrAttachmentTooLarge, fiber.StatusUnprocessableEntity, "attachment exceeds maximum allowed file size")
+	base.AddToErrorMap(ErrAttachmentInvalidType, fiber.StatusUnprocessableEntity, "unsupported attachment file type")
 
 	base.AddToErrorMap(ErrEntryNotFound, fiber.StatusNotFound, "entry not found")
 	base.AddToErrorMap(ErrEntryNotDraft, fiber.StatusConflict, "entry is not in draft status")
@@ -136,4 +145,3 @@ func init() {
 	base.AddToErrorMap(ErrExchangeRateInvalid, fiber.StatusUnprocessableEntity, "exchange rate must be positive")
 	base.AddToErrorMap(ErrBaseCurrencyLocked, fiber.StatusConflict, "base currency is locked once posted entries exist")
 }
-

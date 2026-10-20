@@ -3,8 +3,13 @@ package controller
 
 import (
 	"context"
+	"io"
+	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
+	coredomain "github.com/kilip/omed/api/internal/core/domain"
+	coremodel "github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
@@ -17,6 +22,8 @@ type TransactionServiceContract interface {
 	Update(c context.Context, id int64, req model.UpdateTransactionRequest) (domain.Transaction, error)
 	Delete(c context.Context, id int64) error
 	Search(c context.Context, req model.SearchTransactionRequest) ([]domain.Transaction, string, error)
+	UploadAttachment(c context.Context, id int64, req model.UploadTransactionAttachmentRequest) (coredomain.File, error)
+	DeleteAttachment(c context.Context, id int64, fileID int64) error
 }
 
 // TransactionController handles HTTP requests for financial transactions.
@@ -180,12 +187,142 @@ func (ctl TransactionController) Delete(c fiber.Ctx) error {
 	return httpx.OK(c, httpx.NoContent{})
 }
 
+// UploadAttachment uploads and links a file attachment to a draft transaction.
+//
+//	@Summary		Upload transaction attachment
+//	@Description	Upload a file attachment to a transaction (blocked if any entry is posted)
+//	@Tags			Finance Transactions
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Transaction ID"
+//	@Param			file	formData	file	true	"Attachment file to upload"
+//	@Param			name	formData	string	false	"Custom display filename"
+//	@Success		201		{object}	httpx.WebResponse[coremodel.FileResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/transactions/{id}/attachments [post]
+func (ctl TransactionController) UploadAttachment(c fiber.Ctx) error {
+	wid, err := httpx.GetParamID[int64](c, "wid")
+	if err != nil {
+		return err
+	}
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+
+	fh, err := c.FormFile("file")
+	if err != nil || fh == nil {
+		return coredomain.ErrFileRequired
+	}
+	if fh.Size <= 0 {
+		return coredomain.ErrFileEmpty
+	}
+
+	src, err := fh.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	mimeType := strings.TrimSpace(fh.Header.Get("Content-Type"))
+	if mimeType == "" || mimeType == "application/octet-stream" {
+		buf := make([]byte, 512)
+		n, _ := src.Read(buf)
+		if n > 0 {
+			mimeType = http.DetectContentType(buf[:n])
+		}
+		_, _ = src.Seek(0, io.SeekStart)
+	}
+
+	name := strings.TrimSpace(c.FormValue("name"))
+	if name == "" {
+		name = fh.Filename
+	}
+
+	created, err := ctl.txs.UploadAttachment(c, id, model.UploadTransactionAttachmentRequest{
+		WorkspaceID: wid,
+		Name:        name,
+		MimeType:    mimeType,
+		Size:        fh.Size,
+		Reader:      src,
+	})
+	if err != nil {
+		return err
+	}
+
+	return httpx.Created(c, toAttachmentFileResponse(created))
+}
+
+// DeleteAttachment deletes an attachment linked to a draft transaction.
+//
+//	@Summary		Delete transaction attachment
+//	@Description	Delete a file attachment from a transaction (blocked if any entry is posted)
+//	@Tags			Finance Transactions
+//	@Produce		json
+//	@Param			wid		path		int	true	"Workspace ID"
+//	@Param			id		path		int	true	"Transaction ID"
+//	@Param			fileId	path		int	true	"Attachment File ID"
+//	@Success		200		{object}	httpx.WebResponse[httpx.NoContent]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/transactions/{id}/attachments/{fileId} [delete]
+func (ctl TransactionController) DeleteAttachment(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	fileID, err := httpx.GetParamID[int64](c, "fileId")
+	if err != nil {
+		return err
+	}
+	if err := ctl.txs.DeleteAttachment(c, id, fileID); err != nil {
+		return err
+	}
+	return httpx.OK(c, httpx.NoContent{})
+}
+
+func toAttachmentFileResponse(f coredomain.File) coremodel.FileResponse {
+	return coremodel.FileResponse{
+		ID:          f.ID,
+		WorkspaceID: f.WorkspaceID,
+		Name:        f.Name,
+		Bucket:      f.Bucket,
+		Key:         f.Key,
+		MimeType:    f.MimeType,
+		Size:        f.Size,
+		EntityType:  f.EntityType,
+		EntityID:    f.EntityID,
+		CreatedBy:   f.CreatedBy,
+		CreatedAt:   f.CreatedAt,
+		UpdatedBy:   f.UpdatedBy,
+		UpdatedAt:   f.UpdatedAt,
+	}
+}
+
 func toTransactionResponse(t domain.Transaction) model.TransactionResponse {
 	var entries []model.EntryResponse
 	if t.Entries != nil {
 		entries = make([]model.EntryResponse, len(t.Entries))
 		for i, e := range t.Entries {
 			entries[i] = toEntryResponse(e)
+		}
+	}
+	var attachments []coremodel.FileResponse
+	if t.Attachments != nil {
+		attachments = make([]coremodel.FileResponse, len(t.Attachments))
+		for i, a := range t.Attachments {
+			attachments[i] = toAttachmentFileResponse(a)
 		}
 	}
 	return model.TransactionResponse{
@@ -199,6 +336,7 @@ func toTransactionResponse(t domain.Transaction) model.TransactionResponse {
 		ExchangeRate:    t.ExchangeRate,
 		Source:          t.Source,
 		Entries:         entries,
+		Attachments:     attachments,
 		AuditMeta:       t.AuditMeta,
 	}
 }

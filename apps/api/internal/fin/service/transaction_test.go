@@ -1,16 +1,20 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"testing"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/base"
+	corerepo "github.com/kilip/omed/api/internal/core/repository"
+	coresvc "github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/fin/service"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )
@@ -18,6 +22,8 @@ import (
 type TransactionServiceSuite struct {
 	suite.Suite
 	client      *ent.Client
+	storage     s3x.Storage
+	fileSvc     coresvc.FileService
 	svc         service.TransactionService
 	entryRepo   repository.EntryRepository
 	workspaceID int64
@@ -29,12 +35,28 @@ type TransactionServiceSuite struct {
 
 func (s *TransactionServiceSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:tx_svc_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
+	var err error
+	s.storage, err = s3x.New(s3x.Config{Driver: "memory", BucketPrefix: "test-ws-"})
+	s.Require().NoError(err)
+	fileRepo := corerepo.NewFileRepository(s.client)
+	s.fileSvc = coresvc.NewFileService(fileRepo, s.storage)
+
 	txRepo := repository.NewTransactionRepository(s.client)
 	periodRepo := repository.NewPeriodRepository(s.client)
 	accountRepo := repository.NewAccountRepository(s.client)
 	rateRepo := repository.NewExchangeRateRepository(s.client)
 	currencyRepo := repository.NewCurrencyRepository(s.client)
-	s.svc = service.NewTransactionService(txRepo, periodRepo, accountRepo, rateRepo, currencyRepo)
+	s.svc = service.NewTransactionService(
+		txRepo,
+		periodRepo,
+		accountRepo,
+		rateRepo,
+		currencyRepo,
+		service.WithTransactionAttachments(s.fileSvc, service.TransactionAttachmentConfig{
+			MaxSizeBytes: 1024, // 1 KB for test boundary verification
+			AllowedTypes: []string{".pdf", ".png", ".jpg", ".csv", ".xlsx"},
+		}),
+	)
 	s.entryRepo = repository.NewEntryRepository(s.client)
 }
 
@@ -46,6 +68,7 @@ func (s *TransactionServiceSuite) TearDownSuite() {
 
 func (s *TransactionServiceSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(context.Background())
+	_, _ = s.client.File.Delete().Exec(ctx)
 	_, _ = s.client.Posting.Delete().Exec(ctx)
 	_, _ = s.client.Entry.Delete().Exec(ctx)
 	_, _ = s.client.Transaction.Delete().Exec(ctx)
@@ -368,6 +391,126 @@ func (s *TransactionServiceSuite) Test_Search() {
 	s.Require().NoError(err)
 	s.Require().Len(filtered, 1)
 	s.Equal(ref1, filtered[0].Reference)
+}
+
+func (s *TransactionServiceSuite) Test_Attachments_Lifecycle_Validation_And_PostedLock() {
+	ctx := s.ctx()
+	tDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	tx, err := s.svc.Create(ctx, model.CreateTransactionRequest{
+		TransactionDate: tDate,
+		Description:     "Tx with attachments",
+		Entry: &model.CreateEntryInlineRequest{
+			PeriodID:  s.periodID,
+			EntryDate: tDate,
+			Postings: []model.CreatePostingRequest{
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 500},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 500},
+			},
+		},
+	})
+	s.Require().NoError(err)
+
+	// 1. Invalid file type -> ErrAttachmentInvalidType
+	_, err = s.svc.UploadAttachment(ctx, tx.ID, model.UploadTransactionAttachmentRequest{
+		WorkspaceID: s.workspaceID,
+		Name:        "malware.exe",
+		Size:        10,
+		Reader:      bytes.NewReader([]byte("0123456789")),
+	})
+	s.ErrorIs(err, domain.ErrAttachmentInvalidType)
+
+	// 2. Oversized file (> 1024 bytes configured in suite) -> ErrAttachmentTooLarge
+	bigData := bytes.Repeat([]byte("a"), 1025)
+	_, err = s.svc.UploadAttachment(ctx, tx.ID, model.UploadTransactionAttachmentRequest{
+		WorkspaceID: s.workspaceID,
+		Name:        "large.pdf",
+		Size:        int64(len(bigData)),
+		Reader:      bytes.NewReader(bigData),
+	})
+	s.ErrorIs(err, domain.ErrAttachmentTooLarge)
+
+	// 3. Valid upload (.pdf and .csv)
+	pdfBytes := []byte("%PDF-1.4 invoice receipt")
+	att1, err := s.svc.UploadAttachment(ctx, tx.ID, model.UploadTransactionAttachmentRequest{
+		WorkspaceID: s.workspaceID,
+		Name:        "invoice.pdf",
+		Size:        int64(len(pdfBytes)),
+		Reader:      bytes.NewReader(pdfBytes),
+	})
+	s.Require().NoError(err)
+	s.Equal("invoice.pdf", att1.Name)
+	s.Equal("application/pdf", att1.MimeType)
+	s.Equal(domain.TransactionEntityType, att1.EntityType)
+	s.Equal(tx.ID, att1.EntityID)
+
+	csvBytes := []byte("item,amount\nHosting,500")
+	att2, err := s.svc.UploadAttachment(ctx, tx.ID, model.UploadTransactionAttachmentRequest{
+		WorkspaceID: s.workspaceID,
+		Name:        "breakdown.csv",
+		Size:        int64(len(csvBytes)),
+		Reader:      bytes.NewReader(csvBytes),
+	})
+	s.Require().NoError(err)
+	s.Equal("text/csv", att2.MimeType)
+
+	// 4. GetByID hydrates Attachments
+	fetched, err := s.svc.GetByID(ctx, tx.ID)
+	s.Require().NoError(err)
+	s.Require().Len(fetched.Attachments, 2)
+
+	// 5. Delete one attachment on draft transaction
+	err = s.svc.DeleteAttachment(ctx, tx.ID, att2.ID)
+	s.Require().NoError(err)
+
+	// Deleting again returns ErrAttachmentNotFound
+	err = s.svc.DeleteAttachment(ctx, tx.ID, att2.ID)
+	s.ErrorIs(err, domain.ErrAttachmentNotFound)
+
+	// 6. Post the entry -> locks both UploadAttachment and DeleteAttachment
+	_, err = s.entryRepo.Post(ctx, tx.Entries[0].ID, s.userID)
+	s.Require().NoError(err)
+
+	_, err = s.svc.UploadAttachment(ctx, tx.ID, model.UploadTransactionAttachmentRequest{
+		WorkspaceID: s.workspaceID,
+		Name:        "late-receipt.pdf",
+		Size:        int64(len(pdfBytes)),
+		Reader:      bytes.NewReader(pdfBytes),
+	})
+	s.ErrorIs(err, domain.ErrTransactionHasPostedEntries)
+
+	err = s.svc.DeleteAttachment(ctx, tx.ID, att1.ID)
+	s.ErrorIs(err, domain.ErrTransactionHasPostedEntries)
+}
+
+func (s *TransactionServiceSuite) Test_DeleteTransaction_CascadeDeletesAttachments() {
+	ctx := s.ctx()
+	tDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	tx, err := s.svc.Create(ctx, model.CreateTransactionRequest{
+		TransactionDate: tDate,
+		Description:     "Draft tx to delete with attachment",
+	})
+	s.Require().NoError(err)
+
+	pngBytes := []byte("fake-png-content")
+	att, err := s.svc.UploadAttachment(ctx, tx.ID, model.UploadTransactionAttachmentRequest{
+		WorkspaceID: s.workspaceID,
+		Name:        "receipt.png",
+		Size:        int64(len(pngBytes)),
+		Reader:      bytes.NewReader(pngBytes),
+	})
+	s.Require().NoError(err)
+
+	// Delete the draft transaction
+	err = s.svc.Delete(ctx, tx.ID)
+	s.Require().NoError(err)
+
+	// Attachment is soft-deleted in DB and removed from S3
+	_, err = s.fileSvc.GetByID(ctx, att.ID)
+	s.ErrorIs(err, base.ErrNotFound)
+	_, err = s.storage.StatObject(ctx, att.Bucket, att.Key)
+	s.ErrorIs(err, s3x.ErrObjectNotFound)
 }
 
 func TestTransactionServiceSuite(t *testing.T) {

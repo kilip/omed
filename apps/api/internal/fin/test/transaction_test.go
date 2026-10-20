@@ -1,8 +1,12 @@
 package test
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -10,9 +14,11 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/period"
+	coremodel "github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )
@@ -255,6 +261,118 @@ func (s *TransactionApiSuite) Test_Update_BlockedIfPosted() {
 	// Try to delete transaction -> 409 Conflict
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/transactions/%d", ws.ID, tx.ID), fiber.MethodDelete, nil)
 	s.AssertStatus(fiber.StatusConflict)
+}
+
+func (s *TransactionApiSuite) uploadAttachment(wid, txID int64, filename string, content []byte) {
+	s.T().Helper()
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	if filename != "" {
+		part, err := w.CreateFormFile("file", filename)
+		s.Require().NoError(err)
+		_, err = part.Write(content)
+		s.Require().NoError(err)
+	}
+	s.Require().NoError(w.Close())
+
+	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/workspaces/%d/fin/transactions/%d/attachments", wid, txID), &b)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	if s.SessionToken != "" {
+		req.Header.Set("Authorization", "Bearer "+s.SessionToken)
+	}
+
+	resp, err := testutil.GetState().FiberApp.Test(req)
+	s.Require().NoError(err)
+	s.HttpResponse = resp
+}
+
+func (s *TransactionApiSuite) Test_Attachments_UploadGetDelete_And_PostedLock() {
+	ws := s.ensureWorkspace("Finance Attachments WS", s.User.ID)
+	acc1 := s.ensureAccount(ws.ID, "1000", "Cash", domain.AccountTypeAsset, domain.NormalBalanceDebit)
+	acc2 := s.ensureAccount(ws.ID, "3000", "Owner Equity", domain.AccountTypeEquity, domain.NormalBalanceCredit)
+	periodID := s.ensurePeriod(ws.ID, "Jan 2026", time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC), 2026)
+
+	tDate := model.Date(time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC))
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/transactions", ws.ID), fiber.MethodPost, model.CreateTransactionRequest{
+		TransactionDate: tDate,
+		Description:     "Receipt attached tx",
+		Entry: &model.CreateEntryInlineRequest{
+			PeriodID:    periodID,
+			EntryDate:   tDate,
+			Description: "Receipt entry",
+			Postings: []model.CreatePostingRequest{
+				{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 250000},
+				{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 250000},
+			},
+		},
+	})
+	s.Created()
+	tx := s.GetResponse().Data
+
+	// 1. Disallowed extension -> 422
+	s.uploadAttachment(ws.ID, tx.ID, "script.sh", []byte("#!/bin/sh"))
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	// 2. Upload two valid attachments
+	s.uploadAttachment(ws.ID, tx.ID, "receipt-1.pdf", []byte("%PDF-1.4 receipt 1"))
+	s.Created()
+	att1 := testutil.DecodeOther[coremodel.FileResponse](s).Data
+	s.Equal("receipt-1.pdf", att1.Name)
+	s.Equal(domain.TransactionEntityType, att1.EntityType)
+	s.Equal(tx.ID, att1.EntityID)
+
+	s.uploadAttachment(ws.ID, tx.ID, "receipt-2.png", []byte("png-bytes"))
+	s.Created()
+	att2 := testutil.DecodeOther[coremodel.FileResponse](s).Data
+
+	// 3. GET transaction includes both attachments
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/transactions/%d", ws.ID, tx.ID), fiber.MethodGet, nil)
+	s.OK()
+	fetched := s.GetResponse().Data
+	s.Require().Len(fetched.Attachments, 2)
+
+	// 4. Delete second attachment while still draft
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/transactions/%d/attachments/%d", ws.ID, tx.ID, att2.ID), fiber.MethodDelete, nil)
+	s.OK()
+
+	// 5. Post entry -> uploading or deleting attachment returns 409 Conflict
+	entryID := tx.Entries[0].ID
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries/%d/post", ws.ID, entryID), fiber.MethodPost, nil)
+	s.OK()
+
+	s.uploadAttachment(ws.ID, tx.ID, "receipt-3.pdf", []byte("%PDF-1.4 receipt 3"))
+	s.AssertStatus(fiber.StatusConflict)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/transactions/%d/attachments/%d", ws.ID, tx.ID, att1.ID), fiber.MethodDelete, nil)
+	s.AssertStatus(fiber.StatusConflict)
+}
+
+func (s *TransactionApiSuite) Test_DeleteTransaction_CleansUpAttachmentsInS3() {
+	ws := s.ensureWorkspace("Finance Cleanup WS", s.User.ID)
+	tDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/transactions", ws.ID), fiber.MethodPost, model.CreateTransactionRequest{
+		TransactionDate: tDate,
+		Description:     "Draft tx with attachment to delete",
+	})
+	s.Created()
+	tx := s.GetResponse().Data
+
+	s.uploadAttachment(ws.ID, tx.ID, "invoice.pdf", []byte("%PDF-1.4 cleanup test"))
+	s.Created()
+	att := testutil.DecodeOther[coremodel.FileResponse](s).Data
+
+	// Delete transaction
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/transactions/%d", ws.ID, tx.ID), fiber.MethodDelete, nil)
+	s.OK()
+
+	// Verify S3 object is removed and core file endpoint returns 404
+	st := testutil.GetStorage()
+	_, err := st.StatObject(context.Background(), att.Bucket, att.Key)
+	s.ErrorIs(err, s3x.ErrObjectNotFound)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/files/%d", ws.ID, att.ID), fiber.MethodGet, nil)
+	s.AssertStatus(fiber.StatusNotFound)
 }
 
 func TestTransactionApiSuite(t *testing.T) {

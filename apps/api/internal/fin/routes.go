@@ -40,6 +40,8 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	transactions.Get("/:id", az.Require(domain.ObjTransaction, "read"), txCtl.GetByID)
 	transactions.Put("/:id", az.Require(domain.ObjTransaction, "update"), txCtl.Update)
 	transactions.Delete("/:id", az.Require(domain.ObjTransaction, "delete"), txCtl.Delete)
+	transactions.Post("/:id/attachments", az.Require(domain.ObjTransaction, "update"), txCtl.UploadAttachment)
+	transactions.Delete("/:id/attachments/:fileId", az.Require(domain.ObjTransaction, "update"), txCtl.DeleteAttachment)
 
 	entries := r.Group("/workspaces/:wid/fin/entries")
 	entryCtl := controller.NewEntryController(mod.EntryService)

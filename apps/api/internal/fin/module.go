@@ -15,9 +15,12 @@ import (
 
 // Config encapsulates configuration and dependencies for FinModule.
 type Config struct {
-	FiberApp *fiber.App
-	Logger   *slog.Logger
-	EntCli   *ent.Client
+	FiberApp               *fiber.App
+	Logger                 *slog.Logger
+	EntCli                 *ent.Client
+	FileService            service.FileServiceContract
+	AttachmentMaxSizeMB    int64
+	AttachmentAllowedTypes []string
 }
 
 // FinModule represents the finance module implementing config.Module.
@@ -52,7 +55,18 @@ func New(cfg Config) *FinModule {
 	)
 
 	txRepo := repository.NewTransactionRepository(cfg.EntCli)
-	txSvc := service.NewTransactionService(txRepo, periodRepo, accountRepo, rateRepo, currencyRepo)
+	maxSizeBytes := cfg.AttachmentMaxSizeMB * 1024 * 1024
+	txSvc := service.NewTransactionService(
+		txRepo,
+		periodRepo,
+		accountRepo,
+		rateRepo,
+		currencyRepo,
+		service.WithTransactionAttachments(cfg.FileService, service.TransactionAttachmentConfig{
+			MaxSizeBytes: maxSizeBytes,
+			AllowedTypes: cfg.AttachmentAllowedTypes,
+		}),
+	)
 
 	entrySvc := service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo, rateRepo, currencyRepo)
 

@@ -62,6 +62,10 @@ type Config struct {
 	S3ForcePathStyle bool `env:"OMED_S3_FORCE_PATH_STYLE,default=true"`
 	// S3BucketPrefix is the prefix prepended to workspace IDs for workspace bucket names.
 	S3BucketPrefix string `env:"OMED_S3_BUCKET_PREFIX,default=omed-ws-"`
+	// AttachmentMaxSizeMB is the maximum allowed attachment file size in megabytes. Defaults to 10.
+	AttachmentMaxSizeMB int64 `env:"OMED_ATTACHMENT_MAX_SIZE_MB,default=10"`
+	// AttachmentAllowedTypes lists allowed file extensions for attachments.
+	AttachmentAllowedTypes []string `env:"OMED_ATTACHMENT_ALLOWED_TYPES,separator=,default=.pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
 }
@@ -126,6 +130,14 @@ func GetConfig() Config {
 
 	if config.S3BucketPrefix == "" {
 		config.S3BucketPrefix = "omed-ws-"
+	}
+
+	if config.AttachmentMaxSizeMB <= 0 {
+		config.AttachmentMaxSizeMB = 10
+	}
+
+	if len(config.AttachmentAllowedTypes) == 0 {
+		config.AttachmentAllowedTypes = []string{".pdf", ".png", ".jpg", ".jpeg", ".webp", ".csv", ".xls", ".xlsx"}
 	}
 
 	return config

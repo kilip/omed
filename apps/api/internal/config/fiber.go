@@ -20,7 +20,14 @@ func (s *structValidator) Validate(out any) error { return s.v.Struct(out) }
 // GetFiber creates and configures the root Fiber HTTP application instance,
 // including struct validation, custom error handling, CORS origins, recovery, and structured logging.
 func GetFiber(cfg Config, logger *slog.Logger) *fiber.App {
+	maxSizeMB := cfg.AttachmentMaxSizeMB
+	if maxSizeMB <= 0 {
+		maxSizeMB = 10
+	}
+	bodyLimit := int(maxSizeMB*1024*1024) + 1024*1024
+
 	app := fiber.New(fiber.Config{
+		BodyLimit:       bodyLimit,
 		StructValidator: &structValidator{validator.New(validator.WithRequiredStructEnabled())},
 		ErrorHandler:    ErrorHandler(logger),
 	})

@@ -99,9 +99,12 @@ func New(state State) Omed {
 	state.Authz = az
 
 	finMod := fin.New(fin.Config{
-		FiberApp: state.FiberApp,
-		Logger:   state.Logger,
-		EntCli:   state.EntCli,
+		FiberApp:               state.FiberApp,
+		Logger:                 state.Logger,
+		EntCli:                 state.EntCli,
+		FileService:            coreMod.FileService,
+		AttachmentMaxSizeMB:    state.Config.AttachmentMaxSizeMB,
+		AttachmentAllowedTypes: state.Config.AttachmentAllowedTypes,
 	})
 	finMod.SetAuthorizer(az)
 
