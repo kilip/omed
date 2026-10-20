@@ -72,5 +72,5 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	reportCtl := controller.NewReportController(mod.ReportService)
 	reports := r.Group("/workspaces/:wid/fin/reports")
 	reports.Post("/trial-balance", az.Require(domain.ObjAccount, "read"), reportCtl.TrialBalance)
+	reports.Get("/summary", az.Require(domain.ObjAccount, "read"), reportCtl.Summary)
 }
-

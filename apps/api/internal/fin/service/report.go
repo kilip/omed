@@ -16,6 +16,7 @@ import (
 // ReportRepository defines persistence queries required for financial reporting.
 type ReportRepository interface {
 	GetAccountBalancesAsOf(c context.Context, asOfDate time.Time) (map[int64]repository.AccountBalanceSummary, error)
+	GetMonthlyAccountFlows(c context.Context, startDate time.Time, endDate time.Time) ([]repository.MonthlyAccountFlow, error)
 }
 
 // ReportService coordinates generation of financial statements and reports.
@@ -163,5 +164,115 @@ func (s ReportService) TrialBalance(ctx context.Context, req model.TrialBalanceR
 		TotalDebit:   totalDebit,
 		TotalCredit:  totalCredit,
 		IsBalanced:   isBalanced,
+	}, nil
+}
+
+// Summary calculates cumulative financial totals and monthly revenue vs expense series.
+func (s ReportService) Summary(ctx context.Context, months int) (model.FinancialSummaryResponse, error) {
+	if months <= 0 || months > 24 {
+		months = 6
+	}
+
+	baseCurrency, baseDecimals := s.getBaseCurrencyAndDecimals(ctx)
+
+	// Fetch all accounts in workspace
+	accounts, _, err := s.accountRepo.Search(ctx, model.SearchAccountRequest{})
+	if err != nil {
+		return model.FinancialSummaryResponse{}, err
+	}
+
+	accountMap := make(map[int64]domain.Account, len(accounts))
+	for _, acc := range accounts {
+		accountMap[acc.ID] = acc
+	}
+
+	now := time.Now()
+	balances, err := s.entryRepo.GetAccountBalancesAsOf(ctx, now)
+	if err != nil {
+		return model.FinancialSummaryResponse{}, err
+	}
+
+	var totals model.FinancialSummaryTotals
+	for _, acc := range accounts {
+		bal := balances[acc.ID]
+		baseDebit := money.Round(bal.BaseDebit, baseDecimals)
+		baseCredit := money.Round(bal.BaseCredit, baseDecimals)
+
+		switch acc.Type {
+		case domain.AccountTypeAsset:
+			totals.Assets += baseDebit - baseCredit
+		case domain.AccountTypeLiability:
+			totals.Liabilities += baseCredit - baseDebit
+		case domain.AccountTypeEquity:
+			totals.Equity += baseCredit - baseDebit
+		case domain.AccountTypeRevenue:
+			totals.Revenue += baseCredit - baseDebit
+		case domain.AccountTypeExpense:
+			totals.Expense += baseDebit - baseCredit
+		}
+	}
+
+	totals.Assets = money.Round(totals.Assets, baseDecimals)
+	totals.Liabilities = money.Round(totals.Liabilities, baseDecimals)
+	totals.Equity = money.Round(totals.Equity, baseDecimals)
+	totals.Revenue = money.Round(totals.Revenue, baseDecimals)
+	totals.Expense = money.Round(totals.Expense, baseDecimals)
+	totals.NetIncome = money.Round(totals.Revenue-totals.Expense, baseDecimals)
+
+	// Build list of months from (months-1) ago up to current month
+	monthList := make([]string, months)
+	year, month, _ := now.Date()
+	startMonthTime := time.Date(year, month, 1, 0, 0, 0, 0, now.Location()).AddDate(0, -(months - 1), 0)
+	for i := 0; i < months; i++ {
+		m := startMonthTime.AddDate(0, i, 0)
+		monthList[i] = m.Format("2006-01")
+	}
+
+	startDate := startMonthTime
+	endOfMonth := time.Date(year, month+1, 0, 23, 59, 59, 999999999, now.Location())
+	flows, err := s.entryRepo.GetMonthlyAccountFlows(ctx, startDate, endOfMonth)
+	if err != nil {
+		return model.FinancialSummaryResponse{}, err
+	}
+
+	type monthlyAccSum struct {
+		revenue float64
+		expense float64
+	}
+	monthlySums := make(map[string]*monthlyAccSum)
+	for _, m := range monthList {
+		monthlySums[m] = &monthlyAccSum{}
+	}
+
+	for _, f := range flows {
+		acc, ok := accountMap[f.AccountID]
+		if !ok {
+			continue
+		}
+		ms, ok := monthlySums[f.Month]
+		if !ok {
+			continue
+		}
+		if acc.Type == domain.AccountTypeRevenue {
+			ms.revenue += f.BaseCredit - f.BaseDebit
+		} else if acc.Type == domain.AccountTypeExpense {
+			ms.expense += f.BaseDebit - f.BaseCredit
+		}
+	}
+
+	monthlyItems := make([]model.MonthlyRevenueExpenseItem, 0, months)
+	for _, m := range monthList {
+		ms := monthlySums[m]
+		monthlyItems = append(monthlyItems, model.MonthlyRevenueExpenseItem{
+			Month:   m,
+			Revenue: money.Round(ms.revenue, baseDecimals),
+			Expense: money.Round(ms.expense, baseDecimals),
+		})
+	}
+
+	return model.FinancialSummaryResponse{
+		BaseCurrency: baseCurrency,
+		Totals:       totals,
+		Monthly:      monthlyItems,
 	}, nil
 }

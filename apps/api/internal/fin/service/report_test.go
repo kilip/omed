@@ -149,7 +149,7 @@ func (s *ReportServiceSuite) Test_TrialBalance() {
 	// Generate trial balance as of 2026-01-31
 	includeCurrencies := true
 	res, err := s.svc.TrialBalance(ctx, model.TrialBalanceRequest{
-		AsOfDate:                   model.Date(time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)),
+		AsOfDate:                    model.Date(time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)),
 		IncludePerCurrencyBreakdown: &includeCurrencies,
 	})
 	s.Require().NoError(err)
@@ -177,6 +177,120 @@ func (s *ReportServiceSuite) Test_TrialBalance() {
 	}
 	s.True(foundBank)
 	s.True(foundCap)
+}
+
+func (s *ReportServiceSuite) Test_Summary() {
+	ctx := s.ctx()
+
+	// Seed COA
+	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	bankAcc, err := s.accountRepo.FindByCode(ctx, "1111")
+	s.Require().NoError(err)
+	revAcc, err := s.accountRepo.FindByCode(ctx, "4140")
+	s.Require().NoError(err)
+	expAcc, err := s.accountRepo.FindByCode(ctx, "5100")
+	s.Require().NoError(err)
+
+	now := time.Now()
+	// Create transaction
+	trx, err := s.client.Transaction.Create().
+		SetNumber("TRX-TEST-000001").
+		SetTransactionDate(now).
+		SetDescription("Income and Expense Transaction").
+		SetSource("MANUAL").
+		SetCurrency("IDR").
+		SetExchangeRate(1.0).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Entry 1: Revenue 10,000,000
+	e1, err := s.client.Entry.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetTransactionID(trx.ID).
+		SetPeriodID(s.periodID).
+		SetNumber("JE/TEST/0001").
+		SetEntryDate(now).
+		SetStatus("POSTED").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = s.client.Posting.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetEntryID(e1.ID).
+		SetAccountID(bankAcc.ID).
+		SetDirection("DEBIT").
+		SetAmount(10000000.0).
+		SetBaseAmount(10000000.0).
+		SetPosition(0).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = s.client.Posting.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetEntryID(e1.ID).
+		SetAccountID(revAcc.ID).
+		SetDirection("CREDIT").
+		SetAmount(10000000.0).
+		SetBaseAmount(10000000.0).
+		SetPosition(1).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Entry 2: Expense 4,000,000
+	e2, err := s.client.Entry.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetTransactionID(trx.ID).
+		SetPeriodID(s.periodID).
+		SetNumber("JE/TEST/0002").
+		SetEntryDate(now).
+		SetStatus("POSTED").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = s.client.Posting.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetEntryID(e2.ID).
+		SetAccountID(expAcc.ID).
+		SetDirection("DEBIT").
+		SetAmount(4000000.0).
+		SetBaseAmount(4000000.0).
+		SetPosition(0).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = s.client.Posting.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetEntryID(e2.ID).
+		SetAccountID(bankAcc.ID).
+		SetDirection("CREDIT").
+		SetAmount(4000000.0).
+		SetBaseAmount(4000000.0).
+		SetPosition(1).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	summary, err := s.svc.Summary(ctx, 6)
+	s.Require().NoError(err)
+
+	s.Equal("IDR", summary.BaseCurrency)
+	s.Equal(6000000.0, summary.Totals.Assets)    // 10m debit - 4m credit
+	s.Equal(10000000.0, summary.Totals.Revenue)  // 10m credit
+	s.Equal(4000000.0, summary.Totals.Expense)   // 4m debit
+	s.Equal(6000000.0, summary.Totals.NetIncome) // 10m - 4m
+	s.Len(summary.Monthly, 6)
+
+	currentMonthStr := now.Format("2006-01")
+	var foundCurrentMonth bool
+	for _, m := range summary.Monthly {
+		if m.Month == currentMonthStr {
+			foundCurrentMonth = true
+			s.Equal(10000000.0, m.Revenue)
+			s.Equal(4000000.0, m.Expense)
+		}
+	}
+	s.True(foundCurrentMonth)
 }
 
 func TestReportServiceSuite(t *testing.T) {

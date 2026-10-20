@@ -30,6 +30,14 @@ type AccountBalanceSummary struct {
 	Currencies map[string]*CurrencyBalanceSummary
 }
 
+// MonthlyAccountFlow holds aggregated base debit and credit amounts for an account in a specific month.
+type MonthlyAccountFlow struct {
+	Month      string
+	AccountID  int64
+	BaseDebit  float64
+	BaseCredit float64
+}
+
 // CurrencyBalanceSummary holds aggregated amounts for a specific currency on an account.
 type CurrencyBalanceSummary struct {
 	Currency   string
@@ -753,6 +761,57 @@ func (r EntryRepository) GetAccountBalancesAsOf(c context.Context, asOfDate time
 		result[it.AccountID] = bal
 	}
 
+	return result, nil
+}
+
+// GetMonthlyAccountFlows retrieves aggregated debit and credit base amounts per month and account for posted entries between startDate and endDate.
+func (r EntryRepository) GetMonthlyAccountFlows(c context.Context, startDate time.Time, endDate time.Time) ([]MonthlyAccountFlow, error) {
+	items, err := r.cli.Posting.Query().
+		Where(
+			posting.HasEntryWith(
+				entry.StatusEQ(entry.Status(domain.EntryStatusPosted)),
+				entry.EntryDateGTE(startDate),
+				entry.EntryDateLTE(endDate),
+				entry.DeletedAtIsNil(),
+			),
+		).
+		WithEntry().
+		All(c)
+	if err != nil {
+		return nil, err
+	}
+
+	type key struct {
+		month     string
+		accountID int64
+	}
+	grouped := make(map[key]*MonthlyAccountFlow)
+
+	for _, it := range items {
+		if it.Edges.Entry == nil {
+			continue
+		}
+		m := it.Edges.Entry.EntryDate.Format("2006-01")
+		k := key{month: m, accountID: it.AccountID}
+		flow, ok := grouped[k]
+		if !ok {
+			flow = &MonthlyAccountFlow{
+				Month:     m,
+				AccountID: it.AccountID,
+			}
+			grouped[k] = flow
+		}
+		if it.Direction == posting.DirectionDEBIT {
+			flow.BaseDebit += it.BaseAmount
+		} else {
+			flow.BaseCredit += it.BaseAmount
+		}
+	}
+
+	result := make([]MonthlyAccountFlow, 0, len(grouped))
+	for _, flow := range grouped {
+		result = append(result, *flow)
+	}
 	return result, nil
 }
 

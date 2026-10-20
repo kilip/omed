@@ -3,7 +3,7 @@ package model
 
 // TrialBalanceRequest defines the request payload for trial balance reporting.
 type TrialBalanceRequest struct {
-	AsOfDate                   Date  `json:"asOfDate" validate:"required" swaggertype:"string" example:"2026-01-31"`
+	AsOfDate                    Date  `json:"asOfDate" validate:"required" swaggertype:"string" example:"2026-01-31"`
 	IncludePerCurrencyBreakdown *bool `json:"includePerCurrencyBreakdown,omitempty" example:"false"`
 }
 
@@ -38,4 +38,28 @@ type TrialBalanceResponse struct {
 	TotalDebit   float64                   `json:"totalDebit" example:"5000000"`
 	TotalCredit  float64                   `json:"totalCredit" example:"5000000"`
 	IsBalanced   bool                      `json:"isBalanced" example:"true"`
+}
+
+// FinancialSummaryTotals represents cumulative balance sheet and income totals.
+type FinancialSummaryTotals struct {
+	Assets      float64 `json:"assets" example:"150000000"`
+	Liabilities float64 `json:"liabilities" example:"35000000"`
+	Equity      float64 `json:"equity" example:"115000000"`
+	Revenue     float64 `json:"revenue" example:"85000000"`
+	Expense     float64 `json:"expense" example:"45000000"`
+	NetIncome   float64 `json:"netIncome" example:"40000000"`
+}
+
+// MonthlyRevenueExpenseItem represents revenue and expense totals for a specific month.
+type MonthlyRevenueExpenseItem struct {
+	Month   string  `json:"month" example:"2026-10"`
+	Revenue float64 `json:"revenue" example:"25000000"`
+	Expense float64 `json:"expense" example:"15000000"`
+}
+
+// FinancialSummaryResponse represents aggregated totals and monthly revenue vs expense breakdown.
+type FinancialSummaryResponse struct {
+	BaseCurrency string                      `json:"baseCurrency" example:"IDR"`
+	Totals       FinancialSummaryTotals      `json:"totals"`
+	Monthly      []MonthlyRevenueExpenseItem `json:"monthly"`
 }

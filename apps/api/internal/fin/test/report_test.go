@@ -108,7 +108,7 @@ func (s *ReportApiSuite) Test_TrialBalance_Endpoint() {
 	// Call POST /fin/reports/trial-balance
 	includeCurrencies := true
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/reports/trial-balance", ws.ID), fiber.MethodPost, model.TrialBalanceRequest{
-		AsOfDate:                   parseApiDate("2026-01-31"),
+		AsOfDate:                    parseApiDate("2026-01-31"),
 		IncludePerCurrencyBreakdown: &includeCurrencies,
 	})
 	s.OK()
@@ -120,6 +120,91 @@ func (s *ReportApiSuite) Test_TrialBalance_Endpoint() {
 	s.Equal(5000000.0, tbRes.Data.TotalDebit)
 	s.Equal(5000000.0, tbRes.Data.TotalCredit)
 	s.Equal("IDR", tbRes.Data.BaseCurrency)
+}
+
+func (s *ReportApiSuite) Test_Summary_Endpoint() {
+	ws := s.ensureWorkspace("Finance Summary WS", s.User.ID)
+	client := testutil.GetEntCli()
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/accounts/seed", ws.ID), fiber.MethodPost, model.SeedAccountsRequest{
+		Template: "freelancer",
+		Lang:     "en",
+	})
+	s.Created()
+
+	ctx := base.WithWorkspaceID(s.Context, ws.ID)
+	accountRepo := repository.NewAccountRepository(client)
+	bankAcc, err := accountRepo.FindByCode(ctx, "1111")
+	s.Require().NoError(err)
+	revAcc, err := accountRepo.FindByCode(ctx, "4140")
+	s.Require().NoError(err)
+
+	now := time.Now()
+	periodRepo := repository.NewPeriodRepository(client)
+	p, err := periodRepo.Create(ctx, model.CreatePeriodRequest{
+		Name:       "Test Period",
+		StartDate:  model.Date(time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)),
+		EndDate:    model.Date(time.Date(now.Year(), 12, 31, 0, 0, 0, 0, time.UTC)),
+		FiscalYear: now.Year(),
+	})
+	s.Require().NoError(err)
+
+	trx, err := client.Transaction.Create().
+		SetWorkspaceID(ws.ID).
+		SetNumber("TRX-TEST-SUMMARY").
+		SetTransactionDate(now).
+		SetCurrency("IDR").
+		SetExchangeRate(1.0).
+		SetSource("MANUAL").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	e, err := client.Entry.Create().
+		SetWorkspaceID(ws.ID).
+		SetTransactionID(trx.ID).
+		SetPeriodID(p.ID).
+		SetNumber("JE-TEST-SUMMARY").
+		SetEntryDate(now).
+		SetStatus("POSTED").
+		SetPostedAt(now).
+		SetPostedBy(s.User.ID).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	amt := 7500000.0
+	_, err = client.Posting.Create().
+		SetWorkspaceID(ws.ID).
+		SetEntryID(e.ID).
+		SetAccountID(bankAcc.ID).
+		SetDirection("DEBIT").
+		SetAmount(amt).
+		SetBaseAmount(amt).
+		SetPosition(0).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = client.Posting.Create().
+		SetWorkspaceID(ws.ID).
+		SetEntryID(e.ID).
+		SetAccountID(revAcc.ID).
+		SetDirection("CREDIT").
+		SetAmount(amt).
+		SetBaseAmount(amt).
+		SetPosition(1).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/reports/summary?months=6", ws.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	var sumRes httpx.WebResponse[model.FinancialSummaryResponse]
+	err = json.NewDecoder(s.HttpResponse.Body).Decode(&sumRes)
+	s.Require().NoError(err)
+	s.Equal("IDR", sumRes.Data.BaseCurrency)
+	s.Equal(7500000.0, sumRes.Data.Totals.Assets)
+	s.Equal(7500000.0, sumRes.Data.Totals.Revenue)
+	s.Equal(7500000.0, sumRes.Data.Totals.NetIncome)
+	s.Len(sumRes.Data.Monthly, 6)
 }
 
 func TestReportApiSuite(t *testing.T) {

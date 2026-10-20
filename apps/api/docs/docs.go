@@ -366,6 +366,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_FinancialSummaryResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.FinancialSummaryResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_InvitationResponse": {
                 "properties": {
                     "data": {
@@ -1076,6 +1089,54 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.FinancialSummaryResponse": {
+                "properties": {
+                    "baseCurrency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "monthly": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.MonthlyRevenueExpenseItem"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "totals": {
+                        "$ref": "#/components/schemas/model.FinancialSummaryTotals"
+                    }
+                },
+                "type": "object"
+            },
+            "model.FinancialSummaryTotals": {
+                "properties": {
+                    "assets": {
+                        "example": 150000000,
+                        "type": "number"
+                    },
+                    "equity": {
+                        "example": 115000000,
+                        "type": "number"
+                    },
+                    "expense": {
+                        "example": 45000000,
+                        "type": "number"
+                    },
+                    "liabilities": {
+                        "example": 35000000,
+                        "type": "number"
+                    },
+                    "netIncome": {
+                        "example": 40000000,
+                        "type": "number"
+                    },
+                    "revenue": {
+                        "example": 85000000,
+                        "type": "number"
+                    }
+                },
+                "type": "object"
+            },
             "model.InvitationResponse": {
                 "properties": {
                     "createdAt": {
@@ -1155,6 +1216,23 @@ const docTemplate = `{
                     },
                     "workspaceId": {
                         "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.MonthlyRevenueExpenseItem": {
+                "properties": {
+                    "expense": {
+                        "example": 15000000,
+                        "type": "number"
+                    },
+                    "month": {
+                        "example": "2026-10",
+                        "type": "string"
+                    },
+                    "revenue": {
+                        "example": 25000000,
+                        "type": "number"
                     }
                 },
                 "type": "object"
@@ -5990,6 +6068,81 @@ const docTemplate = `{
                 "summary": "Period-end revaluation",
                 "tags": [
                     "Finance Periods"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/reports/summary": {
+            "get": {
+                "description": "Get cumulative balance sheet totals and monthly revenue vs expense breakdown",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Number of months (default 6)",
+                        "in": "query",
+                        "name": "months",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FinancialSummaryResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get financial summary",
+                "tags": [
+                    "Finance Reports"
                 ]
             }
         },

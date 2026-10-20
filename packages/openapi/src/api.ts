@@ -3542,6 +3542,78 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/fin/reports/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get financial summary
+     * @description Get cumulative balance sheet totals and monthly revenue vs expense breakdown
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Number of months (default 6) */
+          months?: number;
+        };
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_FinancialSummaryResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/fin/reports/trial-balance": {
     parameters: {
       query?: never;
@@ -5146,6 +5218,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_FinancialSummaryResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.FinancialSummaryResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_InvitationResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.InvitationResponse"];
@@ -5408,6 +5486,26 @@ export interface components {
       updatedBy?: components["schemas"]["base.ByUser"];
       workspaceId?: number;
     };
+    "model.FinancialSummaryResponse": {
+      /** @example IDR */
+      baseCurrency?: string;
+      monthly?: components["schemas"]["model.MonthlyRevenueExpenseItem"][];
+      totals?: components["schemas"]["model.FinancialSummaryTotals"];
+    };
+    "model.FinancialSummaryTotals": {
+      /** @example 150000000 */
+      assets?: number;
+      /** @example 115000000 */
+      equity?: number;
+      /** @example 45000000 */
+      expense?: number;
+      /** @example 35000000 */
+      liabilities?: number;
+      /** @example 40000000 */
+      netIncome?: number;
+      /** @example 85000000 */
+      revenue?: number;
+    };
     "model.InvitationResponse": {
       createdAt?: string;
       expiresAt?: string;
@@ -5430,6 +5528,14 @@ export interface components {
       updatedAt?: string;
       user?: components["schemas"]["model.UserResponse"];
       workspaceId?: number;
+    };
+    "model.MonthlyRevenueExpenseItem": {
+      /** @example 15000000 */
+      expense?: number;
+      /** @example 2026-10 */
+      month?: string;
+      /** @example 25000000 */
+      revenue?: number;
     };
     "model.PeriodResponse": {
       auditMeta?: components["schemas"]["base.AuditMeta"];
