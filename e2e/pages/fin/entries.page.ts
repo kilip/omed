@@ -21,29 +21,25 @@ export class FinEntriesPage extends BasePage {
     return this.page.getByPlaceholder("Search description or number...");
   }
 
-  // Drawer locators
-  get drawer(): Locator {
-    return this.page.locator(".ant-drawer");
-  }
-
-  get drawerSaveButton(): Locator {
-    return this.drawer.getByRole("button", { name: "Save" });
+  // Form locators
+  get saveButton(): Locator {
+    return this.page.getByRole("button", { name: "Save" });
   }
 
   get transactionModeNew(): Locator {
-    return this.drawer.getByRole("radio", { name: "Create new transaction" });
+    return this.page.getByRole("radio", { name: "Create new transaction" });
   }
 
   get transactionModeExisting(): Locator {
-    return this.drawer.getByRole("radio", { name: "Select existing" });
+    return this.page.getByRole("radio", { name: "Select existing" });
   }
 
   get descriptionInput(): Locator {
-    return this.drawer.locator("#description");
+    return this.page.locator("#description");
   }
 
   get addLineButton(): Locator {
-    return this.drawer.getByRole("button", { name: "Add line" });
+    return this.page.getByRole("button", { name: "Add line" });
   }
 
   async clickNewEntry(): Promise<void> {
@@ -52,7 +48,13 @@ export class FinEntriesPage extends BasePage {
   }
 
   async expectDrawerVisible(): Promise<void> {
-    await this.drawer.waitFor({ state: "visible" });
+    await this.page.waitForURL(/\/fin\/journal\/new/);
+    await this.descriptionInput.waitFor({ state: "visible" });
+  }
+
+  async expectPageVisible(): Promise<void> {
+    await this.page.waitForURL(/\/fin\/journal\/new/);
+    await this.descriptionInput.waitFor({ state: "visible" });
   }
 
   async fillDescription(desc: string): Promise<void> {
@@ -63,7 +65,7 @@ export class FinEntriesPage extends BasePage {
     index: number,
     opts: { accountSearch: string; debit?: number; credit?: number },
   ): Promise<void> {
-    const lines = this.drawer.locator(".grid.grid-cols-12.items-center");
+    const lines = this.page.locator(".grid.grid-cols-12.items-center");
     const line = lines.nth(index);
     await line.waitFor({ state: "visible" });
 
@@ -91,7 +93,11 @@ export class FinEntriesPage extends BasePage {
   }
 
   async saveDrawer(): Promise<void> {
-    await this.drawerSaveButton.click();
+    await this.saveButton.click();
+  }
+
+  async saveForm(): Promise<void> {
+    await this.saveButton.click();
   }
 
   async expectEntryInTable(text: string): Promise<void> {
@@ -118,7 +124,7 @@ export class FinEntriesPage extends BasePage {
   }
 
   async expectUnbalancedWarning(): Promise<void> {
-    const alert = this.drawer.locator(".ant-alert-warning");
+    const alert = this.page.locator(".ant-alert-warning");
     await alert.waitFor({ state: "visible" });
   }
 }

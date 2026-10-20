@@ -75,9 +75,10 @@ Before(async function (this: OmedWorld) {
 
 /** Signs in through testClient: real user, real session, cookies for dashboard. */
 Before({ tags: "@authenticated" }, async function (this: OmedWorld) {
-  const { user, cookies } = await testClient.setupAuthenticatedUser();
+  const { user, session, cookies } = await testClient.setupAuthenticatedUser();
   await this.context.addCookies(cookies);
   this.user = user;
+  this.sessionToken = session.token;
 });
 
 After(async function (this: OmedWorld, scenario) {

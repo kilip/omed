@@ -12,6 +12,7 @@ Given("I have a personal workspace", async function (this: OmedWorld) {
     personal: true,
   });
   this.workspace = ws;
+  await testClient.ensureOpenPeriod(ws.id, this.sessionToken);
   await testClient.resetEmails();
 });
 

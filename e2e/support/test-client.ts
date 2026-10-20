@@ -167,7 +167,7 @@ export class TestClient {
     if (sessionToken) {
       await this.authenticatedRequest<void>(sessionToken, "/test/members", {
         method: "POST",
-        body: JSON.stringify({ workspaceId, userId, role }),
+        body: JSON.stringify({ workspaceId, userId, roles: [role] }),
       });
     } else {
       await this.addMember({ workspaceId, userId, role });

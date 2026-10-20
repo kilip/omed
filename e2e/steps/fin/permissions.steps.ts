@@ -37,6 +37,7 @@ Given(
         body: JSON.stringify({ template: "freelancer", lang: "en" }),
       },
     );
+    const period = await testClient.ensureOpenPeriod(ws.id, ownerSession.token);
 
     // Get accounts to find valid postable debit & credit accounts
     const accountsRes = await testClient.authenticatedRequest<{
@@ -77,8 +78,8 @@ Given(
     }>(ownerSession.token, `/workspaces/${ws.id}/fin/entries`, {
       method: "POST",
       body: JSON.stringify({
-        transactionId: this.testTxId,
         periodId: period.id,
+        transactionId: this.testTxId,
         description: "Permission Sample Draft Entry",
         entryDate: today,
         postings: [

@@ -9,6 +9,10 @@ Then("I see the create entry drawer", async function (this: OmedWorld) {
   await this.pages.fin.entries.expectDrawerVisible();
 });
 
+Then("I see the create entry page", async function (this: OmedWorld) {
+  await this.pages.fin.entries.expectPageVisible();
+});
+
 When(
   "I enter entry description {string}",
   async function (this: OmedWorld, desc: string) {
@@ -38,6 +42,10 @@ When(
 
 When("I save the entry drawer", async function (this: OmedWorld) {
   await this.pages.fin.entries.saveDrawer();
+});
+
+When("I save the entry form", async function (this: OmedWorld) {
+  await this.pages.fin.entries.saveForm();
 });
 
 Then(

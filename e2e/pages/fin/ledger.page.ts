@@ -19,11 +19,13 @@ export class FinLedgerPage extends BasePage {
 
   async selectAccount(searchQuery: string): Promise<void> {
     await this.accountSelect.waitFor({ state: "visible" });
+    const text = await this.accountSelect.innerText();
+    if (text.includes(searchQuery)) {
+      return;
+    }
+
     await this.accountSelect.click();
-    await this.page.waitForTimeout(300);
-    const input = this.accountSelect.locator("input");
-    await input.fill(searchQuery);
-    await this.page.waitForTimeout(400);
+    await this.page.keyboard.type(searchQuery);
 
     const option = this.page
       .locator(

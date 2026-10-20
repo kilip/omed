@@ -98,6 +98,7 @@ export class FinTransactionsPage extends BasePage {
 
   async clickRow(text: string): Promise<void> {
     const row = this.tableRows.filter({ hasText: text });
+    await row.first().waitFor({ state: "visible" });
     await row.first().click();
   }
 
