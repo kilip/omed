@@ -1,5 +1,60 @@
 # Changelog
 
+## [0.4.0](https://github.com/kilip/omed/compare/v0.3.0...v0.4.0) (2026-10-20)
+
+
+### Features
+
+* **api:** ✨ add accounting period management ([e8e9981](https://github.com/kilip/omed/commit/e8e9981c524e088d9ffb270a27d52598eaaf5691))
+* **api:** ✨ add coa template preview and personal expense accounts ([d461c54](https://github.com/kilip/omed/commit/d461c54a9239255f829d2733049eec9819dc315b))
+* **api:** ✨ add cursor pagination and query filters to fin search ([68a8a88](https://github.com/kilip/omed/commit/68a8a88205e035a7fb9aa38d6809529d8268a21e))
+* **api:** ✨ add ent schema for transactions, entries, and postings ([f0a9e9c](https://github.com/kilip/omed/commit/f0a9e9c3a6475cca8ffd497b4d2f5df244886d0e))
+* **api:** ✨ add financial summary report endpoint ([1ecc56e](https://github.com/kilip/omed/commit/1ecc56e59b22ba57f4d6bf6cdc1115b58aa31d77))
+* **api:** ✨ add transaction and entry controllers with openapi and tests ([37e007a](https://github.com/kilip/omed/commit/37e007a081b8a80e69e6d37c6af9541ada47ad6e))
+* **api:** ✨ add transaction and entry domain, models, and authz ([b07db3c](https://github.com/kilip/omed/commit/b07db3cdfe8548fdb59812e7787fab656a2508f5))
+* **api:** ✨ add user locale and currency preferences ([d2d144e](https://github.com/kilip/omed/commit/d2d144e35b815a06c215bb41be30453f57a5227c))
+* **api:** ✨ implement fx rounding auto-balancing, coa templates, and multi-currency ledger balances ([951e10e](https://github.com/kilip/omed/commit/951e10e8442467ef2c027e29539a40517b8efb7a))
+* **api:** ✨ implement multi-currency money helper, exchange rates, and base currency setting ([7297fe9](https://github.com/kilip/omed/commit/7297fe9befbd76a4dad5c376c7a459c93eeb16a6))
+* **api:** ✨ implement period revaluation, realized fx, and trial balance report ([5939d42](https://github.com/kilip/omed/commit/5939d424714a81fa7f95a4e00201e2ec04b68ce4))
+* **api:** ✨ implement transaction and entry repositories with numbering ([cd94f9f](https://github.com/kilip/omed/commit/cd94f9f7f34777e5a90d772eec555a8f0015e5e6))
+* **api:** ✨ implement transaction and entry services with validation and period close guard ([2d6d4ba](https://github.com/kilip/omed/commit/2d6d4ba745661c23e65028aaea1f0025b4f5426e))
+* **web:** ✨ add coa preview in setup and opening balance page ([f22be3c](https://github.com/kilip/omed/commit/f22be3c26c99326706879004a48396fa4a4a43f2))
+* **web:** ✨ add create entry drawer ([4b77feb](https://github.com/kilip/omed/commit/4b77febde9c53384ef608325589e04ee8bbb05c9))
+* **web:** ✨ add create transaction drawer ([d1be788](https://github.com/kilip/omed/commit/d1be788cf06cb53c97826c2ceb71a70643b304e9))
+* **web:** ✨ add currency-aware money formatting ([83eaef4](https://github.com/kilip/omed/commit/83eaef45b883a88b05245d7615bdd5e489344cac))
+* **web:** ✨ add cursor-aware unwrapPage helper ([5d37b33](https://github.com/kilip/omed/commit/5d37b330948cab6455f7824f22d64147158cb13d))
+* **web:** ✨ add dedicated create and update transaction routes ([3497039](https://github.com/kilip/omed/commit/349703924d5fecc3f52fd03c5664fc39ad2b9837))
+* **web:** ✨ add entry detail view with post, edit and delete ([cbe3fb2](https://github.com/kilip/omed/commit/cbe3fb2f81934a62055f6e596e92d7d83a4157fd))
+* **web:** ✨ add entry reverse and void actions ([94c4e9c](https://github.com/kilip/omed/commit/94c4e9c1f1a380a5fb1badd6ce9c9ae1586db30c))
+* **web:** ✨ add fin period management and setup configuration ([2f9ddee](https://github.com/kilip/omed/commit/2f9ddee203fb7cd2cda3e5ad3700461a235fa676))
+* **web:** ✨ add fin query options for transactions and entries ([609a4c1](https://github.com/kilip/omed/commit/609a4c112b6a62f87992291adc635ee99f75e5f0))
+* **web:** ✨ add fin select and status components ([2c3ae29](https://github.com/kilip/omed/commit/2c3ae291ec4c528618e1b383b17f6588fbe5fd30))
+* **web:** ✨ add hydrate fallback to shell ([ecd195b](https://github.com/kilip/omed/commit/ecd195b2ce283249a2820233a4acdf8b522f761b))
+* **web:** ✨ add postings editor ([770db8f](https://github.com/kilip/omed/commit/770db8ff816b311fe51324dfa5b599ceb2c6f913))
+* **web:** ✨ add transaction detail ([65b4072](https://github.com/kilip/omed/commit/65b4072ddb827f223dcd1dae316dc1b52f9f0d2b))
+* **web:** ✨ add transactions list ([0bc3e6d](https://github.com/kilip/omed/commit/0bc3e6dac319e2c7e4f9529c84d8f50a3dd89f77))
+* **web:** ✨ connect dashboard to real api and remove mocks ([d68a53a](https://github.com/kilip/omed/commit/d68a53ad6353a08fe32c74a475684bb4ae699bc3))
+* **web:** ✨ gate fin actions by role ([48bdf83](https://github.com/kilip/omed/commit/48bdf83c4071e92d5bdb568fca693fb46b7b042a))
+* **web:** ✨ group finance navigation under accounting menu ([018fb49](https://github.com/kilip/omed/commit/018fb49d47db8836a3c7253d1e6ce11395941e34))
+* **web:** ✨ integrate trial balance endpoint and remove mocks ([5f058e4](https://github.com/kilip/omed/commit/5f058e495026a038dffa8955beb4d991d2d6131f))
+* **web:** ✨ link accounts and entries to ledger ([8b967c2](https://github.com/kilip/omed/commit/8b967c23756a2abd71874af05edde661125eefdc))
+* **web:** ✨ register fin journal detail route ([b95b2f2](https://github.com/kilip/omed/commit/b95b2f208b905d6f7d53c2f3e847ede86d6ca96b))
+* **web:** ✨ register fin transactions route and menu ([b6c99dc](https://github.com/kilip/omed/commit/b6c99dc86edafb0a0f9a74fa4965e15213b55ddf))
+* **web:** ✨ replace entry drawer with dedicated new entry page ([c691f8c](https://github.com/kilip/omed/commit/c691f8cf39d5754103344afa028bdf5e4c0fc50b))
+* **web:** ✨ sync language preference with user locale ([2401f06](https://github.com/kilip/omed/commit/2401f0660cc44243ed5f4dafe909e07729c299df))
+* **web:** ✨ translate fin api error codes ([752a539](https://github.com/kilip/omed/commit/752a539c8a424293ac5ac797427b51d2bbc20387))
+* **web:** ✨ wire general ledger to api ([0a1f2ed](https://github.com/kilip/omed/commit/0a1f2edfcaeb03eabfe634ecbb7f8b11df21686a))
+* **web:** ✨ wire journal entries list to api ([1adf433](https://github.com/kilip/omed/commit/1adf4334017fb10fc16d31088c844e4ef8439fa5))
+
+
+### Bug Fixes
+
+* **api:** 🐛 fallback line descriptions and support single role in testctl ([9ac0c15](https://github.com/kilip/omed/commit/9ac0c159bfab9dc88cbe6bd23d9cc3404ba07d79))
+* **auth:** 🐛 resolve social login hang and payload casing ([e813cca](https://github.com/kilip/omed/commit/e813ccac408222ed5bcc234b13317c2f2d532e9b))
+* **e2e:** 🐛 remove duplicate period declaration in permissions steps ([02667a8](https://github.com/kilip/omed/commit/02667a8ab3640ce7ed049287d23f49d8b79c8b76))
+* **web:** 🐛 add period defaults and prevent e2e bundle reloads ([70e3518](https://github.com/kilip/omed/commit/70e35187d7642ca4c94d99ba73732738732b9973))
+* **web:** 🐛 build image using bun monorepo context ([14d0fec](https://github.com/kilip/omed/commit/14d0fec23c496adc3f46676e0a6f540b6c6ad85f))
+
 ## [0.3.0](https://github.com/kilip/omed/compare/v0.2.0...v0.3.0) (2026-10-19)
 
 
