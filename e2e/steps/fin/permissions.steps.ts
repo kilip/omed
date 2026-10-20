@@ -55,8 +55,6 @@ Given(
       accounts.find((a) => a.code === "1111") ??
       accounts.find((a) => a.isPostable && a.id !== debitAcc?.id);
 
-    // Ensure open period exists
-    const period = await testClient.ensureOpenPeriod(ws.id, ownerSession.token);
     const today = new Date().toISOString().slice(0, 10);
 
     // Create a transaction
