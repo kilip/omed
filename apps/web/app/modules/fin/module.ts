@@ -6,6 +6,7 @@ import {
   CalendarOutlined,
   ClusterOutlined,
   DashboardOutlined,
+  DollarOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
 import { defineModule } from "~/lib/modules";
@@ -39,6 +40,12 @@ export default defineModule({
           path: "periods",
           labelKey: "fin.menu.periods",
           icon: CalendarOutlined,
+        },
+        {
+          key: "opening-balance",
+          path: "opening-balance",
+          labelKey: "fin.menu.openingBalance",
+          icon: DollarOutlined,
         },
         {
           key: "transactions",

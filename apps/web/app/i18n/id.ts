@@ -171,6 +171,7 @@ export const id: Translation = {
       accounting: "Akuntansi",
       accounts: "Bagan akun",
       periods: "Periode akuntansi",
+      openingBalance: "Saldo awal",
       transactions: "Transaksi",
       journal: "Jurnal umum",
       ledger: "Buku besar",
@@ -213,14 +214,20 @@ export const id: Translation = {
       alreadyConfigured: "Bagan akun workspace ini sudah terisi.",
       freelancerTitle: "Freelancer Indonesia",
       freelancerDesc:
-        "Cocok untuk pekerja lepas & solopreneur di Indonesia. Mencakup Bank (BCA, Mandiri, BNI), E-Wallet (GoPay, OVO, DANA), Escrow, Prive, Biaya SaaS/Software, dan Pajak PP 55 PPh Final.",
+        "Cocok untuk pekerja lepas & solopreneur di Indonesia. Mencakup Bank (BCA, Mandiri, BNI), E-Wallet (GoPay, OVO, DANA), PayLater, Pengeluaran Pribadi (Makan, Transport, dll.), Escrow, Prive, Biaya SaaS/Software, dan Pajak PP 55 PPh Final.",
       tags: {
         banks: "BCA, Mandiri, BNI",
         ewallet: "GoPay, OVO, DANA",
         prive: "Prive",
         tax: "PPh Final (PP 55)",
         saas: "Software & SaaS",
+        paylater: "PayLater & Utang",
+        personal: "Pengeluaran Pribadi",
       },
+      previewSearchPlaceholder: "Cari nama atau kode akun...",
+      filterAll: "Semua",
+      toOpeningBalance: "Atur Saldo Awal",
+      toAccounts: "Lihat Bagan Akun",
       languages: {
         id: "Bahasa Indonesia",
         en: "English",
@@ -233,6 +240,37 @@ export const id: Translation = {
       fiscalYear: "Tahun buku",
       periodDates: "Rentang tanggal",
       periodDescription: "Keterangan (opsional)",
+    },
+    openingBalance: {
+      title: "Saldo Awal",
+      subtitle:
+        "Atur saldo awal kas, rekening bank, e-wallet, dan kewajiban/paylater pada awal periode akuntansi.",
+      period: "Periode",
+      selectPeriod: "Pilih periode akuntansi",
+      noPeriods:
+        "Belum ada periode akuntansi. Buat periode terlebih dahulu di menu Periode.",
+      assetsTitle: "Aset Lancar (Kas, Bank & E-Wallet)",
+      assetsDesc:
+        "Masukkan saldo kas dan rekening bank operasional yang Anda miliki saat ini.",
+      liabilitiesTitle: "Kewajiban & Hutang Lancar",
+      liabilitiesDesc:
+        "Masukkan tagihan kartu kredit, utang paylater, atau pinjaman singkat saat ini.",
+      summaryTitle: "Ringkasan Ekuitas Awal",
+      totalAssets: "Total Aset",
+      totalLiabilities: "Total Kewajiban",
+      netEquity: "Modal Pemilik (Ekuitas Awal)",
+      netEquityDesc:
+        "Total Aset dikurangi Total Kewajiban akan otomatis dicatat ke akun Modal Pemilik (3100).",
+      save: "Simpan Saldo Awal",
+      saving: "Menyimpan...",
+      saveSuccess: "Saldo awal berhasil disimpan dan diposting ke jurnal umum.",
+      postedEntry: "Jurnal Saldo Awal Terposting",
+      reentryNotice:
+        "Saldo awal sudah pernah dicatat dalam jurnal {{number}}. Menyimpan ulang akan memperbarui jurnal tersebut.",
+      emptyWarning: "Silakan masukkan setidaknya satu nominal saldo awal.",
+      accountCode: "Kode",
+      accountName: "Nama Akun",
+      balance: "Saldo Nominal",
     },
     periods: {
       title: "Periode akuntansi",

@@ -4,8 +4,10 @@ import {
   CreditCardOutlined,
   DollarOutlined,
   RocketOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
-import { useQueryClient } from "@tanstack/react-query";
+import type { components } from "@omed/openapi";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   App,
   Button,
@@ -16,20 +18,31 @@ import {
   InputNumber,
   Radio,
   Row,
+  Segmented,
   Space,
+  Spin,
+  Table,
+  type TableProps,
   Tag,
   Typography,
 } from "antd";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { redirect, useNavigate } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { ApiError, api, unwrapList, unwrapOne } from "~/lib/api";
 import { requireWorkspaceId } from "~/lib/workspace";
-import { accountKeys, periodKeys } from "../queries";
+import {
+  accountKeys,
+  periodKeys,
+  templatePreviewQueryOptions,
+} from "../queries";
 import type { Route } from "./+types/setup";
+
+type TemplateAccount =
+  components["schemas"]["model.AccountTemplateItemResponse"];
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -47,67 +60,6 @@ export async function clientLoader() {
   return { wid };
 }
 
-interface PreviewItem {
-  code: string;
-  nameId: string;
-  nameEn: string;
-  type: string;
-}
-
-const previewAccounts: PreviewItem[] = [
-  {
-    code: "1111",
-    nameId: "Bank BCA",
-    nameEn: "BCA Bank Account",
-    type: "ASSET",
-  },
-  {
-    code: "1112",
-    nameId: "Bank Mandiri",
-    nameEn: "Mandiri Bank Account",
-    type: "ASSET",
-  },
-  {
-    code: "1113",
-    nameId: "Bank BNI",
-    nameEn: "BNI Bank Account",
-    type: "ASSET",
-  },
-  { code: "1121", nameId: "GoPay", nameEn: "GoPay E-Wallet", type: "ASSET" },
-  { code: "1122", nameId: "OVO", nameEn: "OVO E-Wallet", type: "ASSET" },
-  { code: "1123", nameId: "DANA", nameEn: "DANA E-Wallet", type: "ASSET" },
-  {
-    code: "1131",
-    nameId: "Piutang Platform Escrow (Upwork/Fiverr)",
-    nameEn: "Escrow Platform Receivables",
-    type: "ASSET",
-  },
-  {
-    code: "3102",
-    nameId: "Prive (Penarikan Pemilik)",
-    nameEn: "Owner's Drawings (Prive)",
-    type: "EQUITY",
-  },
-  {
-    code: "4101",
-    nameId: "Pendapatan Jasa Proyek",
-    nameEn: "Project Service Revenue",
-    type: "REVENUE",
-  },
-  {
-    code: "6101",
-    nameId: "Beban Software & Langganan SaaS",
-    nameEn: "Software & SaaS Subscriptions",
-    type: "EXPENSE",
-  },
-  {
-    code: "6106",
-    nameId: "Beban Pajak PP 55 (PPh Final 0.5%)",
-    nameEn: "Final Tax Expense (PP 55 0.5%)",
-    type: "EXPENSE",
-  },
-];
-
 export default function Setup({ loaderData }: Route.ComponentProps) {
   const { wid } = loaderData;
   const { t, i18n } = useTranslation();
@@ -121,6 +73,13 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
     i18n.language.startsWith("en") ? "en" : "id",
   );
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("ALL");
+
+  const { data: previewData, isLoading: previewLoading } = useQuery(
+    templatePreviewQueryOptions(wid, template, lang),
+  );
+
   const currentYear = new Date().getFullYear();
   const [fiscalYear, setFiscalYear] = useState<number>(currentYear);
   const [periodName, setPeriodName] = useState<string>(`FY ${currentYear}`);
@@ -129,6 +88,20 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
     dayjs(`${currentYear}-12-31`),
   ]);
   const [description, setDescription] = useState<string>("");
+
+  const filteredAccounts = useMemo(() => {
+    const list = previewData?.accounts ?? [];
+    return list.filter((item) => {
+      const matchType = selectedType === "ALL" || item.type === selectedType;
+      const q = searchQuery.toLowerCase().trim();
+      const matchQuery =
+        !q ||
+        item.code?.toLowerCase().includes(q) ||
+        item.name?.toLowerCase().includes(q) ||
+        item.description?.toLowerCase().includes(q);
+      return matchType && matchQuery;
+    });
+  }, [previewData, selectedType, searchQuery]);
 
   const applyTemplate = async () => {
     if (!periodName.trim()) {
@@ -148,6 +121,7 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
           body: { template, lang },
         }),
       );
+
       try {
         await unwrapOne(
           api.POST("/workspaces/{wid}/fin/periods", {
@@ -171,7 +145,7 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
           throw err;
         }
       }
-      message.success(t("fin.setup.success", { count: res?.count ?? 32 }));
+      message.success(t("fin.setup.success", { count: res?.count ?? 50 }));
       queryClient.removeQueries({ queryKey: accountKeys.all(wid) });
       queryClient.removeQueries({ queryKey: periodKeys.all(wid) });
       navigate("/fin/accounts");
@@ -181,6 +155,75 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
       setPending(false);
     }
   };
+
+  const previewColumns: TableProps<TemplateAccount>["columns"] = [
+    {
+      title: t("fin.accounts.code"),
+      dataIndex: "code",
+      key: "code",
+      width: 100,
+      render: (code: string) => (
+        <code
+          className="font-mono font-semibold"
+          style={{ color: "var(--omed-primary-text)" }}
+        >
+          {code}
+        </code>
+      ),
+    },
+    {
+      title: t("fin.accounts.name"),
+      dataIndex: "name",
+      key: "name",
+      render: (name: string, record: TemplateAccount) => (
+        <div className="flex flex-col">
+          <span
+            className={`font-medium ${!record.isPostable ? "text-base font-semibold" : ""}`}
+          >
+            {name}
+          </span>
+          {record.description && (
+            <span className="text-xs text-muted-foreground">
+              {record.description}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: t("fin.accounts.type"),
+      dataIndex: "type",
+      key: "type",
+      width: 120,
+      render: (type?: string) => {
+        if (!type) return null;
+        const colorMap: Record<string, string> = {
+          ASSET: "blue",
+          LIABILITY: "orange",
+          EQUITY: "purple",
+          REVENUE: "green",
+          EXPENSE: "red",
+        };
+        return (
+          <Tag color={colorMap[type] ?? "default"}>
+            {t(`fin.types.${type}`)}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: t("fin.accounts.postable"),
+      dataIndex: "isPostable",
+      key: "isPostable",
+      width: 120,
+      render: (isPostable?: boolean) =>
+        isPostable ? (
+          <Tag color="cyan">{t("fin.accounts.postable")}</Tag>
+        ) : (
+          <Tag>{t("fin.accounts.parent")}</Tag>
+        ),
+    },
+  ];
 
   return (
     <Page title={t("fin.setup.title")}>
@@ -220,7 +263,9 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
                     <Title level={5} style={{ margin: 0 }}>
                       {t("fin.setup.freelancerTitle")}
                     </Title>
-                    <Tag color="orange">32 Akun</Tag>
+                    <Tag color="orange">
+                      {previewData?.accounts?.length ?? 50} Akun
+                    </Tag>
                   </div>
                   <Paragraph type="secondary" style={{ marginBottom: 8 }}>
                     {t("fin.setup.freelancerDesc")}
@@ -232,6 +277,8 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
                     <Tag icon={<CreditCardOutlined />} color="cyan">
                       {t("fin.setup.tags.ewallet")}
                     </Tag>
+                    <Tag color="volcano">{t("fin.setup.tags.paylater")}</Tag>
+                    <Tag color="magenta">{t("fin.setup.tags.personal")}</Tag>
                     <Tag icon={<DollarOutlined />} color="purple">
                       {t("fin.setup.tags.prive")}
                     </Tag>
@@ -259,14 +306,15 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
             <Radio value="id">
               <span className="font-medium">{t("fin.setup.languages.id")}</span>
               <Text type="secondary" className="ml-2 text-xs">
-                (mis. Bank BCA, Piutang Platform Escrow, Beban Pajak PP 55)
+                (mis. Kas Tunai, Bank BCA, Utang PayLater, Beban Hidup &
+                Pribadi, Makanan & Minuman)
               </Text>
             </Radio>
             <Radio value="en">
               <span className="font-medium">{t("fin.setup.languages.en")}</span>
               <Text type="secondary" className="ml-2 text-xs">
-                (e.g., BCA Bank Account, Escrow Platform Receivables, Final Tax
-                Expense)
+                (e.g., Petty Cash, BCA Bank Account, PayLater Loans, Personal &
+                Living Expenses, Food & Groceries)
               </Text>
             </Radio>
           </Radio.Group>
@@ -340,38 +388,45 @@ export default function Setup({ loaderData }: Route.ComponentProps) {
           </Row>
         </Panel>
 
-        {/* Preview of key accounts */}
+        {/* Dynamic Preview of accounts from API */}
         <Panel strong title={t("fin.setup.preview")}>
-          <div className="overflow-x-auto">
-            <Row gutter={[12, 12]}>
-              {previewAccounts.map((item) => (
-                <Col xs={24} sm={12} key={item.code}>
-                  <div
-                    className="flex items-center justify-between rounded p-2.5 text-xs"
-                    style={{
-                      border: "1px solid var(--omed-border-soft)",
-                      backgroundColor: "var(--omed-surface-muted)",
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <code
-                        className="font-mono font-semibold"
-                        style={{ color: "var(--omed-primary-text)" }}
-                      >
-                        {item.code}
-                      </code>
-                      <span
-                        className="font-medium"
-                        style={{ color: "var(--omed-text)" }}
-                      >
-                        {lang === "id" ? item.nameId : item.nameEn}
-                      </span>
-                    </div>
-                    <Tag>{t(`fin.types.${item.type}`)}</Tag>
-                  </div>
-                </Col>
-              ))}
-            </Row>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Segmented
+                value={selectedType}
+                onChange={(val) => setSelectedType(String(val))}
+                options={[
+                  { label: t("fin.setup.filterAll"), value: "ALL" },
+                  { label: t("fin.types.ASSET"), value: "ASSET" },
+                  { label: t("fin.types.LIABILITY"), value: "LIABILITY" },
+                  { label: t("fin.types.EQUITY"), value: "EQUITY" },
+                  { label: t("fin.types.REVENUE"), value: "REVENUE" },
+                  { label: t("fin.types.EXPENSE"), value: "EXPENSE" },
+                ]}
+              />
+              <Input
+                placeholder={t("fin.setup.previewSearchPlaceholder")}
+                prefix={<SearchOutlined className="text-muted-foreground" />}
+                className="w-full sm:w-64"
+                allowClear
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {previewLoading ? (
+              <div className="flex justify-center py-8">
+                <Spin />
+              </div>
+            ) : (
+              <Table
+                rowKey="code"
+                columns={previewColumns}
+                dataSource={filteredAccounts}
+                pagination={{ pageSize: 8, showSizeChanger: false }}
+                size="small"
+              />
+            )}
           </div>
         </Panel>
 

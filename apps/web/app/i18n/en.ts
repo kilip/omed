@@ -168,6 +168,7 @@ export const en = {
       accounting: "Accounting",
       accounts: "Chart of accounts",
       periods: "Accounting periods",
+      openingBalance: "Opening balance",
       transactions: "Transactions",
       journal: "Journal entries",
       ledger: "General ledger",
@@ -212,14 +213,20 @@ export const en = {
         "Chart of accounts has already been configured for this workspace.",
       freelancerTitle: "Indonesian Freelancer",
       freelancerDesc:
-        "Tailored for Indonesian freelancers and solopreneurs. Includes Bank (BCA, Mandiri, BNI), E-Wallets (GoPay, OVO, DANA), Escrow, Owner's Drawings (Prive), SaaS & Software, and Final Income Tax (PP 55 PPh Final).",
+        "Tailored for Indonesian freelancers and solopreneurs. Includes Bank (BCA, Mandiri, BNI), E-Wallets (GoPay, OVO, DANA), PayLater, Personal Expenses (Food, Transport, etc.), Escrow, Owner's Drawings (Prive), SaaS & Software, and Final Income Tax (PP 55 PPh Final).",
       tags: {
         banks: "BCA, Mandiri, BNI",
         ewallet: "GoPay, OVO, DANA",
         prive: "Prive / Drawings",
         tax: "PPh Final (PP 55)",
         saas: "Software & SaaS",
+        paylater: "PayLater & Loans",
+        personal: "Personal Expenses",
       },
+      previewSearchPlaceholder: "Search account code or name...",
+      filterAll: "All",
+      toOpeningBalance: "Set Opening Balance",
+      toAccounts: "View Accounts",
       languages: {
         id: "Bahasa Indonesia (Indonesian)",
         en: "English",
@@ -232,6 +239,37 @@ export const en = {
       fiscalYear: "Fiscal year",
       periodDates: "Date range",
       periodDescription: "Description (optional)",
+    },
+    openingBalance: {
+      title: "Opening Balance",
+      subtitle:
+        "Configure opening balances for cash, bank accounts, e-wallets, and liabilities/paylater at the start of the fiscal period.",
+      period: "Period",
+      selectPeriod: "Select accounting period",
+      noPeriods:
+        "No accounting periods found. Please create a period first in the Periods menu.",
+      assetsTitle: "Current Assets (Cash, Bank & E-Wallets)",
+      assetsDesc: "Enter cash and bank balances currently held.",
+      liabilitiesTitle: "Current Liabilities & PayLater",
+      liabilitiesDesc:
+        "Enter credit card balances, paylater debts, or short-term loans.",
+      summaryTitle: "Opening Equity Summary",
+      totalAssets: "Total Assets",
+      totalLiabilities: "Total Liabilities",
+      netEquity: "Owner's Capital (Opening Equity)",
+      netEquityDesc:
+        "Total Assets minus Total Liabilities will automatically balance to Owner's Capital (3100).",
+      save: "Save Opening Balance",
+      saving: "Saving...",
+      saveSuccess:
+        "Opening balance saved and posted to the general journal successfully.",
+      postedEntry: "Posted Opening Balance Entry",
+      reentryNotice:
+        "Opening balance is already recorded in entry {{number}}. Saving again will update this journal entry.",
+      emptyWarning: "Please enter at least one opening balance amount.",
+      accountCode: "Code",
+      accountName: "Account Name",
+      balance: "Balance Amount",
     },
     periods: {
       title: "Accounting periods",

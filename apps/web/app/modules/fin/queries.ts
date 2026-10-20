@@ -63,6 +63,25 @@ export const accountsQueryOptions = (wid: number) =>
       ),
   });
 
+/** Template preview for chart of accounts. */
+export const templatePreviewQueryOptions = (
+  wid: number,
+  template: string,
+  lang: string,
+) =>
+  queryOptions({
+    queryKey: ["fin", "workspaces", wid, "templates", template, lang] as const,
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/fin/accounts/templates/{template}", {
+          params: {
+            path: { wid, template },
+            query: { lang },
+          },
+        }),
+      ),
+  });
+
 /** Periods in a workspace. */
 export const periodsQueryOptions = (
   wid: number,
