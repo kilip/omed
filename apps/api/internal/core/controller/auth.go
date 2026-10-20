@@ -193,16 +193,6 @@ func (a AuthController) extractToken(c fiber.Ctx) string {
 	if cookie := c.Cookies(a.cookieName); cookie != "" {
 		return cookie
 	}
-	if a.cookieName != "omed_session" {
-		if cookie := c.Cookies("omed_session"); cookie != "" {
-			return cookie
-		}
-	}
-	if a.cookieName != "token" {
-		if cookie := c.Cookies("token"); cookie != "" {
-			return cookie
-		}
-	}
 	return ""
 }
 

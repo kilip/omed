@@ -183,7 +183,7 @@ func (s *AuthControllerSuite) Test_Callback_ProviderError() {
 func (s *AuthControllerSuite) Test_GetSession_WithCookie() {
 	req := httptest.NewRequest(fiber.MethodGet, "/auth/get-session", nil)
 	req.AddCookie(&http.Cookie{
-		Name:  "token",
+		Name:  "omed_session",
 		Value: "mock-session-token",
 	})
 
