@@ -39,7 +39,8 @@
         "CucumberOpen.cucumber-official",
         "google.google-antigravity",
         "vitest.explorer",
-        "github.vscode-github-actions"
+        "github.vscode-github-actions",
+        "ms-ossdata.vscode-pgsql"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
