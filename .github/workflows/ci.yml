@@ -76,6 +76,16 @@ jobs:
       # `.env.example`; the secret is a throwaway one for CI only.
       HUSKY: "0"
       OMED_DB_URL: postgres://omed:omed@localhost:5432/omed?sslmode=disable
+      OMED_S3_DRIVER: s3
+      OMED_S3_ENDPOINT: http://localhost:9000
+      OMED_S3_REGION: us-east-1
+      OMED_S3_ACCESS_KEY: rustfsadmin
+      OMED_S3_SECRET_KEY: rustfsadmin
+      OMED_S3_FORCE_PATH_STYLE: "true"
+      OMED_ATTACHMENT_MAX_SIZE_MB: "10"
+      OMED_ATTACHMENT_ALLOWED_TYPES: ".pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx"
+      VITE_ATTACHMENT_MAX_SIZE_MB: "10"
+      VITE_ATTACHMENT_ALLOWED_TYPES: ".pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx"
       OMED_API_URL: http://localhost:8001
       OMED_WEB_URL: http://localhost:3000
       OMED_TRUSTED_ORIGINS: http://localhost:3000,http://localhost:8001
@@ -91,6 +101,19 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd "pg_isready -U omed -d omed"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      rustfs:
+        image: rustfs/rustfs:1.0.1
+        env:
+          RUSTFS_ACCESS_KEY: rustfsadmin
+          RUSTFS_SECRET_KEY: rustfsadmin
+          RUSTFS_ADDRESS: ":9000"
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -fsS http://localhost:9000/health >/dev/null"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
