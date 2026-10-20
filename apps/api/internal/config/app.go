@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/kilip/omed/api/internal/core"
 	"github.com/kilip/omed/api/internal/core/service"
@@ -137,7 +138,9 @@ func (a *Omed) Run(ctx context.Context) error {
 
 	// HTTP server
 	g.Go(func() error {
-		return a.state.FiberApp.Listen(":8001")
+		return a.state.FiberApp.Listen(":8001", fiber.ListenConfig{
+			ListenerNetwork: "tcp",
+		})
 	})
 
 	// Shutdown: nunggu signal / error dari goroutine lain

@@ -59,7 +59,11 @@ export const authClient = {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ provider, callbackUrl: callbackURL }),
+          body: JSON.stringify({
+            provider,
+            callbackURL,
+            callbackUrl: callbackURL,
+          }),
         });
         if (!res.ok) {
           const body = await res.json().catch(() => null);

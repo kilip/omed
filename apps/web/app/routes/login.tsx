@@ -58,13 +58,18 @@ export default function Login() {
 
   const signIn = async (provider: Provider) => {
     setPending(provider);
-    const { error } = await authClient.signIn.social({
-      provider,
-      callbackURL: env.publicUrl,
-    });
-    if (error) {
+    try {
+      const { error } = await authClient.signIn.social({
+        provider,
+        callbackURL: env.publicUrl,
+      });
+      if (error) {
+        setPending(null);
+        message.error(error.message || t("login.failed"));
+      }
+    } catch {
       setPending(null);
-      message.error(error.message || t("login.failed"));
+      message.error(t("login.failed"));
     }
   };
 
@@ -122,7 +127,7 @@ export default function Login() {
             icon={<GoogleOutlined />}
             loading={pending === "google"}
             disabled={pending !== null && pending !== "google"}
-            onClick={() => signIn("google")}
+            onClick={async () => await signIn("google")}
           >
             {t("login.google")}
           </Button>
@@ -132,7 +137,7 @@ export default function Login() {
             icon={<GithubOutlined />}
             loading={pending === "github"}
             disabled={pending !== null && pending !== "github"}
-            onClick={() => signIn("github")}
+            onClick={async () => await signIn("github")}
           >
             {t("login.github")}
           </Button>
