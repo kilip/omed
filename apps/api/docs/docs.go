@@ -483,6 +483,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_UserResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.UserResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_WorkspaceBaseCurrencyResponse": {
                 "properties": {
                     "data": {
@@ -1586,6 +1599,9 @@ const docTemplate = `{
                     "errorCallbackURL": {
                         "type": "string"
                     },
+                    "locale": {
+                        "type": "string"
+                    },
                     "newUserCallbackURL": {
                         "type": "string"
                     },
@@ -1886,6 +1902,27 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.UpdateUserRequest": {
+                "properties": {
+                    "avatar": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "locale": {
+                        "enum": [
+                            "en",
+                            "id"
+                        ],
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.UpdateWorkspaceRequest": {
                 "properties": {
                     "description": {
@@ -1902,6 +1939,9 @@ const docTemplate = `{
             },
             "model.UserData": {
                 "properties": {
+                    "currency": {
+                        "type": "string"
+                    },
                     "email": {
                         "type": "string"
                     },
@@ -1912,6 +1952,9 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "image": {
+                        "type": "string"
+                    },
+                    "locale": {
                         "type": "string"
                     },
                     "name": {
@@ -1928,11 +1971,17 @@ const docTemplate = `{
                     "createdAt": {
                         "type": "string"
                     },
+                    "currency": {
+                        "type": "string"
+                    },
                     "email": {
                         "type": "string"
                     },
                     "id": {
                         "type": "integer"
+                    },
+                    "locale": {
+                        "type": "string"
                     },
                     "name": {
                         "type": "string"
@@ -2338,6 +2387,139 @@ const docTemplate = `{
                 "summary": "Accept workspace invitation",
                 "tags": [
                     "Workspace Invitations"
+                ]
+            }
+        },
+        "/users/me": {
+            "get": {
+                "description": "Retrieve authenticated user's profile and preferences (locale, currency)",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_UserResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get current user profile",
+                "tags": [
+                    "Users"
+                ]
+            },
+            "put": {
+                "description": "Update authenticated user's profile and preferences (locale, currency, name, avatar)",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateUserRequest",
+                                "summary": "request",
+                                "description": "Update user payload"
+                            }
+                        }
+                    },
+                    "description": "Update user payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_UserResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update current user profile",
+                "tags": [
+                    "Users"
                 ]
             }
         },

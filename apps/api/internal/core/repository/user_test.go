@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/workspace"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/core/model"
@@ -96,6 +97,51 @@ func (s *UserRepoSuite) Test_Create_Success() {
 	s.Equal(req.Name, dbUser.Name)
 	s.Equal(req.Email, dbUser.Email)
 	s.Equal(req.Avatar, dbUser.Avatar)
+	s.Equal("en", dbUser.Locale)
+	s.Equal("USD", dbUser.Currency)
+
+	// Verify personal workspace has matching base currency
+	ws, err := s.client.Workspace.Query().Where(workspace.OwnerIDEQ(dom.ID)).Only(ctx)
+	s.Require().NoError(err)
+	s.Equal("USD", ws.BaseCurrency)
+}
+
+func (s *UserRepoSuite) Test_Create_IndonesianLocale_DefaultsToIDR() {
+	ctx := context.Background()
+	req := model.CreateUserRequest{
+		Name:   "Budi",
+		Email:  "budi@example.com",
+		Locale: "id",
+	}
+
+	dom, err := s.repo.Create(ctx, req)
+	s.Require().NoError(err)
+	s.Equal("id", dom.Locale)
+	s.Equal("IDR", dom.Currency)
+
+	ws, err := s.client.Workspace.Query().Where(workspace.OwnerIDEQ(dom.ID)).Only(ctx)
+	s.Require().NoError(err)
+	s.Equal("IDR", ws.BaseCurrency)
+}
+
+func (s *UserRepoSuite) Test_Update_LocaleAndCurrency() {
+	ctx := context.Background()
+	created := s.createTestUser("Toni", "toni@example.com", "")
+
+	updateReq := model.UpdateUserRequest{
+		Locale:   "id",
+		Currency: "IDR",
+	}
+
+	dom, err := s.repo.Update(ctx, created.ID, updateReq)
+	s.Require().NoError(err)
+	s.Equal("id", dom.Locale)
+	s.Equal("IDR", dom.Currency)
+
+	dbUser, err := s.client.User.Get(ctx, created.ID)
+	s.Require().NoError(err)
+	s.Equal("id", dbUser.Locale)
+	s.Equal("IDR", dbUser.Currency)
 }
 
 func (s *UserRepoSuite) Test_Create_DuplicateEmail() {

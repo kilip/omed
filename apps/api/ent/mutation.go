@@ -10235,6 +10235,8 @@ type UserMutation struct {
 	name            *string
 	email           *string
 	avatar          *string
+	locale          *string
+	currency        *string
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
@@ -10474,6 +10476,78 @@ func (m *UserMutation) ResetAvatar() {
 	delete(m.clearedFields, user.FieldAvatar)
 }
 
+// SetLocale sets the "locale" field.
+func (m *UserMutation) SetLocale(s string) {
+	m.locale = &s
+}
+
+// Locale returns the value of the "locale" field in the mutation.
+func (m *UserMutation) Locale() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocale returns the old "locale" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocale: %w", err)
+	}
+	return oldValue.Locale, nil
+}
+
+// ResetLocale resets all changes to the "locale" field.
+func (m *UserMutation) ResetLocale() {
+	m.locale = nil
+}
+
+// SetCurrency sets the "currency" field.
+func (m *UserMutation) SetCurrency(s string) {
+	m.currency = &s
+}
+
+// Currency returns the value of the "currency" field in the mutation.
+func (m *UserMutation) Currency() (r string, exists bool) {
+	v := m.currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrency returns the old "currency" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
+	}
+	return oldValue.Currency, nil
+}
+
+// ResetCurrency resets all changes to the "currency" field.
+func (m *UserMutation) ResetCurrency() {
+	m.currency = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *UserMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -10688,7 +10762,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
 	}
@@ -10697,6 +10771,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.avatar != nil {
 		fields = append(fields, user.FieldAvatar)
+	}
+	if m.locale != nil {
+		fields = append(fields, user.FieldLocale)
+	}
+	if m.currency != nil {
+		fields = append(fields, user.FieldCurrency)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -10718,6 +10798,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldAvatar:
 		return m.Avatar()
+	case user.FieldLocale:
+		return m.Locale()
+	case user.FieldCurrency:
+		return m.Currency()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -10737,6 +10821,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldAvatar:
 		return m.OldAvatar(ctx)
+	case user.FieldLocale:
+		return m.OldLocale(ctx)
+	case user.FieldCurrency:
+		return m.OldCurrency(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -10770,6 +10858,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAvatar(v)
+		return nil
+	case user.FieldLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocale(v)
+		return nil
+	case user.FieldCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrency(v)
 		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -10851,6 +10953,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldAvatar:
 		m.ResetAvatar()
+		return nil
+	case user.FieldLocale:
+		m.ResetLocale()
+		return nil
+	case user.FieldCurrency:
+		m.ResetCurrency()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()

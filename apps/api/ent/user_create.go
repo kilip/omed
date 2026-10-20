@@ -50,6 +50,34 @@ func (_c *UserCreate) SetNillableAvatar(v *string) *UserCreate {
 	return _c
 }
 
+// SetLocale sets the "locale" field.
+func (_c *UserCreate) SetLocale(v string) *UserCreate {
+	_c.mutation.SetLocale(v)
+	return _c
+}
+
+// SetNillableLocale sets the "locale" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLocale(v *string) *UserCreate {
+	if v != nil {
+		_c.SetLocale(*v)
+	}
+	return _c
+}
+
+// SetCurrency sets the "currency" field.
+func (_c *UserCreate) SetCurrency(v string) *UserCreate {
+	_c.mutation.SetCurrency(v)
+	return _c
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_c *UserCreate) SetNillableCurrency(v *string) *UserCreate {
+	if v != nil {
+		_c.SetCurrency(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *UserCreate) SetCreatedAt(v time.Time) *UserCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -149,6 +177,14 @@ func (_c *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *UserCreate) defaults() {
+	if _, ok := _c.mutation.Locale(); !ok {
+		v := user.DefaultLocale
+		_c.mutation.SetLocale(v)
+	}
+	if _, ok := _c.mutation.Currency(); !ok {
+		v := user.DefaultCurrency
+		_c.mutation.SetCurrency(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := user.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -175,6 +211,22 @@ func (_c *UserCreate) check() error {
 	if v, ok := _c.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Locale(); !ok {
+		return &ValidationError{Name: "locale", err: errors.New(`ent: missing required field "User.locale"`)}
+	}
+	if v, ok := _c.mutation.Locale(); ok {
+		if err := user.LocaleValidator(v); err != nil {
+			return &ValidationError{Name: "locale", err: fmt.Errorf(`ent: validator failed for field "User.locale": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Currency(); !ok {
+		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "User.currency"`)}
+	}
+	if v, ok := _c.mutation.Currency(); ok {
+		if err := user.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "User.currency": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
@@ -228,6 +280,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
 		_node.Avatar = value
+	}
+	if value, ok := _c.mutation.Locale(); ok {
+		_spec.SetField(user.FieldLocale, field.TypeString, value)
+		_node.Locale = value
+	}
+	if value, ok := _c.mutation.Currency(); ok {
+		_spec.SetField(user.FieldCurrency, field.TypeString, value)
+		_node.Currency = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -365,6 +425,30 @@ func (u *UserUpsert) ClearAvatar() *UserUpsert {
 	return u
 }
 
+// SetLocale sets the "locale" field.
+func (u *UserUpsert) SetLocale(v string) *UserUpsert {
+	u.Set(user.FieldLocale, v)
+	return u
+}
+
+// UpdateLocale sets the "locale" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLocale() *UserUpsert {
+	u.SetExcluded(user.FieldLocale)
+	return u
+}
+
+// SetCurrency sets the "currency" field.
+func (u *UserUpsert) SetCurrency(v string) *UserUpsert {
+	u.Set(user.FieldCurrency, v)
+	return u
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *UserUpsert) UpdateCurrency() *UserUpsert {
+	u.SetExcluded(user.FieldCurrency)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *UserUpsert) SetUpdatedAt(v time.Time) *UserUpsert {
 	u.Set(user.FieldUpdatedAt, v)
@@ -474,6 +558,34 @@ func (u *UserUpsertOne) UpdateAvatar() *UserUpsertOne {
 func (u *UserUpsertOne) ClearAvatar() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearAvatar()
+	})
+}
+
+// SetLocale sets the "locale" field.
+func (u *UserUpsertOne) SetLocale(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocale(v)
+	})
+}
+
+// UpdateLocale sets the "locale" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLocale() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocale()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *UserUpsertOne) SetCurrency(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateCurrency() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateCurrency()
 	})
 }
 
@@ -754,6 +866,34 @@ func (u *UserUpsertBulk) UpdateAvatar() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearAvatar() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearAvatar()
+	})
+}
+
+// SetLocale sets the "locale" field.
+func (u *UserUpsertBulk) SetLocale(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocale(v)
+	})
+}
+
+// UpdateLocale sets the "locale" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLocale() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocale()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *UserUpsertBulk) SetCurrency(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateCurrency() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateCurrency()
 	})
 }
 

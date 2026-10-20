@@ -51,6 +51,9 @@ func (a AuthController) SignInSocial(c fiber.Ctx) error {
 	if req.Provider == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "provider is required")
 	}
+	if req.Locale == "" {
+		req.Locale = c.Get(fiber.HeaderAcceptLanguage)
+	}
 
 	res, err := a.oauth.GetAuthURL(req)
 	if err != nil {
@@ -220,6 +223,8 @@ func toSessionResponse(s domain.Session, u domain.User) model.SessionResponse {
 			Email:         u.Email,
 			Name:          u.Name,
 			Avatar:        u.Avatar,
+			Locale:        u.Locale,
+			Currency:      u.Currency,
 			EmailVerified: true,
 		},
 	}

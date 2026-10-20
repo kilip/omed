@@ -9,6 +9,7 @@ type SignInSocialRequest struct {
 	CallbackURL        string `json:"callbackURL,omitempty"`
 	ErrorCallbackURL   string `json:"errorCallbackURL,omitempty"`
 	NewUserCallbackURL string `json:"newUserCallbackURL,omitempty"`
+	Locale             string `json:"locale,omitempty"`
 }
 
 // SignInSocialResponse contains the redirection URL returned by social sign-in.
@@ -35,6 +36,8 @@ type UserData struct {
 	Email         string `json:"email"`
 	Name          string `json:"name"`
 	Avatar        string `json:"image,omitempty"`
+	Locale        string `json:"locale"`
+	Currency      string `json:"currency"`
 	EmailVerified bool   `json:"emailVerified"`
 }
 
@@ -51,6 +54,7 @@ type OAuthUserInfo struct {
 	Name          string
 	Avatar        string
 	EmailVerified bool
+	Locale        string
 }
 
 // OAuthStateClaims contains data encoded and signed within the OAuth state parameter.
@@ -59,5 +63,6 @@ type OAuthStateClaims struct {
 	Provider         string `json:"provider"`
 	CallbackURL      string `json:"callbackURL,omitempty"`
 	ErrorCallbackURL string `json:"errorCallbackURL,omitempty"`
+	Locale           string `json:"locale,omitempty"`
 	ExpiresAt        int64  `json:"exp"`
 }

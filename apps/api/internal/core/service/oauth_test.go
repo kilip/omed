@@ -118,6 +118,7 @@ func (s *OAuthServiceSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(context.Background())
 	_, _ = s.client.Session.Delete().Exec(ctx)
 	_, _ = s.client.UserAccount.Delete().Exec(ctx)
+	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
 	_, _ = s.client.User.Delete().Exec(ctx)
 }
@@ -206,6 +207,69 @@ func (s *OAuthServiceSuite) Test_HandleCallback_SuccessNewUser() {
 		Only(s.ctx)
 	s.Require().NoError(err)
 	s.True(ws.Personal)
+	s.Equal("en", user.Locale)
+	s.Equal("USD", user.Currency)
+	s.Equal("USD", ws.BaseCurrency)
+}
+
+func (s *OAuthServiceSuite) Test_NormalizeLocaleAndCurrency() {
+	tests := []struct {
+		input            string
+		expectedLocale   string
+		expectedCurrency string
+	}{
+		{"id", "id", "IDR"},
+		{"id-ID", "id", "IDR"},
+		{"ID-id", "id", "IDR"},
+		{"id_ID", "id", "IDR"},
+		{"en", "en", "USD"},
+		{"en-US", "en", "USD"},
+		{"en-GB", "en", "USD"},
+		{"fr-FR", "en", "USD"},
+		{"", "en", "USD"},
+	}
+
+	for _, tt := range tests {
+		loc, curr := service.NormalizeLocaleAndCurrency(tt.input)
+		s.Equal(tt.expectedLocale, loc, "for input: "+tt.input)
+		s.Equal(tt.expectedCurrency, curr, "for input: "+tt.input)
+	}
+}
+
+func (s *OAuthServiceSuite) Test_OAuth_LocalePreserved_Indonesian() {
+	authRes, err := s.oauthSvc.GetAuthURL(model.SignInSocialRequest{
+		Provider:    domain.ProviderGoogle,
+		CallbackURL: "http://localhost:3000/dashboard",
+		Locale:      "id-ID",
+	})
+	s.Require().NoError(err)
+
+	var state string
+	for _, part := range splitQuery(authRes.URL) {
+		if len(part) > 6 && part[:6] == "state=" {
+			state = part[6:]
+			break
+		}
+	}
+	s.NotEmpty(state)
+
+	_, user, _, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().NoError(err)
+	s.Equal("id", user.Locale)
+	s.Equal("IDR", user.Currency)
+
+	ws, err := s.client.Workspace.Query().
+		Where(workspace.OwnerIDEQ(user.ID), workspace.PersonalEQ(true)).
+		Only(s.ctx)
+	s.Require().NoError(err)
+	s.Equal("IDR", ws.BaseCurrency)
 }
 
 func splitQuery(rawURL string) []string {

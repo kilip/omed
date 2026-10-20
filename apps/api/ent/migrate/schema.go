@@ -559,6 +559,8 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "avatar", Type: field.TypeString, Nullable: true},
+		{Name: "locale", Type: field.TypeString, Default: "en"},
+		{Name: "currency", Type: field.TypeString, Size: 3, Default: "USD"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

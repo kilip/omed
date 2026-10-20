@@ -71,6 +71,16 @@ func Avatar(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldAvatar, v))
 }
 
+// Locale applies equality check predicate on the "locale" field. It's identical to LocaleEQ.
+func Locale(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLocale, v))
+}
+
+// Currency applies equality check predicate on the "currency" field. It's identical to CurrencyEQ.
+func Currency(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldCurrency, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -284,6 +294,136 @@ func AvatarEqualFold(v string) predicate.User {
 // AvatarContainsFold applies the ContainsFold predicate on the "avatar" field.
 func AvatarContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldAvatar, v))
+}
+
+// LocaleEQ applies the EQ predicate on the "locale" field.
+func LocaleEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLocale, v))
+}
+
+// LocaleNEQ applies the NEQ predicate on the "locale" field.
+func LocaleNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldLocale, v))
+}
+
+// LocaleIn applies the In predicate on the "locale" field.
+func LocaleIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldLocale, vs...))
+}
+
+// LocaleNotIn applies the NotIn predicate on the "locale" field.
+func LocaleNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldLocale, vs...))
+}
+
+// LocaleGT applies the GT predicate on the "locale" field.
+func LocaleGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldLocale, v))
+}
+
+// LocaleGTE applies the GTE predicate on the "locale" field.
+func LocaleGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldLocale, v))
+}
+
+// LocaleLT applies the LT predicate on the "locale" field.
+func LocaleLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldLocale, v))
+}
+
+// LocaleLTE applies the LTE predicate on the "locale" field.
+func LocaleLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldLocale, v))
+}
+
+// LocaleContains applies the Contains predicate on the "locale" field.
+func LocaleContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldLocale, v))
+}
+
+// LocaleHasPrefix applies the HasPrefix predicate on the "locale" field.
+func LocaleHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldLocale, v))
+}
+
+// LocaleHasSuffix applies the HasSuffix predicate on the "locale" field.
+func LocaleHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldLocale, v))
+}
+
+// LocaleEqualFold applies the EqualFold predicate on the "locale" field.
+func LocaleEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldLocale, v))
+}
+
+// LocaleContainsFold applies the ContainsFold predicate on the "locale" field.
+func LocaleContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldLocale, v))
+}
+
+// CurrencyEQ applies the EQ predicate on the "currency" field.
+func CurrencyEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldCurrency, v))
+}
+
+// CurrencyNEQ applies the NEQ predicate on the "currency" field.
+func CurrencyNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldCurrency, v))
+}
+
+// CurrencyIn applies the In predicate on the "currency" field.
+func CurrencyIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldCurrency, vs...))
+}
+
+// CurrencyNotIn applies the NotIn predicate on the "currency" field.
+func CurrencyNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldCurrency, vs...))
+}
+
+// CurrencyGT applies the GT predicate on the "currency" field.
+func CurrencyGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldCurrency, v))
+}
+
+// CurrencyGTE applies the GTE predicate on the "currency" field.
+func CurrencyGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldCurrency, v))
+}
+
+// CurrencyLT applies the LT predicate on the "currency" field.
+func CurrencyLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldCurrency, v))
+}
+
+// CurrencyLTE applies the LTE predicate on the "currency" field.
+func CurrencyLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldCurrency, v))
+}
+
+// CurrencyContains applies the Contains predicate on the "currency" field.
+func CurrencyContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldCurrency, v))
+}
+
+// CurrencyHasPrefix applies the HasPrefix predicate on the "currency" field.
+func CurrencyHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldCurrency, v))
+}
+
+// CurrencyHasSuffix applies the HasSuffix predicate on the "currency" field.
+func CurrencyHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldCurrency, v))
+}
+
+// CurrencyEqualFold applies the EqualFold predicate on the "currency" field.
+func CurrencyEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldCurrency, v))
+}
+
+// CurrencyContainsFold applies the ContainsFold predicate on the "currency" field.
+func CurrencyContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldCurrency, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

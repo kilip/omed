@@ -79,6 +79,34 @@ func (_u *UserUpdate) ClearAvatar() *UserUpdate {
 	return _u
 }
 
+// SetLocale sets the "locale" field.
+func (_u *UserUpdate) SetLocale(v string) *UserUpdate {
+	_u.mutation.SetLocale(v)
+	return _u
+}
+
+// SetNillableLocale sets the "locale" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLocale(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetLocale(*v)
+	}
+	return _u
+}
+
+// SetCurrency sets the "currency" field.
+func (_u *UserUpdate) SetCurrency(v string) *UserUpdate {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableCurrency(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *UserUpdate) SetUpdatedAt(v time.Time) *UserUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -210,6 +238,16 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Locale(); ok {
+		if err := user.LocaleValidator(v); err != nil {
+			return &ValidationError{Name: "locale", err: fmt.Errorf(`ent: validator failed for field "User.locale": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := user.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "User.currency": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -236,6 +274,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.AvatarCleared() {
 		_spec.ClearField(user.FieldAvatar, field.TypeString)
+	}
+	if value, ok := _u.mutation.Locale(); ok {
+		_spec.SetField(user.FieldLocale, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(user.FieldCurrency, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -406,6 +450,34 @@ func (_u *UserUpdateOne) ClearAvatar() *UserUpdateOne {
 	return _u
 }
 
+// SetLocale sets the "locale" field.
+func (_u *UserUpdateOne) SetLocale(v string) *UserUpdateOne {
+	_u.mutation.SetLocale(v)
+	return _u
+}
+
+// SetNillableLocale sets the "locale" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLocale(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetLocale(*v)
+	}
+	return _u
+}
+
+// SetCurrency sets the "currency" field.
+func (_u *UserUpdateOne) SetCurrency(v string) *UserUpdateOne {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableCurrency(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *UserUpdateOne) SetUpdatedAt(v time.Time) *UserUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -550,6 +622,16 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Locale(); ok {
+		if err := user.LocaleValidator(v); err != nil {
+			return &ValidationError{Name: "locale", err: fmt.Errorf(`ent: validator failed for field "User.locale": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := user.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "User.currency": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -593,6 +675,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.AvatarCleared() {
 		_spec.ClearField(user.FieldAvatar, field.TypeString)
+	}
+	if value, ok := _u.mutation.Locale(); ok {
+		_spec.SetField(user.FieldLocale, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(user.FieldCurrency, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

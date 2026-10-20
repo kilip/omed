@@ -17,6 +17,11 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	auth.Get("/get-session", ctlA.GetSession)
 	auth.Post("/sign-out", ctlA.SignOut)
 
+	users := r.Group("/users")
+	ctlU := controller.NewUserController(mod.UserService)
+	users.Get("/me", ctlU.GetMe)
+	users.Put("/me", ctlU.UpdateMe)
+
 	workspaces := r.Group("/workspaces")
 	ctlW := controller.NewWorkspaceController(mod.WorkspaceService)
 	ctlM := controller.NewMemberController(mod.MemberService, az)

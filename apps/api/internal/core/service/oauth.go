@@ -204,6 +204,10 @@ func (s *oauthService) HandleCallback(
 		return domain.Session{}, domain.User{}, "", fmt.Errorf("%w: %v", domain.ErrFetchUserInfoFailed, err)
 	}
 
+	if claims.Locale != "" {
+		userInfo.Locale = claims.Locale
+	}
+
 	// Resolve or create user
 	usr, err := s.resolveUser(ctx, provider, userInfo)
 	if err != nil {
@@ -278,10 +282,13 @@ func (s *oauthService) resolveUser(ctx context.Context, provider string, info mo
 		name = fmt.Sprintf("User-%s", info.ID)
 	}
 
+	locale, currency := NormalizeLocaleAndCurrency(info.Locale)
 	createdUser, err := s.users.Create(ctx, model.CreateUserRequest{
-		Name:   name,
-		Email:  info.Email,
-		Avatar: info.Avatar,
+		Name:     name,
+		Email:    info.Email,
+		Avatar:   info.Avatar,
+		Locale:   locale,
+		Currency: currency,
 	})
 	if err != nil {
 		// In case of race condition on email, try to fetch again
@@ -326,6 +333,7 @@ func (s *oauthService) fetchUserInfo(ctx context.Context, p *OAuthProviderConfig
 			VerifiedEmail bool   `json:"verified_email"`
 			Name          string `json:"name"`
 			Picture       string `json:"picture"`
+			Locale        string `json:"locale"`
 		}
 		if err := json.Unmarshal(body, &gUser); err != nil {
 			return model.OAuthUserInfo{}, err
@@ -336,6 +344,7 @@ func (s *oauthService) fetchUserInfo(ctx context.Context, p *OAuthProviderConfig
 			Name:          gUser.Name,
 			Avatar:        gUser.Picture,
 			EmailVerified: gUser.VerifiedEmail,
+			Locale:        gUser.Locale,
 		}, nil
 
 	case domain.ProviderGithub:
@@ -430,6 +439,7 @@ func (s *oauthService) generateState(req model.SignInSocialRequest) (string, err
 		Provider:         req.Provider,
 		CallbackURL:      req.CallbackURL,
 		ErrorCallbackURL: req.ErrorCallbackURL,
+		Locale:           req.Locale,
 		ExpiresAt:        time.Now().Add(10 * time.Minute).Unix(),
 	}
 
@@ -502,4 +512,14 @@ func (s *oauthService) isAllowedURL(targetURL string) bool {
 	}
 
 	return false
+}
+
+// NormalizeLocaleAndCurrency normalizes raw browser/client locale string into a supported language code
+// and determines the corresponding default currency code.
+func NormalizeLocaleAndCurrency(raw string) (string, string) {
+	lower := strings.ToLower(strings.TrimSpace(raw))
+	if strings.HasPrefix(lower, "id") {
+		return "id", "IDR"
+	}
+	return "en", "USD"
 }

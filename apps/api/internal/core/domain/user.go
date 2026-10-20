@@ -8,6 +8,8 @@ type User struct {
 	Name      string
 	Email     string
 	Avatar    string
+	Locale    string
+	Currency  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

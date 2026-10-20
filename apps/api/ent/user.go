@@ -23,6 +23,10 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Avatar holds the value of the "avatar" field.
 	Avatar string `json:"avatar,omitempty"`
+	// Locale holds the value of the "locale" field.
+	Locale string `json:"locale,omitempty"`
+	// Currency holds the value of the "currency" field.
+	Currency string `json:"currency,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -69,7 +73,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldEmail, user.FieldAvatar:
+		case user.FieldName, user.FieldEmail, user.FieldAvatar, user.FieldLocale, user.FieldCurrency:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -111,6 +115,18 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field avatar", values[i])
 			} else if value.Valid {
 				_m.Avatar = value.String
+			}
+		case user.FieldLocale:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field locale", values[i])
+			} else if value.Valid {
+				_m.Locale = value.String
+			}
+		case user.FieldCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field currency", values[i])
+			} else if value.Valid {
+				_m.Currency = value.String
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -178,6 +194,12 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("avatar=")
 	builder.WriteString(_m.Avatar)
+	builder.WriteString(", ")
+	builder.WriteString("locale=")
+	builder.WriteString(_m.Locale)
+	builder.WriteString(", ")
+	builder.WriteString("currency=")
+	builder.WriteString(_m.Currency)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

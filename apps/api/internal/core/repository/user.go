@@ -109,11 +109,27 @@ func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (
 
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		var err error
-		usr, err = tx.User.Create().
+		locale := req.Locale
+		if locale == "" {
+			locale = "en"
+		}
+		currency := req.Currency
+		if currency == "" {
+			if locale == "id" {
+				currency = "IDR"
+			} else {
+				currency = "USD"
+			}
+		}
+
+		uCreate := tx.User.Create().
 			SetName(req.Name).
 			SetEmail(req.Email).
-			SetNillableAvatar(&req.Avatar).
-			Save(c)
+			SetLocale(locale).
+			SetCurrency(currency).
+			SetNillableAvatar(&req.Avatar)
+
+		usr, err = uCreate.Save(c)
 		if err != nil {
 			if ent.IsConstraintError(err) {
 				return domain.ErrEmailTaken
@@ -123,14 +139,12 @@ func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (
 
 		// Auto-create personal workspace
 		wsName := req.Name + "'s Workspace"
-		wsCtx := c
-		if wsCtx.Value(base.USER_CONTEXT_KEY) == nil {
-			wsCtx = context.WithValue(c, base.USER_CONTEXT_KEY, base.UserContext{ID: usr.ID, Name: usr.Name})
-		}
+		wsCtx := context.WithValue(c, base.USER_CONTEXT_KEY, base.UserContext{ID: usr.ID, Name: usr.Name})
 		_, err = tx.Workspace.Create().
 			SetName(wsName).
 			SetOwnerID(usr.ID).
 			SetPersonal(true).
+			SetBaseCurrency(usr.Currency).
 			Save(wsCtx)
 		return err
 	})
@@ -148,11 +162,21 @@ func (r UserRepository) Update(c context.Context, id int64, req model.UpdateUser
 	var usr *ent.User
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
 		var err error
-		usr, err = tx.User.UpdateOneID(id).
-			SetName(req.Name).
-			SetNillableAvatar(&req.Avatar).
-			Save(c)
+		uUpdate := tx.User.UpdateOneID(id)
+		if req.Name != "" {
+			uUpdate.SetName(req.Name)
+		}
+		if req.Avatar != "" {
+			uUpdate.SetAvatar(req.Avatar)
+		}
+		if req.Locale != "" {
+			uUpdate.SetLocale(req.Locale)
+		}
+		if req.Currency != "" {
+			uUpdate.SetCurrency(req.Currency)
+		}
 
+		usr, err = uUpdate.Save(c)
 		return err
 	})
 
@@ -187,6 +211,8 @@ func toDomain(u *ent.User) domain.User {
 		Name:      u.Name,
 		Email:     u.Email,
 		Avatar:    u.Avatar,
+		Locale:    u.Locale,
+		Currency:  u.Currency,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}

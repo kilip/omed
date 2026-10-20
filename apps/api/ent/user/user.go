@@ -20,6 +20,10 @@ const (
 	FieldEmail = "email"
 	// FieldAvatar holds the string denoting the avatar field in the database.
 	FieldAvatar = "avatar"
+	// FieldLocale holds the string denoting the locale field in the database.
+	FieldLocale = "locale"
+	// FieldCurrency holds the string denoting the currency field in the database.
+	FieldCurrency = "currency"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -52,6 +56,8 @@ var Columns = []string{
 	FieldName,
 	FieldEmail,
 	FieldAvatar,
+	FieldLocale,
+	FieldCurrency,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -71,6 +77,14 @@ var (
 	NameValidator func(string) error
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
+	// DefaultLocale holds the default value on creation for the "locale" field.
+	DefaultLocale string
+	// LocaleValidator is a validator for the "locale" field. It is called by the builders before save.
+	LocaleValidator func(string) error
+	// DefaultCurrency holds the default value on creation for the "currency" field.
+	DefaultCurrency string
+	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	CurrencyValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -100,6 +114,16 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 // ByAvatar orders the results by the avatar field.
 func ByAvatar(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAvatar, opts...).ToFunc()
+}
+
+// ByLocale orders the results by the locale field.
+func ByLocale(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLocale, opts...).ToFunc()
+}
+
+// ByCurrency orders the results by the currency field.
+func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

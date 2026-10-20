@@ -369,6 +369,136 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/users/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get current user profile
+     * @description Retrieve authenticated user's profile and preferences (locale, currency)
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_UserResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    /**
+     * Update current user profile
+     * @description Update authenticated user's profile and preferences (locale, currency, name, avatar)
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description Update user payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.UpdateUserRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_UserResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces": {
     parameters: {
       query?: never;
@@ -5070,6 +5200,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_UserResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.UserResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_WorkspaceBaseCurrencyResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.WorkspaceBaseCurrencyResponse"];
@@ -5456,6 +5592,7 @@ export interface components {
     "model.SignInSocialRequest": {
       callbackURL?: string;
       errorCallbackURL?: string;
+      locale?: string;
       newUserCallbackURL?: string;
       provider: string;
     };
@@ -5560,22 +5697,33 @@ export interface components {
       description?: string;
       reference?: string;
     };
+    "model.UpdateUserRequest": {
+      avatar?: string;
+      currency?: string;
+      /** @enum {string} */
+      locale?: "en" | "id";
+      name?: string;
+    };
     "model.UpdateWorkspaceRequest": {
       description?: string;
       name: string;
     };
     "model.UserData": {
+      currency?: string;
       email?: string;
       emailVerified?: boolean;
       id?: number;
       image?: string;
+      locale?: string;
       name?: string;
     };
     "model.UserResponse": {
       avatar?: string;
       createdAt?: string;
+      currency?: string;
       email?: string;
       id?: number;
+      locale?: string;
       name?: string;
       updatedAt?: string;
     };

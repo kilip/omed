@@ -310,12 +310,38 @@ func init() {
 	userDescEmail := userFields[2].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	// userDescLocale is the schema descriptor for locale field.
+	userDescLocale := userFields[4].Descriptor()
+	// user.DefaultLocale holds the default value on creation for the locale field.
+	user.DefaultLocale = userDescLocale.Default.(string)
+	// user.LocaleValidator is a validator for the "locale" field. It is called by the builders before save.
+	user.LocaleValidator = userDescLocale.Validators[0].(func(string) error)
+	// userDescCurrency is the schema descriptor for currency field.
+	userDescCurrency := userFields[5].Descriptor()
+	// user.DefaultCurrency holds the default value on creation for the currency field.
+	user.DefaultCurrency = userDescCurrency.Default.(string)
+	// user.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	user.CurrencyValidator = func() func(string) error {
+		validators := userDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[4].Descriptor()
+	userDescCreatedAt := userFields[6].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[5].Descriptor()
+	userDescUpdatedAt := userFields[7].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
