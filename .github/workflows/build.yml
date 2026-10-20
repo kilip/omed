@@ -25,6 +25,7 @@ jobs:
       matrix:
         include:
           - app: api
+          - app: web
 
     steps:
       - name: Checkout code
