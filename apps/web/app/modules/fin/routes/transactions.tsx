@@ -1,6 +1,6 @@
 import { PlusOutlined } from "@ant-design/icons";
 import type { components, paths } from "@omed/openapi";
-import { useInfiniteQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button, Empty, type MenuProps, Table, type TableProps } from "antd";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,12 +12,8 @@ import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { permissionsQueryOptions } from "~/modules/core/queries";
-import { CreateTransactionDrawer } from "../components";
 import { useFinPermissions } from "../hooks";
-import {
-  currenciesQueryOptions,
-  transactionsInfiniteQueryOptions,
-} from "../queries";
+import { transactionsInfiniteQueryOptions } from "../queries";
 import type { Route } from "./+types/transactions";
 
 type Transaction = components["schemas"]["model.TransactionResponse"];
@@ -32,7 +28,6 @@ export async function clientLoader() {
     queryClient.ensureInfiniteQueryData(
       transactionsInfiniteQueryOptions(wid, {}),
     ),
-    queryClient.ensureQueryData(currenciesQueryOptions(wid)),
     queryClient.ensureQueryData(permissionsQueryOptions(wid)),
   ]);
   return { wid };
@@ -46,10 +41,6 @@ export default function TransactionsRoute({
   const navigate = useNavigate();
   const { canCreateTransaction } = useFinPermissions(wid);
 
-  // Preload currencies for CreateTransactionDrawer
-  useSuspenseQuery(currenciesQueryOptions(wid));
-
-  const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
   const [queryText, setQueryText] = useState("");
   const [sourceFilter, setSourceFilter] = useState<
     SearchFilters["source"] | undefined
@@ -197,7 +188,7 @@ export default function TransactionsRoute({
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setCreateDrawerOpen(true)}
+            onClick={() => navigate("/fin/transactions/new")}
           >
             {t("fin.transactions.new", "New transaction")}
           </Button>
@@ -242,16 +233,6 @@ export default function TransactionsRoute({
           </div>
         )}
       </Panel>
-
-      <CreateTransactionDrawer
-        wid={wid}
-        open={createDrawerOpen}
-        onClose={() => setCreateDrawerOpen(false)}
-        onSuccess={(txId) => {
-          setCreateDrawerOpen(false);
-          navigate(`/fin/transactions/${txId}`);
-        }}
-      />
     </Page>
   );
 }

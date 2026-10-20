@@ -41,6 +41,10 @@ When("I save the transaction drawer", async function (this: OmedWorld) {
   await this.pages.fin.transactions.saveDrawer();
 });
 
+When("I save the transaction form", async function (this: OmedWorld) {
+  await this.pages.fin.transactions.saveForm();
+});
+
 Then(
   "I see transaction {string} in the transactions list",
   async function (this: OmedWorld, text: string) {

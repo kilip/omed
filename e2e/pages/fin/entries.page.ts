@@ -39,7 +39,7 @@ export class FinEntriesPage extends BasePage {
   }
 
   get descriptionInput(): Locator {
-    return this.drawer.getByPlaceholder("Description");
+    return this.drawer.locator("#description");
   }
 
   get addLineButton(): Locator {

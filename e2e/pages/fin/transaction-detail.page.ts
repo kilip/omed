@@ -54,6 +54,7 @@ export class FinTransactionDetailPage extends BasePage {
 
   async saveChanges(): Promise<void> {
     await this.saveChangesButton.click();
+    await this.page.waitForURL((url) => !url.pathname.endsWith("/edit"));
   }
 
   async clickDelete(): Promise<void> {

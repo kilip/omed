@@ -21,29 +21,25 @@ export class FinTransactionsPage extends BasePage {
     return this.page.getByPlaceholder("Search number or description...");
   }
 
-  // Drawer locators
-  get drawer(): Locator {
-    return this.page.locator(".ant-drawer");
-  }
-
-  get drawerSaveButton(): Locator {
-    return this.drawer.getByRole("button", { name: "Save" });
+  // Form locators
+  get saveButton(): Locator {
+    return this.page.getByRole("button", { name: "Save" });
   }
 
   get descriptionInput(): Locator {
-    return this.drawer.getByPlaceholder("Description");
+    return this.page.getByPlaceholder("Description");
   }
 
   get referenceInput(): Locator {
-    return this.drawer.getByPlaceholder("Reference");
+    return this.page.getByPlaceholder("Reference");
   }
 
   get currencySelect(): Locator {
-    return this.drawer.locator(".ant-select").first();
+    return this.page.locator(".ant-select").first();
   }
 
   get exchangeRateInput(): Locator {
-    return this.drawer.locator(".ant-input-number-input").first();
+    return this.page.locator(".ant-input-number-input").first();
   }
 
   async clickNewTransaction(): Promise<void> {
@@ -52,7 +48,7 @@ export class FinTransactionsPage extends BasePage {
   }
 
   async expectDrawerVisible(): Promise<void> {
-    await this.drawer.waitFor({ state: "visible" });
+    await this.descriptionInput.waitFor({ state: "visible" });
   }
 
   async fillDescription(desc: string): Promise<void> {
@@ -74,7 +70,13 @@ export class FinTransactionsPage extends BasePage {
   }
 
   async saveDrawer(): Promise<void> {
-    await this.drawerSaveButton.click();
+    await this.saveButton.click();
+    await this.page.waitForURL((url) => !url.pathname.endsWith("/new"));
+  }
+
+  async saveForm(): Promise<void> {
+    await this.saveButton.click();
+    await this.page.waitForURL((url) => !url.pathname.endsWith("/new"));
   }
 
   async expectTransactionInTable(text: string): Promise<void> {

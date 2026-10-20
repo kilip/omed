@@ -1,6 +1,5 @@
 export * from "./account-select";
 export * from "./create-entry-drawer";
-export * from "./create-transaction-drawer";
 export * from "./currency-select";
 export * from "./entry-status-tag";
 export * from "./money-cell";

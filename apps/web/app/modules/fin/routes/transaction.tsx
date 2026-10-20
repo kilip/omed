@@ -6,13 +6,13 @@ import {
 } from "@ant-design/icons";
 import type { components } from "@omed/openapi";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Button, Form, Input, Popconfirm, Table, type TableProps } from "antd";
+import { Button, Popconfirm, Table, type TableProps } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { FormView } from "~/components/FormView";
 import { Page } from "~/components/Page";
-import { api, unwrapOne, unwrapVoid } from "~/lib/api";
+import { api, unwrapVoid } from "~/lib/api";
 import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { useAction } from "~/lib/use-action";
@@ -49,52 +49,10 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
     transactionQueryOptions(wid, id),
   );
 
-  const [isEditing, setIsEditing] = useState(false);
   const [createEntryDrawerOpen, setCreateEntryDrawerOpen] = useState(false);
-  const [editForm] = Form.useForm();
 
   const entries = transaction.entries ?? [];
   const hasPostedEntries = entries.some((e) => e.status === "POSTED");
-
-  const startEdit = () => {
-    editForm.setFieldsValue({
-      description: transaction.description,
-      reference: transaction.reference,
-    });
-    setIsEditing(true);
-  };
-
-  const cancelEdit = () => {
-    setIsEditing(false);
-    editForm.resetFields();
-  };
-
-  const handleSaveEdit = async () => {
-    try {
-      const values = await editForm.validateFields();
-      const ok = await run(
-        () =>
-          unwrapOne(
-            api.PUT("/workspaces/{wid}/fin/transactions/{id}", {
-              params: { path: { wid, id } },
-              body: {
-                description: values.description,
-                reference: values.reference,
-              },
-            }),
-          ),
-        "common.saved",
-      );
-      if (ok) {
-        setIsEditing(false);
-        queryClient.invalidateQueries({
-          queryKey: transactionKeys.detail(wid, id),
-        });
-      }
-    } catch {
-      // validation error
-    }
-  };
 
   const handleDelete = async () => {
     const ok = await run(
@@ -116,10 +74,13 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
 
   const actionButtons = (
     <div className="flex flex-wrap items-center gap-2">
-      {!hasPostedEntries && !isEditing && (
+      {!hasPostedEntries && (
         <>
           {canEditTransaction && (
-            <Button icon={<EditOutlined />} onClick={startEdit}>
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => navigate(`/fin/transactions/${id}/edit`)}
+            >
               {t("fin.transactions.edit", "Edit transaction")}
             </Button>
           )}
@@ -136,15 +97,6 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
               </Button>
             </Popconfirm>
           )}
-        </>
-      )}
-
-      {isEditing && canEditTransaction && (
-        <>
-          <Button type="primary" loading={pending} onClick={handleSaveEdit}>
-            {t("fin.transactions.saveChanges", "Save changes")}
-          </Button>
-          <Button onClick={cancelEdit}>{t("common.cancel", "Cancel")}</Button>
         </>
       )}
 
@@ -235,106 +187,60 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
         buttons={actionButtons}
       >
         <div className="p-6 flex flex-col gap-6">
-          {/* Header Form */}
-          {isEditing ? (
-            <Form form={editForm} layout="vertical">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Form.Item label={t("fin.transactions.date", "Date")}>
-                  <Input
-                    value={formatDate(
-                      transaction.transactionDate,
-                      i18n.language,
-                    )}
-                    disabled
-                  />
-                </Form.Item>
-                <Form.Item label={t("fin.transactions.currency", "Currency")}>
-                  <Input
-                    value={`${transaction.currency || "IDR"} (Rate: ${transaction.exchangeRate || 1})`}
-                    disabled
-                  />
-                </Form.Item>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Form.Item
-                  name="reference"
-                  label={t("fin.transactions.reference", "Reference")}
-                >
-                  <Input
-                    placeholder={t("fin.transactions.reference", "Reference")}
-                  />
-                </Form.Item>
-                <Form.Item
-                  name="description"
-                  label={t("fin.transactions.description", "Description")}
-                >
-                  <Input
-                    placeholder={t(
-                      "fin.transactions.description",
-                      "Description",
-                    )}
-                  />
-                </Form.Item>
-              </div>
-            </Form>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <span className="text-xs text-muted block mb-1">
-                  {t("fin.transactions.number", "Number")}
-                </span>
-                <span className="font-semibold text-sm">
-                  {transaction.number || `#${transaction.id}`}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-muted block mb-1">
-                  {t("fin.transactions.date", "Date")}
-                </span>
-                <span className="text-sm">
-                  {formatDate(transaction.transactionDate, i18n.language)}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-muted block mb-1">
-                  {t("fin.transactions.currency", "Currency")}
-                </span>
-                <span className="text-sm font-mono">
-                  {transaction.currency || "IDR"}{" "}
-                  {transaction.currency !== "IDR" &&
-                    `(Rate: ${transaction.exchangeRate || 1})`}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-muted block mb-1">
-                  {t("fin.transactions.source", "Source")}
-                </span>
-                <span className="text-sm">
-                  {transaction.source
-                    ? t(
-                        `fin.transactions.sources.${transaction.source}`,
-                        transaction.source,
-                      )
-                    : "-"}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-muted block mb-1">
-                  {t("fin.transactions.reference", "Reference")}
-                </span>
-                <span className="text-sm">{transaction.reference || "-"}</span>
-              </div>
-              <div className="md:col-span-3">
-                <span className="text-xs text-muted block mb-1">
-                  {t("fin.transactions.description", "Description")}
-                </span>
-                <span className="text-sm">
-                  {transaction.description || "-"}
-                </span>
-              </div>
+          {/* Header Info */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <span className="text-xs text-muted block mb-1">
+                {t("fin.transactions.number", "Number")}
+              </span>
+              <span className="font-semibold text-sm">
+                {transaction.number || `#${transaction.id}`}
+              </span>
             </div>
-          )}
+            <div>
+              <span className="text-xs text-muted block mb-1">
+                {t("fin.transactions.date", "Date")}
+              </span>
+              <span className="text-sm">
+                {formatDate(transaction.transactionDate, i18n.language)}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs text-muted block mb-1">
+                {t("fin.transactions.currency", "Currency")}
+              </span>
+              <span className="text-sm font-mono">
+                {transaction.currency || "IDR"}{" "}
+                {transaction.currency !== "IDR" &&
+                  `(Rate: ${transaction.exchangeRate || 1})`}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs text-muted block mb-1">
+                {t("fin.transactions.source", "Source")}
+              </span>
+              <span className="text-sm">
+                {transaction.source
+                  ? t(
+                      `fin.transactions.sources.${transaction.source}`,
+                      transaction.source,
+                    )
+                  : "-"}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs text-muted block mb-1">
+                {t("fin.transactions.reference", "Reference")}
+              </span>
+              <span className="text-sm">{transaction.reference || "-"}</span>
+            </div>
+            <div className="md:col-span-3">
+              <span className="text-xs text-muted block mb-1">
+                {t("fin.transactions.description", "Description")}
+              </span>
+              <span className="text-sm">{transaction.description || "-"}</span>
+            </div>
+          </div>
 
           {/* Embedded Entries Table */}
           <div className="pt-4 border-t">

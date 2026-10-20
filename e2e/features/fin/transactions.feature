@@ -1,4 +1,4 @@
-@authenticated @fin
+@authenticated @fin @transactions
 Feature: Finance Transactions
   As a finance user
   I want to create, search, edit, and manage transactions and their entries
@@ -15,10 +15,11 @@ Feature: Finance Transactions
   Scenario: Create transaction and filter list
     When I open "/fin/transactions"
     And I click the new transaction button
-    Then I see the create transaction drawer
+    Then I am on "/fin/transactions/new"
     When I enter transaction description "Cloud Hosting Subscription"
     And I enter transaction reference "INV-2026-001"
-    And I save the transaction drawer
+    And I save the transaction form
+    When I open "/fin/transactions"
     Then I see transaction "Cloud Hosting Subscription" in the transactions list
     When I search transactions for "Hosting"
     Then I see transaction "Cloud Hosting Subscription" in the transactions list
@@ -26,12 +27,10 @@ Feature: Finance Transactions
   Scenario: Edit draft transaction and add journal entry
     When I open "/fin/transactions"
     And I click the new transaction button
-    Then I see the create transaction drawer
+    Then I am on "/fin/transactions/new"
     When I enter transaction description "Laptop Purchase"
     And I enter transaction reference "PO-100"
-    And I save the transaction drawer
-    Then I see transaction "Laptop Purchase" in the transactions list
-    When I click on transaction "Laptop Purchase" in the list
+    And I save the transaction form
     When I click the edit transaction button
     And I change transaction reference to "PO-100-REV"
     And I change transaction description to "Laptop Purchase Revised"
@@ -50,12 +49,10 @@ Feature: Finance Transactions
   Scenario: Transaction with posted entry cannot be edited or deleted
     When I open "/fin/transactions"
     And I click the new transaction button
-    Then I see the create transaction drawer
+    Then I am on "/fin/transactions/new"
     When I enter transaction description "Fixed Asset Acquisition"
     And I enter transaction reference "FA-01"
-    And I save the transaction drawer
-    Then I see transaction "Fixed Asset Acquisition" in the transactions list
-    When I click on transaction "Fixed Asset Acquisition" in the list
+    And I save the transaction form
     When I click add entry to transaction button
     Then I see the create entry drawer
     When I enter entry description "Asset Initial Payment"
