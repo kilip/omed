@@ -183,7 +183,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
   - Done when: repository tests cover search filters, effective-status filtering, the visibility predicate (draft, scheduled future, `publish_at` in the past, `publish_at == now`, deleted), admin ID cursor pagination, public composite cursor pagination (including items with equal `publish_at`), slug uniqueness (including reuse after soft delete).
   - Commit: `feat(api): ✨ add cms post repository`
 
-- [ ] **T3.3 Post service**
+- [x] **T3.3 Post service**
   - Depends: T3.2, T2.1
   - Files: `internal/cms/service/post*.go` plus tests and mocks.
   - Do: create (auto slug via helpers, resolve conflicts with suffix), get, search, update, delete, `Publish`, `Schedule`, `Unpublish`. Inject a clock (`now func() time.Time` option, same style as `With...` options in `fin`) so tests control time. Validate that `coverMediaId` belongs to the same workspace and is not deleted. Cross-module access only through contracts, never other modules' repositories.
