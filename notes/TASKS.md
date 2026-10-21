@@ -174,7 +174,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
   - Done when: table-driven tests cover every transition (valid and invalid), the `publish_at == now` boundary, empty/unicode/duplicate-hyphen slugs.
   - Commit: `feat(api): ✨ add cms publishing and slug helpers`
 
-- [ ] **T3.2 Post model and repository**
+- [x] **T3.2 Post model and repository**
   - Depends: T1.1, T3.1
   - Files: `internal/cms/{model,repository}/post*.go` plus tests.
   - Do:
