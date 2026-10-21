@@ -303,7 +303,7 @@ General rules for every web task: types come from `@omed/openapi` via `openapi-f
 
 ## Phase 9: Docs
 
-- [ ] **T9.1 README**
+- [x] **T9.1 README**
   - Depends: T8.2
   - Do: add a CMS section to README.md in the same style as the Finance routes list (web routes and capabilities, admin and public API summary, new env vars if not already listed). Do not change AGENTS.md or BRANDING.md.
   - Done when: README matches the implemented routes and env vars.

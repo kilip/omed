@@ -51,6 +51,17 @@ omed/
     - `/fin/journal/:id`: Journal entry detail view with status workflow (post, reverse with date override, void) and individual postings linked to the ledger.
     - `/fin/ledger`: General Ledger view (`GET /workspaces/{wid}/fin/accounts/{id}/ledger`) with account selector, running balances, and direct deep-links to journal entries.
     - `/fin/trial-balance`: Financial trial balance reports and summaries.
+  - **CMS (`cms`) module routes & capabilities:**
+    - `/cms/posts`: Post list with search, status filters (Draft, Scheduled, Published), and actions.
+    - `/cms/posts/new`: Create post with title, auto-slug, excerpt, markdown editor (write/preview), and cover media picker.
+    - `/cms/posts/:id`: Post detail and edit with PublishPanel (Publish now, Schedule, Unpublish), cover media picker, inline slug conflict handling, and deletion.
+    - `/cms/pages`: Standalone pages list with search, status filters, and actions.
+    - `/cms/pages/new`: Create page with title, auto-slug, and markdown editor.
+    - `/cms/pages/:id`: Page edit with PublishPanel and deletion.
+    - `/cms/media`: Media library with drag-and-drop / upload, metadata editing (title, alt text, caption, public toggle), copy public URL, and in-use delete protection.
+  - **Admin and public API summary:**
+    - Admin API: authenticated workspace-scoped CRUD and publishing endpoints under `/workspaces/:wid/cms/{posts,pages,media}`.
+    - Public API: unauthenticated read-only endpoints under `/public/workspaces/:wid/cms/{posts,pages,media}`.
 
 ## Tech Stack
 
@@ -109,6 +120,7 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 | `OMED_CMS_MEDIA_*` | api | CMS media upload limits (`OMED_CMS_MEDIA_MAX_SIZE_MB`, `OMED_CMS_MEDIA_ALLOWED_TYPES`) |
 | `VITE_PUBLIC_URL` | web | Public dashboard URL |
 | `VITE_API_URL` | web | Defaults to `http://localhost:8001` |
+| `VITE_CMS_MEDIA_*` | web | CMS media upload limits (`VITE_CMS_MEDIA_MAX_SIZE_MB`, `VITE_CMS_MEDIA_ALLOWED_TYPES`) |
 
 ## OpenAPI & Types
 
