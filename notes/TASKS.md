@@ -190,7 +190,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
   - Done when: unit tests cover each operation, invalid transitions, schedule in the past, bad cover media, slug conflict handling.
   - Commit: `feat(api): ✨ add cms post service`
 
-- [ ] **T3.4 Post controller, routes, integration tests**
+- [x] **T3.4 Post controller, routes, integration tests**
   - Depends: T3.3, T2.2
   - Files: `internal/cms/controller/post.go`, `internal/cms/routes.go`, `internal/cms/test/post_test.go`.
   - Do: admin endpoints from "API surface" with `az.Require(domain.ObjPost, ...)`; publish/schedule/unpublish require `update`. Swaggo annotations (`@Tags CMS Posts`).

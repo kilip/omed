@@ -16,4 +16,16 @@ func initRoutes(mod CmsModule, r fiber.Router, az *authz.Authorizer) {
 	media.Get("/:id", az.Require(domain.ObjMedia, "read"), mediaCtl.GetByID)
 	media.Put("/:id", az.Require(domain.ObjMedia, "update"), mediaCtl.Update)
 	media.Delete("/:id", az.Require(domain.ObjMedia, "delete"), mediaCtl.Delete)
+
+	posts := r.Group("/workspaces/:wid/cms/posts")
+	postCtl := controller.NewPostController(mod.PostService)
+
+	posts.Post("/search", az.Require(domain.ObjPost, "read"), postCtl.Search)
+	posts.Post("/", az.Require(domain.ObjPost, "create"), postCtl.Create)
+	posts.Get("/:id", az.Require(domain.ObjPost, "read"), postCtl.GetByID)
+	posts.Put("/:id", az.Require(domain.ObjPost, "update"), postCtl.Update)
+	posts.Delete("/:id", az.Require(domain.ObjPost, "delete"), postCtl.Delete)
+	posts.Post("/:id/publish", az.Require(domain.ObjPost, "update"), postCtl.Publish)
+	posts.Post("/:id/schedule", az.Require(domain.ObjPost, "update"), postCtl.Schedule)
+	posts.Post("/:id/unpublish", az.Require(domain.ObjPost, "update"), postCtl.Unpublish)
 }

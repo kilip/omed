@@ -28,6 +28,11 @@ var (
 	ErrPageNotFound = errors.New("PAGE_NOT_FOUND")
 	// ErrMediaNotFound indicates the requested media was not found.
 	ErrMediaNotFound = errors.New("MEDIA_NOT_FOUND")
+
+	// ErrTitleRequired indicates the title field is missing or empty.
+	ErrTitleRequired = errors.New("TITLE_REQUIRED")
+	// ErrPublishAtRequired indicates the publishAt field is missing or zero.
+	ErrPublishAtRequired = errors.New("PUBLISH_AT_REQUIRED")
 )
 
 func init() {
@@ -37,6 +42,9 @@ func init() {
 	base.AddToErrorMap(ErrMediaInUse, fiber.StatusConflict, "media cannot be deleted because it is referenced")
 	base.AddToErrorMap(ErrMediaTypeNotAllowed, fiber.StatusUnprocessableEntity, "media file type not allowed")
 	base.AddToErrorMap(ErrMediaTooLarge, fiber.StatusUnprocessableEntity, "media file exceeds maximum allowed size")
+
+	base.AddToErrorMap(ErrTitleRequired, fiber.StatusUnprocessableEntity, "title is required")
+	base.AddToErrorMap(ErrPublishAtRequired, fiber.StatusUnprocessableEntity, "publish_at is required")
 
 	base.AddToErrorMap(ErrPostNotFound, fiber.StatusNotFound, "post not found")
 	base.AddToErrorMap(ErrPageNotFound, fiber.StatusNotFound, "page not found")
