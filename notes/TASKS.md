@@ -111,7 +111,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
 
 ## Phase 1: API foundation
 
-- [ ] **T1.1 Ent schemas**
+- [x] **T1.1 Ent schemas**
   - Depends: T0.1
   - Files: `apps/api/ent/schema/mix_publish.go`, `cms_media.go`, `cms_post.go`, `cms_page.go` (naming mirrors `fin_*.go` / `core_*.go`).
   - Do:

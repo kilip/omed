@@ -12,6 +12,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/cmsmedia"
+	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspost"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -38,6 +41,9 @@ const (
 
 	// Node types.
 	TypeAccount             = "Account"
+	TypeCmsMedia            = "CmsMedia"
+	TypeCmsPage             = "CmsPage"
+	TypeCmsPost             = "CmsPost"
 	TypeCurrency            = "Currency"
 	TypeEntry               = "Entry"
 	TypeExchangeRate        = "ExchangeRate"
@@ -1656,6 +1662,3942 @@ func (m *AccountMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Account edge %s", name)
+}
+
+// CmsMediaMutation represents an operation that mutates the CmsMedia nodes in the graph.
+type CmsMediaMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int64
+	created_at       *time.Time
+	updated_at       *time.Time
+	deleted_at       *time.Time
+	title            *string
+	alt_text         *string
+	caption          *string
+	is_public        *bool
+	clearedFields    map[string]struct{}
+	workspace        *int64
+	clearedworkspace bool
+	creator          *int64
+	clearedcreator   bool
+	updater          *int64
+	clearedupdater   bool
+	deleter          *int64
+	cleareddeleter   bool
+	file             *int64
+	clearedfile      bool
+	done             bool
+	oldValue         func(context.Context) (*CmsMedia, error)
+	predicates       []predicate.CmsMedia
+}
+
+var _ ent.Mutation = (*CmsMediaMutation)(nil)
+
+// cmsmediaOption allows management of the mutation configuration using functional options.
+type cmsmediaOption func(*CmsMediaMutation)
+
+// newCmsMediaMutation creates new mutation for the CmsMedia entity.
+func newCmsMediaMutation(c config, op Op, opts ...cmsmediaOption) *CmsMediaMutation {
+	m := &CmsMediaMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCmsMedia,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCmsMediaID sets the ID field of the mutation.
+func withCmsMediaID(id int64) cmsmediaOption {
+	return func(m *CmsMediaMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CmsMedia
+		)
+		m.oldValue = func(ctx context.Context) (*CmsMedia, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CmsMedia.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCmsMedia sets the old CmsMedia of the mutation.
+func withCmsMedia(node *CmsMedia) cmsmediaOption {
+	return func(m *CmsMediaMutation) {
+		m.oldValue = func(context.Context) (*CmsMedia, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CmsMediaMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CmsMediaMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CmsMedia entities.
+func (m *CmsMediaMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CmsMediaMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CmsMediaMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CmsMedia.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *CmsMediaMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *CmsMediaMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *CmsMediaMutation) ResetWorkspaceID() {
+	m.workspace = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *CmsMediaMutation) SetCreatedBy(i int64) {
+	m.creator = &i
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *CmsMediaMutation) CreatedBy() (r int64, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *CmsMediaMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *CmsMediaMutation) SetUpdatedBy(i int64) {
+	m.updater = &i
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *CmsMediaMutation) UpdatedBy() (r int64, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *CmsMediaMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CmsMediaMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CmsMediaMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CmsMediaMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CmsMediaMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CmsMediaMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CmsMediaMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CmsMediaMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CmsMediaMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CmsMediaMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[cmsmedia.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CmsMediaMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[cmsmedia.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CmsMediaMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, cmsmedia.FieldDeletedAt)
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (m *CmsMediaMutation) SetDeletedByID(i int64) {
+	m.deleter = &i
+}
+
+// DeletedByID returns the value of the "deleted_by_id" field in the mutation.
+func (m *CmsMediaMutation) DeletedByID() (r int64, exists bool) {
+	v := m.deleter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedByID returns the old "deleted_by_id" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldDeletedByID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedByID: %w", err)
+	}
+	return oldValue.DeletedByID, nil
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (m *CmsMediaMutation) ClearDeletedByID() {
+	m.deleter = nil
+	m.clearedFields[cmsmedia.FieldDeletedByID] = struct{}{}
+}
+
+// DeletedByIDCleared returns if the "deleted_by_id" field was cleared in this mutation.
+func (m *CmsMediaMutation) DeletedByIDCleared() bool {
+	_, ok := m.clearedFields[cmsmedia.FieldDeletedByID]
+	return ok
+}
+
+// ResetDeletedByID resets all changes to the "deleted_by_id" field.
+func (m *CmsMediaMutation) ResetDeletedByID() {
+	m.deleter = nil
+	delete(m.clearedFields, cmsmedia.FieldDeletedByID)
+}
+
+// SetFileID sets the "file_id" field.
+func (m *CmsMediaMutation) SetFileID(i int64) {
+	m.file = &i
+}
+
+// FileID returns the value of the "file_id" field in the mutation.
+func (m *CmsMediaMutation) FileID() (r int64, exists bool) {
+	v := m.file
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileID returns the old "file_id" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldFileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileID: %w", err)
+	}
+	return oldValue.FileID, nil
+}
+
+// ResetFileID resets all changes to the "file_id" field.
+func (m *CmsMediaMutation) ResetFileID() {
+	m.file = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *CmsMediaMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *CmsMediaMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ClearTitle clears the value of the "title" field.
+func (m *CmsMediaMutation) ClearTitle() {
+	m.title = nil
+	m.clearedFields[cmsmedia.FieldTitle] = struct{}{}
+}
+
+// TitleCleared returns if the "title" field was cleared in this mutation.
+func (m *CmsMediaMutation) TitleCleared() bool {
+	_, ok := m.clearedFields[cmsmedia.FieldTitle]
+	return ok
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *CmsMediaMutation) ResetTitle() {
+	m.title = nil
+	delete(m.clearedFields, cmsmedia.FieldTitle)
+}
+
+// SetAltText sets the "alt_text" field.
+func (m *CmsMediaMutation) SetAltText(s string) {
+	m.alt_text = &s
+}
+
+// AltText returns the value of the "alt_text" field in the mutation.
+func (m *CmsMediaMutation) AltText() (r string, exists bool) {
+	v := m.alt_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAltText returns the old "alt_text" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldAltText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAltText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAltText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAltText: %w", err)
+	}
+	return oldValue.AltText, nil
+}
+
+// ClearAltText clears the value of the "alt_text" field.
+func (m *CmsMediaMutation) ClearAltText() {
+	m.alt_text = nil
+	m.clearedFields[cmsmedia.FieldAltText] = struct{}{}
+}
+
+// AltTextCleared returns if the "alt_text" field was cleared in this mutation.
+func (m *CmsMediaMutation) AltTextCleared() bool {
+	_, ok := m.clearedFields[cmsmedia.FieldAltText]
+	return ok
+}
+
+// ResetAltText resets all changes to the "alt_text" field.
+func (m *CmsMediaMutation) ResetAltText() {
+	m.alt_text = nil
+	delete(m.clearedFields, cmsmedia.FieldAltText)
+}
+
+// SetCaption sets the "caption" field.
+func (m *CmsMediaMutation) SetCaption(s string) {
+	m.caption = &s
+}
+
+// Caption returns the value of the "caption" field in the mutation.
+func (m *CmsMediaMutation) Caption() (r string, exists bool) {
+	v := m.caption
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCaption returns the old "caption" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldCaption(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCaption is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCaption requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCaption: %w", err)
+	}
+	return oldValue.Caption, nil
+}
+
+// ClearCaption clears the value of the "caption" field.
+func (m *CmsMediaMutation) ClearCaption() {
+	m.caption = nil
+	m.clearedFields[cmsmedia.FieldCaption] = struct{}{}
+}
+
+// CaptionCleared returns if the "caption" field was cleared in this mutation.
+func (m *CmsMediaMutation) CaptionCleared() bool {
+	_, ok := m.clearedFields[cmsmedia.FieldCaption]
+	return ok
+}
+
+// ResetCaption resets all changes to the "caption" field.
+func (m *CmsMediaMutation) ResetCaption() {
+	m.caption = nil
+	delete(m.clearedFields, cmsmedia.FieldCaption)
+}
+
+// SetIsPublic sets the "is_public" field.
+func (m *CmsMediaMutation) SetIsPublic(b bool) {
+	m.is_public = &b
+}
+
+// IsPublic returns the value of the "is_public" field in the mutation.
+func (m *CmsMediaMutation) IsPublic() (r bool, exists bool) {
+	v := m.is_public
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPublic returns the old "is_public" field's value of the CmsMedia entity.
+// If the CmsMedia object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsMediaMutation) OldIsPublic(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPublic is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPublic requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPublic: %w", err)
+	}
+	return oldValue.IsPublic, nil
+}
+
+// ResetIsPublic resets all changes to the "is_public" field.
+func (m *CmsMediaMutation) ResetIsPublic() {
+	m.is_public = nil
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *CmsMediaMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[cmsmedia.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *CmsMediaMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *CmsMediaMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *CmsMediaMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *CmsMediaMutation) SetCreatorID(id int64) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *CmsMediaMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[cmsmedia.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *CmsMediaMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *CmsMediaMutation) CreatorID() (id int64, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *CmsMediaMutation) CreatorIDs() (ids []int64) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *CmsMediaMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *CmsMediaMutation) SetUpdaterID(id int64) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *CmsMediaMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[cmsmedia.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *CmsMediaMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *CmsMediaMutation) UpdaterID() (id int64, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *CmsMediaMutation) UpdaterIDs() (ids []int64) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *CmsMediaMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// SetDeleterID sets the "deleter" edge to the User entity by id.
+func (m *CmsMediaMutation) SetDeleterID(id int64) {
+	m.deleter = &id
+}
+
+// ClearDeleter clears the "deleter" edge to the User entity.
+func (m *CmsMediaMutation) ClearDeleter() {
+	m.cleareddeleter = true
+	m.clearedFields[cmsmedia.FieldDeletedByID] = struct{}{}
+}
+
+// DeleterCleared reports if the "deleter" edge to the User entity was cleared.
+func (m *CmsMediaMutation) DeleterCleared() bool {
+	return m.DeletedByIDCleared() || m.cleareddeleter
+}
+
+// DeleterID returns the "deleter" edge ID in the mutation.
+func (m *CmsMediaMutation) DeleterID() (id int64, exists bool) {
+	if m.deleter != nil {
+		return *m.deleter, true
+	}
+	return
+}
+
+// DeleterIDs returns the "deleter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeleterID instead. It exists only for internal usage by the builders.
+func (m *CmsMediaMutation) DeleterIDs() (ids []int64) {
+	if id := m.deleter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeleter resets all changes to the "deleter" edge.
+func (m *CmsMediaMutation) ResetDeleter() {
+	m.deleter = nil
+	m.cleareddeleter = false
+}
+
+// ClearFile clears the "file" edge to the File entity.
+func (m *CmsMediaMutation) ClearFile() {
+	m.clearedfile = true
+	m.clearedFields[cmsmedia.FieldFileID] = struct{}{}
+}
+
+// FileCleared reports if the "file" edge to the File entity was cleared.
+func (m *CmsMediaMutation) FileCleared() bool {
+	return m.clearedfile
+}
+
+// FileIDs returns the "file" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FileID instead. It exists only for internal usage by the builders.
+func (m *CmsMediaMutation) FileIDs() (ids []int64) {
+	if id := m.file; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFile resets all changes to the "file" edge.
+func (m *CmsMediaMutation) ResetFile() {
+	m.file = nil
+	m.clearedfile = false
+}
+
+// Where appends a list predicates to the CmsMediaMutation builder.
+func (m *CmsMediaMutation) Where(ps ...predicate.CmsMedia) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CmsMediaMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CmsMediaMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CmsMedia, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CmsMediaMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CmsMediaMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CmsMedia).
+func (m *CmsMediaMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CmsMediaMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.workspace != nil {
+		fields = append(fields, cmsmedia.FieldWorkspaceID)
+	}
+	if m.creator != nil {
+		fields = append(fields, cmsmedia.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, cmsmedia.FieldUpdatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, cmsmedia.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, cmsmedia.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, cmsmedia.FieldDeletedAt)
+	}
+	if m.deleter != nil {
+		fields = append(fields, cmsmedia.FieldDeletedByID)
+	}
+	if m.file != nil {
+		fields = append(fields, cmsmedia.FieldFileID)
+	}
+	if m.title != nil {
+		fields = append(fields, cmsmedia.FieldTitle)
+	}
+	if m.alt_text != nil {
+		fields = append(fields, cmsmedia.FieldAltText)
+	}
+	if m.caption != nil {
+		fields = append(fields, cmsmedia.FieldCaption)
+	}
+	if m.is_public != nil {
+		fields = append(fields, cmsmedia.FieldIsPublic)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CmsMediaMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case cmsmedia.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case cmsmedia.FieldCreatedBy:
+		return m.CreatedBy()
+	case cmsmedia.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case cmsmedia.FieldCreatedAt:
+		return m.CreatedAt()
+	case cmsmedia.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case cmsmedia.FieldDeletedAt:
+		return m.DeletedAt()
+	case cmsmedia.FieldDeletedByID:
+		return m.DeletedByID()
+	case cmsmedia.FieldFileID:
+		return m.FileID()
+	case cmsmedia.FieldTitle:
+		return m.Title()
+	case cmsmedia.FieldAltText:
+		return m.AltText()
+	case cmsmedia.FieldCaption:
+		return m.Caption()
+	case cmsmedia.FieldIsPublic:
+		return m.IsPublic()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CmsMediaMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case cmsmedia.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case cmsmedia.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case cmsmedia.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case cmsmedia.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case cmsmedia.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case cmsmedia.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case cmsmedia.FieldDeletedByID:
+		return m.OldDeletedByID(ctx)
+	case cmsmedia.FieldFileID:
+		return m.OldFileID(ctx)
+	case cmsmedia.FieldTitle:
+		return m.OldTitle(ctx)
+	case cmsmedia.FieldAltText:
+		return m.OldAltText(ctx)
+	case cmsmedia.FieldCaption:
+		return m.OldCaption(ctx)
+	case cmsmedia.FieldIsPublic:
+		return m.OldIsPublic(ctx)
+	}
+	return nil, fmt.Errorf("unknown CmsMedia field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsMediaMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case cmsmedia.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case cmsmedia.FieldCreatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case cmsmedia.FieldUpdatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case cmsmedia.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case cmsmedia.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case cmsmedia.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case cmsmedia.FieldDeletedByID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedByID(v)
+		return nil
+	case cmsmedia.FieldFileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileID(v)
+		return nil
+	case cmsmedia.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case cmsmedia.FieldAltText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAltText(v)
+		return nil
+	case cmsmedia.FieldCaption:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCaption(v)
+		return nil
+	case cmsmedia.FieldIsPublic:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPublic(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CmsMedia field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CmsMediaMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CmsMediaMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsMediaMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CmsMedia numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CmsMediaMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(cmsmedia.FieldDeletedAt) {
+		fields = append(fields, cmsmedia.FieldDeletedAt)
+	}
+	if m.FieldCleared(cmsmedia.FieldDeletedByID) {
+		fields = append(fields, cmsmedia.FieldDeletedByID)
+	}
+	if m.FieldCleared(cmsmedia.FieldTitle) {
+		fields = append(fields, cmsmedia.FieldTitle)
+	}
+	if m.FieldCleared(cmsmedia.FieldAltText) {
+		fields = append(fields, cmsmedia.FieldAltText)
+	}
+	if m.FieldCleared(cmsmedia.FieldCaption) {
+		fields = append(fields, cmsmedia.FieldCaption)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CmsMediaMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CmsMediaMutation) ClearField(name string) error {
+	switch name {
+	case cmsmedia.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case cmsmedia.FieldDeletedByID:
+		m.ClearDeletedByID()
+		return nil
+	case cmsmedia.FieldTitle:
+		m.ClearTitle()
+		return nil
+	case cmsmedia.FieldAltText:
+		m.ClearAltText()
+		return nil
+	case cmsmedia.FieldCaption:
+		m.ClearCaption()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsMedia nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CmsMediaMutation) ResetField(name string) error {
+	switch name {
+	case cmsmedia.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case cmsmedia.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case cmsmedia.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case cmsmedia.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case cmsmedia.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case cmsmedia.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case cmsmedia.FieldDeletedByID:
+		m.ResetDeletedByID()
+		return nil
+	case cmsmedia.FieldFileID:
+		m.ResetFileID()
+		return nil
+	case cmsmedia.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case cmsmedia.FieldAltText:
+		m.ResetAltText()
+		return nil
+	case cmsmedia.FieldCaption:
+		m.ResetCaption()
+		return nil
+	case cmsmedia.FieldIsPublic:
+		m.ResetIsPublic()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsMedia field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CmsMediaMutation) AddedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.workspace != nil {
+		edges = append(edges, cmsmedia.EdgeWorkspace)
+	}
+	if m.creator != nil {
+		edges = append(edges, cmsmedia.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, cmsmedia.EdgeUpdater)
+	}
+	if m.deleter != nil {
+		edges = append(edges, cmsmedia.EdgeDeleter)
+	}
+	if m.file != nil {
+		edges = append(edges, cmsmedia.EdgeFile)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CmsMediaMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case cmsmedia.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmsmedia.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmsmedia.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmsmedia.EdgeDeleter:
+		if id := m.deleter; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmsmedia.EdgeFile:
+		if id := m.file; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CmsMediaMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 5)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CmsMediaMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CmsMediaMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.clearedworkspace {
+		edges = append(edges, cmsmedia.EdgeWorkspace)
+	}
+	if m.clearedcreator {
+		edges = append(edges, cmsmedia.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, cmsmedia.EdgeUpdater)
+	}
+	if m.cleareddeleter {
+		edges = append(edges, cmsmedia.EdgeDeleter)
+	}
+	if m.clearedfile {
+		edges = append(edges, cmsmedia.EdgeFile)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CmsMediaMutation) EdgeCleared(name string) bool {
+	switch name {
+	case cmsmedia.EdgeWorkspace:
+		return m.clearedworkspace
+	case cmsmedia.EdgeCreator:
+		return m.clearedcreator
+	case cmsmedia.EdgeUpdater:
+		return m.clearedupdater
+	case cmsmedia.EdgeDeleter:
+		return m.cleareddeleter
+	case cmsmedia.EdgeFile:
+		return m.clearedfile
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CmsMediaMutation) ClearEdge(name string) error {
+	switch name {
+	case cmsmedia.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
+	case cmsmedia.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case cmsmedia.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	case cmsmedia.EdgeDeleter:
+		m.ClearDeleter()
+		return nil
+	case cmsmedia.EdgeFile:
+		m.ClearFile()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsMedia unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CmsMediaMutation) ResetEdge(name string) error {
+	switch name {
+	case cmsmedia.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case cmsmedia.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case cmsmedia.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	case cmsmedia.EdgeDeleter:
+		m.ResetDeleter()
+		return nil
+	case cmsmedia.EdgeFile:
+		m.ResetFile()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsMedia edge %s", name)
+}
+
+// CmsPageMutation represents an operation that mutates the CmsPage nodes in the graph.
+type CmsPageMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int64
+	created_at       *time.Time
+	updated_at       *time.Time
+	deleted_at       *time.Time
+	status           *cmspage.Status
+	publish_at       *time.Time
+	title            *string
+	slug             *string
+	body             *string
+	clearedFields    map[string]struct{}
+	workspace        *int64
+	clearedworkspace bool
+	creator          *int64
+	clearedcreator   bool
+	updater          *int64
+	clearedupdater   bool
+	deleter          *int64
+	cleareddeleter   bool
+	done             bool
+	oldValue         func(context.Context) (*CmsPage, error)
+	predicates       []predicate.CmsPage
+}
+
+var _ ent.Mutation = (*CmsPageMutation)(nil)
+
+// cmspageOption allows management of the mutation configuration using functional options.
+type cmspageOption func(*CmsPageMutation)
+
+// newCmsPageMutation creates new mutation for the CmsPage entity.
+func newCmsPageMutation(c config, op Op, opts ...cmspageOption) *CmsPageMutation {
+	m := &CmsPageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCmsPage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCmsPageID sets the ID field of the mutation.
+func withCmsPageID(id int64) cmspageOption {
+	return func(m *CmsPageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CmsPage
+		)
+		m.oldValue = func(ctx context.Context) (*CmsPage, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CmsPage.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCmsPage sets the old CmsPage of the mutation.
+func withCmsPage(node *CmsPage) cmspageOption {
+	return func(m *CmsPageMutation) {
+		m.oldValue = func(context.Context) (*CmsPage, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CmsPageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CmsPageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CmsPage entities.
+func (m *CmsPageMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CmsPageMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CmsPageMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CmsPage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *CmsPageMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *CmsPageMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *CmsPageMutation) ResetWorkspaceID() {
+	m.workspace = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *CmsPageMutation) SetCreatedBy(i int64) {
+	m.creator = &i
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *CmsPageMutation) CreatedBy() (r int64, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *CmsPageMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *CmsPageMutation) SetUpdatedBy(i int64) {
+	m.updater = &i
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *CmsPageMutation) UpdatedBy() (r int64, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *CmsPageMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CmsPageMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CmsPageMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CmsPageMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CmsPageMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CmsPageMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CmsPageMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CmsPageMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CmsPageMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CmsPageMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[cmspage.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CmsPageMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[cmspage.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CmsPageMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, cmspage.FieldDeletedAt)
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (m *CmsPageMutation) SetDeletedByID(i int64) {
+	m.deleter = &i
+}
+
+// DeletedByID returns the value of the "deleted_by_id" field in the mutation.
+func (m *CmsPageMutation) DeletedByID() (r int64, exists bool) {
+	v := m.deleter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedByID returns the old "deleted_by_id" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldDeletedByID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedByID: %w", err)
+	}
+	return oldValue.DeletedByID, nil
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (m *CmsPageMutation) ClearDeletedByID() {
+	m.deleter = nil
+	m.clearedFields[cmspage.FieldDeletedByID] = struct{}{}
+}
+
+// DeletedByIDCleared returns if the "deleted_by_id" field was cleared in this mutation.
+func (m *CmsPageMutation) DeletedByIDCleared() bool {
+	_, ok := m.clearedFields[cmspage.FieldDeletedByID]
+	return ok
+}
+
+// ResetDeletedByID resets all changes to the "deleted_by_id" field.
+func (m *CmsPageMutation) ResetDeletedByID() {
+	m.deleter = nil
+	delete(m.clearedFields, cmspage.FieldDeletedByID)
+}
+
+// SetStatus sets the "status" field.
+func (m *CmsPageMutation) SetStatus(c cmspage.Status) {
+	m.status = &c
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *CmsPageMutation) Status() (r cmspage.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldStatus(ctx context.Context) (v cmspage.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *CmsPageMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetPublishAt sets the "publish_at" field.
+func (m *CmsPageMutation) SetPublishAt(t time.Time) {
+	m.publish_at = &t
+}
+
+// PublishAt returns the value of the "publish_at" field in the mutation.
+func (m *CmsPageMutation) PublishAt() (r time.Time, exists bool) {
+	v := m.publish_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishAt returns the old "publish_at" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldPublishAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishAt: %w", err)
+	}
+	return oldValue.PublishAt, nil
+}
+
+// ClearPublishAt clears the value of the "publish_at" field.
+func (m *CmsPageMutation) ClearPublishAt() {
+	m.publish_at = nil
+	m.clearedFields[cmspage.FieldPublishAt] = struct{}{}
+}
+
+// PublishAtCleared returns if the "publish_at" field was cleared in this mutation.
+func (m *CmsPageMutation) PublishAtCleared() bool {
+	_, ok := m.clearedFields[cmspage.FieldPublishAt]
+	return ok
+}
+
+// ResetPublishAt resets all changes to the "publish_at" field.
+func (m *CmsPageMutation) ResetPublishAt() {
+	m.publish_at = nil
+	delete(m.clearedFields, cmspage.FieldPublishAt)
+}
+
+// SetTitle sets the "title" field.
+func (m *CmsPageMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *CmsPageMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *CmsPageMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetSlug sets the "slug" field.
+func (m *CmsPageMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *CmsPageMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *CmsPageMutation) ResetSlug() {
+	m.slug = nil
+}
+
+// SetBody sets the "body" field.
+func (m *CmsPageMutation) SetBody(s string) {
+	m.body = &s
+}
+
+// Body returns the value of the "body" field in the mutation.
+func (m *CmsPageMutation) Body() (r string, exists bool) {
+	v := m.body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBody returns the old "body" field's value of the CmsPage entity.
+// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageMutation) OldBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBody: %w", err)
+	}
+	return oldValue.Body, nil
+}
+
+// ResetBody resets all changes to the "body" field.
+func (m *CmsPageMutation) ResetBody() {
+	m.body = nil
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *CmsPageMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[cmspage.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *CmsPageMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *CmsPageMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *CmsPageMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *CmsPageMutation) SetCreatorID(id int64) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *CmsPageMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[cmspage.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *CmsPageMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *CmsPageMutation) CreatorID() (id int64, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *CmsPageMutation) CreatorIDs() (ids []int64) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *CmsPageMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *CmsPageMutation) SetUpdaterID(id int64) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *CmsPageMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[cmspage.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *CmsPageMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *CmsPageMutation) UpdaterID() (id int64, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *CmsPageMutation) UpdaterIDs() (ids []int64) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *CmsPageMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// SetDeleterID sets the "deleter" edge to the User entity by id.
+func (m *CmsPageMutation) SetDeleterID(id int64) {
+	m.deleter = &id
+}
+
+// ClearDeleter clears the "deleter" edge to the User entity.
+func (m *CmsPageMutation) ClearDeleter() {
+	m.cleareddeleter = true
+	m.clearedFields[cmspage.FieldDeletedByID] = struct{}{}
+}
+
+// DeleterCleared reports if the "deleter" edge to the User entity was cleared.
+func (m *CmsPageMutation) DeleterCleared() bool {
+	return m.DeletedByIDCleared() || m.cleareddeleter
+}
+
+// DeleterID returns the "deleter" edge ID in the mutation.
+func (m *CmsPageMutation) DeleterID() (id int64, exists bool) {
+	if m.deleter != nil {
+		return *m.deleter, true
+	}
+	return
+}
+
+// DeleterIDs returns the "deleter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeleterID instead. It exists only for internal usage by the builders.
+func (m *CmsPageMutation) DeleterIDs() (ids []int64) {
+	if id := m.deleter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeleter resets all changes to the "deleter" edge.
+func (m *CmsPageMutation) ResetDeleter() {
+	m.deleter = nil
+	m.cleareddeleter = false
+}
+
+// Where appends a list predicates to the CmsPageMutation builder.
+func (m *CmsPageMutation) Where(ps ...predicate.CmsPage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CmsPageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CmsPageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CmsPage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CmsPageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CmsPageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CmsPage).
+func (m *CmsPageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CmsPageMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.workspace != nil {
+		fields = append(fields, cmspage.FieldWorkspaceID)
+	}
+	if m.creator != nil {
+		fields = append(fields, cmspage.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, cmspage.FieldUpdatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, cmspage.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, cmspage.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, cmspage.FieldDeletedAt)
+	}
+	if m.deleter != nil {
+		fields = append(fields, cmspage.FieldDeletedByID)
+	}
+	if m.status != nil {
+		fields = append(fields, cmspage.FieldStatus)
+	}
+	if m.publish_at != nil {
+		fields = append(fields, cmspage.FieldPublishAt)
+	}
+	if m.title != nil {
+		fields = append(fields, cmspage.FieldTitle)
+	}
+	if m.slug != nil {
+		fields = append(fields, cmspage.FieldSlug)
+	}
+	if m.body != nil {
+		fields = append(fields, cmspage.FieldBody)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CmsPageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case cmspage.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case cmspage.FieldCreatedBy:
+		return m.CreatedBy()
+	case cmspage.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case cmspage.FieldCreatedAt:
+		return m.CreatedAt()
+	case cmspage.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case cmspage.FieldDeletedAt:
+		return m.DeletedAt()
+	case cmspage.FieldDeletedByID:
+		return m.DeletedByID()
+	case cmspage.FieldStatus:
+		return m.Status()
+	case cmspage.FieldPublishAt:
+		return m.PublishAt()
+	case cmspage.FieldTitle:
+		return m.Title()
+	case cmspage.FieldSlug:
+		return m.Slug()
+	case cmspage.FieldBody:
+		return m.Body()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CmsPageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case cmspage.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case cmspage.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case cmspage.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case cmspage.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case cmspage.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case cmspage.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case cmspage.FieldDeletedByID:
+		return m.OldDeletedByID(ctx)
+	case cmspage.FieldStatus:
+		return m.OldStatus(ctx)
+	case cmspage.FieldPublishAt:
+		return m.OldPublishAt(ctx)
+	case cmspage.FieldTitle:
+		return m.OldTitle(ctx)
+	case cmspage.FieldSlug:
+		return m.OldSlug(ctx)
+	case cmspage.FieldBody:
+		return m.OldBody(ctx)
+	}
+	return nil, fmt.Errorf("unknown CmsPage field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsPageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case cmspage.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case cmspage.FieldCreatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case cmspage.FieldUpdatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case cmspage.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case cmspage.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case cmspage.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case cmspage.FieldDeletedByID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedByID(v)
+		return nil
+	case cmspage.FieldStatus:
+		v, ok := value.(cmspage.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case cmspage.FieldPublishAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishAt(v)
+		return nil
+	case cmspage.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case cmspage.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case cmspage.FieldBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBody(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPage field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CmsPageMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CmsPageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsPageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CmsPage numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CmsPageMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(cmspage.FieldDeletedAt) {
+		fields = append(fields, cmspage.FieldDeletedAt)
+	}
+	if m.FieldCleared(cmspage.FieldDeletedByID) {
+		fields = append(fields, cmspage.FieldDeletedByID)
+	}
+	if m.FieldCleared(cmspage.FieldPublishAt) {
+		fields = append(fields, cmspage.FieldPublishAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CmsPageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CmsPageMutation) ClearField(name string) error {
+	switch name {
+	case cmspage.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case cmspage.FieldDeletedByID:
+		m.ClearDeletedByID()
+		return nil
+	case cmspage.FieldPublishAt:
+		m.ClearPublishAt()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPage nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CmsPageMutation) ResetField(name string) error {
+	switch name {
+	case cmspage.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case cmspage.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case cmspage.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case cmspage.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case cmspage.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case cmspage.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case cmspage.FieldDeletedByID:
+		m.ResetDeletedByID()
+		return nil
+	case cmspage.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case cmspage.FieldPublishAt:
+		m.ResetPublishAt()
+		return nil
+	case cmspage.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case cmspage.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case cmspage.FieldBody:
+		m.ResetBody()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPage field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CmsPageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.workspace != nil {
+		edges = append(edges, cmspage.EdgeWorkspace)
+	}
+	if m.creator != nil {
+		edges = append(edges, cmspage.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, cmspage.EdgeUpdater)
+	}
+	if m.deleter != nil {
+		edges = append(edges, cmspage.EdgeDeleter)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CmsPageMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case cmspage.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspage.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspage.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspage.EdgeDeleter:
+		if id := m.deleter; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CmsPageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CmsPageMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CmsPageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedworkspace {
+		edges = append(edges, cmspage.EdgeWorkspace)
+	}
+	if m.clearedcreator {
+		edges = append(edges, cmspage.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, cmspage.EdgeUpdater)
+	}
+	if m.cleareddeleter {
+		edges = append(edges, cmspage.EdgeDeleter)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CmsPageMutation) EdgeCleared(name string) bool {
+	switch name {
+	case cmspage.EdgeWorkspace:
+		return m.clearedworkspace
+	case cmspage.EdgeCreator:
+		return m.clearedcreator
+	case cmspage.EdgeUpdater:
+		return m.clearedupdater
+	case cmspage.EdgeDeleter:
+		return m.cleareddeleter
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CmsPageMutation) ClearEdge(name string) error {
+	switch name {
+	case cmspage.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
+	case cmspage.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case cmspage.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	case cmspage.EdgeDeleter:
+		m.ClearDeleter()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPage unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CmsPageMutation) ResetEdge(name string) error {
+	switch name {
+	case cmspage.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case cmspage.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case cmspage.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	case cmspage.EdgeDeleter:
+		m.ResetDeleter()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPage edge %s", name)
+}
+
+// CmsPostMutation represents an operation that mutates the CmsPost nodes in the graph.
+type CmsPostMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	created_at         *time.Time
+	updated_at         *time.Time
+	deleted_at         *time.Time
+	status             *cmspost.Status
+	publish_at         *time.Time
+	title              *string
+	slug               *string
+	excerpt            *string
+	body               *string
+	clearedFields      map[string]struct{}
+	workspace          *int64
+	clearedworkspace   bool
+	creator            *int64
+	clearedcreator     bool
+	updater            *int64
+	clearedupdater     bool
+	deleter            *int64
+	cleareddeleter     bool
+	cover_media        *int64
+	clearedcover_media bool
+	done               bool
+	oldValue           func(context.Context) (*CmsPost, error)
+	predicates         []predicate.CmsPost
+}
+
+var _ ent.Mutation = (*CmsPostMutation)(nil)
+
+// cmspostOption allows management of the mutation configuration using functional options.
+type cmspostOption func(*CmsPostMutation)
+
+// newCmsPostMutation creates new mutation for the CmsPost entity.
+func newCmsPostMutation(c config, op Op, opts ...cmspostOption) *CmsPostMutation {
+	m := &CmsPostMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCmsPost,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCmsPostID sets the ID field of the mutation.
+func withCmsPostID(id int64) cmspostOption {
+	return func(m *CmsPostMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CmsPost
+		)
+		m.oldValue = func(ctx context.Context) (*CmsPost, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CmsPost.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCmsPost sets the old CmsPost of the mutation.
+func withCmsPost(node *CmsPost) cmspostOption {
+	return func(m *CmsPostMutation) {
+		m.oldValue = func(context.Context) (*CmsPost, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CmsPostMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CmsPostMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CmsPost entities.
+func (m *CmsPostMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CmsPostMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CmsPostMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CmsPost.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *CmsPostMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *CmsPostMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *CmsPostMutation) ResetWorkspaceID() {
+	m.workspace = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *CmsPostMutation) SetCreatedBy(i int64) {
+	m.creator = &i
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *CmsPostMutation) CreatedBy() (r int64, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *CmsPostMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *CmsPostMutation) SetUpdatedBy(i int64) {
+	m.updater = &i
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *CmsPostMutation) UpdatedBy() (r int64, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *CmsPostMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CmsPostMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CmsPostMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CmsPostMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CmsPostMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CmsPostMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CmsPostMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CmsPostMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CmsPostMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CmsPostMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[cmspost.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CmsPostMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[cmspost.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CmsPostMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, cmspost.FieldDeletedAt)
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (m *CmsPostMutation) SetDeletedByID(i int64) {
+	m.deleter = &i
+}
+
+// DeletedByID returns the value of the "deleted_by_id" field in the mutation.
+func (m *CmsPostMutation) DeletedByID() (r int64, exists bool) {
+	v := m.deleter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedByID returns the old "deleted_by_id" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldDeletedByID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedByID: %w", err)
+	}
+	return oldValue.DeletedByID, nil
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (m *CmsPostMutation) ClearDeletedByID() {
+	m.deleter = nil
+	m.clearedFields[cmspost.FieldDeletedByID] = struct{}{}
+}
+
+// DeletedByIDCleared returns if the "deleted_by_id" field was cleared in this mutation.
+func (m *CmsPostMutation) DeletedByIDCleared() bool {
+	_, ok := m.clearedFields[cmspost.FieldDeletedByID]
+	return ok
+}
+
+// ResetDeletedByID resets all changes to the "deleted_by_id" field.
+func (m *CmsPostMutation) ResetDeletedByID() {
+	m.deleter = nil
+	delete(m.clearedFields, cmspost.FieldDeletedByID)
+}
+
+// SetStatus sets the "status" field.
+func (m *CmsPostMutation) SetStatus(c cmspost.Status) {
+	m.status = &c
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *CmsPostMutation) Status() (r cmspost.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldStatus(ctx context.Context) (v cmspost.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *CmsPostMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetPublishAt sets the "publish_at" field.
+func (m *CmsPostMutation) SetPublishAt(t time.Time) {
+	m.publish_at = &t
+}
+
+// PublishAt returns the value of the "publish_at" field in the mutation.
+func (m *CmsPostMutation) PublishAt() (r time.Time, exists bool) {
+	v := m.publish_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishAt returns the old "publish_at" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldPublishAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishAt: %w", err)
+	}
+	return oldValue.PublishAt, nil
+}
+
+// ClearPublishAt clears the value of the "publish_at" field.
+func (m *CmsPostMutation) ClearPublishAt() {
+	m.publish_at = nil
+	m.clearedFields[cmspost.FieldPublishAt] = struct{}{}
+}
+
+// PublishAtCleared returns if the "publish_at" field was cleared in this mutation.
+func (m *CmsPostMutation) PublishAtCleared() bool {
+	_, ok := m.clearedFields[cmspost.FieldPublishAt]
+	return ok
+}
+
+// ResetPublishAt resets all changes to the "publish_at" field.
+func (m *CmsPostMutation) ResetPublishAt() {
+	m.publish_at = nil
+	delete(m.clearedFields, cmspost.FieldPublishAt)
+}
+
+// SetTitle sets the "title" field.
+func (m *CmsPostMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *CmsPostMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *CmsPostMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetSlug sets the "slug" field.
+func (m *CmsPostMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *CmsPostMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *CmsPostMutation) ResetSlug() {
+	m.slug = nil
+}
+
+// SetExcerpt sets the "excerpt" field.
+func (m *CmsPostMutation) SetExcerpt(s string) {
+	m.excerpt = &s
+}
+
+// Excerpt returns the value of the "excerpt" field in the mutation.
+func (m *CmsPostMutation) Excerpt() (r string, exists bool) {
+	v := m.excerpt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExcerpt returns the old "excerpt" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldExcerpt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExcerpt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExcerpt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExcerpt: %w", err)
+	}
+	return oldValue.Excerpt, nil
+}
+
+// ClearExcerpt clears the value of the "excerpt" field.
+func (m *CmsPostMutation) ClearExcerpt() {
+	m.excerpt = nil
+	m.clearedFields[cmspost.FieldExcerpt] = struct{}{}
+}
+
+// ExcerptCleared returns if the "excerpt" field was cleared in this mutation.
+func (m *CmsPostMutation) ExcerptCleared() bool {
+	_, ok := m.clearedFields[cmspost.FieldExcerpt]
+	return ok
+}
+
+// ResetExcerpt resets all changes to the "excerpt" field.
+func (m *CmsPostMutation) ResetExcerpt() {
+	m.excerpt = nil
+	delete(m.clearedFields, cmspost.FieldExcerpt)
+}
+
+// SetBody sets the "body" field.
+func (m *CmsPostMutation) SetBody(s string) {
+	m.body = &s
+}
+
+// Body returns the value of the "body" field in the mutation.
+func (m *CmsPostMutation) Body() (r string, exists bool) {
+	v := m.body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBody returns the old "body" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBody: %w", err)
+	}
+	return oldValue.Body, nil
+}
+
+// ResetBody resets all changes to the "body" field.
+func (m *CmsPostMutation) ResetBody() {
+	m.body = nil
+}
+
+// SetCoverMediaID sets the "cover_media_id" field.
+func (m *CmsPostMutation) SetCoverMediaID(i int64) {
+	m.cover_media = &i
+}
+
+// CoverMediaID returns the value of the "cover_media_id" field in the mutation.
+func (m *CmsPostMutation) CoverMediaID() (r int64, exists bool) {
+	v := m.cover_media
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCoverMediaID returns the old "cover_media_id" field's value of the CmsPost entity.
+// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostMutation) OldCoverMediaID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCoverMediaID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCoverMediaID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCoverMediaID: %w", err)
+	}
+	return oldValue.CoverMediaID, nil
+}
+
+// ClearCoverMediaID clears the value of the "cover_media_id" field.
+func (m *CmsPostMutation) ClearCoverMediaID() {
+	m.cover_media = nil
+	m.clearedFields[cmspost.FieldCoverMediaID] = struct{}{}
+}
+
+// CoverMediaIDCleared returns if the "cover_media_id" field was cleared in this mutation.
+func (m *CmsPostMutation) CoverMediaIDCleared() bool {
+	_, ok := m.clearedFields[cmspost.FieldCoverMediaID]
+	return ok
+}
+
+// ResetCoverMediaID resets all changes to the "cover_media_id" field.
+func (m *CmsPostMutation) ResetCoverMediaID() {
+	m.cover_media = nil
+	delete(m.clearedFields, cmspost.FieldCoverMediaID)
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *CmsPostMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[cmspost.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *CmsPostMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *CmsPostMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *CmsPostMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *CmsPostMutation) SetCreatorID(id int64) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *CmsPostMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[cmspost.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *CmsPostMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *CmsPostMutation) CreatorID() (id int64, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *CmsPostMutation) CreatorIDs() (ids []int64) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *CmsPostMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *CmsPostMutation) SetUpdaterID(id int64) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *CmsPostMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[cmspost.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *CmsPostMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *CmsPostMutation) UpdaterID() (id int64, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *CmsPostMutation) UpdaterIDs() (ids []int64) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *CmsPostMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// SetDeleterID sets the "deleter" edge to the User entity by id.
+func (m *CmsPostMutation) SetDeleterID(id int64) {
+	m.deleter = &id
+}
+
+// ClearDeleter clears the "deleter" edge to the User entity.
+func (m *CmsPostMutation) ClearDeleter() {
+	m.cleareddeleter = true
+	m.clearedFields[cmspost.FieldDeletedByID] = struct{}{}
+}
+
+// DeleterCleared reports if the "deleter" edge to the User entity was cleared.
+func (m *CmsPostMutation) DeleterCleared() bool {
+	return m.DeletedByIDCleared() || m.cleareddeleter
+}
+
+// DeleterID returns the "deleter" edge ID in the mutation.
+func (m *CmsPostMutation) DeleterID() (id int64, exists bool) {
+	if m.deleter != nil {
+		return *m.deleter, true
+	}
+	return
+}
+
+// DeleterIDs returns the "deleter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeleterID instead. It exists only for internal usage by the builders.
+func (m *CmsPostMutation) DeleterIDs() (ids []int64) {
+	if id := m.deleter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeleter resets all changes to the "deleter" edge.
+func (m *CmsPostMutation) ResetDeleter() {
+	m.deleter = nil
+	m.cleareddeleter = false
+}
+
+// ClearCoverMedia clears the "cover_media" edge to the CmsMedia entity.
+func (m *CmsPostMutation) ClearCoverMedia() {
+	m.clearedcover_media = true
+	m.clearedFields[cmspost.FieldCoverMediaID] = struct{}{}
+}
+
+// CoverMediaCleared reports if the "cover_media" edge to the CmsMedia entity was cleared.
+func (m *CmsPostMutation) CoverMediaCleared() bool {
+	return m.CoverMediaIDCleared() || m.clearedcover_media
+}
+
+// CoverMediaIDs returns the "cover_media" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CoverMediaID instead. It exists only for internal usage by the builders.
+func (m *CmsPostMutation) CoverMediaIDs() (ids []int64) {
+	if id := m.cover_media; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCoverMedia resets all changes to the "cover_media" edge.
+func (m *CmsPostMutation) ResetCoverMedia() {
+	m.cover_media = nil
+	m.clearedcover_media = false
+}
+
+// Where appends a list predicates to the CmsPostMutation builder.
+func (m *CmsPostMutation) Where(ps ...predicate.CmsPost) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CmsPostMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CmsPostMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CmsPost, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CmsPostMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CmsPostMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CmsPost).
+func (m *CmsPostMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CmsPostMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.workspace != nil {
+		fields = append(fields, cmspost.FieldWorkspaceID)
+	}
+	if m.creator != nil {
+		fields = append(fields, cmspost.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, cmspost.FieldUpdatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, cmspost.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, cmspost.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, cmspost.FieldDeletedAt)
+	}
+	if m.deleter != nil {
+		fields = append(fields, cmspost.FieldDeletedByID)
+	}
+	if m.status != nil {
+		fields = append(fields, cmspost.FieldStatus)
+	}
+	if m.publish_at != nil {
+		fields = append(fields, cmspost.FieldPublishAt)
+	}
+	if m.title != nil {
+		fields = append(fields, cmspost.FieldTitle)
+	}
+	if m.slug != nil {
+		fields = append(fields, cmspost.FieldSlug)
+	}
+	if m.excerpt != nil {
+		fields = append(fields, cmspost.FieldExcerpt)
+	}
+	if m.body != nil {
+		fields = append(fields, cmspost.FieldBody)
+	}
+	if m.cover_media != nil {
+		fields = append(fields, cmspost.FieldCoverMediaID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CmsPostMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case cmspost.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case cmspost.FieldCreatedBy:
+		return m.CreatedBy()
+	case cmspost.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case cmspost.FieldCreatedAt:
+		return m.CreatedAt()
+	case cmspost.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case cmspost.FieldDeletedAt:
+		return m.DeletedAt()
+	case cmspost.FieldDeletedByID:
+		return m.DeletedByID()
+	case cmspost.FieldStatus:
+		return m.Status()
+	case cmspost.FieldPublishAt:
+		return m.PublishAt()
+	case cmspost.FieldTitle:
+		return m.Title()
+	case cmspost.FieldSlug:
+		return m.Slug()
+	case cmspost.FieldExcerpt:
+		return m.Excerpt()
+	case cmspost.FieldBody:
+		return m.Body()
+	case cmspost.FieldCoverMediaID:
+		return m.CoverMediaID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CmsPostMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case cmspost.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case cmspost.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case cmspost.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case cmspost.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case cmspost.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case cmspost.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case cmspost.FieldDeletedByID:
+		return m.OldDeletedByID(ctx)
+	case cmspost.FieldStatus:
+		return m.OldStatus(ctx)
+	case cmspost.FieldPublishAt:
+		return m.OldPublishAt(ctx)
+	case cmspost.FieldTitle:
+		return m.OldTitle(ctx)
+	case cmspost.FieldSlug:
+		return m.OldSlug(ctx)
+	case cmspost.FieldExcerpt:
+		return m.OldExcerpt(ctx)
+	case cmspost.FieldBody:
+		return m.OldBody(ctx)
+	case cmspost.FieldCoverMediaID:
+		return m.OldCoverMediaID(ctx)
+	}
+	return nil, fmt.Errorf("unknown CmsPost field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsPostMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case cmspost.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case cmspost.FieldCreatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case cmspost.FieldUpdatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case cmspost.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case cmspost.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case cmspost.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case cmspost.FieldDeletedByID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedByID(v)
+		return nil
+	case cmspost.FieldStatus:
+		v, ok := value.(cmspost.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case cmspost.FieldPublishAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishAt(v)
+		return nil
+	case cmspost.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case cmspost.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case cmspost.FieldExcerpt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExcerpt(v)
+		return nil
+	case cmspost.FieldBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBody(v)
+		return nil
+	case cmspost.FieldCoverMediaID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCoverMediaID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPost field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CmsPostMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CmsPostMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsPostMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CmsPost numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CmsPostMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(cmspost.FieldDeletedAt) {
+		fields = append(fields, cmspost.FieldDeletedAt)
+	}
+	if m.FieldCleared(cmspost.FieldDeletedByID) {
+		fields = append(fields, cmspost.FieldDeletedByID)
+	}
+	if m.FieldCleared(cmspost.FieldPublishAt) {
+		fields = append(fields, cmspost.FieldPublishAt)
+	}
+	if m.FieldCleared(cmspost.FieldExcerpt) {
+		fields = append(fields, cmspost.FieldExcerpt)
+	}
+	if m.FieldCleared(cmspost.FieldCoverMediaID) {
+		fields = append(fields, cmspost.FieldCoverMediaID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CmsPostMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CmsPostMutation) ClearField(name string) error {
+	switch name {
+	case cmspost.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case cmspost.FieldDeletedByID:
+		m.ClearDeletedByID()
+		return nil
+	case cmspost.FieldPublishAt:
+		m.ClearPublishAt()
+		return nil
+	case cmspost.FieldExcerpt:
+		m.ClearExcerpt()
+		return nil
+	case cmspost.FieldCoverMediaID:
+		m.ClearCoverMediaID()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPost nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CmsPostMutation) ResetField(name string) error {
+	switch name {
+	case cmspost.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case cmspost.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case cmspost.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case cmspost.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case cmspost.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case cmspost.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case cmspost.FieldDeletedByID:
+		m.ResetDeletedByID()
+		return nil
+	case cmspost.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case cmspost.FieldPublishAt:
+		m.ResetPublishAt()
+		return nil
+	case cmspost.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case cmspost.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case cmspost.FieldExcerpt:
+		m.ResetExcerpt()
+		return nil
+	case cmspost.FieldBody:
+		m.ResetBody()
+		return nil
+	case cmspost.FieldCoverMediaID:
+		m.ResetCoverMediaID()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPost field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CmsPostMutation) AddedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.workspace != nil {
+		edges = append(edges, cmspost.EdgeWorkspace)
+	}
+	if m.creator != nil {
+		edges = append(edges, cmspost.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, cmspost.EdgeUpdater)
+	}
+	if m.deleter != nil {
+		edges = append(edges, cmspost.EdgeDeleter)
+	}
+	if m.cover_media != nil {
+		edges = append(edges, cmspost.EdgeCoverMedia)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CmsPostMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case cmspost.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspost.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspost.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspost.EdgeDeleter:
+		if id := m.deleter; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspost.EdgeCoverMedia:
+		if id := m.cover_media; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CmsPostMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 5)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CmsPostMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CmsPostMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.clearedworkspace {
+		edges = append(edges, cmspost.EdgeWorkspace)
+	}
+	if m.clearedcreator {
+		edges = append(edges, cmspost.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, cmspost.EdgeUpdater)
+	}
+	if m.cleareddeleter {
+		edges = append(edges, cmspost.EdgeDeleter)
+	}
+	if m.clearedcover_media {
+		edges = append(edges, cmspost.EdgeCoverMedia)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CmsPostMutation) EdgeCleared(name string) bool {
+	switch name {
+	case cmspost.EdgeWorkspace:
+		return m.clearedworkspace
+	case cmspost.EdgeCreator:
+		return m.clearedcreator
+	case cmspost.EdgeUpdater:
+		return m.clearedupdater
+	case cmspost.EdgeDeleter:
+		return m.cleareddeleter
+	case cmspost.EdgeCoverMedia:
+		return m.clearedcover_media
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CmsPostMutation) ClearEdge(name string) error {
+	switch name {
+	case cmspost.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
+	case cmspost.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case cmspost.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	case cmspost.EdgeDeleter:
+		m.ClearDeleter()
+		return nil
+	case cmspost.EdgeCoverMedia:
+		m.ClearCoverMedia()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPost unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CmsPostMutation) ResetEdge(name string) error {
+	switch name {
+	case cmspost.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case cmspost.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case cmspost.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	case cmspost.EdgeDeleter:
+		m.ResetDeleter()
+		return nil
+	case cmspost.EdgeCoverMedia:
+		m.ResetCoverMedia()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPost edge %s", name)
 }
 
 // CurrencyMutation represents an operation that mutates the Currency nodes in the graph.

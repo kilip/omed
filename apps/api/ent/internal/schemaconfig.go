@@ -8,6 +8,9 @@ import "context"
 // that can be passed at runtime.
 type SchemaConfig struct {
 	Account             string // Account table.
+	CmsMedia            string // CmsMedia table.
+	CmsPage             string // CmsPage table.
+	CmsPost             string // CmsPost table.
 	Currency            string // Currency table.
 	Entry               string // Entry table.
 	ExchangeRate        string // ExchangeRate table.

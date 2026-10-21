@@ -16,6 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/cmsmedia"
+	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspost"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -40,6 +43,12 @@ type Client struct {
 	Schema *migrate.Schema
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
+	// CmsMedia is the client for interacting with the CmsMedia builders.
+	CmsMedia *CmsMediaClient
+	// CmsPage is the client for interacting with the CmsPage builders.
+	CmsPage *CmsPageClient
+	// CmsPost is the client for interacting with the CmsPost builders.
+	CmsPost *CmsPostClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
 	// Entry is the client for interacting with the Entry builders.
@@ -78,6 +87,9 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Account = NewAccountClient(c.config)
+	c.CmsMedia = NewCmsMediaClient(c.config)
+	c.CmsPage = NewCmsPageClient(c.config)
+	c.CmsPost = NewCmsPostClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
 	c.Entry = NewEntryClient(c.config)
 	c.ExchangeRate = NewExchangeRateClient(c.config)
@@ -187,6 +199,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                 ctx,
 		config:              cfg,
 		Account:             NewAccountClient(cfg),
+		CmsMedia:            NewCmsMediaClient(cfg),
+		CmsPage:             NewCmsPageClient(cfg),
+		CmsPost:             NewCmsPostClient(cfg),
 		Currency:            NewCurrencyClient(cfg),
 		Entry:               NewEntryClient(cfg),
 		ExchangeRate:        NewExchangeRateClient(cfg),
@@ -220,6 +235,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                 ctx,
 		config:              cfg,
 		Account:             NewAccountClient(cfg),
+		CmsMedia:            NewCmsMediaClient(cfg),
+		CmsPage:             NewCmsPageClient(cfg),
+		CmsPost:             NewCmsPostClient(cfg),
 		Currency:            NewCurrencyClient(cfg),
 		Entry:               NewEntryClient(cfg),
 		ExchangeRate:        NewExchangeRateClient(cfg),
@@ -262,9 +280,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Account, c.Currency, c.Entry, c.ExchangeRate, c.File, c.Period, c.Posting,
-		c.Session, c.Transaction, c.User, c.UserAccount, c.Workspace,
-		c.WorkspaceInvitation, c.WorkspaceMember,
+		c.Account, c.CmsMedia, c.CmsPage, c.CmsPost, c.Currency, c.Entry,
+		c.ExchangeRate, c.File, c.Period, c.Posting, c.Session, c.Transaction, c.User,
+		c.UserAccount, c.Workspace, c.WorkspaceInvitation, c.WorkspaceMember,
 	} {
 		n.Use(hooks...)
 	}
@@ -274,9 +292,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Account, c.Currency, c.Entry, c.ExchangeRate, c.File, c.Period, c.Posting,
-		c.Session, c.Transaction, c.User, c.UserAccount, c.Workspace,
-		c.WorkspaceInvitation, c.WorkspaceMember,
+		c.Account, c.CmsMedia, c.CmsPage, c.CmsPost, c.Currency, c.Entry,
+		c.ExchangeRate, c.File, c.Period, c.Posting, c.Session, c.Transaction, c.User,
+		c.UserAccount, c.Workspace, c.WorkspaceInvitation, c.WorkspaceMember,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -287,6 +305,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AccountMutation:
 		return c.Account.mutate(ctx, m)
+	case *CmsMediaMutation:
+		return c.CmsMedia.mutate(ctx, m)
+	case *CmsPageMutation:
+		return c.CmsPage.mutate(ctx, m)
+	case *CmsPostMutation:
+		return c.CmsPost.mutate(ctx, m)
 	case *CurrencyMutation:
 		return c.Currency.mutate(ctx, m)
 	case *EntryMutation:
@@ -562,6 +586,671 @@ func (c *AccountClient) mutate(ctx context.Context, m *AccountMutation) (Value, 
 		return (&AccountDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Account mutation op: %q", m.Op())
+	}
+}
+
+// CmsMediaClient is a client for the CmsMedia schema.
+type CmsMediaClient struct {
+	config
+}
+
+// NewCmsMediaClient returns a client for the CmsMedia from the given config.
+func NewCmsMediaClient(c config) *CmsMediaClient {
+	return &CmsMediaClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cmsmedia.Hooks(f(g(h())))`.
+func (c *CmsMediaClient) Use(hooks ...Hook) {
+	c.hooks.CmsMedia = append(c.hooks.CmsMedia, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cmsmedia.Intercept(f(g(h())))`.
+func (c *CmsMediaClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CmsMedia = append(c.inters.CmsMedia, interceptors...)
+}
+
+// Create returns a builder for creating a CmsMedia entity.
+func (c *CmsMediaClient) Create() *CmsMediaCreate {
+	mutation := newCmsMediaMutation(c.config, OpCreate)
+	return &CmsMediaCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CmsMedia entities.
+func (c *CmsMediaClient) CreateBulk(builders ...*CmsMediaCreate) *CmsMediaCreateBulk {
+	return &CmsMediaCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CmsMediaClient) MapCreateBulk(slice any, setFunc func(*CmsMediaCreate, int)) *CmsMediaCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CmsMediaCreateBulk{err: fmt.Errorf("calling to CmsMediaClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CmsMediaCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CmsMediaCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CmsMedia.
+func (c *CmsMediaClient) Update() *CmsMediaUpdate {
+	mutation := newCmsMediaMutation(c.config, OpUpdate)
+	return &CmsMediaUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CmsMediaClient) UpdateOne(_m *CmsMedia) *CmsMediaUpdateOne {
+	mutation := newCmsMediaMutation(c.config, OpUpdateOne, withCmsMedia(_m))
+	return &CmsMediaUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CmsMediaClient) UpdateOneID(id int64) *CmsMediaUpdateOne {
+	mutation := newCmsMediaMutation(c.config, OpUpdateOne, withCmsMediaID(id))
+	return &CmsMediaUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CmsMedia.
+func (c *CmsMediaClient) Delete() *CmsMediaDelete {
+	mutation := newCmsMediaMutation(c.config, OpDelete)
+	return &CmsMediaDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CmsMediaClient) DeleteOne(_m *CmsMedia) *CmsMediaDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CmsMediaClient) DeleteOneID(id int64) *CmsMediaDeleteOne {
+	builder := c.Delete().Where(cmsmedia.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CmsMediaDeleteOne{builder}
+}
+
+// Query returns a query builder for CmsMedia.
+func (c *CmsMediaClient) Query() *CmsMediaQuery {
+	return &CmsMediaQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCmsMedia},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CmsMedia entity by its id.
+func (c *CmsMediaClient) Get(ctx context.Context, id int64) (*CmsMedia, error) {
+	return c.Query().Where(cmsmedia.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CmsMediaClient) GetX(ctx context.Context, id int64) *CmsMedia {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a CmsMedia.
+func (c *CmsMediaClient) QueryWorkspace(_m *CmsMedia) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsmedia.Table, cmsmedia.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsmedia.WorkspaceTable, cmsmedia.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.CmsMedia
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a CmsMedia.
+func (c *CmsMediaClient) QueryCreator(_m *CmsMedia) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsmedia.Table, cmsmedia.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsmedia.CreatorTable, cmsmedia.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsMedia
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a CmsMedia.
+func (c *CmsMediaClient) QueryUpdater(_m *CmsMedia) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsmedia.Table, cmsmedia.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsmedia.UpdaterTable, cmsmedia.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsMedia
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeleter queries the deleter edge of a CmsMedia.
+func (c *CmsMediaClient) QueryDeleter(_m *CmsMedia) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsmedia.Table, cmsmedia.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsmedia.DeleterTable, cmsmedia.DeleterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsMedia
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFile queries the file edge of a CmsMedia.
+func (c *CmsMediaClient) QueryFile(_m *CmsMedia) *FileQuery {
+	query := (&FileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsmedia.Table, cmsmedia.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsmedia.FileTable, cmsmedia.FileColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.File
+		step.Edge.Schema = schemaConfig.CmsMedia
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CmsMediaClient) Hooks() []Hook {
+	return c.hooks.CmsMedia
+}
+
+// Interceptors returns the client interceptors.
+func (c *CmsMediaClient) Interceptors() []Interceptor {
+	return c.inters.CmsMedia
+}
+
+func (c *CmsMediaClient) mutate(ctx context.Context, m *CmsMediaMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CmsMediaCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CmsMediaUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CmsMediaUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CmsMediaDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CmsMedia mutation op: %q", m.Op())
+	}
+}
+
+// CmsPageClient is a client for the CmsPage schema.
+type CmsPageClient struct {
+	config
+}
+
+// NewCmsPageClient returns a client for the CmsPage from the given config.
+func NewCmsPageClient(c config) *CmsPageClient {
+	return &CmsPageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cmspage.Hooks(f(g(h())))`.
+func (c *CmsPageClient) Use(hooks ...Hook) {
+	c.hooks.CmsPage = append(c.hooks.CmsPage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cmspage.Intercept(f(g(h())))`.
+func (c *CmsPageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CmsPage = append(c.inters.CmsPage, interceptors...)
+}
+
+// Create returns a builder for creating a CmsPage entity.
+func (c *CmsPageClient) Create() *CmsPageCreate {
+	mutation := newCmsPageMutation(c.config, OpCreate)
+	return &CmsPageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CmsPage entities.
+func (c *CmsPageClient) CreateBulk(builders ...*CmsPageCreate) *CmsPageCreateBulk {
+	return &CmsPageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CmsPageClient) MapCreateBulk(slice any, setFunc func(*CmsPageCreate, int)) *CmsPageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CmsPageCreateBulk{err: fmt.Errorf("calling to CmsPageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CmsPageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CmsPageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CmsPage.
+func (c *CmsPageClient) Update() *CmsPageUpdate {
+	mutation := newCmsPageMutation(c.config, OpUpdate)
+	return &CmsPageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CmsPageClient) UpdateOne(_m *CmsPage) *CmsPageUpdateOne {
+	mutation := newCmsPageMutation(c.config, OpUpdateOne, withCmsPage(_m))
+	return &CmsPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CmsPageClient) UpdateOneID(id int64) *CmsPageUpdateOne {
+	mutation := newCmsPageMutation(c.config, OpUpdateOne, withCmsPageID(id))
+	return &CmsPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CmsPage.
+func (c *CmsPageClient) Delete() *CmsPageDelete {
+	mutation := newCmsPageMutation(c.config, OpDelete)
+	return &CmsPageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CmsPageClient) DeleteOne(_m *CmsPage) *CmsPageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CmsPageClient) DeleteOneID(id int64) *CmsPageDeleteOne {
+	builder := c.Delete().Where(cmspage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CmsPageDeleteOne{builder}
+}
+
+// Query returns a query builder for CmsPage.
+func (c *CmsPageClient) Query() *CmsPageQuery {
+	return &CmsPageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCmsPage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CmsPage entity by its id.
+func (c *CmsPageClient) Get(ctx context.Context, id int64) (*CmsPage, error) {
+	return c.Query().Where(cmspage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CmsPageClient) GetX(ctx context.Context, id int64) *CmsPage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a CmsPage.
+func (c *CmsPageClient) QueryWorkspace(_m *CmsPage) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspage.Table, cmspage.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspage.WorkspaceTable, cmspage.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.CmsPage
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a CmsPage.
+func (c *CmsPageClient) QueryCreator(_m *CmsPage) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspage.Table, cmspage.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspage.CreatorTable, cmspage.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPage
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a CmsPage.
+func (c *CmsPageClient) QueryUpdater(_m *CmsPage) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspage.Table, cmspage.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspage.UpdaterTable, cmspage.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPage
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeleter queries the deleter edge of a CmsPage.
+func (c *CmsPageClient) QueryDeleter(_m *CmsPage) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspage.Table, cmspage.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspage.DeleterTable, cmspage.DeleterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPage
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CmsPageClient) Hooks() []Hook {
+	return c.hooks.CmsPage
+}
+
+// Interceptors returns the client interceptors.
+func (c *CmsPageClient) Interceptors() []Interceptor {
+	return c.inters.CmsPage
+}
+
+func (c *CmsPageClient) mutate(ctx context.Context, m *CmsPageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CmsPageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CmsPageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CmsPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CmsPageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CmsPage mutation op: %q", m.Op())
+	}
+}
+
+// CmsPostClient is a client for the CmsPost schema.
+type CmsPostClient struct {
+	config
+}
+
+// NewCmsPostClient returns a client for the CmsPost from the given config.
+func NewCmsPostClient(c config) *CmsPostClient {
+	return &CmsPostClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cmspost.Hooks(f(g(h())))`.
+func (c *CmsPostClient) Use(hooks ...Hook) {
+	c.hooks.CmsPost = append(c.hooks.CmsPost, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cmspost.Intercept(f(g(h())))`.
+func (c *CmsPostClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CmsPost = append(c.inters.CmsPost, interceptors...)
+}
+
+// Create returns a builder for creating a CmsPost entity.
+func (c *CmsPostClient) Create() *CmsPostCreate {
+	mutation := newCmsPostMutation(c.config, OpCreate)
+	return &CmsPostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CmsPost entities.
+func (c *CmsPostClient) CreateBulk(builders ...*CmsPostCreate) *CmsPostCreateBulk {
+	return &CmsPostCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CmsPostClient) MapCreateBulk(slice any, setFunc func(*CmsPostCreate, int)) *CmsPostCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CmsPostCreateBulk{err: fmt.Errorf("calling to CmsPostClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CmsPostCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CmsPostCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CmsPost.
+func (c *CmsPostClient) Update() *CmsPostUpdate {
+	mutation := newCmsPostMutation(c.config, OpUpdate)
+	return &CmsPostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CmsPostClient) UpdateOne(_m *CmsPost) *CmsPostUpdateOne {
+	mutation := newCmsPostMutation(c.config, OpUpdateOne, withCmsPost(_m))
+	return &CmsPostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CmsPostClient) UpdateOneID(id int64) *CmsPostUpdateOne {
+	mutation := newCmsPostMutation(c.config, OpUpdateOne, withCmsPostID(id))
+	return &CmsPostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CmsPost.
+func (c *CmsPostClient) Delete() *CmsPostDelete {
+	mutation := newCmsPostMutation(c.config, OpDelete)
+	return &CmsPostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CmsPostClient) DeleteOne(_m *CmsPost) *CmsPostDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CmsPostClient) DeleteOneID(id int64) *CmsPostDeleteOne {
+	builder := c.Delete().Where(cmspost.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CmsPostDeleteOne{builder}
+}
+
+// Query returns a query builder for CmsPost.
+func (c *CmsPostClient) Query() *CmsPostQuery {
+	return &CmsPostQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCmsPost},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CmsPost entity by its id.
+func (c *CmsPostClient) Get(ctx context.Context, id int64) (*CmsPost, error) {
+	return c.Query().Where(cmspost.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CmsPostClient) GetX(ctx context.Context, id int64) *CmsPost {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a CmsPost.
+func (c *CmsPostClient) QueryWorkspace(_m *CmsPost) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspost.Table, cmspost.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspost.WorkspaceTable, cmspost.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.CmsPost
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a CmsPost.
+func (c *CmsPostClient) QueryCreator(_m *CmsPost) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspost.Table, cmspost.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspost.CreatorTable, cmspost.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPost
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a CmsPost.
+func (c *CmsPostClient) QueryUpdater(_m *CmsPost) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspost.Table, cmspost.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspost.UpdaterTable, cmspost.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPost
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeleter queries the deleter edge of a CmsPost.
+func (c *CmsPostClient) QueryDeleter(_m *CmsPost) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspost.Table, cmspost.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspost.DeleterTable, cmspost.DeleterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPost
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCoverMedia queries the cover_media edge of a CmsPost.
+func (c *CmsPostClient) QueryCoverMedia(_m *CmsPost) *CmsMediaQuery {
+	query := (&CmsMediaClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspost.Table, cmspost.FieldID, id),
+			sqlgraph.To(cmsmedia.Table, cmsmedia.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspost.CoverMediaTable, cmspost.CoverMediaColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.CmsMedia
+		step.Edge.Schema = schemaConfig.CmsPost
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CmsPostClient) Hooks() []Hook {
+	return c.hooks.CmsPost
+}
+
+// Interceptors returns the client interceptors.
+func (c *CmsPostClient) Interceptors() []Interceptor {
+	return c.inters.CmsPost
+}
+
+func (c *CmsPostClient) mutate(ctx context.Context, m *CmsPostMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CmsPostCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CmsPostUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CmsPostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CmsPostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CmsPost mutation op: %q", m.Op())
 	}
 }
 
@@ -3190,14 +3879,14 @@ func (c *WorkspaceMemberClient) mutate(ctx context.Context, m *WorkspaceMemberMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, Currency, Entry, ExchangeRate, File, Period, Posting, Session,
-		Transaction, User, UserAccount, Workspace, WorkspaceInvitation,
-		WorkspaceMember []ent.Hook
+		Account, CmsMedia, CmsPage, CmsPost, Currency, Entry, ExchangeRate, File,
+		Period, Posting, Session, Transaction, User, UserAccount, Workspace,
+		WorkspaceInvitation, WorkspaceMember []ent.Hook
 	}
 	inters struct {
-		Account, Currency, Entry, ExchangeRate, File, Period, Posting, Session,
-		Transaction, User, UserAccount, Workspace, WorkspaceInvitation,
-		WorkspaceMember []ent.Interceptor
+		Account, CmsMedia, CmsPage, CmsPost, Currency, Entry, ExchangeRate, File,
+		Period, Posting, Session, Transaction, User, UserAccount, Workspace,
+		WorkspaceInvitation, WorkspaceMember []ent.Interceptor
 	}
 )
 
@@ -3205,6 +3894,9 @@ var (
 	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
 	DefaultSchemaConfig = SchemaConfig{
 		Account:             tableSchemas[0],
+		CmsMedia:            tableSchemas[0],
+		CmsPage:             tableSchemas[0],
+		CmsPost:             tableSchemas[0],
 		Currency:            tableSchemas[0],
 		Entry:               tableSchemas[0],
 		ExchangeRate:        tableSchemas[0],

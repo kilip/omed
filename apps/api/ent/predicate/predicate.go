@@ -9,6 +9,15 @@ import (
 // Account is the predicate function for account builders.
 type Account func(*sql.Selector)
 
+// CmsMedia is the predicate function for cmsmedia builders.
+type CmsMedia func(*sql.Selector)
+
+// CmsPage is the predicate function for cmspage builders.
+type CmsPage func(*sql.Selector)
+
+// CmsPost is the predicate function for cmspost builders.
+type CmsPost func(*sql.Selector)
+
 // Currency is the predicate function for currency builders.
 type Currency func(*sql.Selector)
 

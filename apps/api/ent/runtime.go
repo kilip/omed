@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/cmsmedia"
+	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspost"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -75,6 +78,83 @@ func init() {
 	accountDescIsPostable := accountFields[9].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
+	cmsmediaMixin := schema.CmsMedia{}.Mixin()
+	cmsmediaMixinFields1 := cmsmediaMixin[1].Fields()
+	_ = cmsmediaMixinFields1
+	cmsmediaFields := schema.CmsMedia{}.Fields()
+	_ = cmsmediaFields
+	// cmsmediaDescCreatedAt is the schema descriptor for created_at field.
+	cmsmediaDescCreatedAt := cmsmediaMixinFields1[2].Descriptor()
+	// cmsmedia.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cmsmedia.DefaultCreatedAt = cmsmediaDescCreatedAt.Default.(func() time.Time)
+	// cmsmediaDescUpdatedAt is the schema descriptor for updated_at field.
+	cmsmediaDescUpdatedAt := cmsmediaMixinFields1[3].Descriptor()
+	// cmsmedia.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cmsmedia.DefaultUpdatedAt = cmsmediaDescUpdatedAt.Default.(func() time.Time)
+	// cmsmedia.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cmsmedia.UpdateDefaultUpdatedAt = cmsmediaDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cmsmediaDescIsPublic is the schema descriptor for is_public field.
+	cmsmediaDescIsPublic := cmsmediaFields[5].Descriptor()
+	// cmsmedia.DefaultIsPublic holds the default value on creation for the is_public field.
+	cmsmedia.DefaultIsPublic = cmsmediaDescIsPublic.Default.(bool)
+	cmspageMixin := schema.CmsPage{}.Mixin()
+	cmspageMixinFields1 := cmspageMixin[1].Fields()
+	_ = cmspageMixinFields1
+	cmspageMixinFields3 := cmspageMixin[3].Fields()
+	_ = cmspageMixinFields3
+	cmspageFields := schema.CmsPage{}.Fields()
+	_ = cmspageFields
+	// cmspageDescCreatedAt is the schema descriptor for created_at field.
+	cmspageDescCreatedAt := cmspageMixinFields1[2].Descriptor()
+	// cmspage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cmspage.DefaultCreatedAt = cmspageDescCreatedAt.Default.(func() time.Time)
+	// cmspageDescUpdatedAt is the schema descriptor for updated_at field.
+	cmspageDescUpdatedAt := cmspageMixinFields1[3].Descriptor()
+	// cmspage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cmspage.DefaultUpdatedAt = cmspageDescUpdatedAt.Default.(func() time.Time)
+	// cmspage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cmspage.UpdateDefaultUpdatedAt = cmspageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cmspageDescTitle is the schema descriptor for title field.
+	cmspageDescTitle := cmspageFields[1].Descriptor()
+	// cmspage.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	cmspage.TitleValidator = cmspageDescTitle.Validators[0].(func(string) error)
+	// cmspageDescSlug is the schema descriptor for slug field.
+	cmspageDescSlug := cmspageFields[2].Descriptor()
+	// cmspage.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	cmspage.SlugValidator = cmspageDescSlug.Validators[0].(func(string) error)
+	// cmspageDescBody is the schema descriptor for body field.
+	cmspageDescBody := cmspageFields[3].Descriptor()
+	// cmspage.DefaultBody holds the default value on creation for the body field.
+	cmspage.DefaultBody = cmspageDescBody.Default.(string)
+	cmspostMixin := schema.CmsPost{}.Mixin()
+	cmspostMixinFields1 := cmspostMixin[1].Fields()
+	_ = cmspostMixinFields1
+	cmspostMixinFields3 := cmspostMixin[3].Fields()
+	_ = cmspostMixinFields3
+	cmspostFields := schema.CmsPost{}.Fields()
+	_ = cmspostFields
+	// cmspostDescCreatedAt is the schema descriptor for created_at field.
+	cmspostDescCreatedAt := cmspostMixinFields1[2].Descriptor()
+	// cmspost.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cmspost.DefaultCreatedAt = cmspostDescCreatedAt.Default.(func() time.Time)
+	// cmspostDescUpdatedAt is the schema descriptor for updated_at field.
+	cmspostDescUpdatedAt := cmspostMixinFields1[3].Descriptor()
+	// cmspost.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cmspost.DefaultUpdatedAt = cmspostDescUpdatedAt.Default.(func() time.Time)
+	// cmspost.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cmspost.UpdateDefaultUpdatedAt = cmspostDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cmspostDescTitle is the schema descriptor for title field.
+	cmspostDescTitle := cmspostFields[1].Descriptor()
+	// cmspost.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	cmspost.TitleValidator = cmspostDescTitle.Validators[0].(func(string) error)
+	// cmspostDescSlug is the schema descriptor for slug field.
+	cmspostDescSlug := cmspostFields[2].Descriptor()
+	// cmspost.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	cmspost.SlugValidator = cmspostDescSlug.Validators[0].(func(string) error)
+	// cmspostDescBody is the schema descriptor for body field.
+	cmspostDescBody := cmspostFields[4].Descriptor()
+	// cmspost.DefaultBody holds the default value on creation for the body field.
+	cmspost.DefaultBody = cmspostDescBody.Default.(string)
 	currencyFields := schema.Currency{}.Fields()
 	_ = currencyFields
 	// currencyDescCode is the schema descriptor for code field.

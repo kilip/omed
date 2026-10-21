@@ -14,6 +14,12 @@ type Tx struct {
 	config
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
+	// CmsMedia is the client for interacting with the CmsMedia builders.
+	CmsMedia *CmsMediaClient
+	// CmsPage is the client for interacting with the CmsPage builders.
+	CmsPage *CmsPageClient
+	// CmsPost is the client for interacting with the CmsPost builders.
+	CmsPost *CmsPostClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
 	// Entry is the client for interacting with the Entry builders.
@@ -172,6 +178,9 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
+	tx.CmsMedia = NewCmsMediaClient(tx.config)
+	tx.CmsPage = NewCmsPageClient(tx.config)
+	tx.CmsPost = NewCmsPostClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
 	tx.Entry = NewEntryClient(tx.config)
 	tx.ExchangeRate = NewExchangeRateClient(tx.config)

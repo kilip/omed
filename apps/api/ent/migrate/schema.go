@@ -92,6 +92,216 @@ var (
 			},
 		},
 	}
+	// CmsMediaColumns holds the columns for the "cms_media" table.
+	CmsMediaColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "title", Type: field.TypeString, Nullable: true},
+		{Name: "alt_text", Type: field.TypeString, Nullable: true},
+		{Name: "caption", Type: field.TypeString, Nullable: true},
+		{Name: "is_public", Type: field.TypeBool, Default: true},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "file_id", Type: field.TypeInt64},
+	}
+	// CmsMediaTable holds the schema information for the "cms_media" table.
+	CmsMediaTable = &schema.Table{
+		Name:       "cms_media",
+		Columns:    CmsMediaColumns,
+		PrimaryKey: []*schema.Column{CmsMediaColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cms_media_workspaces_workspace",
+				Columns:    []*schema.Column{CmsMediaColumns[8]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_media_users_creator",
+				Columns:    []*schema.Column{CmsMediaColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_media_users_updater",
+				Columns:    []*schema.Column{CmsMediaColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_media_users_deleter",
+				Columns:    []*schema.Column{CmsMediaColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "cms_media_files_file",
+				Columns:    []*schema.Column{CmsMediaColumns[12]},
+				RefColumns: []*schema.Column{FilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "cmsmedia_workspace_id_file_id",
+				Unique:  false,
+				Columns: []*schema.Column{CmsMediaColumns[8], CmsMediaColumns[12]},
+			},
+			{
+				Name:    "cmsmedia_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsMediaColumns[8], CmsMediaColumns[3]},
+			},
+		},
+	}
+	// CmsPagesColumns holds the columns for the "cms_pages" table.
+	CmsPagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "PUBLISHED"}, Default: "DRAFT"},
+		{Name: "publish_at", Type: field.TypeTime, Nullable: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "body", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// CmsPagesTable holds the schema information for the "cms_pages" table.
+	CmsPagesTable = &schema.Table{
+		Name:       "cms_pages",
+		Columns:    CmsPagesColumns,
+		PrimaryKey: []*schema.Column{CmsPagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cms_pages_workspaces_workspace",
+				Columns:    []*schema.Column{CmsPagesColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_pages_users_creator",
+				Columns:    []*schema.Column{CmsPagesColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_pages_users_updater",
+				Columns:    []*schema.Column{CmsPagesColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_pages_users_deleter",
+				Columns:    []*schema.Column{CmsPagesColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "cmspage_workspace_id_slug",
+				Unique:  true,
+				Columns: []*schema.Column{CmsPagesColumns[9], CmsPagesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "cmspage_workspace_id_status_publish_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsPagesColumns[9], CmsPagesColumns[4], CmsPagesColumns[5]},
+			},
+			{
+				Name:    "cmspage_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsPagesColumns[9], CmsPagesColumns[3]},
+			},
+		},
+	}
+	// CmsPostsColumns holds the columns for the "cms_posts" table.
+	CmsPostsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "PUBLISHED"}, Default: "DRAFT"},
+		{Name: "publish_at", Type: field.TypeTime, Nullable: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "excerpt", Type: field.TypeString, Nullable: true},
+		{Name: "body", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "cover_media_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// CmsPostsTable holds the schema information for the "cms_posts" table.
+	CmsPostsTable = &schema.Table{
+		Name:       "cms_posts",
+		Columns:    CmsPostsColumns,
+		PrimaryKey: []*schema.Column{CmsPostsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cms_posts_workspaces_workspace",
+				Columns:    []*schema.Column{CmsPostsColumns[10]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_posts_users_creator",
+				Columns:    []*schema.Column{CmsPostsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_posts_users_updater",
+				Columns:    []*schema.Column{CmsPostsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_posts_users_deleter",
+				Columns:    []*schema.Column{CmsPostsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "cms_posts_cms_media_cover_media",
+				Columns:    []*schema.Column{CmsPostsColumns[14]},
+				RefColumns: []*schema.Column{CmsMediaColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "cmspost_workspace_id_slug",
+				Unique:  true,
+				Columns: []*schema.Column{CmsPostsColumns[10], CmsPostsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "cmspost_workspace_id_status_publish_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsPostsColumns[10], CmsPostsColumns[4], CmsPostsColumns[5]},
+			},
+			{
+				Name:    "cmspost_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsPostsColumns[10], CmsPostsColumns[3]},
+			},
+		},
+	}
 	// CurrenciesColumns holds the columns for the "currencies" table.
 	CurrenciesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -842,6 +1052,9 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
+		CmsMediaTable,
+		CmsPagesTable,
+		CmsPostsTable,
 		CurrenciesTable,
 		EntriesTable,
 		ExchangeRatesTable,
@@ -864,6 +1077,20 @@ func init() {
 	AccountsTable.ForeignKeys[2].RefTable = UsersTable
 	AccountsTable.ForeignKeys[3].RefTable = UsersTable
 	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
+	CmsMediaTable.ForeignKeys[0].RefTable = WorkspacesTable
+	CmsMediaTable.ForeignKeys[1].RefTable = UsersTable
+	CmsMediaTable.ForeignKeys[2].RefTable = UsersTable
+	CmsMediaTable.ForeignKeys[3].RefTable = UsersTable
+	CmsMediaTable.ForeignKeys[4].RefTable = FilesTable
+	CmsPagesTable.ForeignKeys[0].RefTable = WorkspacesTable
+	CmsPagesTable.ForeignKeys[1].RefTable = UsersTable
+	CmsPagesTable.ForeignKeys[2].RefTable = UsersTable
+	CmsPagesTable.ForeignKeys[3].RefTable = UsersTable
+	CmsPostsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	CmsPostsTable.ForeignKeys[1].RefTable = UsersTable
+	CmsPostsTable.ForeignKeys[2].RefTable = UsersTable
+	CmsPostsTable.ForeignKeys[3].RefTable = UsersTable
+	CmsPostsTable.ForeignKeys[4].RefTable = CmsMediaTable
 	EntriesTable.ForeignKeys[0].RefTable = WorkspacesTable
 	EntriesTable.ForeignKeys[1].RefTable = UsersTable
 	EntriesTable.ForeignKeys[2].RefTable = UsersTable

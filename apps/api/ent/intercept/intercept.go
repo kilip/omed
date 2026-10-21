@@ -9,6 +9,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/cmsmedia"
+	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspost"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -106,6 +109,87 @@ func (f TraverseAccount) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.AccountQuery", q)
+}
+
+// The CmsMediaFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CmsMediaFunc func(context.Context, *ent.CmsMediaQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CmsMediaFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CmsMediaQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CmsMediaQuery", q)
+}
+
+// The TraverseCmsMedia type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCmsMedia func(context.Context, *ent.CmsMediaQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCmsMedia) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCmsMedia) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CmsMediaQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CmsMediaQuery", q)
+}
+
+// The CmsPageFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CmsPageFunc func(context.Context, *ent.CmsPageQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CmsPageFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CmsPageQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CmsPageQuery", q)
+}
+
+// The TraverseCmsPage type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCmsPage func(context.Context, *ent.CmsPageQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCmsPage) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCmsPage) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CmsPageQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CmsPageQuery", q)
+}
+
+// The CmsPostFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CmsPostFunc func(context.Context, *ent.CmsPostQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CmsPostFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CmsPostQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CmsPostQuery", q)
+}
+
+// The TraverseCmsPost type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCmsPost func(context.Context, *ent.CmsPostQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCmsPost) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCmsPost) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CmsPostQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CmsPostQuery", q)
 }
 
 // The CurrencyFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -464,6 +548,12 @@ func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
 	case *ent.AccountQuery:
 		return &query[*ent.AccountQuery, predicate.Account, account.OrderOption]{typ: ent.TypeAccount, tq: q}, nil
+	case *ent.CmsMediaQuery:
+		return &query[*ent.CmsMediaQuery, predicate.CmsMedia, cmsmedia.OrderOption]{typ: ent.TypeCmsMedia, tq: q}, nil
+	case *ent.CmsPageQuery:
+		return &query[*ent.CmsPageQuery, predicate.CmsPage, cmspage.OrderOption]{typ: ent.TypeCmsPage, tq: q}, nil
+	case *ent.CmsPostQuery:
+		return &query[*ent.CmsPostQuery, predicate.CmsPost, cmspost.OrderOption]{typ: ent.TypeCmsPost, tq: q}, nil
 	case *ent.CurrencyQuery:
 		return &query[*ent.CurrencyQuery, predicate.Currency, currency.OrderOption]{typ: ent.TypeCurrency, tq: q}, nil
 	case *ent.EntryQuery:

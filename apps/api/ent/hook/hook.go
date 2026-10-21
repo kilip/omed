@@ -21,6 +21,42 @@ func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
 }
 
+// The CmsMediaFunc type is an adapter to allow the use of ordinary
+// function as CmsMedia mutator.
+type CmsMediaFunc func(context.Context, *ent.CmsMediaMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CmsMediaFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CmsMediaMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CmsMediaMutation", m)
+}
+
+// The CmsPageFunc type is an adapter to allow the use of ordinary
+// function as CmsPage mutator.
+type CmsPageFunc func(context.Context, *ent.CmsPageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CmsPageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CmsPageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CmsPageMutation", m)
+}
+
+// The CmsPostFunc type is an adapter to allow the use of ordinary
+// function as CmsPost mutator.
+type CmsPostFunc func(context.Context, *ent.CmsPostMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CmsPostFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CmsPostMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CmsPostMutation", m)
+}
+
 // The CurrencyFunc type is an adapter to allow the use of ordinary
 // function as Currency mutator.
 type CurrencyFunc func(context.Context, *ent.CurrencyMutation) (ent.Value, error)
