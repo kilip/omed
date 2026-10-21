@@ -271,7 +271,7 @@ General rules for every web task: types come from `@omed/openapi` via `openapi-f
   - Done when: tests cover each state's available actions and past-date blocking.
   - Commit: `feat(web): ✨ add cms publish panel`
 
-- [ ] **T7.4 Posts UI**
+- [x] **T7.4 Posts UI**
   - Depends: T7.2, T7.3
   - Files: `modules/cms/routes/{posts.tsx,post-new.tsx,post.tsx}`, `modules/cms/components/markdown-editor.tsx` plus tests; add `react-markdown` to `apps/web/package.json` (D10).
   - Do: posts table (search, effective-status filter, cursor pagination, status tags, row actions); create and edit forms (title, slug with auto-fill hint, excerpt, Markdown editor with Write/Preview tabs, cover image via `MediaPicker`); `PublishPanel` on the edit screen; delete with confirm. Register routes in `route.ts`: `posts`, `posts/new`, `posts/:id`. Handle API errors (slug conflict, validation) inline.
