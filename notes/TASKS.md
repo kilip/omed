@@ -257,7 +257,7 @@ General rules for every web task: types come from `@omed/openapi` via `openapi-f
   - Done when: the launcher shows the CMS module and the sidebar menu renders; permission hook tests pass.
   - Commit: `feat(web): ✨ add cms module scaffolding`
 
-- [ ] **T7.2 Media library and picker**
+- [x] **T7.2 Media library and picker**
   - Depends: T7.1
   - Files: `modules/cms/routes/media.tsx`, `modules/cms/components/{media-picker.tsx,...}` plus tests.
   - Do: grid/list of media with search and cursor pagination; upload via Ant Design `Upload` (client-side check of size/type matches D8 limits, server remains authoritative); edit drawer for title, alt text, caption, `isPublic`; delete with confirm and a clear message on `409` (in use); "copy public URL" action shown only when `isPublic`; a reusable `MediaPicker` modal (select one media) used later for cover images. Gate actions with `use-cms-permissions`.

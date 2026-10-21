@@ -39,6 +39,15 @@ export const DEFAULT_ATTACHMENT_ALLOWED_TYPES = [
   ".xlsx",
 ];
 
+export const DEFAULT_CMS_MEDIA_ALLOWED_TYPES = [
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+  ".gif",
+  ".pdf",
+];
+
 const apiUrl = read(import.meta.env.VITE_API_URL, "http://localhost:8001");
 
 export const env = {
@@ -51,5 +60,10 @@ export const env = {
   attachmentAllowedTypes: readList(
     import.meta.env.VITE_ATTACHMENT_ALLOWED_TYPES,
     DEFAULT_ATTACHMENT_ALLOWED_TYPES,
+  ),
+  cmsMediaMaxSizeMB: readNumber(import.meta.env.VITE_CMS_MEDIA_MAX_SIZE_MB, 10),
+  cmsMediaAllowedTypes: readList(
+    import.meta.env.VITE_CMS_MEDIA_ALLOWED_TYPES,
+    DEFAULT_CMS_MEDIA_ALLOWED_TYPES,
   ),
 };
