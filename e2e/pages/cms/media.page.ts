@@ -18,7 +18,7 @@ export class CmsMediaPage extends BasePage {
   }
 
   get drawer(): Locator {
-    return this.page.locator(".ant-drawer");
+    return this.page.locator(".ant-drawer-open");
   }
 
   get altTextInput(): Locator {
@@ -30,11 +30,13 @@ export class CmsMediaPage extends BasePage {
   }
 
   get popconfirmOkButton(): Locator {
-    return this.page.locator(".ant-popconfirm .ant-btn-primary");
+    return this.page.locator(
+      ".ant-popconfirm .ant-btn-primary, .ant-popover .ant-btn-primary",
+    );
   }
 
   get errorMessage(): Locator {
-    return this.page.locator(".ant-message-error");
+    return this.page.locator(".ant-message-error, .ant-message-notice-error");
   }
 
   async goto(): Promise<void> {
@@ -46,19 +48,23 @@ export class CmsMediaPage extends BasePage {
     filename: string,
     content = "sample content",
   ): Promise<void> {
+    await this.uploadButton.waitFor({ state: "visible" });
     await this.fileInput.setInputFiles({
       name: filename,
       mimeType: filename.endsWith(".pdf") ? "application/pdf" : "image/png",
       buffer: Buffer.from(content, "utf-8"),
     });
     // Wait for card to appear
-    await this.cards.first().waitFor({ state: "visible" });
+    await this.cards
+      .filter({ hasText: filename })
+      .first()
+      .waitFor({ state: "visible" });
   }
 
   async openEditDrawer(titleOrName: string): Promise<void> {
     const card = this.cards.filter({ hasText: titleOrName }).first();
     await card.waitFor({ state: "visible" });
-    const editBtn = card.locator(".anticon-edit").locator("..");
+    const editBtn = card.locator("button:has(.anticon-edit)");
     await editBtn.click();
     await this.drawer.waitFor({ state: "visible" });
   }
@@ -72,7 +78,7 @@ export class CmsMediaPage extends BasePage {
   async deleteMedia(titleOrName: string): Promise<void> {
     const card = this.cards.filter({ hasText: titleOrName }).first();
     await card.waitFor({ state: "visible" });
-    const deleteBtn = card.locator(".anticon-delete").locator("..");
+    const deleteBtn = card.locator("button:has(.anticon-delete)");
     await deleteBtn.click();
     await this.popconfirmOkButton.waitFor({ state: "visible" });
     await this.popconfirmOkButton.click();
@@ -89,8 +95,8 @@ export class CmsMediaPage extends BasePage {
   }
 
   async expectDeleteBlocked(): Promise<void> {
-    await this.errorMessage.waitFor({ state: "visible" });
-    const text = await this.errorMessage.innerText();
+    await this.errorMessage.first().waitFor({ state: "visible" });
+    const text = await this.errorMessage.first().innerText();
     assert.ok(
       text.toLowerCase().includes("cannot delete media") ||
         text.toLowerCase().includes("used") ||
@@ -100,6 +106,7 @@ export class CmsMediaPage extends BasePage {
   }
 
   async expectUploadButtonHidden(): Promise<void> {
+    await this.page.waitForLoadState("networkidle");
     await this.uploadButton.waitFor({ state: "hidden" });
   }
 

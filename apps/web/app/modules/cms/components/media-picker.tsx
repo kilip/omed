@@ -55,6 +55,7 @@ export function MediaPicker({
       title={t("cms.media.pickerTitle")}
       open={open}
       onCancel={onClose}
+      destroyOnClose
       width={720}
       footer={[
         <Button key="cancel" onClick={onClose}>
@@ -104,6 +105,7 @@ export function MediaPicker({
               <button
                 key={item.id}
                 type="button"
+                className="media-picker-item"
                 onClick={() => setSelected(item)}
                 style={{
                   border: isSelected

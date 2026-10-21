@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Omed E2E testing",
   "scripts": {
-    "e2e": "bunx --bun cucumber-js",
+    "e2e": "bun ./node_modules/@cucumber/cucumber/bin/cucumber-js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

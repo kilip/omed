@@ -32,11 +32,13 @@ export class CmsPostsPage extends BasePage {
   }
 
   get deleteButton(): Locator {
-    return this.page.getByRole("button", { name: /^delete$/i });
+    return this.page.getByRole("button", { name: /delete/i });
   }
 
   get popconfirmOkButton(): Locator {
-    return this.page.locator(".ant-popconfirm .ant-btn-primary");
+    return this.page.locator(
+      ".ant-popconfirm .ant-btn-primary, .ant-popover .ant-btn-primary",
+    );
   }
 
   get titleInput(): Locator {
@@ -72,7 +74,7 @@ export class CmsPostsPage extends BasePage {
   }
 
   get mediaPickerFirstItem(): Locator {
-    return this.page.locator(".ant-modal button[type='button']").first();
+    return this.page.locator(".media-picker-item").first();
   }
 
   get mediaPickerSelectButton(): Locator {
@@ -113,6 +115,7 @@ export class CmsPostsPage extends BasePage {
   async selectCoverImage(): Promise<void> {
     await this.selectCoverButton.click();
     await this.mediaPickerModal.waitFor({ state: "visible" });
+    await this.mediaPickerFirstItem.waitFor({ state: "visible" });
     await this.mediaPickerFirstItem.click();
     await this.mediaPickerSelectButton.click();
     await this.mediaPickerModal.waitFor({ state: "hidden" });
@@ -120,11 +123,13 @@ export class CmsPostsPage extends BasePage {
 
   async savePost(): Promise<void> {
     await this.saveButton.click();
+    await this.page.waitForLoadState("networkidle");
   }
 
   async publishPost(): Promise<void> {
     await this.publishNowButton.waitFor({ state: "visible" });
     await this.publishNowButton.click();
+    await this.page.waitForLoadState("networkidle");
   }
 
   async schedulePost(): Promise<void> {
@@ -132,7 +137,7 @@ export class CmsPostsPage extends BasePage {
     await this.scheduleButton.click();
     await this.scheduleConfirmButton.waitFor({ state: "visible" });
     await this.scheduleConfirmButton.click();
-    await this.scheduleConfirmButton.waitFor({ state: "hidden" });
+    await this.page.waitForLoadState("networkidle");
   }
 
   async unpublishPost(): Promise<void> {
@@ -140,6 +145,7 @@ export class CmsPostsPage extends BasePage {
     await this.unpublishButton.click();
     await this.popconfirmOkButton.waitFor({ state: "visible" });
     await this.popconfirmOkButton.click();
+    await this.page.waitForLoadState("networkidle");
   }
 
   async deletePost(): Promise<void> {
@@ -147,7 +153,7 @@ export class CmsPostsPage extends BasePage {
     await this.deleteButton.click();
     await this.popconfirmOkButton.waitFor({ state: "visible" });
     await this.popconfirmOkButton.click();
-    await this.page.waitForURL((url) => !url.pathname.includes("/posts/"));
+    await this.page.waitForURL((url) => url.pathname === "/cms/posts");
   }
 
   async expectPostInTable(title: string): Promise<void> {
@@ -175,6 +181,7 @@ export class CmsPostsPage extends BasePage {
   }
 
   async expectNewButtonHidden(): Promise<void> {
+    await this.page.waitForLoadState("networkidle");
     await this.newPostButton.waitFor({ state: "hidden" });
   }
 

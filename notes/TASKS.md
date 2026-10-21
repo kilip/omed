@@ -294,7 +294,7 @@ General rules for every web task: types come from `@omed/openapi` via `openapi-f
   - Done when: `bun run typecheck` passes; no selectors outside page objects.
   - Commit: `test(e2e): ✅ add cms page objects`
 
-- [ ] **T8.2 Features and steps**
+- [x] **T8.2 Features and steps**
   - Depends: T8.1
   - Files: `e2e/features/cms/{posts,pages,media,publishing,permissions,public-api}.feature`, `e2e/steps/cms/*.steps.ts`.
   - Do: tag scenarios `@authenticated`. Cover: create/edit/delete post and page; publish, unpublish, schedule (future date) with correct status tag; media upload, edit alt text, delete blocked while used as cover; viewer is read-only and editor can edit; public API checks through the test client without a session (published visible, draft hidden, future-scheduled hidden). The scheduled-becomes-visible transition is covered by Go integration tests (T5.2), not e2e, to avoid time-dependent flakiness. Put steps in `steps/common/` only if another module also uses them.

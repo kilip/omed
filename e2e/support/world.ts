@@ -7,7 +7,7 @@ import {
 import type { BrowserContext, Page } from "playwright";
 import { createPages, type Pages } from "../pages";
 import { config } from "./config";
-import type { TestUser, TestWorkspace } from "./test-client";
+import { type TestUser, type TestWorkspace, testClient } from "./test-client";
 
 setDefaultTimeout(30_000);
 
@@ -24,6 +24,14 @@ export class OmedWorld extends World {
   testTxId?: number;
   testEntryId?: number;
   testPostedEntryId?: number;
+  publicApiResponse?: { status: number; data?: unknown };
+  publishedPostTitle?: string;
+  draftPostTitle?: string;
+  scheduledPostTitle?: string;
+
+  get client() {
+    return testClient;
+  }
 
   constructor(options: IWorldOptions) {
     super(options);

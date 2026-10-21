@@ -32,11 +32,13 @@ export class CmsPagesPage extends BasePage {
   }
 
   get deleteButton(): Locator {
-    return this.page.getByRole("button", { name: /^delete$/i });
+    return this.page.getByRole("button", { name: /delete/i });
   }
 
   get popconfirmOkButton(): Locator {
-    return this.page.locator(".ant-popconfirm .ant-btn-primary");
+    return this.page.locator(
+      ".ant-popconfirm .ant-btn-primary, .ant-popover .ant-btn-primary",
+    );
   }
 
   get titleInput(): Locator {
@@ -109,7 +111,7 @@ export class CmsPagesPage extends BasePage {
     await this.deleteButton.click();
     await this.popconfirmOkButton.waitFor({ state: "visible" });
     await this.popconfirmOkButton.click();
-    await this.page.waitForURL((url) => !url.pathname.includes("/pages/"));
+    await this.page.waitForURL((url) => url.pathname === "/cms/pages");
   }
 
   async expectPageInTable(title: string): Promise<void> {
@@ -137,6 +139,7 @@ export class CmsPagesPage extends BasePage {
   }
 
   async expectNewButtonHidden(): Promise<void> {
+    await this.page.waitForLoadState("networkidle");
     await this.newPageButton.waitFor({ state: "hidden" });
   }
 

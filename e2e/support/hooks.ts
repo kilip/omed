@@ -70,7 +70,12 @@ Before(async function (this: OmedWorld) {
     locale: "en-US",
     viewport: { width: 1280, height: 800 },
   });
-  this.init(context, await context.newPage());
+  const page = await context.newPage();
+  page.on("console", (msg) =>
+    console.log(`[browser console ${msg.type()}]: ${msg.text()}`),
+  );
+  page.on("pageerror", (err) => console.error(`[browser pageerror]: ${err}`));
+  this.init(context, page);
 });
 
 /** Signs in through testClient: real user, real session, cookies for dashboard. */

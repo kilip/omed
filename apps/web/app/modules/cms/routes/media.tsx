@@ -378,6 +378,7 @@ export default function MediaRoute({ loaderData }: Route.ComponentProps) {
         title={t("cms.media.edit")}
         open={Boolean(editingMedia)}
         onClose={() => setEditingMedia(null)}
+        destroyOnClose
         extra={
           <Button
             type="primary"
