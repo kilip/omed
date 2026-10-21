@@ -278,7 +278,7 @@ General rules for every web task: types come from `@omed/openapi` via `openapi-f
   - Done when: route/component tests cover create, edit, publish, schedule, delete flows with mocked API and permission gating; preview does not render raw HTML.
   - Commit: `feat(web): ✨ add cms posts screens`
 
-- [ ] **T7.5 Pages UI**
+- [x] **T7.5 Pages UI**
   - Depends: T7.4
   - Files: `modules/cms/routes/{pages.tsx,page-new.tsx,page.tsx}`.
   - Do: same as T7.4 without excerpt and cover; reuse `markdown-editor`, `status-tag`, `publish-panel`. Routes: `pages`, `pages/new`, `pages/:id`.
