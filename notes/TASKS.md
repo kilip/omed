@@ -199,7 +199,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
 
 ## Phase 4: Pages (API)
 
-- [ ] **T4.1 Page model, repository, service**
+- [x] **T4.1 Page model, repository, service**
   - Depends: T3.3
   - Do: same as T3.2 + T3.3 for pages (no excerpt, no cover). Reuse `domain` helpers; do not copy-paste logic that can be shared inside `internal/cms`. Unit tests next to each file.
   - Done when: tests mirror the post test coverage.
