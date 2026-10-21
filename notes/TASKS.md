@@ -158,7 +158,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
   - Done when: unit tests cover happy path, disallowed type, oversize, compensation on insert failure, delete-when-referenced.
   - Commit: `feat(api): ✨ add cms media service`
 
-- [ ] **T2.2 Media controller, routes, integration tests**
+- [x] **T2.2 Media controller, routes, integration tests**
   - Depends: T2.1
   - Files: `internal/cms/controller/media.go`, `internal/cms/routes.go`, `internal/cms/test/media_test.go`.
   - Do: implement the media admin endpoints from "API surface" with `az.Require(domain.ObjMedia, ...)`. Upload is multipart (`file`, optional `title`, `altText`, `caption`); mirror `core/controller/file.go` and `fin` `UploadAttachment`. Add Swaggo annotations (`@Tags CMS Media`, `@Security BearerAuth`, error responses).

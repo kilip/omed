@@ -72,7 +72,7 @@ func (s MediaService) Upload(c context.Context, req model.UploadMediaRequest) (d
 	file, err := s.fileSvc.Upload(c, coremodel.UploadFileRequest{
 		WorkspaceID: req.WorkspaceID,
 		Name:        name,
-		MimeType:    req.MimeType,
+		MimeType:    resolveMediaMimeType(name, req.MimeType),
 		Size:        req.Size,
 		EntityType:  domain.MediaEntityType,
 		EntityID:    0,
@@ -216,3 +216,25 @@ func (s MediaService) isAllowedType(filename string) bool {
 	}
 	return false
 }
+
+func resolveMediaMimeType(filename, rawMime string) string {
+	ext := strings.ToLower(filepath.Ext(strings.TrimSpace(filename)))
+	switch ext {
+	case ".pdf":
+		return "application/pdf"
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".webp":
+		return "image/webp"
+	case ".gif":
+		return "image/gif"
+	}
+	trimmed := strings.TrimSpace(rawMime)
+	if trimmed != "" {
+		return trimmed
+	}
+	return "application/octet-stream"
+}
+

@@ -135,6 +135,18 @@ components:
           $ref: '#/components/schemas/httpx.Meta'
           description: Meta contains request metadata such as request ID and timestamps.
       type: object
+    httpx.WebResponse-array_model_MediaResponse:
+      properties:
+        data:
+          description: Data contains the response payload.
+          items:
+            $ref: '#/components/schemas/model.MediaResponse'
+          type: array
+          uniqueItems: false
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
     httpx.WebResponse-array_model_MemberResponse:
       properties:
         data:
@@ -289,6 +301,15 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/model.InvitationResponse'
+          description: Data contains the response payload.
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
+    httpx.WebResponse-model_MediaResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/model.MediaResponse'
           description: Data contains the response payload.
         meta:
           $ref: '#/components/schemas/httpx.Meta'
@@ -883,6 +904,31 @@ components:
       - email
       - roles
       type: object
+    model.MediaResponse:
+      properties:
+        altText:
+          type: string
+        auditMeta:
+          $ref: '#/components/schemas/base.AuditMeta'
+        caption:
+          type: string
+        file:
+          $ref: '#/components/schemas/model.FileResponse'
+        id:
+          type: integer
+        isPublic:
+          type: boolean
+        mimeType:
+          type: string
+        name:
+          type: string
+        size:
+          type: integer
+        title:
+          type: string
+        url:
+          type: string
+      type: object
     model.MemberResponse:
       properties:
         createdAt:
@@ -1120,6 +1166,19 @@ components:
           maximum: 100
           minimum: 1
           type: integer
+      type: object
+    model.SearchMediaRequest:
+      properties:
+        cursor:
+          type: string
+        limit:
+          maximum: 100
+          minimum: 1
+          type: integer
+        mimeType:
+          type: string
+        query:
+          type: string
       type: object
     model.SearchMemberRequest:
       properties:
@@ -1419,6 +1478,17 @@ components:
           type: string
       required:
       - name
+      type: object
+    model.UpdateMediaRequest:
+      properties:
+        altText:
+          type: string
+        caption:
+          type: string
+        isPublic:
+          type: boolean
+        title:
+          type: string
       type: object
     model.UpdateMemberRequest:
       properties:
@@ -2052,6 +2122,338 @@ paths:
       summary: Update workspace
       tags:
       - Workspaces
+  /workspaces/{wid}/cms/media:
+    post:
+      description: Upload a file via multipart/form-data as CMS media
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                altText:
+                  description: Media alt text
+                  type: string
+                caption:
+                  description: Media caption
+                  type: string
+                file:
+                  description: Media file to upload
+                  format: binary
+                  type: string
+                isPublic:
+                  description: Is media public (defaults to true)
+                  type: boolean
+                title:
+                  description: Media title
+                  type: string
+              required:
+              - file
+              type: object
+        description: Media file to upload
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_MediaResponse'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Upload media
+      tags:
+      - CMS Media
+  /workspaces/{wid}/cms/media/{id}:
+    delete:
+      description: Delete media item and underlying file (fails if media is referenced
+        by a post)
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Media ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-httpx_NoContent'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Delete media
+      tags:
+      - CMS Media
+    get:
+      description: Get media metadata and presigned URL by ID
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Media ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_MediaResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Get media by ID
+      tags:
+      - CMS Media
+    put:
+      description: Update media metadata (title, alt text, caption, isPublic)
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Media ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.UpdateMediaRequest'
+              description: Update payload
+              summary: request
+        description: Update payload
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_MediaResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Update media
+      tags:
+      - CMS Media
+  /workspaces/{wid}/cms/media/search:
+    post:
+      description: Search media in the workspace with filters and cursor pagination
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.SearchMediaRequest'
+              description: Search criteria
+              summary: request
+        description: Search criteria
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-array_model_MediaResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Search media
+      tags:
+      - CMS Media
   /workspaces/{wid}/files:
     post:
       description: Upload a file via multipart/form-data into the workspace's dedicated

@@ -2,24 +2,17 @@
 package cms
 
 import (
-	"context"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
-	coredomain "github.com/kilip/omed/api/internal/core/domain"
-	coremodel "github.com/kilip/omed/api/internal/core/model"
+	"github.com/kilip/omed/api/internal/cms/repository"
+	"github.com/kilip/omed/api/internal/cms/service"
 	"github.com/kilip/omed/api/internal/platform/authz"
 )
 
 // FileServiceContract defines the file operations required by CMS from the core module.
-type FileServiceContract interface {
-	Upload(c context.Context, req coremodel.UploadFileRequest) (coredomain.File, error)
-	GetByID(c context.Context, id int64) (coredomain.File, error)
-	PresignDownload(c context.Context, id int64) (string, error)
-	Update(c context.Context, id int64, req coremodel.UpdateFileRequest) (coredomain.File, error)
-	Delete(c context.Context, id int64) error
-}
+type FileServiceContract = service.FileServiceContract
 
 // Config encapsulates configuration and dependencies for CmsModule.
 type Config struct {
@@ -34,14 +27,22 @@ type Config struct {
 
 // CmsModule represents the cms module implementing config.Module.
 type CmsModule struct {
-	cfg        Config
-	Authorizer *authz.Authorizer
+	cfg          Config
+	Authorizer   *authz.Authorizer
+	MediaService service.MediaService
 }
 
 // New constructs a new CmsModule instance.
 func New(cfg Config) *CmsModule {
+	mediaRepo := repository.NewMediaRepository(cfg.EntCli)
+	mediaSvc := service.NewMediaService(mediaRepo, cfg.FileService, service.MediaConfig{
+		MaxSizeMB:    cfg.CMSMediaMaxSizeMB,
+		AllowedTypes: cfg.CMSMediaAllowedTypes,
+	})
+
 	return &CmsModule{
-		cfg: cfg,
+		cfg:          cfg,
+		MediaService: mediaSvc,
 	}
 }
 
