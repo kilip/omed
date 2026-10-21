@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.5.0](https://github.com/kilip/omed/compare/v0.4.0...v0.5.0) (2026-10-21)
+
+
+### Features
+
+* **api:** ✨ add cms ent schemas ([d1788be](https://github.com/kilip/omed/commit/d1788beffde8cdba4e16df8e3e9a3b65807b8ecd))
+* **api:** ✨ add cms media config ([a53a34d](https://github.com/kilip/omed/commit/a53a34d4bebc397f9dc60f4ce8e6f3fc3ced6fc8))
+* **api:** ✨ add cms media endpoints ([eea094a](https://github.com/kilip/omed/commit/eea094aaabe33d6b089852740cad62fe8aefaa6c))
+* **api:** ✨ add cms media service ([20f8e00](https://github.com/kilip/omed/commit/20f8e009475f1658dd0989c4dede4a82ba9d81d9))
+* **api:** ✨ add cms module skeleton and roles ([6e67659](https://github.com/kilip/omed/commit/6e6765932c0934a4f4f29337b3d1c40e9d491539))
+* **api:** ✨ add cms page endpoints ([a69b53c](https://github.com/kilip/omed/commit/a69b53c6f7385b4b1a02c8e2493f1c70f9a01344))
+* **api:** ✨ add cms page service ([24e70d6](https://github.com/kilip/omed/commit/24e70d697dbd23f3943b82a747a85f4514a6fd27))
+* **api:** ✨ add cms post endpoints ([d9ac6d1](https://github.com/kilip/omed/commit/d9ac6d1f9a5b6f7059de935db32f8e93e933a10e))
+* **api:** ✨ add cms post repository ([8e5aca8](https://github.com/kilip/omed/commit/8e5aca84c309bb1eb2bc6fdbbad30ddb4bb031e7))
+* **api:** ✨ add cms post service ([baf3c55](https://github.com/kilip/omed/commit/baf3c5549d41758e567fcfca4132dfb9f8b22aa5))
+* **api:** ✨ add cms public content endpoints ([8b2e597](https://github.com/kilip/omed/commit/8b2e597e957d9395e61704e0a279f6d2c0f02499))
+* **api:** ✨ add cms publishing and slug helpers ([99cf8ac](https://github.com/kilip/omed/commit/99cf8ac7db5401669fdadd860a26f53ca5758bfe))
+* **api:** ✨ add s3 storage, workspace buckets, and core_file ([79f8cde](https://github.com/kilip/omed/commit/79f8cde00c4aa0629729493ed48116d307ab4e94))
+* **api:** ✨ add transaction attachments ([6e8097d](https://github.com/kilip/omed/commit/6e8097dbed6e9f0d34e5d3e970b4a410107fcc0e))
+* **auth:** ✨ allow unauthenticated GET on /public routes ([138c9fd](https://github.com/kilip/omed/commit/138c9fd3857d84e915cf07de0ede6bb3cc06ac7d))
+* **web:** ✨ add cms media library ([86e2896](https://github.com/kilip/omed/commit/86e2896a1b253d934e2de6a097ca27ad6c6becfd))
+* **web:** ✨ add cms module scaffolding ([d1b8504](https://github.com/kilip/omed/commit/d1b85041f972a3b95ad807ed36495dc779bbbe44))
+* **web:** ✨ add cms pages screens ([837a5bd](https://github.com/kilip/omed/commit/837a5bdd6bc6a8a9cd770bf0f9b1d85b5bfd316a))
+* **web:** ✨ add cms posts screens ([ced9ff6](https://github.com/kilip/omed/commit/ced9ff6b852ebeff8e519cc42bae9cfe44eef4c3))
+* **web:** ✨ add cms publish panel ([babf541](https://github.com/kilip/omed/commit/babf541378d61aa812973978d1357a9c8774ffd1))
+* **web:** ✨ add transaction attachment picker and viewer ([475bc69](https://github.com/kilip/omed/commit/475bc698e7df5cb7fc62fab06c52e034e843f849))
+
+
+### Bug Fixes
+
+* **web:** 🐛 include react-markdown in optimizeDeps ([f49ebf0](https://github.com/kilip/omed/commit/f49ebf0cf05bda7fd159f16165227ac0b3ceefcd))
+
 ## [0.4.0](https://github.com/kilip/omed/compare/v0.3.0...v0.4.0) (2026-10-20)
 
 
