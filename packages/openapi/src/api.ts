@@ -1322,6 +1322,765 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/cms/pages": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create page
+     * @description Create a new draft page in the workspace
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Page data */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.CreatePageRequest"];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/cms/pages/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Search pages
+     * @description Search pages in the workspace with filters and cursor pagination
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Search criteria */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SearchPageRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-array_model_PageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/cms/pages/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get page by ID
+     * @description Get page details by ID
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Page ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    /**
+     * Update page
+     * @description Update content and metadata of an existing page
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Page ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      /** @description Page update payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.UpdatePageRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
+    /**
+     * Delete page
+     * @description Soft delete a page by ID
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Page ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-httpx_NoContent"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/cms/pages/{id}/publish": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Publish page
+     * @description Publish a draft or scheduled page immediately
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Page ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/cms/pages/{id}/schedule": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Schedule page
+     * @description Schedule a page to be published at a future time
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Page ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      /** @description Schedule details */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SchedulePageRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/cms/pages/{id}/unpublish": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Unpublish page
+     * @description Unpublish a published or scheduled page back to draft
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Page ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/cms/posts": {
     parameters: {
       query?: never;
@@ -7159,6 +7918,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-array_model_PageResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.PageResponse"][];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-array_model_PeriodResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.PeriodResponse"][];
@@ -7264,6 +8029,12 @@ export interface components {
     "httpx.WebResponse-model_MemberResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.MemberResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-model_PageResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.PageResponse"];
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
@@ -7422,6 +8193,11 @@ export interface components {
       expiresAt?: string;
       maxUses?: number;
       roles: string[];
+    };
+    "model.CreatePageRequest": {
+      body?: string;
+      slug?: string;
+      title: string;
     };
     "model.CreatePeriodRequest": {
       description?: string;
@@ -7612,6 +8388,17 @@ export interface components {
       /** @example 25000000 */
       revenue?: number;
     };
+    "model.PageResponse": {
+      auditMeta?: components["schemas"]["base.AuditMeta"];
+      body?: string;
+      effectiveStatus?: string;
+      id?: number;
+      publishAt?: string;
+      slug?: string;
+      status?: string;
+      title?: string;
+      workspaceId?: number;
+    };
     "model.PeriodResponse": {
       auditMeta?: components["schemas"]["base.AuditMeta"];
       description?: string;
@@ -7701,6 +8488,9 @@ export interface components {
       /** @description Name is the human readable display name, e.g. "Accountant". */
       name?: string;
     };
+    "model.SchedulePageRequest": {
+      publishAt: string;
+    };
     "model.SchedulePostRequest": {
       publishAt: string;
     };
@@ -7751,6 +8541,13 @@ export interface components {
     "model.SearchMemberRequest": {
       cursor?: string;
       limit?: number;
+    };
+    "model.SearchPageRequest": {
+      cursor?: string;
+      limit?: number;
+      query?: string;
+      /** @description Filter on effective status: DRAFT, SCHEDULED, PUBLISHED */
+      status?: string;
     };
     "model.SearchPeriodRequest": {
       fiscalYear?: number;
@@ -7913,6 +8710,11 @@ export interface components {
     };
     "model.UpdateMemberRequest": {
       roles: string[];
+    };
+    "model.UpdatePageRequest": {
+      body?: string;
+      slug?: string;
+      title?: string;
     };
     "model.UpdatePeriodRequest": {
       description?: string;

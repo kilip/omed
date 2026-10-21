@@ -241,6 +241,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_PageResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.PageResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_PeriodResponse": {
                 "properties": {
                     "data": {
@@ -486,6 +503,19 @@ const docTemplate = `{
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.MemberResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_PageResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.PageResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -924,6 +954,23 @@ const docTemplate = `{
                 },
                 "required": [
                     "roles"
+                ],
+                "type": "object"
+            },
+            "model.CreatePageRequest": {
+                "properties": {
+                    "body": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "title"
                 ],
                 "type": "object"
             },
@@ -1453,6 +1500,38 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.PageResponse": {
+                "properties": {
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "body": {
+                        "type": "string"
+                    },
+                    "effectiveStatus": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "publishAt": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "workspaceId": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.PeriodResponse": {
                 "properties": {
                     "auditMeta": {
@@ -1683,6 +1762,17 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.SchedulePageRequest": {
+                "properties": {
+                    "publishAt": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "publishAt"
+                ],
+                "type": "object"
+            },
             "model.SchedulePostRequest": {
                 "properties": {
                     "publishAt": {
@@ -1830,6 +1920,26 @@ const docTemplate = `{
                         "maximum": 100,
                         "minimum": 1,
                         "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SearchPageRequest": {
+                "properties": {
+                    "cursor": {
+                        "type": "string"
+                    },
+                    "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "query": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "Filter on effective status: DRAFT, SCHEDULED, PUBLISHED",
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -2311,6 +2421,20 @@ const docTemplate = `{
                 "required": [
                     "roles"
                 ],
+                "type": "object"
+            },
+            "model.UpdatePageRequest": {
+                "properties": {
+                    "body": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
                 "type": "object"
             },
             "model.UpdatePeriodRequest": {
@@ -3929,6 +4053,874 @@ const docTemplate = `{
                 "summary": "Update media",
                 "tags": [
                     "CMS Media"
+                ]
+            }
+        },
+        "/workspaces/{wid}/cms/pages": {
+            "post": {
+                "description": "Create a new draft page in the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreatePageRequest",
+                                "summary": "request",
+                                "description": "Page data"
+                            }
+                        }
+                    },
+                    "description": "Page data",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PageResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create page",
+                "tags": [
+                    "CMS Pages"
+                ]
+            }
+        },
+        "/workspaces/{wid}/cms/pages/search": {
+            "post": {
+                "description": "Search pages in the workspace with filters and cursor pagination",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SearchPageRequest",
+                                "summary": "request",
+                                "description": "Search criteria"
+                            }
+                        }
+                    },
+                    "description": "Search criteria",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_PageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Search pages",
+                "tags": [
+                    "CMS Pages"
+                ]
+            }
+        },
+        "/workspaces/{wid}/cms/pages/{id}": {
+            "delete": {
+                "description": "Soft delete a page by ID",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete page",
+                "tags": [
+                    "CMS Pages"
+                ]
+            },
+            "get": {
+                "description": "Get page details by ID",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get page by ID",
+                "tags": [
+                    "CMS Pages"
+                ]
+            },
+            "put": {
+                "description": "Update content and metadata of an existing page",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdatePageRequest",
+                                "summary": "request",
+                                "description": "Page update payload"
+                            }
+                        }
+                    },
+                    "description": "Page update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update page",
+                "tags": [
+                    "CMS Pages"
+                ]
+            }
+        },
+        "/workspaces/{wid}/cms/pages/{id}/publish": {
+            "post": {
+                "description": "Publish a draft or scheduled page immediately",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Publish page",
+                "tags": [
+                    "CMS Pages"
+                ]
+            }
+        },
+        "/workspaces/{wid}/cms/pages/{id}/schedule": {
+            "post": {
+                "description": "Schedule a page to be published at a future time",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SchedulePageRequest",
+                                "summary": "request",
+                                "description": "Schedule details"
+                            }
+                        }
+                    },
+                    "description": "Schedule details",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Schedule page",
+                "tags": [
+                    "CMS Pages"
+                ]
+            }
+        },
+        "/workspaces/{wid}/cms/pages/{id}/unpublish": {
+            "post": {
+                "description": "Unpublish a published or scheduled page back to draft",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Unpublish page",
+                "tags": [
+                    "CMS Pages"
                 ]
             }
         },

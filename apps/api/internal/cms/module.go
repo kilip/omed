@@ -31,6 +31,7 @@ type CmsModule struct {
 	Authorizer   *authz.Authorizer
 	MediaService service.MediaService
 	PostService  service.PostService
+	PageService  service.PageService
 }
 
 // New constructs a new CmsModule instance.
@@ -44,10 +45,14 @@ func New(cfg Config) *CmsModule {
 	postRepo := repository.NewPostRepository(cfg.EntCli)
 	postSvc := service.NewPostService(postRepo, service.WithPostMediaChecker(mediaRepo))
 
+	pageRepo := repository.NewPageRepository(cfg.EntCli)
+	pageSvc := service.NewPageService(pageRepo)
+
 	return &CmsModule{
 		cfg:          cfg,
 		MediaService: mediaSvc,
 		PostService:  postSvc,
+		PageService:  pageSvc,
 	}
 }
 

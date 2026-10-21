@@ -205,7 +205,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
   - Done when: tests mirror the post test coverage.
   - Commit: `feat(api): ✨ add cms page service`
 
-- [ ] **T4.2 Page controller, routes, integration tests**
+- [x] **T4.2 Page controller, routes, integration tests**
   - Depends: T4.1, T3.4
   - Do: same as T3.4 for pages with `domain.ObjPage` (`@Tags CMS Pages`), tests in `internal/cms/test/page_test.go`.
   - Done when: integration tests mirror the post integration coverage.
