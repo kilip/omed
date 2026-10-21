@@ -33,6 +33,7 @@ export default defineConfig({
       "react",
       "react-dom",
       "react-i18next",
+      "react-markdown",
       "react-router",
     ],
   },
