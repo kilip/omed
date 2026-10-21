@@ -245,7 +245,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
 
 General rules for every web task: types come from `@omed/openapi` via `openapi-fetch` (no hand-written response types); style with the Ant Design theme and design tokens from BRANDING.md (no hardcoded hex); all user-facing strings in both `i18n/en.ts` and `i18n/id.ts`; unit tests (Vitest) next to the file under test; follow `apps/web/.agents/skills/react-router`; mirror `modules/fin` structure and patterns.
 
-- [ ] **T7.1 Module scaffolding**
+- [x] **T7.1 Module scaffolding**
   - Depends: T6.1
   - Files: `apps/web/app/modules/cms/{module.ts,route.ts,queries.ts,hooks/}`, i18n files.
   - Do:

@@ -92,6 +92,7 @@ export const en = {
   role: {
     core: { member: "Member", admin: "Admin" },
     fin: { viewer: "Viewer", accountant: "Accountant", admin: "Admin" },
+    cms: { viewer: "Viewer", editor: "Editor", admin: "Admin" },
   },
   core: {
     label: "Workspaces",
@@ -484,6 +485,15 @@ export const en = {
       ACCOUNT_PARENT_NOT_FOUND: "Parent account not found.",
       ACCOUNT_CYCLIC_PARENT: "An account cannot be its own ancestor.",
       INVALID_CURSOR: "Invalid pagination cursor.",
+    },
+  },
+  cms: {
+    label: "Content",
+    description: "Posts, pages, and media library",
+    menu: {
+      posts: "Posts",
+      pages: "Pages",
+      media: "Media",
     },
   },
 };

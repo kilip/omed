@@ -94,6 +94,7 @@ export const id: Translation = {
   role: {
     core: { member: "Anggota", admin: "Admin" },
     fin: { viewer: "Peninjau", accountant: "Akuntan", admin: "Admin" },
+    cms: { viewer: "Peninjau", editor: "Editor", admin: "Admin" },
   },
   core: {
     label: "Workspace",
@@ -486,6 +487,15 @@ export const id: Translation = {
       ACCOUNT_CYCLIC_PARENT:
         "Akun tidak dapat menjadi induk bagi dirinya sendiri.",
       INVALID_CURSOR: "Kursor pagination tidak valid.",
+    },
+  },
+  cms: {
+    label: "Konten",
+    description: "Artikel, halaman, dan pustaka media",
+    menu: {
+      posts: "Artikel",
+      pages: "Halaman",
+      media: "Media",
     },
   },
 };
