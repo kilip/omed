@@ -110,11 +110,13 @@ func New(state State) Omed {
 	finMod.SetAuthorizer(az)
 
 	cmsMod := cms.New(cms.Config{
-		FiberApp:    state.FiberApp,
-		Logger:      state.Logger,
-		EntCli:      state.EntCli,
-		FileService: coreMod.FileService,
-		ApiURL:      state.Config.ApiUrl,
+		FiberApp:             state.FiberApp,
+		Logger:               state.Logger,
+		EntCli:               state.EntCli,
+		FileService:          coreMod.FileService,
+		ApiURL:               state.Config.ApiUrl,
+		CMSMediaMaxSizeMB:    state.Config.CMSMediaMaxSizeMB,
+		CMSMediaAllowedTypes: state.Config.CMSMediaAllowedTypes,
 	})
 	cmsMod.SetAuthorizer(az)
 

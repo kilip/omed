@@ -106,6 +106,7 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 | `OMED_KAFKA_BROKERS` | api | Kafka Brokers |
 | `OMED_API_URL` | api | Defaults to `http://localhost:8001` |
 | `OMED_S3_*` | api | S3/RustFS storage for attachments (`OMED_S3_ENDPOINT`, `OMED_S3_ACCESS_KEY`, `OMED_S3_SECRET_KEY`, `OMED_S3_REGION`, `OMED_S3_FORCE_PATH_STYLE`) |
+| `OMED_CMS_MEDIA_*` | api | CMS media upload limits (`OMED_CMS_MEDIA_MAX_SIZE_MB`, `OMED_CMS_MEDIA_ALLOWED_TYPES`) |
 | `VITE_PUBLIC_URL` | web | Public dashboard URL |
 | `VITE_API_URL` | web | Defaults to `http://localhost:8001` |
 

@@ -139,7 +139,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
   - Done when: app boots; unit test asserts the three roles exist with the expected inheritance (see `internal/platform/authz/registry.go` for the lookup API); `mutator_test.go` proves queries on the three cms entity types are workspace-filtered.
   - Commit: `feat(api): ✨ add cms module skeleton and roles`
 
-- [ ] **T1.3 Media config**
+- [x] **T1.3 Media config**
   - Depends: T1.2
   - Do: add `CMSMediaMaxSizeMB` and `CMSMediaAllowedTypes` to `internal/config/config.go`, mirroring `AttachmentMaxSizeMB`/`AttachmentAllowedTypes` (env tags, default fallbacks, tests in `config_test.go`). Add both vars to `apps/api/.env.example` and the README environment table. Pass them into `cms.Config` in `app.go`.
   - Done when: defaults apply when unset; config tests cover env override and fallback.

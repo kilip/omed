@@ -66,6 +66,10 @@ type Config struct {
 	AttachmentMaxSizeMB int64 `env:"OMED_ATTACHMENT_MAX_SIZE_MB,default=10"`
 	// AttachmentAllowedTypes lists allowed file extensions for attachments.
 	AttachmentAllowedTypes []string `env:"OMED_ATTACHMENT_ALLOWED_TYPES,separator=,default=.pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx"`
+	// CMSMediaMaxSizeMB is the maximum allowed CMS media file size in megabytes. Defaults to 10.
+	CMSMediaMaxSizeMB int64 `env:"OMED_CMS_MEDIA_MAX_SIZE_MB,default=10"`
+	// CMSMediaAllowedTypes lists allowed file extensions for CMS media uploads.
+	CMSMediaAllowedTypes []string `env:"OMED_CMS_MEDIA_ALLOWED_TYPES,separator=,default=.png,.jpg,.jpeg,.webp,.gif,.pdf"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
 }
@@ -138,6 +142,14 @@ func GetConfig() Config {
 
 	if len(config.AttachmentAllowedTypes) == 0 {
 		config.AttachmentAllowedTypes = []string{".pdf", ".png", ".jpg", ".jpeg", ".webp", ".csv", ".xls", ".xlsx"}
+	}
+
+	if config.CMSMediaMaxSizeMB <= 0 {
+		config.CMSMediaMaxSizeMB = 10
+	}
+
+	if len(config.CMSMediaAllowedTypes) == 0 {
+		config.CMSMediaAllowedTypes = []string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}
 	}
 
 	return config

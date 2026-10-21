@@ -29,17 +29,32 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 	s.Equal("/auth", cfg.AuthPath)
 	s.Equal("omed_session", cfg.SessionCookieName)
 	s.Equal([]string{"http://localhost:3000"}, cfg.TrustedOrigins)
+	s.Equal(int64(10), cfg.CMSMediaMaxSizeMB)
+	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
 }
 
 func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_AUTH_PATH", "/api/v1/auth")
 	s.T().Setenv("OMED_SESSION_COOKIE_NAME", "custom_session_token")
 	s.T().Setenv("OMED_TRUSTED_ORIGINS", "https://app1.example.com,https://app2.example.com")
+	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "25")
+	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", ".png,.jpg")
 
 	cfg := config.GetConfig()
 	s.Equal("/api/v1/auth", cfg.AuthPath)
 	s.Equal("custom_session_token", cfg.SessionCookieName)
 	s.Equal([]string{"https://app1.example.com", "https://app2.example.com"}, cfg.TrustedOrigins)
+	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
+	s.Equal([]string{".png", ".jpg"}, cfg.CMSMediaAllowedTypes)
+}
+
+func (s *ConfigSuite) Test_GetConfig_Fallbacks() {
+	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "0")
+	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", "")
+
+	cfg := config.GetConfig()
+	s.Equal(int64(10), cfg.CMSMediaMaxSizeMB)
+	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
 }
 
 func TestConfigSuite(t *testing.T) {
