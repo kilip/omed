@@ -1,11 +1,13 @@
 import type { Page } from "playwright";
+import { CmsMediaPage } from "./cms/media.page";
+import { CmsPagesPage } from "./cms/pages.page";
+import { CmsPostsPage } from "./cms/posts.page";
 import { HomePage } from "./core/home.page";
 import { InvitationsPage } from "./core/invitations.page";
 import { InvitePage } from "./core/invite.page";
 import { LoginPage } from "./core/login.page";
 import { MembersPage } from "./core/members.page";
 import { WorkspacesPage } from "./core/workspaces.page";
-
 import { FinAccountsPage } from "./fin/accounts.page";
 import { FinDashboardPage } from "./fin/dashboard.page";
 import { FinEntriesPage } from "./fin/entries.page";
@@ -42,6 +44,11 @@ export const createPages = (page: Page) => ({
     transactions: new FinTransactionsPage(page),
     transactionDetail: new FinTransactionDetailPage(page),
     trialBalance: new FinTrialBalancePage(page),
+  },
+  cms: {
+    posts: new CmsPostsPage(page),
+    pages: new CmsPagesPage(page),
+    media: new CmsMediaPage(page),
   },
 });
 

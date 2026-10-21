@@ -342,6 +342,26 @@ export class TestClient {
       // Best-effort: server may not be up or test routes disabled.
     }
   }
+
+  async publicGet<T = unknown>(
+    path: string,
+  ): Promise<{
+    status: number;
+    data?: T;
+    body?: string;
+  }> {
+    const url = `${this.baseUrl}${path}`;
+    const response = await fetch(url, { method: "GET" });
+    let data: T | undefined;
+    let body: string | undefined;
+    const text = await response.text();
+    try {
+      data = JSON.parse(text);
+    } catch {
+      body = text;
+    }
+    return { status: response.status, data, body };
+  }
 }
 
 export const testClient = new TestClient();

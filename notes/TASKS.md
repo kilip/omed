@@ -287,7 +287,7 @@ General rules for every web task: types come from `@omed/openapi` via `openapi-f
 
 ## Phase 8: E2E
 
-- [ ] **T8.1 Page objects and support**
+- [x] **T8.1 Page objects and support**
   - Depends: T7.5
   - Files: `e2e/pages/cms/{posts,pages,media}.page.ts`, `e2e/pages/index.ts`, `e2e/support/test-client.ts` if needed.
   - Do: Page Object Model per AGENTS.md section 5 (locators and `expect*` in page objects only). Register a `cms` group in `createPages()`. Role assignment already exists in `support/test-client.ts` (`addMember({ workspaceId, userId, role })`, roles are plain strings such as `cms:viewer`); see `features/fin/permissions.feature` for usage. Add test-client helpers only for creating CMS content through the API if the UI path is too slow for setup.
