@@ -147,7 +147,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
 
 ## Phase 2: Media (API)
 
-- [ ] **T2.1 Media model, repository, service**
+- [x] **T2.1 Media model, repository, service**
   - Depends: T1.3
   - Files: `internal/cms/{model,repository,service}/media*.go` plus `*_test.go` next to each.
   - Do:
