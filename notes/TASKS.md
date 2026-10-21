@@ -235,7 +235,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
 
 ## Phase 6: OpenAPI
 
-- [ ] **T6.1 Regenerate spec and types**
+- [x] **T6.1 Regenerate spec and types**
   - Depends: T5.3
   - Do: `bunx turbo run oa:gen`, then `bunx openapi-typescript apps/api/docs/swagger.json -o packages/openapi/src/api.ts`. Commit `apps/api/docs/*` and `packages/openapi/src/api.ts`. Confirm CMS admin and public operations appear in the spec.
   - Done when: `bun run typecheck` passes; spec contains all endpoints from "API surface".
