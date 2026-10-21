@@ -91,7 +91,14 @@ export class CmsPostsPage extends BasePage {
   async clickNewPost(): Promise<void> {
     await this.newPostButton.waitFor({ state: "visible" });
     await this.newPostButton.click();
-    await this.titleInput.waitFor({ state: "visible" });
+    try {
+      await this.titleInput.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
+      if (await this.newPostButton.isVisible()) {
+        await this.newPostButton.click();
+      }
+      await this.titleInput.waitFor({ state: "visible" });
+    }
   }
 
   async fillPost(data: {
@@ -122,14 +129,25 @@ export class CmsPostsPage extends BasePage {
   }
 
   async savePost(): Promise<void> {
+    const isNew = this.page.url().includes("/cms/posts/new");
     await this.saveButton.click();
-    await this.page.waitForLoadState("networkidle");
+    if (isNew) {
+      await this.page.waitForURL(/\/cms\/posts\/\d+/);
+    } else {
+      await this.page
+        .locator(".ant-message-success")
+        .first()
+        .waitFor({ state: "visible" });
+    }
   }
 
   async publishPost(): Promise<void> {
     await this.publishNowButton.waitFor({ state: "visible" });
     await this.publishNowButton.click();
-    await this.page.waitForLoadState("networkidle");
+    await this.page
+      .locator(".ant-message-success")
+      .first()
+      .waitFor({ state: "visible" });
   }
 
   async schedulePost(): Promise<void> {
@@ -137,7 +155,11 @@ export class CmsPostsPage extends BasePage {
     await this.scheduleButton.click();
     await this.scheduleConfirmButton.waitFor({ state: "visible" });
     await this.scheduleConfirmButton.click();
-    await this.page.waitForLoadState("networkidle");
+    await this.scheduleConfirmButton.waitFor({ state: "hidden" });
+    await this.page
+      .locator(".ant-message-success")
+      .first()
+      .waitFor({ state: "visible" });
   }
 
   async unpublishPost(): Promise<void> {
@@ -145,7 +167,10 @@ export class CmsPostsPage extends BasePage {
     await this.unpublishButton.click();
     await this.popconfirmOkButton.waitFor({ state: "visible" });
     await this.popconfirmOkButton.click();
-    await this.page.waitForLoadState("networkidle");
+    await this.page
+      .locator(".ant-message-success")
+      .first()
+      .waitFor({ state: "visible" });
   }
 
   async deletePost(): Promise<void> {

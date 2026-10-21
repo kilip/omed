@@ -65,7 +65,14 @@ export class CmsPagesPage extends BasePage {
   async clickNewPage(): Promise<void> {
     await this.newPageButton.waitFor({ state: "visible" });
     await this.newPageButton.click();
-    await this.titleInput.waitFor({ state: "visible" });
+    try {
+      await this.titleInput.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
+      if (await this.newPageButton.isVisible()) {
+        await this.newPageButton.click();
+      }
+      await this.titleInput.waitFor({ state: "visible" });
+    }
   }
 
   async fillPage(data: {
@@ -83,12 +90,25 @@ export class CmsPagesPage extends BasePage {
   }
 
   async savePage(): Promise<void> {
+    const isNew = this.page.url().includes("/cms/pages/new");
     await this.saveButton.click();
+    if (isNew) {
+      await this.page.waitForURL(/\/cms\/pages\/\d+/);
+    } else {
+      await this.page
+        .locator(".ant-message-success")
+        .first()
+        .waitFor({ state: "visible" });
+    }
   }
 
   async publishPage(): Promise<void> {
     await this.publishNowButton.waitFor({ state: "visible" });
     await this.publishNowButton.click();
+    await this.page
+      .locator(".ant-message-success")
+      .first()
+      .waitFor({ state: "visible" });
   }
 
   async schedulePage(): Promise<void> {
@@ -97,6 +117,10 @@ export class CmsPagesPage extends BasePage {
     await this.scheduleConfirmButton.waitFor({ state: "visible" });
     await this.scheduleConfirmButton.click();
     await this.scheduleConfirmButton.waitFor({ state: "hidden" });
+    await this.page
+      .locator(".ant-message-success")
+      .first()
+      .waitFor({ state: "visible" });
   }
 
   async unpublishPage(): Promise<void> {
@@ -104,6 +128,10 @@ export class CmsPagesPage extends BasePage {
     await this.unpublishButton.click();
     await this.popconfirmOkButton.waitFor({ state: "visible" });
     await this.popconfirmOkButton.click();
+    await this.page
+      .locator(".ant-message-success")
+      .first()
+      .waitFor({ state: "visible" });
   }
 
   async deletePage(): Promise<void> {
