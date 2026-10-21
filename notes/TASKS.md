@@ -213,7 +213,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
 
 ## Phase 5: Public API
 
-- [ ] **T5.1 Auth middleware bypass for `/public/`**
+- [x] **T5.1 Auth middleware bypass for `/public/`**
   - Depends: T1.2
   - Files: `internal/core/middleware/auth.go` and its test.
   - Do: let `GET` and `HEAD` requests whose path starts with `/public/` skip authentication, like the existing bypasses. Update the function doc comment. Other methods on `/public/` still require auth.

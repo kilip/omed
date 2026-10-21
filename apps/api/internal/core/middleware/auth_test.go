@@ -65,6 +65,15 @@ func setupTestApp(sessions *mockSessionService, cookieName string) (*fiber.App, 
 	app.Post("/invitations/xyz/accept", func(c fiber.Ctx) error {
 		return c.SendString("accept ok")
 	})
+	app.Get("/public/x", func(c fiber.Ctx) error {
+		return c.SendString("public get ok")
+	})
+	app.Head("/public/x", func(c fiber.Ctx) error {
+		return c.SendString("public head ok")
+	})
+	app.Post("/public/x", func(c fiber.Ctx) error {
+		return c.SendString("public post ok")
+	})
 	app.All("/api/protected", func(c fiber.Ctx) error {
 		if u, ok := c.Locals(base.USER_CONTEXT_KEY).(base.UserContext); ok {
 			capturedUser = u
@@ -108,6 +117,24 @@ func TestAuthMiddleware_Bypass(t *testing.T) {
 	respInvAccept, err := app.Test(reqInvAccept)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusUnauthorized, respInvAccept.StatusCode)
+
+	// 6. Bypass GET /public/*
+	reqPubGet := httptest.NewRequest(fiber.MethodGet, "/public/x", nil)
+	respPubGet, err := app.Test(reqPubGet)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, respPubGet.StatusCode)
+
+	// 7. Bypass HEAD /public/*
+	reqPubHead := httptest.NewRequest(fiber.MethodHead, "/public/x", nil)
+	respPubHead, err := app.Test(reqPubHead)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, respPubHead.StatusCode)
+
+	// 8. Do NOT bypass POST /public/*
+	reqPubPost := httptest.NewRequest(fiber.MethodPost, "/public/x", nil)
+	respPubPost, err := app.Test(reqPubPost)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, respPubPost.StatusCode)
 }
 
 func TestAuthMiddleware_Unauthorized_MissingToken(t *testing.T) {
