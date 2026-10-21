@@ -498,6 +498,24 @@ export const id: Translation = {
       pages: "Halaman",
       media: "Media",
     },
+    status: {
+      DRAFT: "Draf",
+      SCHEDULED: "Terjadwal",
+      PUBLISHED: "Diterbitkan",
+    },
+    publish: {
+      publishNow: "Terbitkan sekarang",
+      schedule: "Jadwalkan...",
+      unpublish: "Batal terbitkan",
+      unpublishConfirm: "Kembalikan konten ini ke draf?",
+      scheduleTitle: "Jadwalkan publikasi",
+      scheduleConfirm: "Jadwalkan",
+      scheduleDesc:
+        "Pilih tanggal dan waktu di masa depan untuk mempublikasikan konten ini.",
+      scheduledFor: "Dijadwalkan untuk: {{date}}",
+      publishedAt: "Diterbitkan pada: {{date}}",
+      pastDateError: "Waktu publikasi harus di masa depan",
+    },
     media: {
       title: "Pustaka Media",
       upload: "Unggah media",

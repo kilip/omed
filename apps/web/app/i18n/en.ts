@@ -496,6 +496,24 @@ export const en = {
       pages: "Pages",
       media: "Media",
     },
+    status: {
+      DRAFT: "Draft",
+      SCHEDULED: "Scheduled",
+      PUBLISHED: "Published",
+    },
+    publish: {
+      publishNow: "Publish now",
+      schedule: "Schedule...",
+      unpublish: "Unpublish",
+      unpublishConfirm: "Revert this content to draft?",
+      scheduleTitle: "Schedule publication",
+      scheduleConfirm: "Schedule",
+      scheduleDesc:
+        "Select a future date and time for this content to be published.",
+      scheduledFor: "Scheduled for: {{date}}",
+      publishedAt: "Published at: {{date}}",
+      pastDateError: "Scheduled time must be in the future",
+    },
     media: {
       title: "Media Library",
       upload: "Upload media",

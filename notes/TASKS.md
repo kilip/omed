@@ -264,7 +264,7 @@ General rules for every web task: types come from `@omed/openapi` via `openapi-f
   - Done when: component tests cover upload validation, picker selection, permission gating, `409` message (mirror `transaction-attachments.test.tsx`).
   - Commit: `feat(web): ✨ add cms media library`
 
-- [ ] **T7.3 Publishing components**
+- [x] **T7.3 Publishing components**
   - Depends: T7.1
   - Files: `modules/cms/components/{status-tag.tsx,publish-panel.tsx}` plus tests.
   - Do: `StatusTag` renders `effectiveStatus` (Draft, Scheduled, Published) with theme tokens. `PublishPanel` takes the stored status/`publishAt` and callbacks, offers Publish now, Schedule (Ant Design `DatePicker` with time, disallow past), Unpublish; shows only transitions valid for the current state; disabled without permission.
