@@ -167,7 +167,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
 
 ## Phase 3: Publishing core + Posts (API)
 
-- [ ] **T3.1 Publishing and slug helpers**
+- [x] **T3.1 Publishing and slug helpers**
   - Depends: T1.2
   - Files: `internal/cms/domain/{publish.go,slug.go}` plus tests.
   - Do: pure functions, no DB. `Status` constants (`DRAFT`, `PUBLISHED`) and effective-status constants (`DRAFT`, `SCHEDULED`, `PUBLISHED`); `EffectiveStatus(status, publishAt, now)`; `Publish`, `Schedule`, `Unpublish` transition functions implementing the transition table above (they return the new `status` and `publish_at`, or a domain error); `Slugify(title)` (lowercase, ASCII-safe, hyphen-separated, fallback for empty result) and a unique-suffix helper.
