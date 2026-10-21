@@ -40,4 +40,11 @@ func initRoutes(mod CmsModule, r fiber.Router, az *authz.Authorizer) {
 	pages.Post("/:id/publish", az.Require(domain.ObjPage, "update"), pageCtl.Publish)
 	pages.Post("/:id/schedule", az.Require(domain.ObjPage, "update"), pageCtl.Schedule)
 	pages.Post("/:id/unpublish", az.Require(domain.ObjPage, "update"), pageCtl.Unpublish)
+
+	publicCtl := controller.NewPublicController(mod.PostService, mod.PageService, mod.MediaService, mod.cfg.ApiURL)
+	r.Get("/public/workspaces/:wid/cms/posts", publicCtl.ListPosts)
+	r.Get("/public/workspaces/:wid/cms/posts/:slug", publicCtl.GetPostBySlug)
+	r.Get("/public/workspaces/:wid/cms/pages", publicCtl.ListPages)
+	r.Get("/public/workspaces/:wid/cms/pages/:slug", publicCtl.GetPageBySlug)
+	r.Get("/public/workspaces/:wid/cms/media/:id", publicCtl.RedirectMedia)
 }

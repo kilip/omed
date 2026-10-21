@@ -51,6 +51,32 @@ func (r MediaRepository) GetByID(c context.Context, id int64) (domain.Media, err
 	return toMediaDomain(m), nil
 }
 
+// GetPublicByID retrieves a media item by ID and workspace, only if is_public and not deleted.
+// This method ignores the workspace interceptor by explicitly filtering workspace_id.
+func (r MediaRepository) GetPublicByID(c context.Context, workspaceID, id int64) (domain.Media, error) {
+	var dom domain.Media
+
+	m, err := r.cli.CmsMedia.Query().
+		Where(
+			cmsmedia.ID(id),
+			cmsmedia.WorkspaceIDEQ(workspaceID),
+			cmsmedia.IsPublic(true),
+			cmsmedia.DeletedAtIsNil(),
+		).
+		WithFile(func(fq *ent.FileQuery) {
+			fq.WithCreator().WithUpdater()
+		}).
+		Only(c)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return dom, domain.ErrMediaNotFound
+		}
+		return dom, err
+	}
+
+	return toMediaDomain(m), nil
+}
+
 // Create inserts a new cms_media record.
 func (r MediaRepository) Create(c context.Context, req model.CreateMediaRecordRequest) (domain.Media, error) {
 	builder := r.cli.CmsMedia.Create().

@@ -186,6 +186,21 @@ func (mr *MockMediaRepositoryMockRecorder) GetByID(c, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockMediaRepository)(nil).GetByID), c, id)
 }
 
+// GetPublicByID mocks base method.
+func (m *MockMediaRepository) GetPublicByID(c context.Context, workspaceID, id int64) (domain.Media, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPublicByID", c, workspaceID, id)
+	ret0, _ := ret[0].(domain.Media)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPublicByID indicates an expected call of GetPublicByID.
+func (mr *MockMediaRepositoryMockRecorder) GetPublicByID(c, workspaceID, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicByID", reflect.TypeOf((*MockMediaRepository)(nil).GetPublicByID), c, workspaceID, id)
+}
+
 // IsReferenced mocks base method.
 func (m *MockMediaRepository) IsReferenced(c context.Context, id int64) (bool, error) {
 	m.ctrl.T.Helper()

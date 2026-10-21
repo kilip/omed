@@ -18,6 +18,8 @@ type PageRepository interface {
 	Delete(c context.Context, id int64) error
 	Search(c context.Context, req model.SearchPageRequest, now time.Time) ([]domain.Page, string, error)
 	SlugExists(c context.Context, slug string, excludeID *int64) (bool, error)
+	PublicList(c context.Context, workspaceID int64, cursor *string, limit int, now time.Time) ([]domain.Page, string, error)
+	PublicGetBySlug(c context.Context, workspaceID int64, slug string, now time.Time) (domain.Page, error)
 }
 
 // PageServiceOption provides configuration options for PageService.
@@ -76,6 +78,16 @@ func (s PageService) GetByID(c context.Context, id int64) (domain.Page, error) {
 // Search searches pages matching search and pagination parameters.
 func (s PageService) Search(c context.Context, req model.SearchPageRequest) ([]domain.Page, string, error) {
 	return s.repo.Search(c, req, s.now())
+}
+
+// PublicList retrieves publicly visible pages for a workspace with composite cursor pagination.
+func (s PageService) PublicList(c context.Context, workspaceID int64, cursor *string, limit int) ([]domain.Page, string, error) {
+	return s.repo.PublicList(c, workspaceID, cursor, limit, s.now())
+}
+
+// PublicGetBySlug retrieves a publicly visible page by slug for a workspace.
+func (s PageService) PublicGetBySlug(c context.Context, workspaceID int64, slug string) (domain.Page, error) {
+	return s.repo.PublicGetBySlug(c, workspaceID, slug, s.now())
 }
 
 // Update modifies metadata and content of an existing page.

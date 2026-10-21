@@ -23,6 +23,7 @@ type FileServiceContract interface {
 // MediaRepository defines the persistence contract required by MediaService.
 type MediaRepository interface {
 	GetByID(c context.Context, id int64) (domain.Media, error)
+	GetPublicByID(c context.Context, workspaceID, id int64) (domain.Media, error)
 	Create(c context.Context, req model.CreateMediaRecordRequest) (domain.Media, error)
 	Update(c context.Context, id int64, req model.UpdateMediaRequest) (domain.Media, error)
 	Delete(c context.Context, id int64) error
@@ -236,5 +237,19 @@ func resolveMediaMimeType(filename, rawMime string) string {
 		return trimmed
 	}
 	return "application/octet-stream"
+}
+
+// GetPublicPresignedURL retrieves a presigned download URL for a public media item in a specific workspace.
+// Returns domain.ErrMediaNotFound when the item does not exist, is deleted, or is not public.
+func (s MediaService) GetPublicPresignedURL(c context.Context, workspaceID, id int64) (string, error) {
+	m, err := s.repo.GetPublicByID(c, workspaceID, id)
+	if err != nil {
+		return "", err
+	}
+	url, err := s.fileSvc.PresignDownload(c, m.FileID)
+	if err != nil {
+		return "", domain.ErrMediaNotFound
+	}
+	return url, nil
 }
 

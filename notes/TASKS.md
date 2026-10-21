@@ -220,14 +220,14 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
   - Done when: middleware tests cover `GET /public/x` without token (passes), `POST /public/x` without token (`401`), and that existing bypasses still behave the same.
   - Commit: `feat(auth): ✨ allow unauthenticated GET on /public routes`
 
-- [ ] **T5.2 Public posts and pages**
+- [x] **T5.2 Public posts and pages**
   - Depends: T5.1, T4.2
   - Files: `internal/cms/model/public*.go`, `internal/cms/controller/public.go`, `internal/cms/test/public_test.go`; service/repository methods as needed.
   - Do: implement the four content endpoints from "API surface" using the `visible(now)` predicate. Public DTOs per the public API rules. No `az.Require`: each handler parses `:wid`, sets it in the context with `base.WithWorkspaceID`, and passes it explicitly to the repository (see "Tenant isolation"). Never call anything that mutates. Swaggo annotations (`@Tags CMS Public`, no `@Security`).
   - Done when: integration tests, all **unauthenticated**, cover: published visible; draft `404`; scheduled-in-future `404`; scheduled-in-past `200` (set `publish_at` directly through the Ent client in the test, since the API refuses past schedules); soft-deleted `404`; another workspace's slug `404` (same slug exists in two workspaces and each only sees its own); unknown workspace; an invalid or zero `:wid`; pagination and ordering; response JSON contains no status/audit fields; cover image URL is the stable public media URL.
   - Commit: `feat(api): ✨ add cms public content endpoints`
 
-- [ ] **T5.3 Public media redirect**
+- [x] **T5.3 Public media redirect**
   - Depends: T5.2, T2.2
   - Do: `GET /public/workspaces/:wid/cms/media/:id` (set the workspace in the context first; the core file service looks files up through the context filter) returns `302` to a presigned URL when the media exists in that workspace, is not deleted, and `is_public = true`; otherwise `404`.
   - Done when: integration tests cover public, non-public, deleted, wrong workspace.

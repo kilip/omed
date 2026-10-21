@@ -18,6 +18,8 @@ type PostRepository interface {
 	Delete(c context.Context, id int64) error
 	Search(c context.Context, req model.SearchPostRequest, now time.Time) ([]domain.Post, string, error)
 	SlugExists(c context.Context, slug string, excludeID *int64) (bool, error)
+	PublicList(c context.Context, workspaceID int64, cursor *string, limit int, now time.Time) ([]domain.Post, string, error)
+	PublicGetBySlug(c context.Context, workspaceID int64, slug string, now time.Time) (domain.Post, error)
 }
 
 // MediaChecker verifies media existence and accessibility for cover media attachment.
@@ -101,6 +103,16 @@ func (s PostService) GetByID(c context.Context, id int64) (domain.Post, error) {
 // Search searches posts matching search and pagination parameters.
 func (s PostService) Search(c context.Context, req model.SearchPostRequest) ([]domain.Post, string, error) {
 	return s.repo.Search(c, req, s.now())
+}
+
+// PublicList retrieves publicly visible posts for a workspace with composite cursor pagination.
+func (s PostService) PublicList(c context.Context, workspaceID int64, cursor *string, limit int) ([]domain.Post, string, error) {
+	return s.repo.PublicList(c, workspaceID, cursor, limit, s.now())
+}
+
+// PublicGetBySlug retrieves a publicly visible post by slug for a workspace.
+func (s PostService) PublicGetBySlug(c context.Context, workspaceID int64, slug string) (domain.Post, error) {
+	return s.repo.PublicGetBySlug(c, workspaceID, slug, s.now())
 }
 
 // Update modifies metadata and content of an existing post.

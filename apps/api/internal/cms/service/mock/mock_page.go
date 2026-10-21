@@ -87,6 +87,37 @@ func (mr *MockPageRepositoryMockRecorder) GetByID(c, id, now any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockPageRepository)(nil).GetByID), c, id, now)
 }
 
+// PublicGetBySlug mocks base method.
+func (m *MockPageRepository) PublicGetBySlug(c context.Context, workspaceID int64, slug string, now time.Time) (domain.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PublicGetBySlug", c, workspaceID, slug, now)
+	ret0, _ := ret[0].(domain.Page)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PublicGetBySlug indicates an expected call of PublicGetBySlug.
+func (mr *MockPageRepositoryMockRecorder) PublicGetBySlug(c, workspaceID, slug, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicGetBySlug", reflect.TypeOf((*MockPageRepository)(nil).PublicGetBySlug), c, workspaceID, slug, now)
+}
+
+// PublicList mocks base method.
+func (m *MockPageRepository) PublicList(c context.Context, workspaceID int64, cursor *string, limit int, now time.Time) ([]domain.Page, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PublicList", c, workspaceID, cursor, limit, now)
+	ret0, _ := ret[0].([]domain.Page)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// PublicList indicates an expected call of PublicList.
+func (mr *MockPageRepositoryMockRecorder) PublicList(c, workspaceID, cursor, limit, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicList", reflect.TypeOf((*MockPageRepository)(nil).PublicList), c, workspaceID, cursor, limit, now)
+}
+
 // Search mocks base method.
 func (m *MockPageRepository) Search(c context.Context, req model.SearchPageRequest, now time.Time) ([]domain.Page, string, error) {
 	m.ctrl.T.Helper()
