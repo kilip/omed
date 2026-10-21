@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"github.com/kilip/omed/api/internal/cms"
 	"github.com/kilip/omed/api/internal/core"
 	"github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/fin"
@@ -108,11 +109,21 @@ func New(state State) Omed {
 	})
 	finMod.SetAuthorizer(az)
 
+	cmsMod := cms.New(cms.Config{
+		FiberApp:    state.FiberApp,
+		Logger:      state.Logger,
+		EntCli:      state.EntCli,
+		FileService: coreMod.FileService,
+		ApiURL:      state.Config.ApiUrl,
+	})
+	cmsMod.SetAuthorizer(az)
+
 	return Omed{
 		state: state,
 		modules: []Module{
 			coreMod,
 			finMod,
+			cmsMod,
 		},
 		sessionService: coreMod.SessionService,
 	}

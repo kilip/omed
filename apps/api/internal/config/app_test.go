@@ -83,7 +83,7 @@ func (s *AppSuite) Test_New() {
 	s.Equal(state.FiberApp, app.State().FiberApp)
 	s.Equal(state.Logger, app.State().Logger)
 	s.Equal(state.Config, app.State().Config)
-	s.Require().Len(app.Modules(), 2)
+	s.Require().Len(app.Modules(), 3)
 }
 
 func (s *AppSuite) Test_Boot_DefaultApp_WithBaseMiddleware() {

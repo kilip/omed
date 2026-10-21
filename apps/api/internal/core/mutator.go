@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/cmsmedia"
+	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspost"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
@@ -98,6 +101,12 @@ func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error
 		q.WhereP(sql.FieldEQ(exchangerate.FieldWorkspaceID, wsID))
 	case ent.TypeFile:
 		q.WhereP(sql.FieldEQ(file.FieldWorkspaceID, wsID))
+	case ent.TypeCmsPost:
+		q.WhereP(sql.FieldEQ(cmspost.FieldWorkspaceID, wsID))
+	case ent.TypeCmsPage:
+		q.WhereP(sql.FieldEQ(cmspage.FieldWorkspaceID, wsID))
+	case ent.TypeCmsMedia:
+		q.WhereP(sql.FieldEQ(cmsmedia.FieldWorkspaceID, wsID))
 	}
 	return nil
 }

@@ -126,7 +126,7 @@ Permission objects: `cms:post`, `cms:page`, `cms:media` with actions `read`, `cr
   - Done when: `go build ./...` passes; migration runs through `client.Schema.Create` in an integration test boot; rows can be created.
   - Commit: `feat(api): ✨ add cms ent schemas`
 
-- [ ] **T1.2 Module skeleton, authz, wiring**
+- [x] **T1.2 Module skeleton, authz, wiring**
   - Depends: T1.1
   - Files: `apps/api/internal/cms/{module.go,routes.go}`, `internal/cms/domain/{authz.go,error.go}`, edit `internal/config/app.go`.
   - Do:

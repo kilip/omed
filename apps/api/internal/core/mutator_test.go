@@ -35,6 +35,9 @@ func (s *MutatorSuite) TearDownSuite() {
 
 func (s *MutatorSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(context.Background())
+	_, _ = s.client.CmsPost.Delete().Exec(ctx)
+	_, _ = s.client.CmsPage.Delete().Exec(ctx)
+	_, _ = s.client.CmsMedia.Delete().Exec(ctx)
 	_, _ = s.client.File.Delete().Exec(ctx)
 	_, _ = s.client.Account.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
@@ -288,6 +291,83 @@ func (s *MutatorSuite) Test_WorkspaceInterceptor_QueryFilteringAndBypass() {
 	s.Require().NoError(err)
 	s.Len(filesA, 1)
 	s.Equal("a.txt", filesA[0].Name)
+
+	// Verify CmsPost entity workspace interceptor
+	_, err = s.client.CmsPost.Create().
+		SetTitle("Post A").
+		SetSlug("post-a").
+		SetBody("Body A").
+		Save(ctxA)
+	s.Require().NoError(err)
+
+	_, err = s.client.CmsPost.Create().
+		SetTitle("Post B").
+		SetSlug("post-b").
+		SetBody("Body B").
+		Save(ctxB)
+	s.Require().NoError(err)
+
+	postsA, err := s.client.CmsPost.Query().All(ctxA)
+	s.Require().NoError(err)
+	s.Len(postsA, 1)
+	s.Equal("Post A", postsA[0].Title)
+
+	postsB, err := s.client.CmsPost.Query().All(ctxB)
+	s.Require().NoError(err)
+	s.Len(postsB, 1)
+	s.Equal("Post B", postsB[0].Title)
+
+	// Verify CmsPage entity workspace interceptor
+	_, err = s.client.CmsPage.Create().
+		SetTitle("Page A").
+		SetSlug("page-a").
+		SetBody("Page body A").
+		Save(ctxA)
+	s.Require().NoError(err)
+
+	_, err = s.client.CmsPage.Create().
+		SetTitle("Page B").
+		SetSlug("page-b").
+		SetBody("Page body B").
+		Save(ctxB)
+	s.Require().NoError(err)
+
+	pagesA, err := s.client.CmsPage.Query().All(ctxA)
+	s.Require().NoError(err)
+	s.Len(pagesA, 1)
+	s.Equal("Page A", pagesA[0].Title)
+
+	pagesB, err := s.client.CmsPage.Query().All(ctxB)
+	s.Require().NoError(err)
+	s.Len(pagesB, 1)
+	s.Equal("Page B", pagesB[0].Title)
+
+	// Verify CmsMedia entity workspace interceptor
+	_, err = s.client.CmsMedia.Create().
+		SetFileID(filesA[0].ID).
+		SetTitle("Media A").
+		Save(ctxA)
+	s.Require().NoError(err)
+
+	filesB, err := s.client.File.Query().All(ctxB)
+	s.Require().NoError(err)
+	s.Len(filesB, 1)
+
+	_, err = s.client.CmsMedia.Create().
+		SetFileID(filesB[0].ID).
+		SetTitle("Media B").
+		Save(ctxB)
+	s.Require().NoError(err)
+
+	mediasA, err := s.client.CmsMedia.Query().All(ctxA)
+	s.Require().NoError(err)
+	s.Len(mediasA, 1)
+	s.Equal("Media A", mediasA[0].Title)
+
+	mediasB, err := s.client.CmsMedia.Query().All(ctxB)
+	s.Require().NoError(err)
+	s.Len(mediasB, 1)
+	s.Equal("Media B", mediasB[0].Title)
 }
 
 func (s *MutatorSuite) Test_SkipAuditMutator() {
