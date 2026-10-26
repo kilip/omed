@@ -13,6 +13,7 @@ import (
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
+	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/schema"
@@ -304,6 +305,21 @@ func init() {
 	fileDescSize := fileFields[5].Descriptor()
 	// file.SizeValidator is a validator for the "size" field. It is called by the builders before save.
 	file.SizeValidator = fileDescSize.Validators[0].(func(int64) error)
+	finsettingMixin := schema.FinSetting{}.Mixin()
+	finsettingMixinFields1 := finsettingMixin[1].Fields()
+	_ = finsettingMixinFields1
+	finsettingFields := schema.FinSetting{}.Fields()
+	_ = finsettingFields
+	// finsettingDescCreatedAt is the schema descriptor for created_at field.
+	finsettingDescCreatedAt := finsettingMixinFields1[2].Descriptor()
+	// finsetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	finsetting.DefaultCreatedAt = finsettingDescCreatedAt.Default.(func() time.Time)
+	// finsettingDescUpdatedAt is the schema descriptor for updated_at field.
+	finsettingDescUpdatedAt := finsettingMixinFields1[3].Descriptor()
+	// finsetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	finsetting.DefaultUpdatedAt = finsettingDescUpdatedAt.Default.(func() time.Time)
+	// finsetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	finsetting.UpdateDefaultUpdatedAt = finsettingDescUpdatedAt.UpdateDefault.(func() time.Time)
 	periodMixin := schema.Period{}.Mixin()
 	periodMixinFields1 := periodMixin[1].Fields()
 	_ = periodMixinFields1

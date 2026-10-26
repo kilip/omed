@@ -4,8 +4,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
@@ -51,6 +49,7 @@ type EntryService struct {
 	accountRepo  AccountRepository
 	rateRepo     ExchangeRateRepository
 	currencyRepo CurrencyRepository
+	settingRepo  SettingRepository
 }
 
 // NewEntryService constructs a new EntryService backed by the given repositories.
@@ -61,6 +60,7 @@ func NewEntryService(
 	accountRepo AccountRepository,
 	rateRepo ExchangeRateRepository,
 	currencyRepo CurrencyRepository,
+	settingRepo SettingRepository,
 ) EntryService {
 	return EntryService{
 		entryRepo:    entryRepo,
@@ -69,6 +69,7 @@ func NewEntryService(
 		accountRepo:  accountRepo,
 		rateRepo:     rateRepo,
 		currencyRepo: currencyRepo,
+		settingRepo:  settingRepo,
 	}
 }
 
@@ -100,11 +101,11 @@ func (s EntryService) resolveRate(c context.Context, tx domain.Transaction) (dec
 	if tx.ExchangeRate.IsPositive() {
 		return tx.ExchangeRate, nil
 	}
+	baseCurrency, _ := s.getBaseCurrencyAndDecimals(c)
 	curr := tx.Currency
 	if curr == "" {
-		curr = "IDR"
+		curr = baseCurrency
 	}
-	baseCurrency, _ := s.getBaseCurrencyAndDecimals(c)
 	if curr == baseCurrency {
 		return decimal.NewFromInt(1), nil
 	}
@@ -114,31 +115,31 @@ func (s EntryService) resolveRate(c context.Context, tx domain.Transaction) (dec
 	return s.rateRepo.Lookup(c, curr, baseCurrency, tx.TransactionDate)
 }
 
-func findRealizedFXAccounts(c context.Context, accountRepo AccountRepository) (gain domain.Account, loss domain.Account, err error) {
-	gain, err = accountRepo.FindByCode(c, "7210")
+func findRealizedFXAccounts(c context.Context, accountRepo AccountRepository, settingRepo SettingRepository) (gain domain.Account, loss domain.Account, err error) {
+	wsID := base.WorkspaceIDFromContext(c)
+	if settingRepo == nil || wsID <= 0 {
+		return gain, loss, domain.ErrFXAccountsNotConfigured
+	}
+
+	setting, err := settingRepo.Get(c, wsID)
+	if err != nil || setting.FXGainAccountID == nil || setting.FXLossAccountID == nil {
+		return gain, loss, domain.ErrFXAccountsNotConfigured
+	}
+
+	gain, err = accountRepo.GetByID(c, *setting.FXGainAccountID)
 	if err != nil || gain.ID == 0 {
-		accounts, _, _ := accountRepo.Search(c, model.SearchAccountRequest{})
-		for _, a := range accounts {
-			if a.Code == "7210" || strings.EqualFold(a.Name, "Realized Foreign Exchange Gain") || strings.EqualFold(a.Name, "Realized FX Gain") {
-				gain = a
-				break
-			}
-		}
+		return gain, loss, domain.ErrFXGainAccountNotFound
+	}
+	if !gain.IsActive || !gain.IsPostable {
+		return gain, loss, domain.ErrFXAccountInvalid
 	}
 
-	loss, err = accountRepo.FindByCode(c, "7310")
+	loss, err = accountRepo.GetByID(c, *setting.FXLossAccountID)
 	if err != nil || loss.ID == 0 {
-		accounts, _, _ := accountRepo.Search(c, model.SearchAccountRequest{})
-		for _, a := range accounts {
-			if a.Code == "7310" || strings.EqualFold(a.Name, "Realized Foreign Exchange Loss") || strings.EqualFold(a.Name, "Realized FX Loss") {
-				loss = a
-				break
-			}
-		}
+		return gain, loss, domain.ErrFXLossAccountNotFound
 	}
-
-	if gain.ID == 0 || loss.ID == 0 {
-		return gain, loss, fmt.Errorf("realized fx accounts (7210 / 7310) not found in workspace")
+	if !loss.IsActive || !loss.IsPostable {
+		return gain, loss, domain.ErrFXAccountInvalid
 	}
 
 	return gain, loss, nil
@@ -148,7 +149,7 @@ func findRealizedFXAccounts(c context.Context, accountRepo AccountRepository) (g
 // isGain indicates whether the FX difference is a gain (true) or loss (false).
 // diff is the absolute difference in base currency.
 func (s EntryService) RealizedFXPosting(c context.Context, isGain bool, diff decimal.Decimal, description string) (model.CreatePostingRequest, error) {
-	gainAcc, lossAcc, err := findRealizedFXAccounts(c, s.accountRepo)
+	gainAcc, lossAcc, err := findRealizedFXAccounts(c, s.accountRepo, s.settingRepo)
 	if err != nil {
 		return model.CreatePostingRequest{}, err
 	}
@@ -183,7 +184,6 @@ func (s EntryService) RealizedFXPosting(c context.Context, isGain bool, diff dec
 	}, nil
 }
 
-
 // Create validates and creates a new draft journal entry within a transaction.
 func (s EntryService) Create(c context.Context, txID int64, req model.CreateEntryRequest) (domain.Entry, error) {
 	tx, err := s.txRepo.GetByID(c, txID)
@@ -191,21 +191,21 @@ func (s EntryService) Create(c context.Context, txID int64, req model.CreateEntr
 		return domain.Entry{}, err
 	}
 
+	baseCurrency, baseDecimals := s.getBaseCurrencyAndDecimals(c)
 	curr := tx.Currency
 	if curr == "" {
-		curr = "IDR"
+		curr = baseCurrency
 	}
 	rate, err := s.resolveRate(c, tx)
 	if err != nil {
 		return domain.Entry{}, err
 	}
 
-	_, baseDecimals := s.getBaseCurrencyAndDecimals(c)
-
 	balancedPostings, err := validateEntry(
 		c,
 		s.periodRepo,
 		s.accountRepo,
+		s.settingRepo,
 		req.PeriodID,
 		req.EntryDate.Time(),
 		req.Postings,
@@ -236,21 +236,21 @@ func (s EntryService) Update(c context.Context, id int64, req model.UpdateEntryR
 		return domain.Entry{}, err
 	}
 
+	baseCurrency, baseDecimals := s.getBaseCurrencyAndDecimals(c)
 	txCurr := tx.Currency
 	if txCurr == "" {
-		txCurr = "IDR"
+		txCurr = baseCurrency
 	}
 	rate, err := s.resolveRate(c, tx)
 	if err != nil {
 		return domain.Entry{}, err
 	}
 
-	_, baseDecimals := s.getBaseCurrencyAndDecimals(c)
-
 	balancedPostings, err := validateEntry(
 		c,
 		s.periodRepo,
 		s.accountRepo,
+		s.settingRepo,
 		curr.PeriodID,
 		curr.EntryDate,
 		req.Postings,
@@ -299,16 +299,15 @@ func (s EntryService) Post(c context.Context, id int64, postedBy int64) (domain.
 		return domain.Entry{}, err
 	}
 
+	baseCurrency, baseDecimals := s.getBaseCurrencyAndDecimals(c)
 	txCurr := tx.Currency
 	if txCurr == "" {
-		txCurr = "IDR"
+		txCurr = baseCurrency
 	}
 	rate, err := s.resolveRate(c, tx)
 	if err != nil {
 		return domain.Entry{}, err
 	}
-
-	_, baseDecimals := s.getBaseCurrencyAndDecimals(c)
 
 	postings := make([]model.CreatePostingRequest, len(curr.Postings))
 	for i, p := range curr.Postings {
@@ -326,6 +325,7 @@ func (s EntryService) Post(c context.Context, id int64, postedBy int64) (domain.
 		c,
 		s.periodRepo,
 		s.accountRepo,
+		s.settingRepo,
 		curr.PeriodID,
 		curr.EntryDate,
 		postings,
@@ -462,6 +462,7 @@ func validateEntry(
 	ctx context.Context,
 	periodRepo PeriodRepository,
 	accountRepo AccountRepository,
+	settingRepo SettingRepository,
 	periodID int64,
 	entryDate time.Time,
 	postings []model.CreatePostingRequest,
@@ -562,7 +563,7 @@ func validateEntry(
 	smallestUnit := decimal.New(1, -int32(baseDecimals))
 
 	if diff.LessThanOrEqual(smallestUnit) {
-		fxAcc, err := findFXRoundingAccount(ctx, accountRepo)
+		fxAcc, err := findFXRoundingAccount(ctx, accountRepo, settingRepo)
 		if err != nil {
 			return nil, err
 		}
@@ -593,38 +594,24 @@ func validateEntry(
 	return nil, domain.ErrEntryBaseNotBalanced
 }
 
-func findFXRoundingAccount(c context.Context, accountRepo AccountRepository) (domain.Account, error) {
-	// 1. Try finding by code 7400
-	acc, err := accountRepo.FindByCode(c, "7400")
-	if err == nil && acc.ID > 0 && acc.IsActive && acc.IsPostable {
-		return acc, nil
+func findFXRoundingAccount(c context.Context, accountRepo AccountRepository, settingRepo SettingRepository) (domain.Account, error) {
+	wsID := base.WorkspaceIDFromContext(c)
+	if settingRepo == nil || wsID <= 0 {
+		return domain.Account{}, domain.ErrFXRoundingAccountNotFound
 	}
 
-	// 2. Search all accounts in workspace and match by name or code
-	accounts, _, err := accountRepo.Search(c, model.SearchAccountRequest{})
-	if err == nil {
-		for _, a := range accounts {
-			if !a.IsActive || !a.IsPostable {
-				continue
-			}
-			if a.Code == "7400" ||
-				strings.EqualFold(a.Name, "FX Rounding") ||
-				strings.EqualFold(a.Name, "Foreign Exchange Rounding") ||
-				strings.EqualFold(a.Name, "Selisih Pembulatan Kurs Valas") {
-				return a, nil
-			}
-		}
-		for _, a := range accounts {
-			if !a.IsActive || !a.IsPostable {
-				continue
-			}
-			nameLower := strings.ToLower(a.Name)
-			if strings.Contains(nameLower, "rounding") || strings.Contains(nameLower, "pembulatan") {
-				return a, nil
-			}
-		}
+	setting, err := settingRepo.Get(c, wsID)
+	if err != nil || setting.FXRoundingAccountID == nil {
+		return domain.Account{}, domain.ErrFXRoundingAccountNotFound
 	}
 
-	return domain.Account{}, domain.ErrEntryBaseNotBalanced
+	acc, err := accountRepo.GetByID(c, *setting.FXRoundingAccountID)
+	if err != nil || acc.ID == 0 {
+		return domain.Account{}, domain.ErrFXRoundingAccountNotFound
+	}
+	if !acc.IsActive || !acc.IsPostable {
+		return domain.Account{}, domain.ErrFXAccountInvalid
+	}
+
+	return acc, nil
 }
-

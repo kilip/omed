@@ -59,8 +59,11 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	currencies := r.Group("/workspaces/:wid/fin/currencies")
 	currencies.Get("/", az.Require(domain.ObjCurrency, "read"), currencyCtl.List)
 
+	settingCtl := controller.NewSettingController(mod.SettingService)
 	settings := r.Group("/workspaces/:wid/fin/settings")
 	settings.Put("/base-currency", az.Require(domain.ObjCurrency, "update"), currencyCtl.UpdateBaseCurrency)
+	settings.Get("/fx-accounts", az.Require(domain.ObjAccount, "read"), settingCtl.GetFXAccounts)
+	settings.Put("/fx-accounts", az.Require(domain.ObjAccount, "update"), settingCtl.UpdateFXAccounts)
 
 	exchangeRates := r.Group("/workspaces/:wid/fin/exchange-rates")
 	rateCtl := controller.NewExchangeRateController(mod.ExchangeRateService)

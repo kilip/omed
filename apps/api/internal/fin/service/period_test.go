@@ -32,10 +32,11 @@ func (s *PeriodServiceSuite) SetupSuite() {
 	entryRepo := repository.NewEntryRepository(s.client)
 	rateRepo := repository.NewExchangeRateRepository(s.client)
 	currRepo := repository.NewCurrencyRepository(s.client)
+	settingRepo := repository.NewSettingRepository(s.client)
 
 	s.svc = service.NewPeriodService(
 		repo,
-		service.WithPeriodDependencies(accountRepo, entryRepo, rateRepo, currRepo),
+		service.WithPeriodDependencies(accountRepo, entryRepo, rateRepo, currRepo, settingRepo),
 	)
 }
 
@@ -277,9 +278,9 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 	// Seed rate on 2026-01-01: 1 USD = 15,000 IDR
 	rateRepo := repository.NewExchangeRateRepository(s.client)
 	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
-		FromCurrency: "USD",
-		ToCurrency:   "IDR",
-		Rate:         decimal.NewFromInt(15000),
+		FromCurrency:  "USD",
+		ToCurrency:    "IDR",
+		Rate:          decimal.NewFromInt(15000),
 		EffectiveDate: model.Date(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)),
 	})
 	s.Require().NoError(err)
@@ -329,9 +330,9 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 	// Set rate on period.EndDate (2026-01-31): 1 USD = 16,000 IDR
 	// New value = 100 * 16000 = 1,600,000 IDR. Diff = +100,000 IDR (Gain)
 	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
-		FromCurrency: "USD",
-		ToCurrency:   "IDR",
-		Rate:         decimal.NewFromInt(16000),
+		FromCurrency:  "USD",
+		ToCurrency:    "IDR",
+		Rate:          decimal.NewFromInt(16000),
 		EffectiveDate: model.Date(time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)),
 	})
 	s.Require().NoError(err)
@@ -373,4 +374,3 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 func TestPeriodServiceSuite(t *testing.T) {
 	suite.Run(t, new(PeriodServiceSuite))
 }
-

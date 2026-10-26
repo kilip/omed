@@ -6657,6 +6657,151 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/fin/settings/fx-accounts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get FX account mappings
+     * @description Retrieve the configured foreign exchange accounts for the workspace
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_FXAccountsSettingResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    /**
+     * Update FX account mappings
+     * @description Configure the foreign exchange accounts for the workspace
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description FX accounts payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.UpdateFXAccountsRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_FXAccountsSettingResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/fin/transactions": {
     parameters: {
       query?: never;
@@ -8315,6 +8460,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_FXAccountsSettingResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.FXAccountsSettingResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_FileDownloadURLResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.FileDownloadURLResponse"];
@@ -8638,6 +8789,18 @@ export interface components {
       updatedAt?: string;
       updatedBy?: components["schemas"]["base.ByUser"];
       workspaceId?: number;
+    };
+    "model.FXAccountsSettingResponse": {
+      /** @example 7210 */
+      fxGainAccountId?: number;
+      /** @example 7310 */
+      fxLossAccountId?: number;
+      /** @example 7400 */
+      fxRoundingAccountId?: number;
+      /** @example 7220 */
+      fxUnrealizedGainAccountId?: number;
+      /** @example 7320 */
+      fxUnrealizedLossAccountId?: number;
     };
     "model.FileDownloadURLResponse": {
       url?: string;
@@ -9049,6 +9212,13 @@ export interface components {
        * @enum {string}
        */
       source?: "MANUAL" | "IMPORT";
+    };
+    "model.UpdateFXAccountsRequest": {
+      fxGainAccountId?: number;
+      fxLossAccountId?: number;
+      fxRoundingAccountId?: number;
+      fxUnrealizedGainAccountId?: number;
+      fxUnrealizedLossAccountId?: number;
     };
     "model.UpdateFileRequest": {
       entityId?: number;

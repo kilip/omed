@@ -45,7 +45,8 @@ func (s *EntryServiceSuite) SetupSuite() {
 	s.accountRepo = repository.NewAccountRepository(s.client)
 	rateRepo := repository.NewExchangeRateRepository(s.client)
 	currencyRepo := repository.NewCurrencyRepository(s.client)
-	s.svc = service.NewEntryService(entryRepo, s.txRepo, s.periodRepo, s.accountRepo, rateRepo, currencyRepo)
+	settingRepo := repository.NewSettingRepository(s.client)
+	s.svc = service.NewEntryService(entryRepo, s.txRepo, s.periodRepo, s.accountRepo, rateRepo, currencyRepo, settingRepo)
 }
 
 func (s *EntryServiceSuite) TearDownSuite() {
@@ -56,6 +57,7 @@ func (s *EntryServiceSuite) TearDownSuite() {
 
 func (s *EntryServiceSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
+	_, _ = s.client.FinSetting.Delete().Exec(ctx)
 	_, _ = s.client.Posting.Delete().Exec(ctx)
 	_, _ = s.client.Entry.Delete().Exec(ctx)
 	_, _ = s.client.Transaction.Delete().Exec(ctx)
@@ -962,6 +964,26 @@ func (s *EntryServiceSuite) Test_FXRounding_AutoBalancing() {
 		Save(ctx)
 	s.Require().NoError(err)
 
+	// Unconfigured setting should fail with ErrFXRoundingAccountNotFound
+	_, err = s.svc.Create(ctx, txUSD.ID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: decimal.NewFromInt(1)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: decimal.RequireFromString("0.5")},
+			{AccountID: accCredit2.ID, Direction: "CREDIT", Amount: decimal.RequireFromString("0.5")},
+		},
+	})
+	s.Require().ErrorIs(err, domain.ErrFXRoundingAccountNotFound)
+
+	// Configure FX rounding account
+	settingRepo := repository.NewSettingRepository(s.client)
+	_, err = settingRepo.Save(ctx, domain.FinSetting{
+		WorkspaceID:         s.workspaceID,
+		FXRoundingAccountID: &fxAcc.ID,
+	})
+	s.Require().NoError(err)
+
 	createdEntry, err := s.svc.Create(ctx, txUSD.ID, model.CreateEntryRequest{
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
@@ -1172,7 +1194,68 @@ func (s *EntryServiceSuite) Test_RealizedFX_Settlement() {
 	s.Equal(lossAcc.ID, lossPosting.AccountID)
 }
 
+func (s *EntryServiceSuite) Test_RealizedFX_Unconfigured() {
+	ctx := s.ctx()
+	_, err := s.svc.RealizedFXPosting(ctx, true, dec(1000), "Realized Gain")
+	s.Require().ErrorIs(err, domain.ErrFXAccountsNotConfigured)
+}
+
+func (s *EntryServiceSuite) Test_RealizedFX_InvalidAccount() {
+	ctx := s.ctx()
+	// Create an inactive account
+	inactiveAcc, err := s.client.Account.Create().
+		SetCode("7999").
+		SetName("Inactive FX").
+		SetType("REVENUE").
+		SetNormalBalance("CREDIT").
+		SetIsActive(false).
+		SetIsPostable(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	postableAcc, err := s.client.Account.Create().
+		SetCode("7998").
+		SetName("Active FX").
+		SetType("EXPENSE").
+		SetNormalBalance("DEBIT").
+		SetIsActive(true).
+		SetIsPostable(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	settingRepo := repository.NewSettingRepository(s.client)
+	_, err = settingRepo.Save(ctx, domain.FinSetting{
+		WorkspaceID:     s.workspaceID,
+		FXGainAccountID: &inactiveAcc.ID,
+		FXLossAccountID: &postableAcc.ID,
+	})
+	s.Require().NoError(err)
+
+	_, err = s.svc.RealizedFXPosting(ctx, true, dec(1000), "Realized Gain")
+	s.Require().ErrorIs(err, domain.ErrFXAccountInvalid)
+}
+
+func (s *EntryServiceSuite) Test_BaseCurrency_UpdatedWorkspace() {
+	ctx := s.ctx()
+	// Update base currency to USD
+	_, err := s.client.Workspace.UpdateOneID(s.workspaceID).SetBaseCurrency("USD").Save(ctx)
+	s.Require().NoError(err)
+
+	currRepo := repository.NewCurrencyRepository(s.client)
+	bc, err := currRepo.GetBaseCurrency(ctx, s.workspaceID)
+	s.Require().NoError(err)
+	s.Equal("USD", bc)
+
+	// Transaction without explicit currency defaults to base currency (USD)
+	tx, err := s.txRepo.Create(ctx, model.CreateTransactionRequest{
+		TransactionDate: model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)),
+		Description:     "Base currency USD transaction",
+	})
+	s.Require().NoError(err)
+	s.Equal("USD", tx.Currency)
+	s.True(tx.ExchangeRate.Equal(dec(1)))
+}
+
 func TestEntryServiceSuite(t *testing.T) {
 	suite.Run(t, new(EntryServiceSuite))
 }
-

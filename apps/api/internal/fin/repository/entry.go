@@ -1075,10 +1075,18 @@ func (r EntryRepository) CreateSystemPostedEntry(
 				return err
 			}
 
+			baseCurr := "IDR"
+			wsID := base.WorkspaceIDFromContext(c)
+			if wsID > 0 {
+				if ws, err := tx.Workspace.Get(c, wsID); err == nil && ws.BaseCurrency != "" {
+					baseCurr = ws.BaseCurrency
+				}
+			}
+
 			tBuilder := tx.Transaction.Create().
 				SetNumber(trxNum).
 				SetTransactionDate(entryDate).
-				SetCurrency("IDR").
+				SetCurrency(baseCurr).
 				SetExchangeRate(decimal.NewFromInt(1)).
 				SetSource(transaction.Source(domain.TransactionSourceSystem))
 

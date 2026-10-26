@@ -50,6 +50,13 @@ func WithTransactionAttachments(fileSvc FileServiceContract, cfg TransactionAtta
 	}
 }
 
+// WithTransactionSettingRepository wires SettingRepository into TransactionService.
+func WithTransactionSettingRepository(settingRepo SettingRepository) TransactionServiceOption {
+	return func(s *TransactionService) {
+		s.settingRepo = settingRepo
+	}
+}
+
 // TransactionService manages business logic and validation for financial transactions.
 type TransactionService struct {
 	repo          TransactionRepository
@@ -57,6 +64,7 @@ type TransactionService struct {
 	accountRepo   AccountRepository
 	rateRepo      ExchangeRateRepository
 	currencyRepo  CurrencyRepository
+	settingRepo   SettingRepository
 	fileSvc       FileServiceContract
 	attachmentCfg TransactionAttachmentConfig
 }
@@ -105,6 +113,25 @@ func (s TransactionService) GetByID(c context.Context, id int64) (domain.Transac
 	return tx, nil
 }
 
+func (s TransactionService) getBaseCurrencyAndDecimals(c context.Context) (string, int) {
+	baseCurrency := "IDR"
+	baseDecimals := 0
+	wsID := base.WorkspaceIDFromContext(c)
+	if s.currencyRepo != nil && wsID > 0 {
+		if bc, err := s.currencyRepo.GetBaseCurrency(c, wsID); err == nil && bc != "" {
+			baseCurrency = bc
+		}
+	}
+	if s.currencyRepo != nil {
+		if cur, err := s.currencyRepo.GetByCode(c, baseCurrency); err == nil {
+			baseDecimals = cur.Decimals
+		} else if baseCurrency == "USD" {
+			baseDecimals = 2
+		}
+	}
+	return baseCurrency, baseDecimals
+}
+
 func (s TransactionService) resolveRate(c context.Context, currency string, explicitRate *decimal.Decimal, date time.Time) (decimal.Decimal, error) {
 	if explicitRate != nil {
 		if !explicitRate.IsPositive() {
@@ -112,15 +139,7 @@ func (s TransactionService) resolveRate(c context.Context, currency string, expl
 		}
 		return *explicitRate, nil
 	}
-	baseCurrency := "IDR"
-	if s.currencyRepo != nil {
-		wsID := base.WorkspaceIDFromContext(c)
-		if wsID > 0 {
-			if bc, err := s.currencyRepo.GetBaseCurrency(c, wsID); err == nil && bc != "" {
-				baseCurrency = bc
-			}
-		}
-	}
+	baseCurrency, _ := s.getBaseCurrencyAndDecimals(c)
 	if currency == "" || currency == baseCurrency {
 		return decimal.NewFromInt(1), nil
 	}
@@ -133,9 +152,12 @@ func (s TransactionService) resolveRate(c context.Context, currency string, expl
 // Create validates and creates a new transaction.
 // If req carries an inline entry, entry validation is executed prior to transaction creation.
 func (s TransactionService) Create(c context.Context, req model.CreateTransactionRequest) (domain.Transaction, error) {
-	curr := "IDR"
+	baseCurrency, baseDecimals := s.getBaseCurrencyAndDecimals(c)
+	curr := baseCurrency
 	if req.Currency != "" {
 		curr = req.Currency
+	} else {
+		req.Currency = baseCurrency
 	}
 
 	rate, err := s.resolveRate(c, curr, req.ExchangeRate, req.TransactionDate.Time())
@@ -145,26 +167,11 @@ func (s TransactionService) Create(c context.Context, req model.CreateTransactio
 	req.ExchangeRate = &rate
 
 	if req.Entry != nil {
-		baseCurrency := "IDR"
-		baseDecimals := 0
-		wsID := base.WorkspaceIDFromContext(c)
-		if s.currencyRepo != nil && wsID > 0 {
-			if bc, err := s.currencyRepo.GetBaseCurrency(c, wsID); err == nil && bc != "" {
-				baseCurrency = bc
-			}
-		}
-		if s.currencyRepo != nil {
-			if cur, err := s.currencyRepo.GetByCode(c, baseCurrency); err == nil {
-				baseDecimals = cur.Decimals
-			} else if baseCurrency == "USD" {
-				baseDecimals = 2
-			}
-		}
-
 		balancedPostings, err := validateEntry(
 			c,
 			s.periodRepo,
 			s.accountRepo,
+			s.settingRepo,
 			req.Entry.PeriodID,
 			req.Entry.EntryDate.Time(),
 			req.Entry.Postings,

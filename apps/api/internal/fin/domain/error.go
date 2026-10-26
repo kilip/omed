@@ -9,6 +9,8 @@ import (
 )
 
 var (
+	// ErrAccountNotFound indicates the requested account was not found.
+	ErrAccountNotFound = errors.New("ACCOUNT_NOT_FOUND")
 	// ErrAccountCodeTaken indicates the account code is already used in the workspace.
 	ErrAccountCodeTaken = errors.New("ACCOUNT_CODE_TAKEN")
 	// ErrAccountHasChildren indicates an account cannot be deleted because it still has active sub-accounts.
@@ -99,9 +101,23 @@ var (
 	ErrExchangeRateInvalid = errors.New("EXCHANGE_RATE_INVALID")
 	// ErrBaseCurrencyLocked indicates the workspace base currency cannot be changed once posted entries exist.
 	ErrBaseCurrencyLocked = errors.New("BASE_CURRENCY_LOCKED")
+
+	// ErrFinSettingNotFound indicates the workspace financial settings were not found.
+	ErrFinSettingNotFound = errors.New("FIN_SETTING_NOT_FOUND")
+	// ErrFXAccountsNotConfigured indicates foreign exchange accounts (gain, loss, or rounding) are not configured.
+	ErrFXAccountsNotConfigured = errors.New("FX_ACCOUNTS_NOT_CONFIGURED")
+	// ErrFXGainAccountNotFound indicates the configured FX gain account was not found.
+	ErrFXGainAccountNotFound = errors.New("FX_GAIN_ACCOUNT_NOT_FOUND")
+	// ErrFXLossAccountNotFound indicates the configured FX loss account was not found.
+	ErrFXLossAccountNotFound = errors.New("FX_LOSS_ACCOUNT_NOT_FOUND")
+	// ErrFXRoundingAccountNotFound indicates the configured FX rounding account was not found.
+	ErrFXRoundingAccountNotFound = errors.New("FX_ROUNDING_ACCOUNT_NOT_FOUND")
+	// ErrFXAccountInvalid indicates the configured FX account is inactive or not postable.
+	ErrFXAccountInvalid = errors.New("FX_ACCOUNT_INVALID")
 )
 
 func init() {
+	base.AddToErrorMap(ErrAccountNotFound, fiber.StatusNotFound, "account not found")
 	base.AddToErrorMap(ErrAccountCodeTaken, fiber.StatusConflict, "account code already in use in this workspace")
 	base.AddToErrorMap(ErrAccountHasChildren, fiber.StatusConflict, "cannot delete account with existing sub-accounts")
 	base.AddToErrorMap(ErrAccountParentNotFound, fiber.StatusNotFound, "parent account not found")
@@ -150,4 +166,10 @@ func init() {
 	base.AddToErrorMap(ErrExchangeRateDuplicate, fiber.StatusConflict, "exchange rate already exists for this date and currency pair")
 	base.AddToErrorMap(ErrExchangeRateInvalid, fiber.StatusUnprocessableEntity, "exchange rate must be positive")
 	base.AddToErrorMap(ErrBaseCurrencyLocked, fiber.StatusConflict, "base currency is locked once posted entries exist")
+	base.AddToErrorMap(ErrFinSettingNotFound, fiber.StatusNotFound, "financial settings not found for workspace")
+	base.AddToErrorMap(ErrFXAccountsNotConfigured, fiber.StatusUnprocessableEntity, "foreign exchange accounts are not configured for this workspace")
+	base.AddToErrorMap(ErrFXGainAccountNotFound, fiber.StatusUnprocessableEntity, "foreign exchange gain account not found or not configured")
+	base.AddToErrorMap(ErrFXLossAccountNotFound, fiber.StatusUnprocessableEntity, "foreign exchange loss account not found or not configured")
+	base.AddToErrorMap(ErrFXRoundingAccountNotFound, fiber.StatusUnprocessableEntity, "foreign exchange rounding account not found or not configured")
+	base.AddToErrorMap(ErrFXAccountInvalid, fiber.StatusUnprocessableEntity, "configured foreign exchange account is invalid, inactive, or not postable")
 }

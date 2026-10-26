@@ -16,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
+	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/predicate"
@@ -300,6 +301,33 @@ func (f TraverseFile) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.FileQuery", q)
 }
 
+// The FinSettingFunc type is an adapter to allow the use of ordinary function as a Querier.
+type FinSettingFunc func(context.Context, *ent.FinSettingQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f FinSettingFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.FinSettingQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.FinSettingQuery", q)
+}
+
+// The TraverseFinSetting type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseFinSetting func(context.Context, *ent.FinSettingQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseFinSetting) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseFinSetting) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.FinSettingQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.FinSettingQuery", q)
+}
+
 // The PeriodFunc type is an adapter to allow the use of ordinary function as a Querier.
 type PeriodFunc func(context.Context, *ent.PeriodQuery) (ent.Value, error)
 
@@ -562,6 +590,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.ExchangeRateQuery, predicate.ExchangeRate, exchangerate.OrderOption]{typ: ent.TypeExchangeRate, tq: q}, nil
 	case *ent.FileQuery:
 		return &query[*ent.FileQuery, predicate.File, file.OrderOption]{typ: ent.TypeFile, tq: q}, nil
+	case *ent.FinSettingQuery:
+		return &query[*ent.FinSettingQuery, predicate.FinSetting, finsetting.OrderOption]{typ: ent.TypeFinSetting, tq: q}, nil
 	case *ent.PeriodQuery:
 		return &query[*ent.PeriodQuery, predicate.Period, period.OrderOption]{typ: ent.TypePeriod, tq: q}, nil
 	case *ent.PostingQuery:

@@ -461,6 +461,19 @@
         },
         "type": "object"
       },
+      "httpx.WebResponse-model_FXAccountsSettingResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/model.FXAccountsSettingResponse",
+            "description": "Data contains the response payload."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/httpx.Meta",
+            "description": "Meta contains request metadata such as request ID and timestamps."
+          }
+        },
+        "type": "object"
+      },
       "httpx.WebResponse-model_FileDownloadURLResponse": {
         "properties": {
           "data": {
@@ -1261,6 +1274,31 @@
             "$ref": "#/components/schemas/base.ByUser"
           },
           "workspaceId": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "model.FXAccountsSettingResponse": {
+        "properties": {
+          "fxGainAccountId": {
+            "example": 7210,
+            "type": "integer"
+          },
+          "fxLossAccountId": {
+            "example": 7310,
+            "type": "integer"
+          },
+          "fxRoundingAccountId": {
+            "example": 7400,
+            "type": "integer"
+          },
+          "fxUnrealizedGainAccountId": {
+            "example": 7220,
+            "type": "integer"
+          },
+          "fxUnrealizedLossAccountId": {
+            "example": 7320,
             "type": "integer"
           }
         },
@@ -2393,6 +2431,26 @@
           }
         },
         "required": ["effectiveDate"],
+        "type": "object"
+      },
+      "model.UpdateFXAccountsRequest": {
+        "properties": {
+          "fxGainAccountId": {
+            "type": "integer"
+          },
+          "fxLossAccountId": {
+            "type": "integer"
+          },
+          "fxRoundingAccountId": {
+            "type": "integer"
+          },
+          "fxUnrealizedGainAccountId": {
+            "type": "integer"
+          },
+          "fxUnrealizedLossAccountId": {
+            "type": "integer"
+          }
+        },
         "type": "object"
       },
       "model.UpdateFileRequest": {
@@ -9957,6 +10015,167 @@
           }
         ],
         "summary": "Update workspace base currency",
+        "tags": ["Finance Settings"]
+      }
+    },
+    "/workspaces/{wid}/fin/settings/fx-accounts": {
+      "get": {
+        "description": "Retrieve the configured foreign exchange accounts for the workspace",
+        "parameters": [
+          {
+            "description": "Workspace ID",
+            "in": "path",
+            "name": "wid",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.WebResponse-model_FXAccountsSettingResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Get FX account mappings",
+        "tags": ["Finance Settings"]
+      },
+      "put": {
+        "description": "Configure the foreign exchange accounts for the workspace",
+        "parameters": [
+          {
+            "description": "Workspace ID",
+            "in": "path",
+            "name": "wid",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/model.UpdateFXAccountsRequest",
+                "summary": "request",
+                "description": "FX accounts payload"
+              }
+            }
+          },
+          "description": "FX accounts payload",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.WebResponse-model_FXAccountsSettingResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Update FX account mappings",
         "tags": ["Finance Settings"]
       }
     },

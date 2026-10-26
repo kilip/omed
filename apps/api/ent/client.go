@@ -23,6 +23,7 @@ import (
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
+	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/session"
@@ -57,6 +58,8 @@ type Client struct {
 	ExchangeRate *ExchangeRateClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
+	// FinSetting is the client for interacting with the FinSetting builders.
+	FinSetting *FinSettingClient
 	// Period is the client for interacting with the Period builders.
 	Period *PeriodClient
 	// Posting is the client for interacting with the Posting builders.
@@ -94,6 +97,7 @@ func (c *Client) init() {
 	c.Entry = NewEntryClient(c.config)
 	c.ExchangeRate = NewExchangeRateClient(c.config)
 	c.File = NewFileClient(c.config)
+	c.FinSetting = NewFinSettingClient(c.config)
 	c.Period = NewPeriodClient(c.config)
 	c.Posting = NewPostingClient(c.config)
 	c.Session = NewSessionClient(c.config)
@@ -206,6 +210,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Entry:               NewEntryClient(cfg),
 		ExchangeRate:        NewExchangeRateClient(cfg),
 		File:                NewFileClient(cfg),
+		FinSetting:          NewFinSettingClient(cfg),
 		Period:              NewPeriodClient(cfg),
 		Posting:             NewPostingClient(cfg),
 		Session:             NewSessionClient(cfg),
@@ -242,6 +247,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Entry:               NewEntryClient(cfg),
 		ExchangeRate:        NewExchangeRateClient(cfg),
 		File:                NewFileClient(cfg),
+		FinSetting:          NewFinSettingClient(cfg),
 		Period:              NewPeriodClient(cfg),
 		Posting:             NewPostingClient(cfg),
 		Session:             NewSessionClient(cfg),
@@ -281,8 +287,9 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Account, c.CmsMedia, c.CmsPage, c.CmsPost, c.Currency, c.Entry,
-		c.ExchangeRate, c.File, c.Period, c.Posting, c.Session, c.Transaction, c.User,
-		c.UserAccount, c.Workspace, c.WorkspaceInvitation, c.WorkspaceMember,
+		c.ExchangeRate, c.File, c.FinSetting, c.Period, c.Posting, c.Session,
+		c.Transaction, c.User, c.UserAccount, c.Workspace, c.WorkspaceInvitation,
+		c.WorkspaceMember,
 	} {
 		n.Use(hooks...)
 	}
@@ -293,8 +300,9 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Account, c.CmsMedia, c.CmsPage, c.CmsPost, c.Currency, c.Entry,
-		c.ExchangeRate, c.File, c.Period, c.Posting, c.Session, c.Transaction, c.User,
-		c.UserAccount, c.Workspace, c.WorkspaceInvitation, c.WorkspaceMember,
+		c.ExchangeRate, c.File, c.FinSetting, c.Period, c.Posting, c.Session,
+		c.Transaction, c.User, c.UserAccount, c.Workspace, c.WorkspaceInvitation,
+		c.WorkspaceMember,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -319,6 +327,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ExchangeRate.mutate(ctx, m)
 	case *FileMutation:
 		return c.File.mutate(ctx, m)
+	case *FinSettingMutation:
+		return c.FinSetting.mutate(ctx, m)
 	case *PeriodMutation:
 		return c.Period.mutate(ctx, m)
 	case *PostingMutation:
@@ -2128,6 +2138,196 @@ func (c *FileClient) mutate(ctx context.Context, m *FileMutation) (Value, error)
 	}
 }
 
+// FinSettingClient is a client for the FinSetting schema.
+type FinSettingClient struct {
+	config
+}
+
+// NewFinSettingClient returns a client for the FinSetting from the given config.
+func NewFinSettingClient(c config) *FinSettingClient {
+	return &FinSettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `finsetting.Hooks(f(g(h())))`.
+func (c *FinSettingClient) Use(hooks ...Hook) {
+	c.hooks.FinSetting = append(c.hooks.FinSetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `finsetting.Intercept(f(g(h())))`.
+func (c *FinSettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinSetting = append(c.inters.FinSetting, interceptors...)
+}
+
+// Create returns a builder for creating a FinSetting entity.
+func (c *FinSettingClient) Create() *FinSettingCreate {
+	mutation := newFinSettingMutation(c.config, OpCreate)
+	return &FinSettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinSetting entities.
+func (c *FinSettingClient) CreateBulk(builders ...*FinSettingCreate) *FinSettingCreateBulk {
+	return &FinSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinSettingClient) MapCreateBulk(slice any, setFunc func(*FinSettingCreate, int)) *FinSettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinSettingCreateBulk{err: fmt.Errorf("calling to FinSettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinSettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinSetting.
+func (c *FinSettingClient) Update() *FinSettingUpdate {
+	mutation := newFinSettingMutation(c.config, OpUpdate)
+	return &FinSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinSettingClient) UpdateOne(_m *FinSetting) *FinSettingUpdateOne {
+	mutation := newFinSettingMutation(c.config, OpUpdateOne, withFinSetting(_m))
+	return &FinSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinSettingClient) UpdateOneID(id int64) *FinSettingUpdateOne {
+	mutation := newFinSettingMutation(c.config, OpUpdateOne, withFinSettingID(id))
+	return &FinSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinSetting.
+func (c *FinSettingClient) Delete() *FinSettingDelete {
+	mutation := newFinSettingMutation(c.config, OpDelete)
+	return &FinSettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinSettingClient) DeleteOne(_m *FinSetting) *FinSettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinSettingClient) DeleteOneID(id int64) *FinSettingDeleteOne {
+	builder := c.Delete().Where(finsetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinSettingDeleteOne{builder}
+}
+
+// Query returns a query builder for FinSetting.
+func (c *FinSettingClient) Query() *FinSettingQuery {
+	return &FinSettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinSetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinSetting entity by its id.
+func (c *FinSettingClient) Get(ctx context.Context, id int64) (*FinSetting, error) {
+	return c.Query().Where(finsetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinSettingClient) GetX(ctx context.Context, id int64) *FinSetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a FinSetting.
+func (c *FinSettingClient) QueryWorkspace(_m *FinSetting) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(finsetting.Table, finsetting.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, finsetting.WorkspaceTable, finsetting.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.FinSetting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a FinSetting.
+func (c *FinSettingClient) QueryCreator(_m *FinSetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(finsetting.Table, finsetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, finsetting.CreatorTable, finsetting.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.FinSetting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a FinSetting.
+func (c *FinSettingClient) QueryUpdater(_m *FinSetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(finsetting.Table, finsetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, finsetting.UpdaterTable, finsetting.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.FinSetting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinSettingClient) Hooks() []Hook {
+	return c.hooks.FinSetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinSettingClient) Interceptors() []Interceptor {
+	return c.inters.FinSetting
+}
+
+func (c *FinSettingClient) mutate(ctx context.Context, m *FinSettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinSettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinSetting mutation op: %q", m.Op())
+	}
+}
+
 // PeriodClient is a client for the Period schema.
 type PeriodClient struct {
 	config
@@ -3880,13 +4080,13 @@ func (c *WorkspaceMemberClient) mutate(ctx context.Context, m *WorkspaceMemberMu
 type (
 	hooks struct {
 		Account, CmsMedia, CmsPage, CmsPost, Currency, Entry, ExchangeRate, File,
-		Period, Posting, Session, Transaction, User, UserAccount, Workspace,
-		WorkspaceInvitation, WorkspaceMember []ent.Hook
+		FinSetting, Period, Posting, Session, Transaction, User, UserAccount,
+		Workspace, WorkspaceInvitation, WorkspaceMember []ent.Hook
 	}
 	inters struct {
 		Account, CmsMedia, CmsPage, CmsPost, Currency, Entry, ExchangeRate, File,
-		Period, Posting, Session, Transaction, User, UserAccount, Workspace,
-		WorkspaceInvitation, WorkspaceMember []ent.Interceptor
+		FinSetting, Period, Posting, Session, Transaction, User, UserAccount,
+		Workspace, WorkspaceInvitation, WorkspaceMember []ent.Interceptor
 	}
 )
 
@@ -3901,6 +4101,7 @@ var (
 		Entry:               tableSchemas[0],
 		ExchangeRate:        tableSchemas[0],
 		File:                tableSchemas[0],
+		FinSetting:          tableSchemas[0],
 		Period:              tableSchemas[0],
 		Posting:             tableSchemas[0],
 		Session:             tableSchemas[0],

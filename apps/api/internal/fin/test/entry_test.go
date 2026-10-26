@@ -426,7 +426,31 @@ func (s *EntryApiSuite) Test_FXRounding_AutoBalancing_Endpoint() {
 		Save(base.WithWorkspaceID(s.Context, ws.ID))
 	s.Require().NoError(err)
 
-	// 1. Difference <= 1.0 IDR should auto-balance by adding an FX Rounding line
+	// 1. Unconfigured FX accounts: difference should fail with 422 FX_ROUNDING_ACCOUNT_NOT_FOUND
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{
+		TransactionID: tx.ID,
+		PeriodID:      pID,
+		EntryDate:     model.Date(tDate),
+		Description:   "USD entry with 1 IDR rounding diff",
+		Postings: []model.CreatePostingRequest{
+			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: dec(1)},
+			{AccountID: accRev1, Direction: domain.PostingDirectionCredit, Amount: decimal.RequireFromString("0.5")},
+			{AccountID: accRev2, Direction: domain.PostingDirectionCredit, Amount: decimal.RequireFromString("0.5")},
+		},
+	})
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	// Configure FX Rounding account via settings API
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/settings/fx-accounts", ws.ID), fiber.MethodPut, model.UpdateFXAccountsRequest{
+		FXRoundingAccountID: &fxAcc,
+	})
+	s.OK()
+
+	// Verify GET settings API returns configured account
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/settings/fx-accounts", ws.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	// 2. Difference <= 1.0 IDR should auto-balance by adding an FX Rounding line
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{
 		TransactionID: tx.ID,
 		PeriodID:      pID,

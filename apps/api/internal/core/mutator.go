@@ -12,6 +12,7 @@ import (
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
+	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/intercept"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
@@ -64,7 +65,8 @@ func isWorkspaceScopedType(typ string) bool {
 		ent.TypeEntry,
 		ent.TypePosting,
 		ent.TypeExchangeRate,
-		ent.TypeFile:
+		ent.TypeFile,
+		ent.TypeFinSetting:
 		return true
 	default:
 		return false
@@ -141,6 +143,8 @@ func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error
 		q.WhereP(sql.FieldEQ(cmspage.FieldWorkspaceID, wsID))
 	case ent.TypeCmsMedia:
 		q.WhereP(sql.FieldEQ(cmsmedia.FieldWorkspaceID, wsID))
+	case ent.TypeFinSetting:
+		q.WhereP(sql.FieldEQ(finsetting.FieldWorkspaceID, wsID))
 	}
 	return nil
 }

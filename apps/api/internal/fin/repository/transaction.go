@@ -80,6 +80,12 @@ func (r TransactionRepository) Create(c context.Context, req model.CreateTransac
 			}
 
 			curr := "IDR"
+			wsID := base.WorkspaceIDFromContext(c)
+			if wsID > 0 {
+				if ws, err := tx.Workspace.Get(c, wsID); err == nil && ws.BaseCurrency != "" {
+					curr = ws.BaseCurrency
+				}
+			}
 			if req.Currency != "" {
 				curr = req.Currency
 			}
@@ -390,4 +396,3 @@ func toTransactionDomain(t *ent.Transaction) domain.Transaction {
 
 	return dom
 }
-

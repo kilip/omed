@@ -47,9 +47,10 @@ func (s *ExchangeRateServiceSuite) SetupSuite() {
 	accountRepo := repository.NewAccountRepository(s.client)
 	txRepo := repository.NewTransactionRepository(s.client)
 	entryRepo := repository.NewEntryRepository(s.client)
+	settingRepo := repository.NewSettingRepository(s.client)
 
-	s.txSvc = service.NewTransactionService(txRepo, periodRepo, accountRepo, rateRepo, currRepo)
-	s.entrySvc = service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo, rateRepo, currRepo)
+	s.txSvc = service.NewTransactionService(txRepo, periodRepo, accountRepo, rateRepo, currRepo, service.WithTransactionSettingRepository(settingRepo))
+	s.entrySvc = service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo, rateRepo, currRepo, settingRepo)
 }
 
 func (s *ExchangeRateServiceSuite) TearDownSuite() {

@@ -34,6 +34,7 @@ type FinModule struct {
 	ExchangeRateService service.ExchangeRateService
 	Authorizer          *authz.Authorizer
 	ReportService       service.ReportService
+	SettingService      service.SettingService
 }
 
 // New constructs a new FinModule instance.
@@ -48,10 +49,13 @@ func New(cfg Config) *FinModule {
 	accountRepo := repository.NewAccountRepository(cfg.EntCli)
 	accountSvc := service.NewAccountService(accountRepo)
 
+	settingRepo := repository.NewSettingRepository(cfg.EntCli)
+	settingSvc := service.NewSettingService(settingRepo, accountRepo)
+
 	periodRepo := repository.NewPeriodRepository(cfg.EntCli)
 	periodSvc := service.NewPeriodService(
 		periodRepo,
-		service.WithPeriodDependencies(accountRepo, entryRepo, rateRepo, currencyRepo),
+		service.WithPeriodDependencies(accountRepo, entryRepo, rateRepo, currencyRepo, settingRepo),
 	)
 
 	txRepo := repository.NewTransactionRepository(cfg.EntCli)
@@ -66,9 +70,10 @@ func New(cfg Config) *FinModule {
 			MaxSizeBytes: maxSizeBytes,
 			AllowedTypes: cfg.AttachmentAllowedTypes,
 		}),
+		service.WithTransactionSettingRepository(settingRepo),
 	)
 
-	entrySvc := service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo, rateRepo, currencyRepo)
+	entrySvc := service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo, rateRepo, currencyRepo, settingRepo)
 
 	reportSvc := service.NewReportService(entryRepo, accountRepo, currencyRepo)
 
@@ -81,6 +86,7 @@ func New(cfg Config) *FinModule {
 		CurrencyService:     currencySvc,
 		ExchangeRateService: rateSvc,
 		ReportService:       reportSvc,
+		SettingService:      settingSvc,
 	}
 }
 

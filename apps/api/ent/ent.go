@@ -20,6 +20,7 @@ import (
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
+	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/session"
@@ -97,6 +98,7 @@ func checkColumn(t, c string) error {
 			entry.Table:               entry.ValidColumn,
 			exchangerate.Table:        exchangerate.ValidColumn,
 			file.Table:                file.ValidColumn,
+			finsetting.Table:          finsetting.ValidColumn,
 			period.Table:              period.ValidColumn,
 			posting.Table:             posting.ValidColumn,
 			session.Table:             session.ValidColumn,

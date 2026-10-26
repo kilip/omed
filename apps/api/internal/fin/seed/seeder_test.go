@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core"
 	"github.com/kilip/omed/api/internal/fin/domain"
@@ -37,6 +38,7 @@ func (s *SeederSuite) TearDownSuite() {
 
 func (s *SeederSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
+	_, _ = s.client.FinSetting.Delete().Exec(ctx)
 	_, _ = s.client.Account.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
@@ -173,6 +175,21 @@ func (s *SeederSuite) Test_Seed_SuccessAndHierarchy() {
 	s.Require().NotNil(accByCode["7400"])
 	s.True(accByCode["7400"].IsPostable)
 	s.Equal(accByCode["7000"].ID, *accByCode["7400"].ParentID)
+
+	// Verify FX accounts setting was automatically created and linked
+	setting, err := s.client.FinSetting.Query().Where(finsetting.WorkspaceIDEQ(s.workspaceID)).Only(ctx)
+	s.Require().NoError(err)
+	s.Require().NotNil(setting)
+	s.Require().NotNil(setting.FxGainAccountID)
+	s.Equal(accByCode["7210"].ID, *setting.FxGainAccountID)
+	s.Require().NotNil(setting.FxLossAccountID)
+	s.Equal(accByCode["7310"].ID, *setting.FxLossAccountID)
+	s.Require().NotNil(setting.FxUnrealizedGainAccountID)
+	s.Equal(accByCode["7220"].ID, *setting.FxUnrealizedGainAccountID)
+	s.Require().NotNil(setting.FxUnrealizedLossAccountID)
+	s.Equal(accByCode["7320"].ID, *setting.FxUnrealizedLossAccountID)
+	s.Require().NotNil(setting.FxRoundingAccountID)
+	s.Equal(accByCode["7400"].ID, *setting.FxRoundingAccountID)
 
 	// Seeding a second time must fail with ErrAccountWorkspaceNotEmpty
 	_, err = seed.Seed(ctx, s.client, s.workspaceID, "freelancer", "id")

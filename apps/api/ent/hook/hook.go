@@ -105,6 +105,18 @@ func (f FileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileMutation", m)
 }
 
+// The FinSettingFunc type is an adapter to allow the use of ordinary
+// function as FinSetting mutator.
+type FinSettingFunc func(context.Context, *ent.FinSettingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinSettingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinSettingMutation", m)
+}
+
 // The PeriodFunc type is an adapter to allow the use of ordinary
 // function as Period mutator.
 type PeriodFunc func(context.Context, *ent.PeriodMutation) (ent.Value, error)

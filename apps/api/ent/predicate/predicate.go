@@ -30,6 +30,9 @@ type ExchangeRate func(*sql.Selector)
 // File is the predicate function for file builders.
 type File func(*sql.Selector)
 
+// FinSetting is the predicate function for finsetting builders.
+type FinSetting func(*sql.Selector)
+
 // Period is the predicate function for period builders.
 type Period func(*sql.Selector)
 

@@ -4,7 +4,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/kilip/omed/api/internal/base"
@@ -35,6 +34,7 @@ type PeriodService struct {
 	entryRepo    EntryRepository
 	rateRepo     ExchangeRateRepository
 	currencyRepo CurrencyRepository
+	settingRepo  SettingRepository
 }
 
 // NewPeriodService constructs a new PeriodService backed by the given repository and optional dependencies.
@@ -55,12 +55,14 @@ func WithPeriodDependencies(
 	entryRepo EntryRepository,
 	rateRepo ExchangeRateRepository,
 	currencyRepo CurrencyRepository,
+	settingRepo SettingRepository,
 ) func(*PeriodService) {
 	return func(s *PeriodService) {
 		s.accountRepo = accountRepo
 		s.entryRepo = entryRepo
 		s.rateRepo = rateRepo
 		s.currencyRepo = currencyRepo
+		s.settingRepo = settingRepo
 	}
 }
 
@@ -188,33 +190,31 @@ func (s PeriodService) getBaseCurrencyAndDecimals(c context.Context) (string, in
 	return baseCurrency, baseDecimals
 }
 
-func findUnrealizedFXAccounts(c context.Context, accountRepo AccountRepository) (gain domain.Account, loss domain.Account, err error) {
-	gain, err = accountRepo.FindByCode(c, "7220")
+func findUnrealizedFXAccounts(c context.Context, accountRepo AccountRepository, settingRepo SettingRepository) (gain domain.Account, loss domain.Account, err error) {
+	wsID := base.WorkspaceIDFromContext(c)
+	if settingRepo == nil || wsID <= 0 {
+		return gain, loss, domain.ErrFXAccountsNotConfigured
+	}
+
+	setting, err := settingRepo.Get(c, wsID)
+	if err != nil || setting.FXUnrealizedGainAccountID == nil || setting.FXUnrealizedLossAccountID == nil {
+		return gain, loss, domain.ErrFXAccountsNotConfigured
+	}
+
+	gain, err = accountRepo.GetByID(c, *setting.FXUnrealizedGainAccountID)
 	if err != nil || gain.ID == 0 {
-		// Fallback search
-		accounts, _, _ := accountRepo.Search(c, model.SearchAccountRequest{})
-		for _, a := range accounts {
-			if a.Code == "7220" || strings.EqualFold(a.Name, "Unrealized Foreign Exchange Gain") || strings.EqualFold(a.Name, "Unrealized FX Gain") {
-				gain = a
-				break
-			}
-		}
+		return gain, loss, domain.ErrFXGainAccountNotFound
+	}
+	if !gain.IsActive || !gain.IsPostable {
+		return gain, loss, domain.ErrFXAccountInvalid
 	}
 
-	loss, err = accountRepo.FindByCode(c, "7320")
+	loss, err = accountRepo.GetByID(c, *setting.FXUnrealizedLossAccountID)
 	if err != nil || loss.ID == 0 {
-		// Fallback search
-		accounts, _, _ := accountRepo.Search(c, model.SearchAccountRequest{})
-		for _, a := range accounts {
-			if a.Code == "7320" || strings.EqualFold(a.Name, "Unrealized Foreign Exchange Loss") || strings.EqualFold(a.Name, "Unrealized FX Loss") {
-				loss = a
-				break
-			}
-		}
+		return gain, loss, domain.ErrFXLossAccountNotFound
 	}
-
-	if gain.ID == 0 || loss.ID == 0 {
-		return gain, loss, fmt.Errorf("unrealized fx accounts (7220 / 7320) not found in workspace")
+	if !loss.IsActive || !loss.IsPostable {
+		return gain, loss, domain.ErrFXAccountInvalid
 	}
 
 	return gain, loss, nil
@@ -264,7 +264,7 @@ func (s PeriodService) Revalue(ctx context.Context, periodID int64, requestedBy 
 		return domain.Entry{}, err
 	}
 
-	unrealizedGainAcc, unrealizedLossAcc, err := findUnrealizedFXAccounts(ctx, s.accountRepo)
+	unrealizedGainAcc, unrealizedLossAcc, err := findUnrealizedFXAccounts(ctx, s.accountRepo, s.settingRepo)
 	if err != nil {
 		return domain.Entry{}, err
 	}
@@ -370,4 +370,3 @@ func (s PeriodService) Revalue(ctx context.Context, periodID int64, requestedBy 
 		requestedBy,
 	)
 }
-

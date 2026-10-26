@@ -19,6 +19,7 @@ import (
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
+	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/predicate"
@@ -49,6 +50,7 @@ const (
 	TypeEntry               = "Entry"
 	TypeExchangeRate        = "ExchangeRate"
 	TypeFile                = "File"
+	TypeFinSetting          = "FinSetting"
 	TypePeriod              = "Period"
 	TypePosting             = "Posting"
 	TypeSession             = "Session"
@@ -10710,6 +10712,1267 @@ func (m *FileMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown File edge %s", name)
+}
+
+// FinSettingMutation represents an operation that mutates the FinSetting nodes in the graph.
+type FinSettingMutation struct {
+	config
+	op                               Op
+	typ                              string
+	id                               *int64
+	created_at                       *time.Time
+	updated_at                       *time.Time
+	fx_gain_account_id               *int64
+	addfx_gain_account_id            *int64
+	fx_loss_account_id               *int64
+	addfx_loss_account_id            *int64
+	fx_unrealized_gain_account_id    *int64
+	addfx_unrealized_gain_account_id *int64
+	fx_unrealized_loss_account_id    *int64
+	addfx_unrealized_loss_account_id *int64
+	fx_rounding_account_id           *int64
+	addfx_rounding_account_id        *int64
+	clearedFields                    map[string]struct{}
+	workspace                        *int64
+	clearedworkspace                 bool
+	creator                          *int64
+	clearedcreator                   bool
+	updater                          *int64
+	clearedupdater                   bool
+	done                             bool
+	oldValue                         func(context.Context) (*FinSetting, error)
+	predicates                       []predicate.FinSetting
+}
+
+var _ ent.Mutation = (*FinSettingMutation)(nil)
+
+// finsettingOption allows management of the mutation configuration using functional options.
+type finsettingOption func(*FinSettingMutation)
+
+// newFinSettingMutation creates new mutation for the FinSetting entity.
+func newFinSettingMutation(c config, op Op, opts ...finsettingOption) *FinSettingMutation {
+	m := &FinSettingMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFinSetting,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFinSettingID sets the ID field of the mutation.
+func withFinSettingID(id int64) finsettingOption {
+	return func(m *FinSettingMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FinSetting
+		)
+		m.oldValue = func(ctx context.Context) (*FinSetting, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FinSetting.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFinSetting sets the old FinSetting of the mutation.
+func withFinSetting(node *FinSetting) finsettingOption {
+	return func(m *FinSettingMutation) {
+		m.oldValue = func(context.Context) (*FinSetting, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FinSettingMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FinSettingMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FinSetting entities.
+func (m *FinSettingMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FinSettingMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FinSettingMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FinSetting.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *FinSettingMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *FinSettingMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *FinSettingMutation) ResetWorkspaceID() {
+	m.workspace = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *FinSettingMutation) SetCreatedBy(i int64) {
+	m.creator = &i
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *FinSettingMutation) CreatedBy() (r int64, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *FinSettingMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *FinSettingMutation) SetUpdatedBy(i int64) {
+	m.updater = &i
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *FinSettingMutation) UpdatedBy() (r int64, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *FinSettingMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FinSettingMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FinSettingMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FinSettingMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FinSettingMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FinSettingMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FinSettingMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetFxGainAccountID sets the "fx_gain_account_id" field.
+func (m *FinSettingMutation) SetFxGainAccountID(i int64) {
+	m.fx_gain_account_id = &i
+	m.addfx_gain_account_id = nil
+}
+
+// FxGainAccountID returns the value of the "fx_gain_account_id" field in the mutation.
+func (m *FinSettingMutation) FxGainAccountID() (r int64, exists bool) {
+	v := m.fx_gain_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFxGainAccountID returns the old "fx_gain_account_id" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldFxGainAccountID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFxGainAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFxGainAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFxGainAccountID: %w", err)
+	}
+	return oldValue.FxGainAccountID, nil
+}
+
+// AddFxGainAccountID adds i to the "fx_gain_account_id" field.
+func (m *FinSettingMutation) AddFxGainAccountID(i int64) {
+	if m.addfx_gain_account_id != nil {
+		*m.addfx_gain_account_id += i
+	} else {
+		m.addfx_gain_account_id = &i
+	}
+}
+
+// AddedFxGainAccountID returns the value that was added to the "fx_gain_account_id" field in this mutation.
+func (m *FinSettingMutation) AddedFxGainAccountID() (r int64, exists bool) {
+	v := m.addfx_gain_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearFxGainAccountID clears the value of the "fx_gain_account_id" field.
+func (m *FinSettingMutation) ClearFxGainAccountID() {
+	m.fx_gain_account_id = nil
+	m.addfx_gain_account_id = nil
+	m.clearedFields[finsetting.FieldFxGainAccountID] = struct{}{}
+}
+
+// FxGainAccountIDCleared returns if the "fx_gain_account_id" field was cleared in this mutation.
+func (m *FinSettingMutation) FxGainAccountIDCleared() bool {
+	_, ok := m.clearedFields[finsetting.FieldFxGainAccountID]
+	return ok
+}
+
+// ResetFxGainAccountID resets all changes to the "fx_gain_account_id" field.
+func (m *FinSettingMutation) ResetFxGainAccountID() {
+	m.fx_gain_account_id = nil
+	m.addfx_gain_account_id = nil
+	delete(m.clearedFields, finsetting.FieldFxGainAccountID)
+}
+
+// SetFxLossAccountID sets the "fx_loss_account_id" field.
+func (m *FinSettingMutation) SetFxLossAccountID(i int64) {
+	m.fx_loss_account_id = &i
+	m.addfx_loss_account_id = nil
+}
+
+// FxLossAccountID returns the value of the "fx_loss_account_id" field in the mutation.
+func (m *FinSettingMutation) FxLossAccountID() (r int64, exists bool) {
+	v := m.fx_loss_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFxLossAccountID returns the old "fx_loss_account_id" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldFxLossAccountID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFxLossAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFxLossAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFxLossAccountID: %w", err)
+	}
+	return oldValue.FxLossAccountID, nil
+}
+
+// AddFxLossAccountID adds i to the "fx_loss_account_id" field.
+func (m *FinSettingMutation) AddFxLossAccountID(i int64) {
+	if m.addfx_loss_account_id != nil {
+		*m.addfx_loss_account_id += i
+	} else {
+		m.addfx_loss_account_id = &i
+	}
+}
+
+// AddedFxLossAccountID returns the value that was added to the "fx_loss_account_id" field in this mutation.
+func (m *FinSettingMutation) AddedFxLossAccountID() (r int64, exists bool) {
+	v := m.addfx_loss_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearFxLossAccountID clears the value of the "fx_loss_account_id" field.
+func (m *FinSettingMutation) ClearFxLossAccountID() {
+	m.fx_loss_account_id = nil
+	m.addfx_loss_account_id = nil
+	m.clearedFields[finsetting.FieldFxLossAccountID] = struct{}{}
+}
+
+// FxLossAccountIDCleared returns if the "fx_loss_account_id" field was cleared in this mutation.
+func (m *FinSettingMutation) FxLossAccountIDCleared() bool {
+	_, ok := m.clearedFields[finsetting.FieldFxLossAccountID]
+	return ok
+}
+
+// ResetFxLossAccountID resets all changes to the "fx_loss_account_id" field.
+func (m *FinSettingMutation) ResetFxLossAccountID() {
+	m.fx_loss_account_id = nil
+	m.addfx_loss_account_id = nil
+	delete(m.clearedFields, finsetting.FieldFxLossAccountID)
+}
+
+// SetFxUnrealizedGainAccountID sets the "fx_unrealized_gain_account_id" field.
+func (m *FinSettingMutation) SetFxUnrealizedGainAccountID(i int64) {
+	m.fx_unrealized_gain_account_id = &i
+	m.addfx_unrealized_gain_account_id = nil
+}
+
+// FxUnrealizedGainAccountID returns the value of the "fx_unrealized_gain_account_id" field in the mutation.
+func (m *FinSettingMutation) FxUnrealizedGainAccountID() (r int64, exists bool) {
+	v := m.fx_unrealized_gain_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFxUnrealizedGainAccountID returns the old "fx_unrealized_gain_account_id" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldFxUnrealizedGainAccountID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFxUnrealizedGainAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFxUnrealizedGainAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFxUnrealizedGainAccountID: %w", err)
+	}
+	return oldValue.FxUnrealizedGainAccountID, nil
+}
+
+// AddFxUnrealizedGainAccountID adds i to the "fx_unrealized_gain_account_id" field.
+func (m *FinSettingMutation) AddFxUnrealizedGainAccountID(i int64) {
+	if m.addfx_unrealized_gain_account_id != nil {
+		*m.addfx_unrealized_gain_account_id += i
+	} else {
+		m.addfx_unrealized_gain_account_id = &i
+	}
+}
+
+// AddedFxUnrealizedGainAccountID returns the value that was added to the "fx_unrealized_gain_account_id" field in this mutation.
+func (m *FinSettingMutation) AddedFxUnrealizedGainAccountID() (r int64, exists bool) {
+	v := m.addfx_unrealized_gain_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearFxUnrealizedGainAccountID clears the value of the "fx_unrealized_gain_account_id" field.
+func (m *FinSettingMutation) ClearFxUnrealizedGainAccountID() {
+	m.fx_unrealized_gain_account_id = nil
+	m.addfx_unrealized_gain_account_id = nil
+	m.clearedFields[finsetting.FieldFxUnrealizedGainAccountID] = struct{}{}
+}
+
+// FxUnrealizedGainAccountIDCleared returns if the "fx_unrealized_gain_account_id" field was cleared in this mutation.
+func (m *FinSettingMutation) FxUnrealizedGainAccountIDCleared() bool {
+	_, ok := m.clearedFields[finsetting.FieldFxUnrealizedGainAccountID]
+	return ok
+}
+
+// ResetFxUnrealizedGainAccountID resets all changes to the "fx_unrealized_gain_account_id" field.
+func (m *FinSettingMutation) ResetFxUnrealizedGainAccountID() {
+	m.fx_unrealized_gain_account_id = nil
+	m.addfx_unrealized_gain_account_id = nil
+	delete(m.clearedFields, finsetting.FieldFxUnrealizedGainAccountID)
+}
+
+// SetFxUnrealizedLossAccountID sets the "fx_unrealized_loss_account_id" field.
+func (m *FinSettingMutation) SetFxUnrealizedLossAccountID(i int64) {
+	m.fx_unrealized_loss_account_id = &i
+	m.addfx_unrealized_loss_account_id = nil
+}
+
+// FxUnrealizedLossAccountID returns the value of the "fx_unrealized_loss_account_id" field in the mutation.
+func (m *FinSettingMutation) FxUnrealizedLossAccountID() (r int64, exists bool) {
+	v := m.fx_unrealized_loss_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFxUnrealizedLossAccountID returns the old "fx_unrealized_loss_account_id" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldFxUnrealizedLossAccountID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFxUnrealizedLossAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFxUnrealizedLossAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFxUnrealizedLossAccountID: %w", err)
+	}
+	return oldValue.FxUnrealizedLossAccountID, nil
+}
+
+// AddFxUnrealizedLossAccountID adds i to the "fx_unrealized_loss_account_id" field.
+func (m *FinSettingMutation) AddFxUnrealizedLossAccountID(i int64) {
+	if m.addfx_unrealized_loss_account_id != nil {
+		*m.addfx_unrealized_loss_account_id += i
+	} else {
+		m.addfx_unrealized_loss_account_id = &i
+	}
+}
+
+// AddedFxUnrealizedLossAccountID returns the value that was added to the "fx_unrealized_loss_account_id" field in this mutation.
+func (m *FinSettingMutation) AddedFxUnrealizedLossAccountID() (r int64, exists bool) {
+	v := m.addfx_unrealized_loss_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearFxUnrealizedLossAccountID clears the value of the "fx_unrealized_loss_account_id" field.
+func (m *FinSettingMutation) ClearFxUnrealizedLossAccountID() {
+	m.fx_unrealized_loss_account_id = nil
+	m.addfx_unrealized_loss_account_id = nil
+	m.clearedFields[finsetting.FieldFxUnrealizedLossAccountID] = struct{}{}
+}
+
+// FxUnrealizedLossAccountIDCleared returns if the "fx_unrealized_loss_account_id" field was cleared in this mutation.
+func (m *FinSettingMutation) FxUnrealizedLossAccountIDCleared() bool {
+	_, ok := m.clearedFields[finsetting.FieldFxUnrealizedLossAccountID]
+	return ok
+}
+
+// ResetFxUnrealizedLossAccountID resets all changes to the "fx_unrealized_loss_account_id" field.
+func (m *FinSettingMutation) ResetFxUnrealizedLossAccountID() {
+	m.fx_unrealized_loss_account_id = nil
+	m.addfx_unrealized_loss_account_id = nil
+	delete(m.clearedFields, finsetting.FieldFxUnrealizedLossAccountID)
+}
+
+// SetFxRoundingAccountID sets the "fx_rounding_account_id" field.
+func (m *FinSettingMutation) SetFxRoundingAccountID(i int64) {
+	m.fx_rounding_account_id = &i
+	m.addfx_rounding_account_id = nil
+}
+
+// FxRoundingAccountID returns the value of the "fx_rounding_account_id" field in the mutation.
+func (m *FinSettingMutation) FxRoundingAccountID() (r int64, exists bool) {
+	v := m.fx_rounding_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFxRoundingAccountID returns the old "fx_rounding_account_id" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldFxRoundingAccountID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFxRoundingAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFxRoundingAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFxRoundingAccountID: %w", err)
+	}
+	return oldValue.FxRoundingAccountID, nil
+}
+
+// AddFxRoundingAccountID adds i to the "fx_rounding_account_id" field.
+func (m *FinSettingMutation) AddFxRoundingAccountID(i int64) {
+	if m.addfx_rounding_account_id != nil {
+		*m.addfx_rounding_account_id += i
+	} else {
+		m.addfx_rounding_account_id = &i
+	}
+}
+
+// AddedFxRoundingAccountID returns the value that was added to the "fx_rounding_account_id" field in this mutation.
+func (m *FinSettingMutation) AddedFxRoundingAccountID() (r int64, exists bool) {
+	v := m.addfx_rounding_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearFxRoundingAccountID clears the value of the "fx_rounding_account_id" field.
+func (m *FinSettingMutation) ClearFxRoundingAccountID() {
+	m.fx_rounding_account_id = nil
+	m.addfx_rounding_account_id = nil
+	m.clearedFields[finsetting.FieldFxRoundingAccountID] = struct{}{}
+}
+
+// FxRoundingAccountIDCleared returns if the "fx_rounding_account_id" field was cleared in this mutation.
+func (m *FinSettingMutation) FxRoundingAccountIDCleared() bool {
+	_, ok := m.clearedFields[finsetting.FieldFxRoundingAccountID]
+	return ok
+}
+
+// ResetFxRoundingAccountID resets all changes to the "fx_rounding_account_id" field.
+func (m *FinSettingMutation) ResetFxRoundingAccountID() {
+	m.fx_rounding_account_id = nil
+	m.addfx_rounding_account_id = nil
+	delete(m.clearedFields, finsetting.FieldFxRoundingAccountID)
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *FinSettingMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[finsetting.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *FinSettingMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *FinSettingMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *FinSettingMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *FinSettingMutation) SetCreatorID(id int64) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *FinSettingMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[finsetting.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *FinSettingMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *FinSettingMutation) CreatorID() (id int64, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *FinSettingMutation) CreatorIDs() (ids []int64) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *FinSettingMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *FinSettingMutation) SetUpdaterID(id int64) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *FinSettingMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[finsetting.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *FinSettingMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *FinSettingMutation) UpdaterID() (id int64, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *FinSettingMutation) UpdaterIDs() (ids []int64) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *FinSettingMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// Where appends a list predicates to the FinSettingMutation builder.
+func (m *FinSettingMutation) Where(ps ...predicate.FinSetting) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FinSettingMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FinSettingMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FinSetting, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FinSettingMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FinSettingMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FinSetting).
+func (m *FinSettingMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FinSettingMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.workspace != nil {
+		fields = append(fields, finsetting.FieldWorkspaceID)
+	}
+	if m.creator != nil {
+		fields = append(fields, finsetting.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, finsetting.FieldUpdatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, finsetting.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, finsetting.FieldUpdatedAt)
+	}
+	if m.fx_gain_account_id != nil {
+		fields = append(fields, finsetting.FieldFxGainAccountID)
+	}
+	if m.fx_loss_account_id != nil {
+		fields = append(fields, finsetting.FieldFxLossAccountID)
+	}
+	if m.fx_unrealized_gain_account_id != nil {
+		fields = append(fields, finsetting.FieldFxUnrealizedGainAccountID)
+	}
+	if m.fx_unrealized_loss_account_id != nil {
+		fields = append(fields, finsetting.FieldFxUnrealizedLossAccountID)
+	}
+	if m.fx_rounding_account_id != nil {
+		fields = append(fields, finsetting.FieldFxRoundingAccountID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FinSettingMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case finsetting.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case finsetting.FieldCreatedBy:
+		return m.CreatedBy()
+	case finsetting.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case finsetting.FieldCreatedAt:
+		return m.CreatedAt()
+	case finsetting.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case finsetting.FieldFxGainAccountID:
+		return m.FxGainAccountID()
+	case finsetting.FieldFxLossAccountID:
+		return m.FxLossAccountID()
+	case finsetting.FieldFxUnrealizedGainAccountID:
+		return m.FxUnrealizedGainAccountID()
+	case finsetting.FieldFxUnrealizedLossAccountID:
+		return m.FxUnrealizedLossAccountID()
+	case finsetting.FieldFxRoundingAccountID:
+		return m.FxRoundingAccountID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FinSettingMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case finsetting.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case finsetting.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case finsetting.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case finsetting.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case finsetting.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case finsetting.FieldFxGainAccountID:
+		return m.OldFxGainAccountID(ctx)
+	case finsetting.FieldFxLossAccountID:
+		return m.OldFxLossAccountID(ctx)
+	case finsetting.FieldFxUnrealizedGainAccountID:
+		return m.OldFxUnrealizedGainAccountID(ctx)
+	case finsetting.FieldFxUnrealizedLossAccountID:
+		return m.OldFxUnrealizedLossAccountID(ctx)
+	case finsetting.FieldFxRoundingAccountID:
+		return m.OldFxRoundingAccountID(ctx)
+	}
+	return nil, fmt.Errorf("unknown FinSetting field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinSettingMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case finsetting.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case finsetting.FieldCreatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case finsetting.FieldUpdatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case finsetting.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case finsetting.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case finsetting.FieldFxGainAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFxGainAccountID(v)
+		return nil
+	case finsetting.FieldFxLossAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFxLossAccountID(v)
+		return nil
+	case finsetting.FieldFxUnrealizedGainAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFxUnrealizedGainAccountID(v)
+		return nil
+	case finsetting.FieldFxUnrealizedLossAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFxUnrealizedLossAccountID(v)
+		return nil
+	case finsetting.FieldFxRoundingAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFxRoundingAccountID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinSetting field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FinSettingMutation) AddedFields() []string {
+	var fields []string
+	if m.addfx_gain_account_id != nil {
+		fields = append(fields, finsetting.FieldFxGainAccountID)
+	}
+	if m.addfx_loss_account_id != nil {
+		fields = append(fields, finsetting.FieldFxLossAccountID)
+	}
+	if m.addfx_unrealized_gain_account_id != nil {
+		fields = append(fields, finsetting.FieldFxUnrealizedGainAccountID)
+	}
+	if m.addfx_unrealized_loss_account_id != nil {
+		fields = append(fields, finsetting.FieldFxUnrealizedLossAccountID)
+	}
+	if m.addfx_rounding_account_id != nil {
+		fields = append(fields, finsetting.FieldFxRoundingAccountID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FinSettingMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case finsetting.FieldFxGainAccountID:
+		return m.AddedFxGainAccountID()
+	case finsetting.FieldFxLossAccountID:
+		return m.AddedFxLossAccountID()
+	case finsetting.FieldFxUnrealizedGainAccountID:
+		return m.AddedFxUnrealizedGainAccountID()
+	case finsetting.FieldFxUnrealizedLossAccountID:
+		return m.AddedFxUnrealizedLossAccountID()
+	case finsetting.FieldFxRoundingAccountID:
+		return m.AddedFxRoundingAccountID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinSettingMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case finsetting.FieldFxGainAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFxGainAccountID(v)
+		return nil
+	case finsetting.FieldFxLossAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFxLossAccountID(v)
+		return nil
+	case finsetting.FieldFxUnrealizedGainAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFxUnrealizedGainAccountID(v)
+		return nil
+	case finsetting.FieldFxUnrealizedLossAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFxUnrealizedLossAccountID(v)
+		return nil
+	case finsetting.FieldFxRoundingAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFxRoundingAccountID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinSetting numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FinSettingMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(finsetting.FieldFxGainAccountID) {
+		fields = append(fields, finsetting.FieldFxGainAccountID)
+	}
+	if m.FieldCleared(finsetting.FieldFxLossAccountID) {
+		fields = append(fields, finsetting.FieldFxLossAccountID)
+	}
+	if m.FieldCleared(finsetting.FieldFxUnrealizedGainAccountID) {
+		fields = append(fields, finsetting.FieldFxUnrealizedGainAccountID)
+	}
+	if m.FieldCleared(finsetting.FieldFxUnrealizedLossAccountID) {
+		fields = append(fields, finsetting.FieldFxUnrealizedLossAccountID)
+	}
+	if m.FieldCleared(finsetting.FieldFxRoundingAccountID) {
+		fields = append(fields, finsetting.FieldFxRoundingAccountID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FinSettingMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FinSettingMutation) ClearField(name string) error {
+	switch name {
+	case finsetting.FieldFxGainAccountID:
+		m.ClearFxGainAccountID()
+		return nil
+	case finsetting.FieldFxLossAccountID:
+		m.ClearFxLossAccountID()
+		return nil
+	case finsetting.FieldFxUnrealizedGainAccountID:
+		m.ClearFxUnrealizedGainAccountID()
+		return nil
+	case finsetting.FieldFxUnrealizedLossAccountID:
+		m.ClearFxUnrealizedLossAccountID()
+		return nil
+	case finsetting.FieldFxRoundingAccountID:
+		m.ClearFxRoundingAccountID()
+		return nil
+	}
+	return fmt.Errorf("unknown FinSetting nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FinSettingMutation) ResetField(name string) error {
+	switch name {
+	case finsetting.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case finsetting.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case finsetting.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case finsetting.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case finsetting.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case finsetting.FieldFxGainAccountID:
+		m.ResetFxGainAccountID()
+		return nil
+	case finsetting.FieldFxLossAccountID:
+		m.ResetFxLossAccountID()
+		return nil
+	case finsetting.FieldFxUnrealizedGainAccountID:
+		m.ResetFxUnrealizedGainAccountID()
+		return nil
+	case finsetting.FieldFxUnrealizedLossAccountID:
+		m.ResetFxUnrealizedLossAccountID()
+		return nil
+	case finsetting.FieldFxRoundingAccountID:
+		m.ResetFxRoundingAccountID()
+		return nil
+	}
+	return fmt.Errorf("unknown FinSetting field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FinSettingMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.workspace != nil {
+		edges = append(edges, finsetting.EdgeWorkspace)
+	}
+	if m.creator != nil {
+		edges = append(edges, finsetting.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, finsetting.EdgeUpdater)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FinSettingMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case finsetting.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
+	case finsetting.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case finsetting.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FinSettingMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FinSettingMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FinSettingMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedworkspace {
+		edges = append(edges, finsetting.EdgeWorkspace)
+	}
+	if m.clearedcreator {
+		edges = append(edges, finsetting.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, finsetting.EdgeUpdater)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FinSettingMutation) EdgeCleared(name string) bool {
+	switch name {
+	case finsetting.EdgeWorkspace:
+		return m.clearedworkspace
+	case finsetting.EdgeCreator:
+		return m.clearedcreator
+	case finsetting.EdgeUpdater:
+		return m.clearedupdater
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FinSettingMutation) ClearEdge(name string) error {
+	switch name {
+	case finsetting.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
+	case finsetting.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case finsetting.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	}
+	return fmt.Errorf("unknown FinSetting unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FinSettingMutation) ResetEdge(name string) error {
+	switch name {
+	case finsetting.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case finsetting.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case finsetting.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	}
+	return fmt.Errorf("unknown FinSetting edge %s", name)
 }
 
 // PeriodMutation represents an operation that mutates the Period nodes in the graph.
