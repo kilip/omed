@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/kilip/omed/api/internal/config"
 	"github.com/stretchr/testify/suite"
@@ -30,12 +31,52 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 		}
 	})
 
+	originalRateLimit, hadRateLimit := os.LookupEnv("OMED_RATE_LIMIT_ENABLED")
+	os.Unsetenv("OMED_RATE_LIMIT_ENABLED")
+	s.T().Cleanup(func() {
+		if hadRateLimit {
+			os.Setenv("OMED_RATE_LIMIT_ENABLED", originalRateLimit)
+		}
+	})
+
+	originalReadTimeout, hadReadTimeout := os.LookupEnv("OMED_READ_TIMEOUT")
+	os.Unsetenv("OMED_READ_TIMEOUT")
+	s.T().Cleanup(func() {
+		if hadReadTimeout {
+			os.Setenv("OMED_READ_TIMEOUT", originalReadTimeout)
+		}
+	})
+
+	originalWriteTimeout, hadWriteTimeout := os.LookupEnv("OMED_WRITE_TIMEOUT")
+	os.Unsetenv("OMED_WRITE_TIMEOUT")
+	s.T().Cleanup(func() {
+		if hadWriteTimeout {
+			os.Setenv("OMED_WRITE_TIMEOUT", originalWriteTimeout)
+		}
+	})
+
+	originalIdleTimeout, hadIdleTimeout := os.LookupEnv("OMED_IDLE_TIMEOUT")
+	os.Unsetenv("OMED_IDLE_TIMEOUT")
+	s.T().Cleanup(func() {
+		if hadIdleTimeout {
+			os.Setenv("OMED_IDLE_TIMEOUT", originalIdleTimeout)
+		}
+	})
+
 	cfg := config.GetConfig()
 	s.Equal("/auth", cfg.AuthPath)
 	s.Equal("omed_session", cfg.SessionCookieName)
 	s.Equal([]string{"http://localhost:3000"}, cfg.TrustedOrigins)
 	s.Equal(int64(10), cfg.CMSMediaMaxSizeMB)
 	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
+	s.Equal(10*time.Second, cfg.ReadTimeout)
+	s.Equal(30*time.Second, cfg.WriteTimeout)
+	s.Equal(120*time.Second, cfg.IdleTimeout)
+	s.True(cfg.RateLimitEnabled)
+	s.Equal(100, cfg.RateLimitGeneralMax)
+	s.Equal(1*time.Minute, cfg.RateLimitGeneralExpiration)
+	s.Equal(10, cfg.RateLimitSensitiveMax)
+	s.Equal(1*time.Minute, cfg.RateLimitSensitiveExpiration)
 }
 
 func (s *ConfigSuite) Test_GetConfig_CustomValues() {
@@ -44,6 +85,14 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_TRUSTED_ORIGINS", "https://app1.example.com,https://app2.example.com")
 	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "25")
 	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", ".png,.jpg")
+	s.T().Setenv("OMED_READ_TIMEOUT", "15s")
+	s.T().Setenv("OMED_WRITE_TIMEOUT", "45s")
+	s.T().Setenv("OMED_IDLE_TIMEOUT", "60s")
+	s.T().Setenv("OMED_RATE_LIMIT_ENABLED", "false")
+	s.T().Setenv("OMED_RATE_LIMIT_GENERAL_MAX", "250")
+	s.T().Setenv("OMED_RATE_LIMIT_GENERAL_EXPIRATION", "2m")
+	s.T().Setenv("OMED_RATE_LIMIT_SENSITIVE_MAX", "20")
+	s.T().Setenv("OMED_RATE_LIMIT_SENSITIVE_EXPIRATION", "30s")
 
 	cfg := config.GetConfig()
 	s.Equal("/api/v1/auth", cfg.AuthPath)
@@ -51,6 +100,14 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.Equal([]string{"https://app1.example.com", "https://app2.example.com"}, cfg.TrustedOrigins)
 	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
 	s.Equal([]string{".png", ".jpg"}, cfg.CMSMediaAllowedTypes)
+	s.Equal(15*time.Second, cfg.ReadTimeout)
+	s.Equal(45*time.Second, cfg.WriteTimeout)
+	s.Equal(60*time.Second, cfg.IdleTimeout)
+	s.False(cfg.RateLimitEnabled)
+	s.Equal(250, cfg.RateLimitGeneralMax)
+	s.Equal(2*time.Minute, cfg.RateLimitGeneralExpiration)
+	s.Equal(20, cfg.RateLimitSensitiveMax)
+	s.Equal(30*time.Second, cfg.RateLimitSensitiveExpiration)
 }
 
 func (s *ConfigSuite) Test_GetConfig_Fallbacks() {

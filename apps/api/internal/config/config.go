@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 	envconfig "github.com/sethvargo/go-envconfig"
@@ -75,6 +76,22 @@ type Config struct {
 	CMSMediaAllowedTypes []string `env:"OMED_CMS_MEDIA_ALLOWED_TYPES,separator=,default=.png,.jpg,.jpeg,.webp,.gif,.pdf"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
+	// ReadTimeout is the maximum duration for reading the entire request. Defaults to 10s.
+	ReadTimeout time.Duration `env:"OMED_READ_TIMEOUT,default=10s"`
+	// WriteTimeout is the maximum duration before timing out writes of the response. Defaults to 30s.
+	WriteTimeout time.Duration `env:"OMED_WRITE_TIMEOUT,default=30s"`
+	// IdleTimeout is the maximum amount of time to wait for the next request when keep-alive is enabled. Defaults to 120s.
+	IdleTimeout time.Duration `env:"OMED_IDLE_TIMEOUT,default=120s"`
+	// RateLimitEnabled toggles HTTP rate limiting. Defaults to true.
+	RateLimitEnabled bool `env:"OMED_RATE_LIMIT_ENABLED,default=true"`
+	// RateLimitGeneralMax is the maximum requests allowed per general expiration window. Defaults to 100.
+	RateLimitGeneralMax int `env:"OMED_RATE_LIMIT_GENERAL_MAX,default=100"`
+	// RateLimitGeneralExpiration is the expiration window for general routes. Defaults to 1m.
+	RateLimitGeneralExpiration time.Duration `env:"OMED_RATE_LIMIT_GENERAL_EXPIRATION,default=1m"`
+	// RateLimitSensitiveMax is the maximum requests allowed per sensitive expiration window. Defaults to 10.
+	RateLimitSensitiveMax int `env:"OMED_RATE_LIMIT_SENSITIVE_MAX,default=10"`
+	// RateLimitSensitiveExpiration is the expiration window for sensitive routes. Defaults to 1m.
+	RateLimitSensitiveExpiration time.Duration `env:"OMED_RATE_LIMIT_SENSITIVE_EXPIRATION,default=1m"`
 }
 
 // IsTestRoutesEnabled returns true when the environment is development or test.
@@ -166,6 +183,34 @@ func GetConfig() Config {
 
 	if len(config.CMSMediaAllowedTypes) == 0 {
 		config.CMSMediaAllowedTypes = []string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}
+	}
+
+	if config.ReadTimeout <= 0 {
+		config.ReadTimeout = 10 * time.Second
+	}
+
+	if config.WriteTimeout <= 0 {
+		config.WriteTimeout = 30 * time.Second
+	}
+
+	if config.IdleTimeout <= 0 {
+		config.IdleTimeout = 120 * time.Second
+	}
+
+	if config.RateLimitGeneralMax <= 0 {
+		config.RateLimitGeneralMax = 100
+	}
+
+	if config.RateLimitGeneralExpiration <= 0 {
+		config.RateLimitGeneralExpiration = 1 * time.Minute
+	}
+
+	if config.RateLimitSensitiveMax <= 0 {
+		config.RateLimitSensitiveMax = 10
+	}
+
+	if config.RateLimitSensitiveExpiration <= 0 {
+		config.RateLimitSensitiveExpiration = 1 * time.Minute
 	}
 
 	return config

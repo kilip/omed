@@ -45,6 +45,10 @@ func init() {
 		_ = os.Setenv("OMED_AUTH_SECRET", "test-secret-at-least-32-chars-long!")
 	}
 
+	if os.Getenv("OMED_RATE_LIMIT_ENABLED") == "" {
+		_ = os.Setenv("OMED_RATE_LIMIT_ENABLED", "false")
+	}
+
 	cfg = config.GetConfig()
 
 	_, b, _, _ := runtime.Caller(0)

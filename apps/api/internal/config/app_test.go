@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
@@ -75,7 +76,7 @@ func (s *AppSuite) Test_New() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		EntCli:   s.entCli,
-		Config: config.Config{},
+		Config:   config.Config{},
 	}
 
 	app := config.New(state)
@@ -92,7 +93,7 @@ func (s *AppSuite) Test_Boot_DefaultApp_WithBaseMiddleware() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		EntCli:   s.entCli,
-		Config: config.Config{},
+		Config:   config.Config{},
 	}
 
 	app := config.New(state)
@@ -120,7 +121,7 @@ func (s *AppSuite) Test_Boot_LifecycleOrder() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		Config: config.Config{},
+		Config:   config.Config{},
 	}
 
 	var executionOrder []string
@@ -147,7 +148,7 @@ func (s *AppSuite) Test_Boot_PreBootError() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		Config: config.Config{},
+		Config:   config.Config{},
 	}
 
 	errPreBoot := errors.New("preboot failed")
@@ -165,7 +166,7 @@ func (s *AppSuite) Test_Boot_BootError() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		Config: config.Config{},
+		Config:   config.Config{},
 	}
 
 	errBoot := errors.New("boot failed")
@@ -183,7 +184,7 @@ func (s *AppSuite) Test_Boot_PreBootAndBootErrorsJoined() {
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		Config: config.Config{},
+		Config:   config.Config{},
 	}
 
 	errPreBoot := errors.New("preboot failed")
@@ -244,7 +245,7 @@ func (s *AppSuite) Test_Run_GracefulShutdown() {
 		FiberApp: fApp,
 		Logger:   s.logger,
 		EntCli:   s.entCli,
-		Config: config.Config{},
+		Config:   config.Config{},
 	}
 
 	app := config.New(state)
@@ -254,6 +255,85 @@ func (s *AppSuite) Test_Run_GracefulShutdown() {
 
 	err := app.Run(ctx)
 	s.NoError(err)
+}
+
+func (s *AppSuite) Test_Healthz_Endpoint() {
+	fApp := fiber.New()
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   s.logger,
+		EntCli:   s.entCli,
+		Config:   config.Config{},
+	}
+	app := config.New(state)
+	s.Require().NoError(app.Boot())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/healthz", nil)
+	resp, err := fApp.Test(req)
+	s.Require().NoError(err)
+	defer resp.Body.Close()
+
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+	var body map[string]any
+	s.Require().NoError(json.NewDecoder(resp.Body).Decode(&body))
+	s.Equal("ok", body["status"])
+}
+
+func (s *AppSuite) Test_Readyz_Endpoint_Healthy() {
+	fApp := fiber.New()
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   s.logger,
+		EntCli:   s.entCli,
+		Config:   config.Config{},
+	}
+	app := config.New(state)
+	s.Require().NoError(app.Boot())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/readyz", nil)
+	resp, err := fApp.Test(req)
+	s.Require().NoError(err)
+	defer resp.Body.Close()
+
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+	var body map[string]any
+	s.Require().NoError(json.NewDecoder(resp.Body).Decode(&body))
+	s.Equal("ok", body["status"])
+}
+
+func (s *AppSuite) Test_Readyz_Endpoint_DBUnavailable() {
+	// Create an isolated client, boot app, then close DB to simulate outage
+	tempCli := testutil.CreateTestDB("file:config_readyz_fail?mode=memory&cache=shared&_fk=1")
+
+	fApp := fiber.New()
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   s.logger,
+		EntCli:   tempCli,
+		Config:   config.Config{},
+	}
+	app := config.New(state)
+	s.Require().NoError(app.Boot())
+
+	// Close database after boot to simulate failure
+	s.Require().NoError(tempCli.Close())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/readyz", nil)
+	resp, err := fApp.Test(req)
+	s.Require().NoError(err)
+	defer resp.Body.Close()
+
+	s.Equal(fiber.StatusServiceUnavailable, resp.StatusCode)
+	var body map[string]any
+	s.Require().NoError(json.NewDecoder(resp.Body).Decode(&body))
+	s.Equal("unavailable", body["status"])
+	s.NotEmpty(body["error"])
+}
+
+func (s *AppSuite) Test_PingDB_NilClient() {
+	err := config.PingDB(context.Background(), nil)
+	s.Require().Error(err)
+	s.Contains(err.Error(), "database client is not initialized")
 }
 
 func TestAppSuite(t *testing.T) {

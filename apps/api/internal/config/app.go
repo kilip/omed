@@ -6,10 +6,12 @@ import (
 	"context"
 	"errors"
 	"log"
+	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/cms"
 	"github.com/kilip/omed/api/internal/core"
 	"github.com/kilip/omed/api/internal/core/service"
@@ -133,6 +135,43 @@ func New(state State) Omed {
 	}
 }
 
+// PingDB verifies connectivity to the database using the Ent client.
+func PingDB(ctx context.Context, client *ent.Client) error {
+	if client == nil {
+		return errors.New("database client is not initialized")
+	}
+	_, err := client.User.Query().Limit(1).Count(ctx)
+	return err
+}
+
+// RegisterHealthRoutes mounts the /healthz and /readyz probe routes.
+func RegisterHealthRoutes(r fiber.Router, entCli *ent.Client, logger *slog.Logger) {
+	r.Get("/healthz", func(c fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"status": "ok",
+		})
+	})
+
+	r.Get("/readyz", func(c fiber.Ctx) error {
+		ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+		defer cancel()
+
+		if err := PingDB(ctx, entCli); err != nil {
+			if logger != nil {
+				logger.WarnContext(c, "readiness probe failed", "error", err.Error())
+			}
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"status": "unavailable",
+				"error":  err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"status": "ok",
+		})
+	})
+}
+
 func initBaseMiddleware(state State) {
 	app := state.FiberApp
 	app.Use(requestid.New())
@@ -142,6 +181,7 @@ func initBaseMiddleware(state State) {
 // PreBoot and Boot hooks across all registered modules.
 func (a *Omed) Boot() error {
 	initBaseMiddleware(a.state)
+	RegisterHealthRoutes(a.state.FiberApp, a.state.EntCli, a.state.Logger)
 	initFirewall(a.state, a.sessionService)
 
 	var err error

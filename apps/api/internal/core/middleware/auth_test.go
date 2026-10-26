@@ -56,6 +56,12 @@ func setupTestApp(sessions *mockSessionService, cookieName string) (*fiber.App, 
 	app.All("/internal/health", func(c fiber.Ctx) error {
 		return c.SendString("ok")
 	})
+	app.All("/healthz", func(c fiber.Ctx) error {
+		return c.SendString("health ok")
+	})
+	app.All("/readyz", func(c fiber.Ctx) error {
+		return c.SendString("ready ok")
+	})
 	app.All("/auth/callback", func(c fiber.Ctx) error {
 		return c.SendString("auth ok")
 	})
@@ -99,6 +105,17 @@ func TestAuthMiddleware_Bypass(t *testing.T) {
 	respInternal, err := app.Test(reqInternal)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, respInternal.StatusCode)
+
+	// Bypass /healthz and /readyz
+	reqHealthz := httptest.NewRequest(fiber.MethodGet, "/healthz", nil)
+	respHealthz, err := app.Test(reqHealthz)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, respHealthz.StatusCode)
+
+	reqReadyz := httptest.NewRequest(fiber.MethodGet, "/readyz", nil)
+	respReadyz, err := app.Test(reqReadyz)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, respReadyz.StatusCode)
 
 	// 3. Bypass /auth/*
 	reqAuth := httptest.NewRequest(fiber.MethodGet, "/auth/callback", nil)
