@@ -32,6 +32,8 @@ type Config struct {
 	GithubClientID string `env:"OMED_GITHUB_ID"`
 	// GithubClientSecret is the OAuth2 client secret for GitHub authentication.
 	GithubClientSecret string `env:"OMED_GITHUB_SECRET"`
+	// Port is the HTTP server listening port. Defaults to 8001.
+	Port int `env:"OMED_API_PORT,default=8001"`
 	// ApiUrl is the base URL for the API service.
 	ApiUrl string `env:"OMED_API_URL,default=http://localhost:8001"`
 	// WebUrl is the base URL for the web frontend client.
@@ -68,12 +70,10 @@ type Config struct {
 	S3BucketPrefix string `env:"OMED_S3_BUCKET_PREFIX,default=omed-ws-"`
 	// AttachmentMaxSizeMB is the maximum allowed attachment file size in megabytes. Defaults to 10.
 	AttachmentMaxSizeMB int64 `env:"OMED_ATTACHMENT_MAX_SIZE_MB,default=10"`
-	// CmsMediaMaxSizeMB is the maximum allowed CMS media file size in megabytes. Defaults to 25.
-	CmsMediaMaxSizeMB int64 `env:"OMED_CMS_MEDIA_MAX_SIZE_MB,default=25"`
 	// AttachmentAllowedTypes lists allowed file extensions for attachments.
 	AttachmentAllowedTypes []string `env:"OMED_ATTACHMENT_ALLOWED_TYPES,separator=,default=.pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx"`
-	// CMSMediaMaxSizeMB is the maximum allowed CMS media file size in megabytes. Defaults to 10.
-	CMSMediaMaxSizeMB int64 `env:"OMED_CMS_MEDIA_MAX_SIZE_MB,default=10"`
+	// CMSMediaMaxSizeMB is the maximum allowed CMS media file size in megabytes. Defaults to 25.
+	CMSMediaMaxSizeMB int64 `env:"OMED_CMS_MEDIA_MAX_SIZE_MB,default=25"`
 	// CMSMediaAllowedTypes lists allowed file extensions for CMS media uploads.
 	CMSMediaAllowedTypes []string `env:"OMED_CMS_MEDIA_ALLOWED_TYPES,separator=,default=.png,.jpg,.jpeg,.webp,.gif,.pdf"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
@@ -121,6 +121,10 @@ func GetConfig() Config {
 
 	if config.Env == "" {
 		config.Env = "production"
+	}
+
+	if config.Port <= 0 {
+		config.Port = 8001
 	}
 
 	if err := config.Validate(); err != nil {
@@ -175,16 +179,12 @@ func GetConfig() Config {
 		config.AttachmentMaxSizeMB = 10
 	}
 
-	if config.CmsMediaMaxSizeMB <= 0 {
-		config.CmsMediaMaxSizeMB = 25
+	if config.CMSMediaMaxSizeMB <= 0 {
+		config.CMSMediaMaxSizeMB = 25
 	}
 
 	if len(config.AttachmentAllowedTypes) == 0 {
 		config.AttachmentAllowedTypes = []string{".pdf", ".png", ".jpg", ".jpeg", ".webp", ".csv", ".xls", ".xlsx"}
-	}
-
-	if config.CMSMediaMaxSizeMB <= 0 {
-		config.CMSMediaMaxSizeMB = 10
 	}
 
 	if len(config.CMSMediaAllowedTypes) == 0 {

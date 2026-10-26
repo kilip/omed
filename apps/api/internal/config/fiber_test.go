@@ -232,18 +232,18 @@ func (s *FiberSuite) Test_GetFiber_Timeouts() {
 }
 
 func (s *FiberSuite) Test_GetFiber_BodyLimit() {
-	// AttachmentMaxSizeMB = 10, CmsMediaMaxSizeMB = 25 -> max 25MB + 1MB
+	// AttachmentMaxSizeMB = 10, CMSMediaMaxSizeMB = 25 -> max 25MB + 1MB
 	cfg1 := config.Config{
 		AttachmentMaxSizeMB: 10,
-		CmsMediaMaxSizeMB:   25,
+		CMSMediaMaxSizeMB:   25,
 	}
 	app1 := config.GetFiber(cfg1, s.logger)
 	s.Equal(int(25*1024*1024)+1024*1024, app1.Config().BodyLimit)
 
-	// AttachmentMaxSizeMB = 50, CmsMediaMaxSizeMB = 25 -> max 50MB + 1MB
+	// AttachmentMaxSizeMB = 50, CMSMediaMaxSizeMB = 25 -> max 50MB + 1MB
 	cfg2 := config.Config{
 		AttachmentMaxSizeMB: 50,
-		CmsMediaMaxSizeMB:   25,
+		CMSMediaMaxSizeMB:   25,
 	}
 	app2 := config.GetFiber(cfg2, s.logger)
 	s.Equal(int(50*1024*1024)+1024*1024, app2.Config().BodyLimit)

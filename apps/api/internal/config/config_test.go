@@ -71,12 +71,19 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 		}
 	})
 
+	originalPort, hadPort := os.LookupEnv("OMED_API_PORT")
+	os.Unsetenv("OMED_API_PORT")
+	s.T().Cleanup(func() {
+		if hadPort {
+			os.Setenv("OMED_API_PORT", originalPort)
+		}
+	})
+
 	cfg := config.GetConfig()
+	s.Equal(8001, cfg.Port)
 	s.Equal("/auth", cfg.AuthPath)
 	s.Equal("omed_session", cfg.SessionCookieName)
 	s.Equal([]string{"http://localhost:3000"}, cfg.TrustedOrigins)
-	s.Equal(int64(10), cfg.CMSMediaMaxSizeMB)
-	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
 	s.Equal(10*time.Second, cfg.ReadTimeout)
 	s.Equal(30*time.Second, cfg.WriteTimeout)
 	s.Equal(120*time.Second, cfg.IdleTimeout)
@@ -85,15 +92,15 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 	s.Equal(1*time.Minute, cfg.RateLimitGeneralExpiration)
 	s.Equal(10, cfg.RateLimitSensitiveMax)
 	s.Equal(1*time.Minute, cfg.RateLimitSensitiveExpiration)
-	s.Equal(int64(25), cfg.CmsMediaMaxSizeMB)
+	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
+	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
 }
 
 func (s *ConfigSuite) Test_GetConfig_CustomValues() {
+	s.T().Setenv("OMED_API_PORT", "9001")
 	s.T().Setenv("OMED_AUTH_PATH", "/api/v1/auth")
 	s.T().Setenv("OMED_SESSION_COOKIE_NAME", "custom_session_token")
 	s.T().Setenv("OMED_TRUSTED_ORIGINS", "https://app1.example.com,https://app2.example.com")
-	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "25")
-	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", ".png,.jpg")
 	s.T().Setenv("OMED_READ_TIMEOUT", "15s")
 	s.T().Setenv("OMED_WRITE_TIMEOUT", "45s")
 	s.T().Setenv("OMED_IDLE_TIMEOUT", "60s")
@@ -103,13 +110,13 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_RATE_LIMIT_SENSITIVE_MAX", "20")
 	s.T().Setenv("OMED_RATE_LIMIT_SENSITIVE_EXPIRATION", "30s")
 	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "50")
+	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", ".png,.jpg")
 
 	cfg := config.GetConfig()
+	s.Equal(9001, cfg.Port)
 	s.Equal("/api/v1/auth", cfg.AuthPath)
 	s.Equal("custom_session_token", cfg.SessionCookieName)
 	s.Equal([]string{"https://app1.example.com", "https://app2.example.com"}, cfg.TrustedOrigins)
-	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
-	s.Equal([]string{".png", ".jpg"}, cfg.CMSMediaAllowedTypes)
 	s.Equal(15*time.Second, cfg.ReadTimeout)
 	s.Equal(45*time.Second, cfg.WriteTimeout)
 	s.Equal(60*time.Second, cfg.IdleTimeout)
@@ -118,7 +125,8 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.Equal(2*time.Minute, cfg.RateLimitGeneralExpiration)
 	s.Equal(20, cfg.RateLimitSensitiveMax)
 	s.Equal(30*time.Second, cfg.RateLimitSensitiveExpiration)
-	s.Equal(int64(50), cfg.CmsMediaMaxSizeMB)
+	s.Equal(int64(50), cfg.CMSMediaMaxSizeMB)
+	s.Equal([]string{".png", ".jpg"}, cfg.CMSMediaAllowedTypes)
 }
 
 func (s *ConfigSuite) Test_GetConfig_Fallbacks() {
@@ -126,8 +134,18 @@ func (s *ConfigSuite) Test_GetConfig_Fallbacks() {
 	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", "")
 
 	cfg := config.GetConfig()
-	s.Equal(int64(10), cfg.CMSMediaMaxSizeMB)
+	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
 	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
+}
+
+func (s *ConfigSuite) Test_GetConfig_Port_Fallback() {
+	s.T().Setenv("OMED_API_PORT", "0")
+	cfg := config.GetConfig()
+	s.Equal(8001, cfg.Port)
+
+	s.T().Setenv("OMED_API_PORT", "-5")
+	cfg = config.GetConfig()
+	s.Equal(8001, cfg.Port)
 }
 
 func (s *ConfigSuite) Test_Validate() {

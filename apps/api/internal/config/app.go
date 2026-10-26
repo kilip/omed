@@ -5,6 +5,7 @@ package config
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"time"
@@ -208,7 +209,7 @@ func (a *Omed) Boot() error {
 	return err
 }
 
-// Run boots the application and starts the HTTP server listening on port 8001.
+// Run boots the application and starts the HTTP server listening on the configured port.
 // It listens for context cancellation to perform graceful shutdown.
 func (a *Omed) Run(ctx context.Context) error {
 	if err := a.Boot(); err != nil {
@@ -217,25 +218,39 @@ func (a *Omed) Run(ctx context.Context) error {
 
 	g, ctx := errgroup.WithContext(ctx)
 
+	port := a.state.Config.Port
+	if port <= 0 {
+		port = 8001
+	}
+	addr := fmt.Sprintf(":%d", port)
+
 	// HTTP server
 	g.Go(func() error {
-		return a.state.FiberApp.Listen(":8001", fiber.ListenConfig{
+		return a.state.FiberApp.Listen(addr, fiber.ListenConfig{
 			ListenerNetwork: "tcp",
 		})
 	})
 
-	// Shutdown: nunggu signal / error dari goroutine lain
+	// Graceful shutdown: wait for context cancellation or error from another goroutine
 	g.Go(func() error {
 		<-ctx.Done()
 		sctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+
+		// 1. Shutdown Fiber first with context timeout
+		err := a.state.FiberApp.ShutdownWithContext(sctx)
+
+		// 2. Then close mailer, storage, and Ent database client
 		if a.state.Mailer != nil {
 			_ = a.state.Mailer.Close()
 		}
 		if a.state.Storage != nil {
 			_ = a.state.Storage.Close()
 		}
-		return a.state.FiberApp.ShutdownWithContext(sctx)
+		if a.state.EntCli != nil {
+			_ = a.state.EntCli.Close()
+		}
+		return err
 	})
 
 	return g.Wait()

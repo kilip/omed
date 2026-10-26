@@ -4,10 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
+	"net"
+	"net/http"
 	"net/http/httptest"
-	"runtime"
+	"slices"
+	"strconv"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -15,6 +21,8 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/config"
+	"github.com/kilip/omed/api/internal/platform/mailx"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )
@@ -68,6 +76,44 @@ func (m *bootOnlyModule) Boot() error {
 		*m.orderTracker = append(*m.orderTracker, m.name+":boot")
 	}
 	return m.bootErr
+}
+
+type spyMailer struct {
+	mailx.Mailer
+	closed  atomic.Bool
+	onClose func()
+}
+
+func (m *spyMailer) Close() error {
+	m.closed.Store(true)
+	if m.onClose != nil {
+		m.onClose()
+	}
+	return m.Mailer.Close()
+}
+
+type spyStorage struct {
+	s3x.Storage
+	closed  atomic.Bool
+	onClose func()
+}
+
+func (s *spyStorage) Close() error {
+	s.closed.Store(true)
+	if s.onClose != nil {
+		s.onClose()
+	}
+	return s.Storage.Close()
+}
+
+func getFreePort(t testing.TB) int {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to acquire free port: %v", err)
+	}
+	port := ln.Addr().(*net.TCPAddr).Port
+	_ = ln.Close()
+	return port
 }
 
 func (s *AppSuite) Test_New() {
@@ -237,15 +283,15 @@ func (s *AppSuite) Test_Run_ReturnsPreBootError() {
 }
 
 func (s *AppSuite) Test_Run_GracefulShutdown() {
-	if runtime.GOOS == "windows" {
-		s.T().Skip("skip test on windows")
-	}
 	fApp := fiber.New()
+	tempCli := testutil.CreateTestDB("file:config_graceful_shutdown?mode=memory&cache=shared&_fk=1")
 	state := config.State{
 		FiberApp: fApp,
 		Logger:   s.logger,
-		EntCli:   s.entCli,
-		Config:   config.Config{},
+		EntCli:   tempCli,
+		Config: config.Config{
+			Port: getFreePort(s.T()),
+		},
 	}
 
 	app := config.New(state)
@@ -255,6 +301,199 @@ func (s *AppSuite) Test_Run_GracefulShutdown() {
 
 	err := app.Run(ctx)
 	s.NoError(err)
+}
+
+func (s *AppSuite) Test_Run_ListensOnConfiguredPort() {
+	port := getFreePort(s.T())
+	fApp := fiber.New()
+
+	listenData := make(chan fiber.ListenData, 1)
+	fApp.Hooks().OnListen(func(data fiber.ListenData) error {
+		listenData <- data
+		return nil
+	})
+
+	tempCli := testutil.CreateTestDB("file:config_port_test?mode=memory&cache=shared&_fk=1")
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   s.logger,
+		EntCli:   tempCli,
+		Config: config.Config{
+			Port: port,
+		},
+	}
+	app := config.New(state)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	runErrCh := make(chan error, 1)
+	go func() {
+		runErrCh <- app.Run(ctx)
+	}()
+
+	select {
+	case data := <-listenData:
+		s.Equal(strconv.Itoa(port), data.Port)
+	case <-time.After(5 * time.Second):
+		s.Fail("server timed out waiting to listen")
+	}
+
+	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/healthz", port))
+	s.Require().NoError(err)
+	s.Equal(http.StatusOK, resp.StatusCode)
+	_ = resp.Body.Close()
+
+	cancel()
+	select {
+	case runErr := <-runErrCh:
+		s.NoError(runErr)
+	case <-time.After(5 * time.Second):
+		s.Fail("timeout waiting for app.Run to terminate")
+	}
+}
+
+func (s *AppSuite) Test_Run_GracefulShutdown_Order() {
+	port := getFreePort(s.T())
+	fApp := fiber.New()
+
+	var mu sync.Mutex
+	var order []string
+	record := func(step string) {
+		mu.Lock()
+		defer mu.Unlock()
+		order = append(order, step)
+	}
+
+	listenStarted := make(chan struct{})
+	fApp.Hooks().OnListen(func(data fiber.ListenData) error {
+		close(listenStarted)
+		return nil
+	})
+
+	fApp.Hooks().OnPostShutdown(func(err error) error {
+		record("fiber:postshutdown")
+		return nil
+	})
+
+	inFlightStarted := make(chan struct{})
+	inFlightRelease := make(chan struct{})
+
+	fApp.Get("/in-flight", func(c fiber.Ctx) error {
+		close(inFlightStarted)
+		<-inFlightRelease
+
+		mu.Lock()
+		defer mu.Unlock()
+		if slices.Contains(order, "fiber:postshutdown") ||
+			slices.Contains(order, "mailer:close") ||
+			slices.Contains(order, "storage:close") {
+			return c.Status(fiber.StatusInternalServerError).SendString("resources closed prematurely")
+		}
+		return c.SendString("ok")
+	})
+
+	baseMailer, err := mailx.New(mailx.Config{Driver: "memory"})
+	s.Require().NoError(err)
+	mailer := &spyMailer{
+		Mailer: baseMailer,
+		onClose: func() {
+			record("mailer:close")
+		},
+	}
+
+	baseStorage, err := s3x.New(s3x.Config{Driver: "memory"})
+	s.Require().NoError(err)
+	storage := &spyStorage{
+		Storage: baseStorage,
+		onClose: func() {
+			record("storage:close")
+		},
+	}
+
+	tempEnt := testutil.CreateTestDB("file:config_shutdown_order?mode=memory&cache=shared&_fk=1")
+
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   s.logger,
+		EntCli:   tempEnt,
+		Mailer:   mailer,
+		Storage:  storage,
+		Config: config.Config{
+			Port: port,
+		},
+	}
+
+	app := config.New(state)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	runErrCh := make(chan error, 1)
+	go func() {
+		runErrCh <- app.Run(ctx)
+	}()
+
+	select {
+	case <-listenStarted:
+	case <-time.After(5 * time.Second):
+		s.Fail("server timed out waiting to listen")
+	}
+
+	// Trigger in-flight request
+	inFlightDone := make(chan struct{})
+	var respCode int
+	go func() {
+		defer close(inFlightDone)
+		resp, reqErr := http.Get(fmt.Sprintf("http://127.0.0.1:%d/in-flight", port))
+		if reqErr == nil {
+			respCode = resp.StatusCode
+			_ = resp.Body.Close()
+		}
+	}()
+
+	// Wait until handler is actively processing inside Fiber
+	select {
+	case <-inFlightStarted:
+	case <-time.After(5 * time.Second):
+		s.Fail("timeout waiting for in-flight request to start")
+	}
+
+	// Now initiate shutdown
+	cancel()
+
+	// Wait briefly to allow shutdown goroutine to begin and call FiberApp.ShutdownWithContext
+	time.Sleep(50 * time.Millisecond)
+
+	// Release in-flight handler so it can finish
+	close(inFlightRelease)
+
+	select {
+	case <-inFlightDone:
+	case <-time.After(5 * time.Second):
+		s.Fail("timeout waiting for in-flight request to finish")
+	}
+	s.Equal(http.StatusOK, respCode)
+
+	select {
+	case runErr := <-runErrCh:
+		s.NoError(runErr)
+	case <-time.After(5 * time.Second):
+		s.Fail("timeout waiting for app.Run to terminate")
+	}
+
+	// Verify order: Fiber shuts down first, then mailer and storage are closed
+	mu.Lock()
+	finalOrder := slices.Clone(order)
+	mu.Unlock()
+
+	s.Equal([]string{"fiber:postshutdown", "mailer:close", "storage:close"}, finalOrder)
+	s.True(mailer.closed.Load())
+	s.True(storage.closed.Load())
+
+	// Verify ent client was closed as part of shutdown
+	_, dbErr := tempEnt.User.Query().Count(context.Background())
+	s.Error(dbErr, "ent client should be closed after graceful shutdown")
 }
 
 func (s *AppSuite) Test_Healthz_Endpoint() {

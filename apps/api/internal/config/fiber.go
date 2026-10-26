@@ -46,8 +46,8 @@ func isSensitiveRoute(c fiber.Ctx) bool {
 // including timeouts, security headers, rate limiting, struct validation, custom error handling, CORS origins, recovery, and structured logging.
 func GetFiber(cfg Config, logger *slog.Logger) *fiber.App {
 	maxLimitMB := cfg.AttachmentMaxSizeMB
-	if cfg.CmsMediaMaxSizeMB > maxLimitMB {
-		maxLimitMB = cfg.CmsMediaMaxSizeMB
+	if cfg.CMSMediaMaxSizeMB > maxLimitMB {
+		maxLimitMB = cfg.CMSMediaMaxSizeMB
 	}
 	if maxLimitMB <= 0 {
 		maxLimitMB = 10

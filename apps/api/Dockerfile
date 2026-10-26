@@ -7,7 +7,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/api ./c
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /out/api /api
-ENV API_PORT=8001
+ENV OMED_API_PORT=8001
 EXPOSE 8001
 USER nonroot:nonroot
 ENTRYPOINT ["/api"]
