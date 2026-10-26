@@ -171,7 +171,9 @@ func (a *Omed) Boot() error {
 // Run boots the application and starts the HTTP server listening on port 8001.
 // It listens for context cancellation to perform graceful shutdown.
 func (a *Omed) Run(ctx context.Context) error {
-	a.Boot()
+	if err := a.Boot(); err != nil {
+		return err
+	}
 
 	g, ctx := errgroup.WithContext(ctx)
 

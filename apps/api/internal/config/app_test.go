@@ -197,6 +197,44 @@ func (s *AppSuite) Test_Boot_PreBootAndBootErrorsJoined() {
 	s.True(errors.Is(err, errBoot))
 }
 
+func (s *AppSuite) Test_Run_ReturnsBootError() {
+	fApp := fiber.New()
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   s.logger,
+		Config:   config.Config{},
+	}
+
+	errBoot := errors.New("boot failure")
+	m := &trackingModule{name: "m1", bootErr: errBoot}
+
+	app := config.NewWithModules(state, []config.Module{m})
+
+	ctx := context.Background()
+	err := app.Run(ctx)
+	s.Require().Error(err)
+	s.True(errors.Is(err, errBoot))
+}
+
+func (s *AppSuite) Test_Run_ReturnsPreBootError() {
+	fApp := fiber.New()
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   s.logger,
+		Config:   config.Config{},
+	}
+
+	errPreBoot := errors.New("preboot failure")
+	m := &trackingModule{name: "m1", preBootErr: errPreBoot}
+
+	app := config.NewWithModules(state, []config.Module{m})
+
+	ctx := context.Background()
+	err := app.Run(ctx)
+	s.Require().Error(err)
+	s.True(errors.Is(err, errPreBoot))
+}
+
 func (s *AppSuite) Test_Run_GracefulShutdown() {
 	if runtime.GOOS == "windows" {
 		s.T().Skip("skip test on windows")
