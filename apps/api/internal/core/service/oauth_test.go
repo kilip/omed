@@ -251,6 +251,7 @@ func (s *OAuthServiceSuite) Test_GetAuthURL_Success() {
 	})
 	s.Require().NoError(err)
 	s.True(res.Redirect)
+	s.NotEmpty(res.Nonce)
 	s.Contains(res.URL, s.mockServer.URL+"/auth")
 	s.Contains(res.URL, "client_id=mock-google-id")
 	s.Contains(res.URL, "state=")
@@ -278,10 +279,67 @@ func (s *OAuthServiceSuite) Test_HandleCallback_InvalidState() {
 		domain.ProviderGoogle,
 		"valid-code",
 		"invalid-state",
+		"some-nonce",
 		"127.0.0.1",
 		"TestAgent",
 	)
 	s.Require().ErrorIs(err, domain.ErrInvalidState)
+}
+
+func (s *OAuthServiceSuite) Test_HandleCallback_NonceValidation() {
+	authRes, err := s.oauthSvc.GetAuthURL(model.SignInSocialRequest{
+		Provider:    domain.ProviderGoogle,
+		CallbackURL: "http://localhost:3000/dashboard",
+	})
+	s.Require().NoError(err)
+
+	var state string
+	for _, part := range splitQuery(authRes.URL) {
+		if len(part) > 6 && part[:6] == "state=" {
+			state = part[6:]
+			break
+		}
+	}
+	s.NotEmpty(state)
+	s.NotEmpty(authRes.Nonce)
+
+	// 1. Missing expected nonce should fail with ErrInvalidState
+	_, _, _, err = s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"",
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().ErrorIs(err, domain.ErrInvalidState)
+
+	// 2. Mismatched expected nonce should fail with ErrInvalidState
+	_, _, _, err = s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"mismatched-nonce",
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().ErrorIs(err, domain.ErrInvalidState)
+
+	// 3. Matching expected nonce should succeed
+	sess, user, _, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		authRes.Nonce,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().NoError(err)
+	s.NotEmpty(sess.Token)
+	s.Equal("google.user@example.com", user.Email)
 }
 
 func (s *OAuthServiceSuite) Test_HandleCallback_UntrustedCallbackURL() {
@@ -307,6 +365,7 @@ func (s *OAuthServiceSuite) Test_HandleCallback_UntrustedCallbackURL() {
 		domain.ProviderGoogle,
 		"mock-code-123",
 		state,
+		"attacker-nonce",
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -334,6 +393,7 @@ func (s *OAuthServiceSuite) Test_HandleCallback_TrustedExternalCallbackURL() {
 		domain.ProviderGoogle,
 		"mock-code-123",
 		state,
+		"valid-nonce",
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -363,6 +423,7 @@ func (s *OAuthServiceSuite) Test_HandleCallback_SuccessNewUser() {
 		domain.ProviderGoogle,
 		"mock-code-123",
 		state,
+		authRes.Nonce,
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -436,6 +497,7 @@ func (s *OAuthServiceSuite) Test_OAuth_LocalePreserved_Indonesian() {
 		domain.ProviderGoogle,
 		"mock-code-123",
 		state,
+		authRes.Nonce,
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -450,17 +512,22 @@ func (s *OAuthServiceSuite) Test_OAuth_LocalePreserved_Indonesian() {
 	s.Equal("IDR", ws.BaseCurrency)
 }
 
-func (s *OAuthServiceSuite) getState(req model.SignInSocialRequest) string {
+func (s *OAuthServiceSuite) getStateAndNonce(req model.SignInSocialRequest) (string, string) {
 	authRes, err := s.oauthSvc.GetAuthURL(req)
 	s.Require().NoError(err)
 
 	for _, part := range splitQuery(authRes.URL) {
 		if len(part) > 6 && part[:6] == "state=" {
-			return part[6:]
+			return part[6:], authRes.Nonce
 		}
 	}
 	s.Fail("state not found in auth URL")
-	return ""
+	return "", ""
+}
+
+func (s *OAuthServiceSuite) getState(req model.SignInSocialRequest) string {
+	state, _ := s.getStateAndNonce(req)
+	return state
 }
 
 func (s *OAuthServiceSuite) Test_AccountLinking_Google_UnverifiedEmail_Rejected() {
@@ -489,7 +556,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_Google_UnverifiedEmail_Rejected(
 		UserInfoURL: s.mockServer.URL + "/userinfo/google-unverified",
 	})
 
-	state := s.getState(model.SignInSocialRequest{
+	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,
 		CallbackURL: "http://localhost:3000/dashboard",
 	})
@@ -499,6 +566,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_Google_UnverifiedEmail_Rejected(
 		domain.ProviderGoogle,
 		"mock-code-123",
 		state,
+		nonce,
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -536,7 +604,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_Google_VerifiedEmail_Success() {
 		UserInfoURL: s.mockServer.URL + "/userinfo/google-verified",
 	})
 
-	state := s.getState(model.SignInSocialRequest{
+	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,
 		CallbackURL: "http://localhost:3000/dashboard",
 	})
@@ -546,6 +614,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_Google_VerifiedEmail_Success() {
 		domain.ProviderGoogle,
 		"mock-code-123",
 		state,
+		nonce,
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -587,7 +656,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_UnverifiedEmail_Rejected(
 		EmailsURL:   s.mockServer.URL + "/userinfo/github-unverified/emails",
 	})
 
-	state := s.getState(model.SignInSocialRequest{
+	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGithub,
 		CallbackURL: "http://localhost:3000/dashboard",
 	})
@@ -597,6 +666,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_UnverifiedEmail_Rejected(
 		domain.ProviderGithub,
 		"mock-code-123",
 		state,
+		nonce,
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -635,7 +705,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_VerifiedEmail_Success() {
 		EmailsURL:   s.mockServer.URL + "/userinfo/github-verified/emails",
 	})
 
-	state := s.getState(model.SignInSocialRequest{
+	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGithub,
 		CallbackURL: "http://localhost:3000/dashboard",
 	})
@@ -645,6 +715,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_VerifiedEmail_Success() {
 		domain.ProviderGithub,
 		"mock-code-123",
 		state,
+		nonce,
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -675,7 +746,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_NewUser_UnverifiedEmail_Rejected
 		UserInfoURL: s.mockServer.URL + "/userinfo/google-unverified",
 	})
 
-	state := s.getState(model.SignInSocialRequest{
+	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,
 		CallbackURL: "http://localhost:3000/dashboard",
 	})
@@ -685,6 +756,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_NewUser_UnverifiedEmail_Rejected
 		domain.ProviderGoogle,
 		"mock-code-123",
 		state,
+		nonce,
 		"127.0.0.1",
 		"TestBrowser",
 	)
@@ -713,7 +785,7 @@ func (s *OAuthServiceSuite) Test_FetchGithubEmail_PicksVerifiedNonPrimaryWhenPri
 		EmailsURL:   s.mockServer.URL + "/userinfo/github-fallback/emails",
 	})
 
-	state := s.getState(model.SignInSocialRequest{
+	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGithub,
 		CallbackURL: "http://localhost:3000/dashboard",
 	})
@@ -723,6 +795,7 @@ func (s *OAuthServiceSuite) Test_FetchGithubEmail_PicksVerifiedNonPrimaryWhenPri
 		domain.ProviderGithub,
 		"mock-code-123",
 		state,
+		nonce,
 		"127.0.0.1",
 		"TestBrowser",
 	)

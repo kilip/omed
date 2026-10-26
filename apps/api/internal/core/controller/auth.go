@@ -11,12 +11,16 @@ import (
 	"github.com/kilip/omed/api/internal/core/service"
 )
 
+// OAuthNonceCookieName is the default cookie name used to bind OAuth state to the browser session.
+const OAuthNonceCookieName = "omed_oauth_nonce"
+
 // AuthController handles social sign-in, OAuth callback, session retrieval, and logout.
 type AuthController struct {
-	oauth        service.OAuthService
-	sessions     service.SessionService
-	cookieName   string
-	cookieSecure bool
+	oauth           service.OAuthService
+	sessions        service.SessionService
+	cookieName      string
+	nonceCookieName string
+	cookieSecure    bool
 }
 
 // AuthOption configures an AuthController.
@@ -31,6 +35,15 @@ func WithCookieName(name string) AuthOption {
 	}
 }
 
+// WithOAuthNonceCookieName configures the OAuth nonce cookie name.
+func WithOAuthNonceCookieName(name string) AuthOption {
+	return func(a *AuthController) {
+		if name != "" {
+			a.nonceCookieName = name
+		}
+	}
+}
+
 // WithCookieSecure configures whether the session cookie has the Secure attribute.
 func WithCookieSecure(secure bool) AuthOption {
 	return func(a *AuthController) {
@@ -41,10 +54,11 @@ func WithCookieSecure(secure bool) AuthOption {
 // NewAuthController creates a new AuthController.
 func NewAuthController(oauth service.OAuthService, sessions service.SessionService, opts ...AuthOption) AuthController {
 	a := AuthController{
-		oauth:        oauth,
-		sessions:     sessions,
-		cookieName:   "omed_session",
-		cookieSecure: false,
+		oauth:           oauth,
+		sessions:        sessions,
+		cookieName:      "omed_session",
+		nonceCookieName: OAuthNonceCookieName,
+		cookieSecure:    false,
 	}
 	for _, opt := range opts {
 		opt(&a)
@@ -80,6 +94,16 @@ func (a AuthController) SignInSocial(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     a.nonceCookieName,
+		Value:    res.Nonce,
+		Path:     "/",
+		Expires:  time.Now().Add(10 * time.Minute),
+		HTTPOnly: true,
+		Secure:   a.cookieSecure,
+		SameSite: "Lax",
+	})
 
 	return c.JSON(res)
 }
@@ -130,10 +154,24 @@ func (a AuthController) Callback(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "code and state are required")
 	}
 
+	nonce := c.Cookies(a.nonceCookieName)
+
+	// Clear the oauth nonce cookie
+	c.Cookie(&fiber.Cookie{
+		Name:     a.nonceCookieName,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HTTPOnly: true,
+		Secure:   a.cookieSecure,
+		SameSite: "Lax",
+	})
+
 	ip := c.IP()
 	userAgent := c.Get(fiber.HeaderUserAgent)
 
-	sess, usr, redirectURL, err := a.oauth.HandleCallback(c.Context(), provider, code, state, ip, userAgent)
+	sess, usr, redirectURL, err := a.oauth.HandleCallback(c.Context(), provider, code, state, nonce, ip, userAgent)
 	if err != nil {
 		return err
 	}

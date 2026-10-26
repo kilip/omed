@@ -16,6 +16,7 @@ type SignInSocialRequest struct {
 type SignInSocialResponse struct {
 	URL      string `json:"url"`
 	Redirect bool   `json:"redirect"`
+	Nonce    string `json:"-"`
 }
 
 // SessionData holds the serialized session information.

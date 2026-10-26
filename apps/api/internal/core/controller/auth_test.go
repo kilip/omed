@@ -21,7 +21,7 @@ import (
 
 type mockOAuthService struct {
 	getAuthURLFunc     func(req model.SignInSocialRequest) (model.SignInSocialResponse, error)
-	handleCallbackFunc func(ctx context.Context, provider string, code string, state string, ip string, ua string) (domain.Session, domain.User, string, error)
+	handleCallbackFunc func(ctx context.Context, provider string, code string, state string, expectedNonce string, ip string, ua string) (domain.Session, domain.User, string, error)
 }
 
 func (m *mockOAuthService) GetAuthURL(req model.SignInSocialRequest) (model.SignInSocialResponse, error) {
@@ -31,12 +31,13 @@ func (m *mockOAuthService) GetAuthURL(req model.SignInSocialRequest) (model.Sign
 	return model.SignInSocialResponse{
 		URL:      "https://accounts.google.com/o/oauth2/v2/auth?mock=1",
 		Redirect: true,
+		Nonce:    "mock-nonce-12345",
 	}, nil
 }
 
-func (m *mockOAuthService) HandleCallback(ctx context.Context, provider string, code string, state string, ip string, ua string) (domain.Session, domain.User, string, error) {
+func (m *mockOAuthService) HandleCallback(ctx context.Context, provider string, code string, state string, expectedNonce string, ip string, ua string) (domain.Session, domain.User, string, error) {
 	if m.handleCallbackFunc != nil {
-		return m.handleCallbackFunc(ctx, provider, code, state, ip, ua)
+		return m.handleCallbackFunc(ctx, provider, code, state, expectedNonce, ip, ua)
 	}
 	return domain.Session{
 		ID:        1,
@@ -136,6 +137,77 @@ func (s *AuthControllerSuite) Test_SignInSocial_Success() {
 	_ = json.NewDecoder(resp.Body).Decode(&res)
 	s.True(res.Redirect)
 	s.Contains(res.URL, "https://accounts.google.com")
+	s.Empty(res.Nonce, "nonce must not be serialized into JSON response")
+
+	// Verify nonce cookie is set
+	var foundNonceCookie bool
+	for _, c := range resp.Cookies() {
+		if c.Name == controller.OAuthNonceCookieName && c.Value == "mock-nonce-12345" {
+			foundNonceCookie = true
+			s.True(c.HttpOnly)
+			s.Equal("/", c.Path)
+			s.Equal(http.SameSiteLaxMode, c.SameSite)
+		}
+	}
+	s.True(foundNonceCookie, "expected oauth nonce cookie to be set")
+}
+
+func (s *AuthControllerSuite) Test_SignInSocial_CookieSecure_Enabled() {
+	app := fiber.New()
+	ctl := controller.NewAuthController(s.oauthSvc, s.sessSvc, controller.WithCookieSecure(true))
+	app.Post("/auth/sign-in/social", ctl.SignInSocial)
+
+	reqBody := model.SignInSocialRequest{
+		Provider: "google",
+	}
+	b, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(fiber.MethodPost, "/auth/sign-in/social", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+
+	var found bool
+	for _, c := range resp.Cookies() {
+		if c.Name == controller.OAuthNonceCookieName {
+			found = true
+			s.True(c.Secure)
+			s.True(c.HttpOnly)
+			s.Equal("/", c.Path)
+			s.Equal(http.SameSiteLaxMode, c.SameSite)
+		}
+	}
+	s.True(found)
+}
+
+func (s *AuthControllerSuite) Test_SignInSocial_CookieSecure_Disabled() {
+	app := fiber.New()
+	ctl := controller.NewAuthController(s.oauthSvc, s.sessSvc, controller.WithCookieSecure(false))
+	app.Post("/auth/sign-in/social", ctl.SignInSocial)
+
+	reqBody := model.SignInSocialRequest{
+		Provider: "google",
+	}
+	b, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(fiber.MethodPost, "/auth/sign-in/social", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+
+	var found bool
+	for _, c := range resp.Cookies() {
+		if c.Name == controller.OAuthNonceCookieName {
+			found = true
+			s.False(c.Secure)
+			s.True(c.HttpOnly)
+			s.Equal("/", c.Path)
+			s.Equal(http.SameSiteLaxMode, c.SameSite)
+		}
+	}
+	s.True(found)
 }
 
 func (s *AuthControllerSuite) Test_SignInSocial_MissingProvider() {
@@ -153,24 +225,104 @@ func (s *AuthControllerSuite) Test_SignInSocial_MissingProvider() {
 }
 
 func (s *AuthControllerSuite) Test_Callback_SuccessRedirect() {
+	var capturedNonce string
+	s.oauthSvc.handleCallbackFunc = func(ctx context.Context, provider string, code string, state string, expectedNonce string, ip string, ua string) (domain.Session, domain.User, string, error) {
+		capturedNonce = expectedNonce
+		return domain.Session{
+			ID:        1,
+			Token:     "mock-session-token",
+			UserID:    10,
+			ExpiresAt: time.Now().Add(24 * time.Hour),
+		}, domain.User{
+			ID:    10,
+			Name:  "Mock User",
+			Email: "mock@example.com",
+		}, "http://localhost:3000/dashboard", nil
+	}
+
 	req := httptest.NewRequest(fiber.MethodGet, "/auth/callback/google?code=valid-code&state=valid-state", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  controller.OAuthNonceCookieName,
+		Value: "mock-nonce-12345",
+	})
 
 	resp, err := s.app.Test(req)
 	s.Require().NoError(err)
 	s.Equal(fiber.StatusFound, resp.StatusCode)
 	s.Equal("http://localhost:3000/dashboard", resp.Header.Get("Location"))
+	s.Equal("mock-nonce-12345", capturedNonce)
 
-	// Verify cookie
+	// Verify cookies: session cookie set, oauth nonce cookie cleared
 	cookies := resp.Cookies()
 	s.NotEmpty(cookies)
 	var foundTokenCookie bool
+	var nonceCleared bool
 	for _, c := range cookies {
 		if c.Name == "omed_session" && c.Value == "mock-session-token" {
 			foundTokenCookie = true
 			s.True(c.HttpOnly)
 		}
+		if c.Name == controller.OAuthNonceCookieName && c.MaxAge == -1 {
+			nonceCleared = true
+			s.True(c.HttpOnly)
+			s.Equal("/", c.Path)
+			s.Equal(http.SameSiteLaxMode, c.SameSite)
+		}
 	}
 	s.True(foundTokenCookie)
+	s.True(nonceCleared, "expected oauth nonce cookie to be cleared")
+}
+
+func (s *AuthControllerSuite) Test_Callback_MissingNonceCookie() {
+	s.oauthSvc.handleCallbackFunc = func(ctx context.Context, provider string, code string, state string, expectedNonce string, ip string, ua string) (domain.Session, domain.User, string, error) {
+		if expectedNonce == "" {
+			return domain.Session{}, domain.User{}, "", domain.ErrInvalidState
+		}
+		return domain.Session{Token: "valid"}, domain.User{}, "/", nil
+	}
+
+	req := httptest.NewRequest(fiber.MethodGet, "/auth/callback/google?code=valid-code&state=valid-state", nil)
+	// no nonce cookie added
+
+	resp, err := s.app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	// Nonce cookie should still be cleared
+	var nonceCleared bool
+	for _, c := range resp.Cookies() {
+		if c.Name == controller.OAuthNonceCookieName && c.MaxAge == -1 {
+			nonceCleared = true
+		}
+	}
+	s.True(nonceCleared, "expected oauth nonce cookie to be cleared on missing nonce")
+}
+
+func (s *AuthControllerSuite) Test_Callback_WrongNonceCookie() {
+	s.oauthSvc.handleCallbackFunc = func(ctx context.Context, provider string, code string, state string, expectedNonce string, ip string, ua string) (domain.Session, domain.User, string, error) {
+		if expectedNonce != "correct-nonce" {
+			return domain.Session{}, domain.User{}, "", domain.ErrInvalidState
+		}
+		return domain.Session{Token: "valid"}, domain.User{}, "/", nil
+	}
+
+	req := httptest.NewRequest(fiber.MethodGet, "/auth/callback/google?code=valid-code&state=valid-state", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  controller.OAuthNonceCookieName,
+		Value: "wrong-nonce",
+	})
+
+	resp, err := s.app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	var nonceCleared bool
+	for _, c := range resp.Cookies() {
+		if c.Name == controller.OAuthNonceCookieName && c.MaxAge == -1 {
+			nonceCleared = true
+		}
+	}
+	s.True(nonceCleared, "expected oauth nonce cookie to be cleared on wrong nonce")
 }
 
 func (s *AuthControllerSuite) Test_Callback_ProviderError() {

@@ -29,7 +29,7 @@ import (
 // OAuthService handles third-party OAuth2 flows, user linking, and session initialization.
 type OAuthService interface {
 	GetAuthURL(req model.SignInSocialRequest) (model.SignInSocialResponse, error)
-	HandleCallback(ctx context.Context, provider string, code string, state string, ipAddress string, userAgent string) (domain.Session, domain.User, string, error)
+	HandleCallback(ctx context.Context, provider string, code string, state string, expectedNonce string, ipAddress string, userAgent string) (domain.Session, domain.User, string, error)
 }
 
 // OAuthProviderConfig holds credentials and endpoint URLs for an OAuth2 provider.
@@ -162,7 +162,7 @@ func (s *oauthService) GetAuthURL(req model.SignInSocialRequest) (model.SignInSo
 		}
 	}
 
-	state, err := s.generateState(req)
+	state, nonce, err := s.generateState(req)
 	if err != nil {
 		return model.SignInSocialResponse{}, err
 	}
@@ -172,6 +172,7 @@ func (s *oauthService) GetAuthURL(req model.SignInSocialRequest) (model.SignInSo
 	return model.SignInSocialResponse{
 		URL:      authURL,
 		Redirect: true,
+		Nonce:    nonce,
 	}, nil
 }
 
@@ -180,11 +181,16 @@ func (s *oauthService) HandleCallback(
 	provider string,
 	code string,
 	state string,
+	expectedNonce string,
 	ipAddress string,
 	userAgent string,
 ) (domain.Session, domain.User, string, error) {
 	claims, err := s.verifyState(state, provider)
 	if err != nil {
+		return domain.Session{}, domain.User{}, "", domain.ErrInvalidState
+	}
+
+	if expectedNonce == "" || claims.Nonce != expectedNonce {
 		return domain.Session{}, domain.User{}, "", domain.ErrInvalidState
 	}
 
@@ -454,10 +460,10 @@ func (s *oauthService) fetchGithubEmail(ctx context.Context, accessToken string)
 	return "", false
 }
 
-func (s *oauthService) generateState(req model.SignInSocialRequest) (string, error) {
+func (s *oauthService) generateState(req model.SignInSocialRequest) (string, string, error) {
 	nonceBytes := make([]byte, 16)
 	if _, err := rand.Read(nonceBytes); err != nil {
-		return "", err
+		return "", "", err
 	}
 	nonce := hex.EncodeToString(nonceBytes)
 
@@ -472,13 +478,13 @@ func (s *oauthService) generateState(req model.SignInSocialRequest) (string, err
 
 	data, err := json.Marshal(claims)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	payload := base64.RawURLEncoding.EncodeToString(data)
 	sig := s.sign(payload)
 
-	return fmt.Sprintf("%s.%s", payload, sig), nil
+	return fmt.Sprintf("%s.%s", payload, sig), nonce, nil
 }
 
 func (s *oauthService) verifyState(state string, expectedProvider string) (model.OAuthStateClaims, error) {
