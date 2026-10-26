@@ -81,6 +81,8 @@ func New(state State) Omed {
 		EntCli:            state.EntCli,
 		AuthSecret:        state.Config.AuthSecret,
 		ApiURL:            state.Config.ApiUrl,
+		ApiUrl:            state.Config.ApiUrl,
+		Env:               state.Config.Env,
 		WebURL:            state.Config.WebUrl,
 		TrustedOrigins:    state.Config.TrustedOrigins,
 		GoogleID:          state.Config.GoogleClientID,

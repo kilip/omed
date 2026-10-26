@@ -1,6 +1,8 @@
 package core
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/internal/core/controller"
 	"github.com/kilip/omed/api/internal/core/domain"
@@ -10,7 +12,13 @@ import (
 func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	// Authentication routes (Better Auth compatible)
 	auth := r.Group("/auth")
-	ctlA := controller.NewAuthController(mod.OAuthService, mod.SessionService, mod.cfg.SessionCookieName)
+	cookieSecure := strings.HasPrefix(mod.cfg.ApiUrl, "https://") || mod.cfg.Env == "production"
+	ctlA := controller.NewAuthController(
+		mod.OAuthService,
+		mod.SessionService,
+		controller.WithCookieName(mod.cfg.SessionCookieName),
+		controller.WithCookieSecure(cookieSecure),
+	)
 	auth.Post("/sign-in/social", ctlA.SignInSocial)
 	auth.Get("/callback/:id", ctlA.Callback)
 	auth.Post("/callback/:id", ctlA.Callback)

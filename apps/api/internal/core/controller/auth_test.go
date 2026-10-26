@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -239,6 +240,150 @@ func (s *AuthControllerSuite) Test_SignOut_Success() {
 		}
 	}
 	s.True(cleared)
+}
+
+func (s *AuthControllerSuite) Test_Callback_CookieSecure_Enabled() {
+	app := fiber.New()
+	ctl := controller.NewAuthController(s.oauthSvc, s.sessSvc, controller.WithCookieSecure(true))
+	app.Get("/auth/callback/:id", ctl.Callback)
+
+	req := httptest.NewRequest(fiber.MethodGet, "/auth/callback/google?code=valid-code&state=valid-state", nil)
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusFound, resp.StatusCode)
+
+	cookies := resp.Cookies()
+	s.NotEmpty(cookies)
+	var found bool
+	for _, c := range cookies {
+		if c.Name == "omed_session" {
+			found = true
+			s.True(c.Secure)
+			s.True(c.HttpOnly)
+			s.Equal("/", c.Path)
+			s.Equal(http.SameSiteLaxMode, c.SameSite)
+		}
+	}
+	s.True(found)
+}
+
+func (s *AuthControllerSuite) Test_Callback_CookieSecure_Disabled() {
+	app := fiber.New()
+	ctl := controller.NewAuthController(s.oauthSvc, s.sessSvc, controller.WithCookieSecure(false))
+	app.Get("/auth/callback/:id", ctl.Callback)
+
+	req := httptest.NewRequest(fiber.MethodGet, "/auth/callback/google?code=valid-code&state=valid-state", nil)
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusFound, resp.StatusCode)
+
+	cookies := resp.Cookies()
+	s.NotEmpty(cookies)
+	var found bool
+	for _, c := range cookies {
+		if c.Name == "omed_session" {
+			found = true
+			s.False(c.Secure)
+			s.True(c.HttpOnly)
+			s.Equal("/", c.Path)
+			s.Equal(http.SameSiteLaxMode, c.SameSite)
+		}
+	}
+	s.True(found)
+}
+
+func (s *AuthControllerSuite) Test_SignOut_CookieAttributes_SecureEnabled() {
+	app := fiber.New()
+	ctl := controller.NewAuthController(s.oauthSvc, s.sessSvc, controller.WithCookieSecure(true))
+	app.Post("/auth/sign-out", ctl.SignOut)
+
+	req := httptest.NewRequest(fiber.MethodPost, "/auth/sign-out", nil)
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+
+	var found bool
+	for _, c := range resp.Cookies() {
+		if c.Name == "omed_session" {
+			found = true
+			s.Equal(-1, c.MaxAge)
+			s.True(c.Secure)
+			s.True(c.HttpOnly)
+			s.Equal("/", c.Path)
+			s.Equal(http.SameSiteLaxMode, c.SameSite)
+		}
+	}
+	s.True(found)
+}
+
+func (s *AuthControllerSuite) Test_SignOut_CookieAttributes_SecureDisabled() {
+	app := fiber.New()
+	ctl := controller.NewAuthController(s.oauthSvc, s.sessSvc, controller.WithCookieSecure(false))
+	app.Post("/auth/sign-out", ctl.SignOut)
+
+	req := httptest.NewRequest(fiber.MethodPost, "/auth/sign-out", nil)
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+
+	var found bool
+	for _, c := range resp.Cookies() {
+		if c.Name == "omed_session" {
+			found = true
+			s.Equal(-1, c.MaxAge)
+			s.False(c.Secure)
+			s.True(c.HttpOnly)
+			s.Equal("/", c.Path)
+			s.Equal(http.SameSiteLaxMode, c.SameSite)
+		}
+	}
+	s.True(found)
+}
+
+func (s *AuthControllerSuite) Test_CookieSecure_PerEnvironmentAndURL() {
+	cases := []struct {
+		name           string
+		apiURL         string
+		env            string
+		expectedSecure bool
+	}{
+		{"production with http", "http://localhost:8001", "production", true},
+		{"production with https", "https://api.omed.com", "production", true},
+		{"development with https", "https://api.omed.com", "development", true},
+		{"development with http", "http://localhost:8001", "development", false},
+	}
+
+	for _, tc := range cases {
+		s.Run(tc.name, func() {
+			app := fiber.New()
+			cookieSecure := strings.HasPrefix(tc.apiURL, "https://") || tc.env == "production"
+			ctl := controller.NewAuthController(
+				s.oauthSvc,
+				s.sessSvc,
+				controller.WithCookieSecure(cookieSecure),
+			)
+			app.Get("/auth/callback/:id", ctl.Callback)
+
+			req := httptest.NewRequest(fiber.MethodGet, "/auth/callback/google?code=valid-code&state=valid-state", nil)
+			resp, err := app.Test(req)
+			s.Require().NoError(err)
+			s.Equal(fiber.StatusFound, resp.StatusCode)
+
+			cookies := resp.Cookies()
+			s.NotEmpty(cookies)
+			var found bool
+			for _, c := range cookies {
+				if c.Name == "omed_session" {
+					found = true
+					s.Equal(tc.expectedSecure, c.Secure)
+					s.True(c.HttpOnly)
+					s.Equal("/", c.Path)
+					s.Equal(http.SameSiteLaxMode, c.SameSite)
+				}
+			}
+			s.True(found)
+		})
+	}
 }
 
 func TestAuthControllerSuite(t *testing.T) {

@@ -30,6 +30,8 @@ type Config struct {
 	SessionCookieName string
 	Mailer            mailx.Mailer
 	Storage           s3x.Storage
+	Env               string
+	ApiUrl            string
 }
 
 // CoreModule represents the core module implementing base.Module.
@@ -58,6 +60,11 @@ type UserModule = CoreModule
 
 // New constructs a new CoreModule instance.
 func New(cfg Config) *CoreModule {
+	if cfg.ApiUrl == "" && cfg.ApiURL != "" {
+		cfg.ApiUrl = cfg.ApiURL
+	} else if cfg.ApiURL == "" && cfg.ApiUrl != "" {
+		cfg.ApiURL = cfg.ApiUrl
+	}
 	if cfg.Storage == nil {
 		cfg.Storage, _ = s3x.New(s3x.Config{Driver: "memory", Logger: cfg.Logger})
 	}

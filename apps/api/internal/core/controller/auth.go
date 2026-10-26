@@ -13,22 +13,43 @@ import (
 
 // AuthController handles social sign-in, OAuth callback, session retrieval, and logout.
 type AuthController struct {
-	oauth      service.OAuthService
-	sessions   service.SessionService
-	cookieName string
+	oauth        service.OAuthService
+	sessions     service.SessionService
+	cookieName   string
+	cookieSecure bool
+}
+
+// AuthOption configures an AuthController.
+type AuthOption func(*AuthController)
+
+// WithCookieName configures the session cookie name.
+func WithCookieName(name string) AuthOption {
+	return func(a *AuthController) {
+		if name != "" {
+			a.cookieName = name
+		}
+	}
+}
+
+// WithCookieSecure configures whether the session cookie has the Secure attribute.
+func WithCookieSecure(secure bool) AuthOption {
+	return func(a *AuthController) {
+		a.cookieSecure = secure
+	}
 }
 
 // NewAuthController creates a new AuthController.
-func NewAuthController(oauth service.OAuthService, sessions service.SessionService, cookieName ...string) AuthController {
-	cn := "omed_session"
-	if len(cookieName) > 0 && cookieName[0] != "" {
-		cn = cookieName[0]
+func NewAuthController(oauth service.OAuthService, sessions service.SessionService, opts ...AuthOption) AuthController {
+	a := AuthController{
+		oauth:        oauth,
+		sessions:     sessions,
+		cookieName:   "omed_session",
+		cookieSecure: false,
 	}
-	return AuthController{
-		oauth:      oauth,
-		sessions:   sessions,
-		cookieName: cn,
+	for _, opt := range opts {
+		opt(&a)
 	}
+	return a
 }
 
 // SignInSocial initiates a social login flow with an OAuth2 provider.
@@ -124,6 +145,7 @@ func (a AuthController) Callback(c fiber.Ctx) error {
 		Path:     "/",
 		Expires:  sess.ExpiresAt,
 		HTTPOnly: true,
+		Secure:   a.cookieSecure,
 		SameSite: "Lax",
 	})
 
@@ -179,6 +201,7 @@ func (a AuthController) SignOut(c fiber.Ctx) error {
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
 		HTTPOnly: true,
+		Secure:   a.cookieSecure,
 		SameSite: "Lax",
 	})
 
