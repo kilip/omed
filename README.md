@@ -114,8 +114,8 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 | `OMED_SESSION_COOKIE_NAME` | api | Session cookie name (defaults to `omed_session`) |
 | `OMED_GOOGLE_ID` / `OMED_GOOGLE_SECRET` | api | Optional, Google login |
 | `OMED_GITHUB_ID` / `OMED_GITHUB_SECRET` | api | Optional, GitHub login |
-| `OMED_REDIS_URL` | api | Redis |
-| `OMED_KAFKA_BROKERS` | api | Kafka Brokers |
+| `OMED_REDIS_URL` | api | Planned (not yet used by application code) |
+| `OMED_KAFKA_BROKERS` | api | Planned (not yet used by application code) |
 | `OMED_API_URL` | api | Defaults to `http://localhost:8001` |
 | `OMED_S3_*` | api | S3/RustFS storage for attachments (`OMED_S3_ENDPOINT`, `OMED_S3_ACCESS_KEY`, `OMED_S3_SECRET_KEY`, `OMED_S3_REGION`, `OMED_S3_FORCE_PATH_STYLE`) |
 | `OMED_CMS_MEDIA_*` | api | CMS media upload limits (`OMED_CMS_MEDIA_MAX_SIZE_MB`, `OMED_CMS_MEDIA_ALLOWED_TYPES`) |

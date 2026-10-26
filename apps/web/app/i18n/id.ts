@@ -92,8 +92,8 @@ export const id: Translation = {
     signInFirst: "Masuk dulu untuk menerima undangan ini.",
     joined: "Anda sudah bergabung ke workspace",
   },
-  // Label peran berdasarkan ID ("fin:accountant" -> role.fin.accountant). Mengalahkan
-  // nama dari API; peran tanpa entri memakai nama dari API.
+  // Role labels by ID ("fin:accountant" -> role.fin.accountant). They override the
+  // display name sent by the API; roles without an entry fall back to that name.
   role: {
     core: { member: "Anggota", admin: "Admin" },
     fin: { viewer: "Peninjau", accountant: "Akuntan", admin: "Admin" },

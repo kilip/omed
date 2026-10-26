@@ -78,10 +78,5 @@ func extractToken(c fiber.Ctx, cookieName string) string {
 			return cookie
 		}
 	}
-	if cookieName != "token" {
-		if cookie := c.Cookies("token"); cookie != "" {
-			return cookie
-		}
-	}
 	return ""
 }
