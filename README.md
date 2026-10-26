@@ -88,6 +88,7 @@ git clone https://github.com/kilip/omed.git
 cd omed
 
 bun install            # also installs git hooks (husky)
+cd apps/api && go mod tidy && cd ../.. # sync Go dependencies
 
 bun run dev            # run all apps (turbo)
 ```
@@ -143,6 +144,7 @@ bun run lint         # Biome check (lint + format)
 bun run format       # Biome auto-fix (check --write)
 bun run test         # tests via turbo (see note below)
 bun run e2e          # end-to-end tests
+cd apps/api && go mod tidy     # sync Go dependencies
 ```
 
 ### Testing

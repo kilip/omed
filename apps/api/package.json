@@ -4,7 +4,6 @@
   "scripts": {
     "dev": "air",
     "gen": "go generate ./ent",
-    "oa:gen": "swag init --parseInternal --v3.1",
-    "postinstall": "go mod tidy"
+    "oa:gen": "swag init --parseInternal --v3.1"
   }
 }

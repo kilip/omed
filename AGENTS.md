@@ -22,6 +22,7 @@ bun run lint         # Biome check (lint + format)
 bun run format       # Biome auto-fix
 bun run test         # tests via turbo
 bun run e2e          # end-to-end tests
+cd apps/api && go mod tidy     # sync Go dependencies
 cd apps/api && go test ./...   # Go unit + integration tests
 ```
 
