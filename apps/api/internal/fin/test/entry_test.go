@@ -10,6 +10,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
@@ -41,7 +42,7 @@ func (s *EntryApiSuite) ensureAccount(wsID int64, code, name, accType, normalBal
 		SetNormalBalance(account.NormalBalance(normalBalance)).
 		SetIsActive(true).
 		SetIsPostable(true).
-		Save(s.Context)
+		Save(base.WithWorkspaceID(s.Context, wsID))
 	s.Require().NoError(err)
 	return acc.ID
 }
@@ -55,7 +56,7 @@ func (s *EntryApiSuite) ensurePeriod(wsID int64, name string, start, end time.Ti
 		SetEndDate(end).
 		SetFiscalYear(year).
 		SetStatus(period.Status(domain.PeriodStatusOpen)).
-		Save(s.Context)
+		Save(base.WithWorkspaceID(s.Context, wsID))
 	s.Require().NoError(err)
 	return p.ID
 }
@@ -71,7 +72,7 @@ func (s *EntryApiSuite) ensureTransaction(wsID int64, desc, ref string, tDate ti
 		SetCurrency("IDR").
 		SetExchangeRate(1.0).
 		SetSource(domain.TransactionSourceManual).
-		Save(s.Context)
+		Save(base.WithWorkspaceID(s.Context, wsID))
 	s.Require().NoError(err)
 	return tx.ID
 }
@@ -417,7 +418,7 @@ func (s *EntryApiSuite) Test_FXRounding_AutoBalancing_Endpoint() {
 		SetCurrency("USD").
 		SetExchangeRate(10000.5).
 		SetSource(domain.TransactionSourceManual).
-		Save(s.Context)
+		Save(base.WithWorkspaceID(s.Context, ws.ID))
 	s.Require().NoError(err)
 
 	// 1. Difference <= 1.0 IDR should auto-balance by adding an FX Rounding line
@@ -477,7 +478,7 @@ func (s *EntryApiSuite) Test_MultiCurrency_Ledger_Endpoint() {
 		SetCurrency("USD").
 		SetIsActive(true).
 		SetIsPostable(true).
-		Save(s.Context)
+		Save(base.WithWorkspaceID(s.Context, ws.ID))
 	s.Require().NoError(err)
 
 	accRev := s.ensureAccount(ws.ID, "4000", "Revenue", domain.AccountTypeRevenue, domain.NormalBalanceCredit)
@@ -508,7 +509,7 @@ func (s *EntryApiSuite) Test_MultiCurrency_Ledger_Endpoint() {
 		SetCurrency("USD").
 		SetExchangeRate(15000.0).
 		SetSource(domain.TransactionSourceManual).
-		Save(s.Context)
+		Save(base.WithWorkspaceID(s.Context, ws.ID))
 	s.Require().NoError(err)
 
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{

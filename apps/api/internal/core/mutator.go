@@ -56,6 +56,21 @@ func InitEntCli(cli *ent.Client) {
 	setupWorkspaceInterceptor(cli)
 }
 
+func isWorkspaceScopedType(typ string) bool {
+	switch typ {
+	case ent.TypeAccount,
+		ent.TypePeriod,
+		ent.TypeTransaction,
+		ent.TypeEntry,
+		ent.TypePosting,
+		ent.TypeExchangeRate,
+		ent.TypeFile:
+		return true
+	default:
+		return false
+	}
+}
+
 func setupWorkspaceMutator(cli *ent.Client) {
 	cli.Use(func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
@@ -66,11 +81,27 @@ func setupWorkspaceMutator(cli *ent.Client) {
 			if !isWorkspaceMutator {
 				return next.Mutate(ctx, m)
 			}
+			if !isWorkspaceScopedType(m.Type()) {
+				wsID := base.WorkspaceIDFromContext(ctx)
+				if wsID > 0 {
+					w.SetWorkspaceID(wsID)
+				}
+				return next.Mutate(ctx, m)
+			}
+
+			if base.SkipWorkspaceFilterFromContext(ctx) {
+				wsID := base.WorkspaceIDFromContext(ctx)
+				if wsID > 0 {
+					w.SetWorkspaceID(wsID)
+				}
+				return next.Mutate(ctx, m)
+			}
 
 			wsID := base.WorkspaceIDFromContext(ctx)
-			if wsID > 0 {
-				w.SetWorkspaceID(wsID)
+			if wsID <= 0 {
+				return nil, base.ErrWorkspaceRequired
 			}
+			w.SetWorkspaceID(wsID)
 			return next.Mutate(ctx, m)
 		})
 	})
@@ -79,12 +110,15 @@ func setupWorkspaceMutator(cli *ent.Client) {
 type workspaceInterceptor struct{}
 
 func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error {
+	if !isWorkspaceScopedType(q.Type()) {
+		return nil
+	}
 	if base.SkipWorkspaceFilterFromContext(ctx) {
 		return nil
 	}
 	wsID := base.WorkspaceIDFromContext(ctx)
 	if wsID <= 0 {
-		return nil
+		return base.ErrWorkspaceRequired
 	}
 	switch q.Type() {
 	case ent.TypeAccount:

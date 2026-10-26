@@ -58,7 +58,7 @@ func (s *ExchangeRateServiceSuite) TearDownSuite() {
 }
 
 func (s *ExchangeRateServiceSuite) SetupTest() {
-	ctx := base.WithSkipAuditMutator(context.Background())
+	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
 	_, _ = s.client.Posting.Delete().Exec(ctx)
 	_, _ = s.client.Entry.Delete().Exec(ctx)
 	_, _ = s.client.Transaction.Delete().Exec(ctx)
@@ -92,13 +92,15 @@ func (s *ExchangeRateServiceSuite) SetupTest() {
 	err = seed.SeedCurrencies(ctx, s.client)
 	s.Require().NoError(err)
 
+	wsCtx := base.WithWorkspaceID(userCtx, w.ID)
+
 	p, err := s.client.Period.Create().
 		SetWorkspaceID(w.ID).
 		SetName("FY2026").
 		SetStartDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
 		SetEndDate(time.Date(2026, 12, 31, 0, 0, 0, 0, time.UTC)).
 		SetFiscalYear(2026).
-		Save(userCtx)
+		Save(wsCtx)
 	s.Require().NoError(err)
 	s.periodID = p.ID
 
@@ -110,7 +112,7 @@ func (s *ExchangeRateServiceSuite) SetupTest() {
 		SetNormalBalance("DEBIT").
 		SetIsPostable(true).
 		SetIsActive(true).
-		Save(userCtx)
+		Save(wsCtx)
 	s.Require().NoError(err)
 	s.accountID1 = a1.ID
 
@@ -122,7 +124,7 @@ func (s *ExchangeRateServiceSuite) SetupTest() {
 		SetNormalBalance("CREDIT").
 		SetIsPostable(true).
 		SetIsActive(true).
-		Save(userCtx)
+		Save(wsCtx)
 	s.Require().NoError(err)
 	s.accountID2 = a2.ID
 }

@@ -63,6 +63,12 @@ func (s *ErrorMapSuite) Test_Map_PredefinedErrors() {
 			expectedCode:   "NOT_FOUND",
 			expectedMsg:    "not found",
 		},
+		{
+			err:            base.ErrWorkspaceRequired,
+			expectedStatus: fiber.StatusBadRequest,
+			expectedCode:   "workspace context required",
+			expectedMsg:    "workspace context required",
+		},
 	}
 
 	for _, tc := range testCases {

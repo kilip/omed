@@ -34,7 +34,7 @@ func (s *PeriodRepoSuite) TearDownSuite() {
 }
 
 func (s *PeriodRepoSuite) SetupTest() {
-	ctx := base.WithSkipAuditMutator(context.Background())
+	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
 	_, _ = s.client.Posting.Delete().Exec(ctx)
 	_, _ = s.client.Entry.Delete().Exec(ctx)
 	_, _ = s.client.Transaction.Delete().Exec(ctx)

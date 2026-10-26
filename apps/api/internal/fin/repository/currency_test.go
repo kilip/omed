@@ -39,7 +39,7 @@ func (s *CurrencyRepoSuite) TearDownSuite() {
 }
 
 func (s *CurrencyRepoSuite) SetupTest() {
-	ctx := base.WithSkipAuditMutator(context.Background())
+	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
 	_, _ = s.client.Currency.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)

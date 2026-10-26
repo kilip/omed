@@ -41,6 +41,8 @@ var (
 	ErrForbidden = errors.New("FORBIDDEN")
 	// ErrNotFound indicates that the requested resource could not be found.
 	ErrNotFound = errors.New("NOT_FOUND")
+	// ErrWorkspaceRequired indicates missing workspace context for a tenant-scoped operation.
+	ErrWorkspaceRequired = errors.New("workspace context required")
 )
 
 func init() {
@@ -51,6 +53,7 @@ func init() {
 	AddToErrorMap(ErrUnauthorized, fiber.StatusUnauthorized, "unauthorized access")
 	AddToErrorMap(ErrForbidden, fiber.StatusForbidden, "access forbidden")
 	AddToErrorMap(ErrNotFound, fiber.StatusNotFound, "not found")
+	AddToErrorMap(ErrWorkspaceRequired, fiber.StatusBadRequest, "workspace context required")
 }
 
 // MapError translates a standard Go error into an ErrorItem by looking up registered error mappings.

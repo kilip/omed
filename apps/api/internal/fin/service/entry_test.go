@@ -50,7 +50,7 @@ func (s *EntryServiceSuite) TearDownSuite() {
 }
 
 func (s *EntryServiceSuite) SetupTest() {
-	ctx := base.WithSkipAuditMutator(context.Background())
+	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
 	_, _ = s.client.Posting.Delete().Exec(ctx)
 	_, _ = s.client.Entry.Delete().Exec(ctx)
 	_, _ = s.client.Transaction.Delete().Exec(ctx)
@@ -1069,7 +1069,7 @@ func (s *EntryServiceSuite) Test_RealizedFX_Settlement() {
 	settleDate := model.Date(time.Date(2026, 1, 25, 0, 0, 0, 0, time.UTC))
 
 	// Clear initial accounts so we can seed COA
-	_, _ = s.client.Account.Delete().Exec(base.WithSkipAuditMutator(context.Background()))
+	_, _ = s.client.Account.Delete().Exec(base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background())))
 
 	// Seed COA for FX accounts
 	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")

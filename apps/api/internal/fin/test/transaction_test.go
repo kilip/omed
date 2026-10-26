@@ -14,6 +14,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/internal/base"
 	coremodel "github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
@@ -47,7 +48,7 @@ func (s *TransactionApiSuite) ensureAccount(wsID int64, code, name, accType, nor
 		SetNormalBalance(account.NormalBalance(normalBalance)).
 		SetIsActive(true).
 		SetIsPostable(true).
-		Save(s.Context)
+		Save(base.WithWorkspaceID(s.Context, wsID))
 	s.Require().NoError(err)
 	return acc.ID
 }
@@ -61,7 +62,7 @@ func (s *TransactionApiSuite) ensurePeriod(wsID int64, name string, start, end t
 		SetEndDate(end).
 		SetFiscalYear(year).
 		SetStatus(period.Status(domain.PeriodStatusOpen)).
-		Save(s.Context)
+		Save(base.WithWorkspaceID(s.Context, wsID))
 	s.Require().NoError(err)
 	return p.ID
 }

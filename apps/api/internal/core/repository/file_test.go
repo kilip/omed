@@ -33,7 +33,7 @@ func (s *FileRepoSuite) TearDownSuite() {
 }
 
 func (s *FileRepoSuite) SetupTest() {
-	rawCtx := base.WithSkipAuditMutator(context.Background())
+	rawCtx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
 	_, _ = s.client.File.Delete().Exec(rawCtx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(rawCtx)
 	_, _ = s.client.Workspace.Delete().Exec(rawCtx)

@@ -34,7 +34,7 @@ func (s *MutatorSuite) TearDownSuite() {
 }
 
 func (s *MutatorSuite) SetupTest() {
-	ctx := base.WithSkipAuditMutator(context.Background())
+	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
 	_, _ = s.client.CmsPost.Delete().Exec(ctx)
 	_, _ = s.client.CmsPage.Delete().Exec(ctx)
 	_, _ = s.client.CmsMedia.Delete().Exec(ctx)
@@ -105,13 +105,14 @@ func (s *MutatorSuite) Test_SoftDeleteAuditFields_AutoSetDeleter() {
 		Save(s.ctx)
 	s.Require().NoError(err)
 
+	ctxWithWS := base.WithWorkspaceID(s.ctx, ws.ID)
 	acc, err := s.client.Account.Create().
 		SetWorkspaceID(ws.ID).
 		SetCode("1001").
 		SetName("Cash").
 		SetType(account.TypeASSET).
 		SetNormalBalance(account.NormalBalanceDEBIT).
-		Save(s.ctx)
+		Save(ctxWithWS)
 	s.Require().NoError(err)
 	s.Nil(acc.DeletedAt)
 	s.Nil(acc.DeletedByID)
@@ -120,7 +121,7 @@ func (s *MutatorSuite) Test_SoftDeleteAuditFields_AutoSetDeleter() {
 	now := time.Now()
 	deleted, err := s.client.Account.UpdateOneID(acc.ID).
 		SetDeletedAt(now).
-		Save(s.ctx)
+		Save(ctxWithWS)
 	s.Require().NoError(err)
 	s.NotNil(deleted.DeletedAt)
 	s.Require().NotNil(deleted.DeletedByID)
@@ -134,13 +135,14 @@ func (s *MutatorSuite) Test_SoftDeleteAuditFields_ExplicitDeleterPreserved() {
 		Save(s.ctx)
 	s.Require().NoError(err)
 
+	ctxWithWS := base.WithWorkspaceID(s.ctx, ws.ID)
 	acc, err := s.client.Account.Create().
 		SetWorkspaceID(ws.ID).
 		SetCode("1002").
 		SetName("Bank").
 		SetType(account.TypeASSET).
 		SetNormalBalance(account.NormalBalanceDEBIT).
-		Save(s.ctx)
+		Save(ctxWithWS)
 	s.Require().NoError(err)
 
 	u2, err := s.client.User.Create().
@@ -150,11 +152,15 @@ func (s *MutatorSuite) Test_SoftDeleteAuditFields_ExplicitDeleterPreserved() {
 	s.Require().NoError(err)
 
 	// Soft delete with explicit deleted_by_id specified
+	ctxDeleter := base.WithWorkspaceID(context.WithValue(context.Background(), base.USER_CONTEXT_KEY, base.UserContext{
+		ID:   u2.ID,
+		Name: u2.Name,
+	}), ws.ID)
 	now := time.Now()
 	deleted, err := s.client.Account.UpdateOneID(acc.ID).
 		SetDeletedAt(now).
 		SetDeletedByID(u2.ID).
-		Save(s.ctx)
+		Save(ctxDeleter)
 	s.Require().NoError(err)
 	s.Require().NotNil(deleted.DeletedByID)
 	s.Equal(u2.ID, *deleted.DeletedByID, "explicitly set deleted_by_id must be preserved")
@@ -206,23 +212,50 @@ func (s *MutatorSuite) Test_WorkspaceMutator_OverrideManualWhenContextHasWorkspa
 	s.Equal(wsA.ID, acc.WorkspaceID, "context workspace must override manual set")
 }
 
-func (s *MutatorSuite) Test_WorkspaceMutator_FallbackManualWhenContextEmpty() {
+func (s *MutatorSuite) Test_WorkspaceMutator_FailClosedWhenContextMissingWorkspace() {
 	ws, err := s.client.Workspace.Create().
 		SetName("Tenant Manual").
 		SetOwnerID(s.user.ID).
 		Save(s.ctx)
 	s.Require().NoError(err)
 
-	// Context has no workspace ID, but builder sets it manually
-	acc, err := s.client.Account.Create().
+	// Context has no workspace ID and no skip -> must fail with ErrWorkspaceRequired
+	_, err = s.client.Account.Create().
 		SetWorkspaceID(ws.ID).
 		SetCode("1103").
 		SetName("Inventory").
 		SetType(account.TypeASSET).
 		SetNormalBalance(account.NormalBalanceDEBIT).
 		Save(s.ctx)
+	s.Require().ErrorIs(err, base.ErrWorkspaceRequired)
+}
+
+func (s *MutatorSuite) Test_WorkspaceMutator_AllowCreateWithSkipWorkspaceFilter() {
+	ws, err := s.client.Workspace.Create().
+		SetName("Tenant Manual").
+		SetOwnerID(s.user.ID).
+		Save(s.ctx)
+	s.Require().NoError(err)
+
+	// Context has skip workspace filter -> succeeds with explicit workspace ID
+	ctxSkip := base.WithSkipWorkspaceFilter(s.ctx)
+	acc, err := s.client.Account.Create().
+		SetWorkspaceID(ws.ID).
+		SetCode("1103").
+		SetName("Inventory").
+		SetType(account.TypeASSET).
+		SetNormalBalance(account.NormalBalanceDEBIT).
+		Save(ctxSkip)
 	s.Require().NoError(err)
 	s.Equal(ws.ID, acc.WorkspaceID)
+}
+
+func (s *MutatorSuite) Test_WorkspaceInterceptor_FailClosedWhenContextMissingWorkspace() {
+	_, err := s.client.Account.Query().All(s.ctx)
+	s.Require().ErrorIs(err, base.ErrWorkspaceRequired)
+
+	_, err = s.client.File.Query().All(s.ctx)
+	s.Require().ErrorIs(err, base.ErrWorkspaceRequired)
 }
 
 func (s *MutatorSuite) Test_WorkspaceInterceptor_QueryFilteringAndBypass() {

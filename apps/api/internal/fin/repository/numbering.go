@@ -16,6 +16,13 @@ import (
 // GenerateTransactionNumber generates the next sequential transaction number (TRX-YYYY-000001) for the workspace.
 // This function must be executed inside an active transaction (tx).
 func GenerateTransactionNumber(ctx context.Context, tx *ent.Tx, year int) (string, error) {
+	if !base.SkipWorkspaceFilterFromContext(ctx) {
+		wsID := base.WorkspaceIDFromContext(ctx)
+		if wsID <= 0 {
+			return "", base.ErrWorkspaceRequired
+		}
+	}
+
 	prefix := fmt.Sprintf("TRX-%04d-", year)
 
 	wsID := base.WorkspaceIDFromContext(ctx)
@@ -49,6 +56,13 @@ func GenerateTransactionNumber(ctx context.Context, tx *ent.Tx, year int) (strin
 // GenerateEntryNumber generates the next sequential journal entry number (JE-YYYY-000001) for the workspace.
 // This function must be executed inside an active transaction (tx).
 func GenerateEntryNumber(ctx context.Context, tx *ent.Tx, year int) (string, error) {
+	if !base.SkipWorkspaceFilterFromContext(ctx) {
+		wsID := base.WorkspaceIDFromContext(ctx)
+		if wsID <= 0 {
+			return "", base.ErrWorkspaceRequired
+		}
+	}
+
 	prefix := fmt.Sprintf("JE-%04d-", year)
 
 	wsID := base.WorkspaceIDFromContext(ctx)

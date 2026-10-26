@@ -36,7 +36,7 @@ func (s *SeederSuite) TearDownSuite() {
 }
 
 func (s *SeederSuite) SetupTest() {
-	ctx := base.WithSkipAuditMutator(context.Background())
+	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
 	_, _ = s.client.Account.Delete().Exec(ctx)
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
@@ -70,13 +71,14 @@ func (s *CurrencyApiSuite) Test_UpdateBaseCurrency_SuccessAndLock() {
 	s.AssertStatus(fiber.StatusNotFound)
 
 	// Create period, accounts, and a POSTED entry
+	wsCtx := base.WithWorkspaceID(s.Context, ws.ID)
 	period, err := client.Period.Create().
 		SetWorkspaceID(ws.ID).
 		SetName("FY2026").
 		SetStartDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
 		SetEndDate(time.Date(2026, 12, 31, 0, 0, 0, 0, time.UTC)).
 		SetFiscalYear(2026).
-		Save(s.Context)
+		Save(wsCtx)
 	s.Require().NoError(err)
 
 	_, err = client.Account.Create().
@@ -87,7 +89,7 @@ func (s *CurrencyApiSuite) Test_UpdateBaseCurrency_SuccessAndLock() {
 		SetNormalBalance("DEBIT").
 		SetIsPostable(true).
 		SetIsActive(true).
-		Save(s.Context)
+		Save(wsCtx)
 	s.Require().NoError(err)
 
 	_, err = client.Account.Create().
@@ -98,7 +100,7 @@ func (s *CurrencyApiSuite) Test_UpdateBaseCurrency_SuccessAndLock() {
 		SetNormalBalance("CREDIT").
 		SetIsPostable(true).
 		SetIsActive(true).
-		Save(s.Context)
+		Save(wsCtx)
 	s.Require().NoError(err)
 
 	tx, err := client.Transaction.Create().
@@ -107,7 +109,7 @@ func (s *CurrencyApiSuite) Test_UpdateBaseCurrency_SuccessAndLock() {
 		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("USD").
 		SetExchangeRate(1.0).
-		Save(s.Context)
+		Save(wsCtx)
 	s.Require().NoError(err)
 
 	now := time.Now()
@@ -120,7 +122,7 @@ func (s *CurrencyApiSuite) Test_UpdateBaseCurrency_SuccessAndLock() {
 		SetStatus("POSTED").
 		SetPostedAt(now).
 		SetPostedBy(s.User.ID).
-		Save(s.Context)
+		Save(wsCtx)
 	s.Require().NoError(err)
 
 	// Base currency update should now be rejected with 409 Conflict
