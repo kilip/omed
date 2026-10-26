@@ -1,25 +1,20 @@
-import { env } from "./env";
+import type { components } from "@omed/openapi";
+import { api } from "./api";
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar?: string;
-  image?: string;
-  locale?: string;
-  currency?: string;
-  emailVerified?: boolean;
-}
-
-export interface Session {
-  id: number;
-  userId: number;
-  expiresAt: string;
-}
+export type User = components["schemas"]["model.UserData"];
+export type Session = components["schemas"]["model.SessionData"];
+export type SessionResponse = components["schemas"]["model.SessionResponse"];
+export type SignInSocialRequest =
+  components["schemas"]["model.SignInSocialRequest"];
+export type SignInSocialResponse =
+  components["schemas"]["model.SignInSocialResponse"];
+export type UpdateUserRequest =
+  components["schemas"]["model.UpdateUserRequest"];
+export type UserResponse = components["schemas"]["model.UserResponse"];
 
 export interface SessionData {
   user: User;
-  session: Session;
+  session?: Session;
 }
 
 export const authClient = {
@@ -28,17 +23,31 @@ export const authClient = {
     error: Error | null;
   }> {
     try {
-      const res = await fetch(`${env.apiUrl}/auth/get-session`, {
-        credentials: "include",
-      });
-      if (!res.ok) return { data: null, error: null };
-      const body = await res.json();
-      if (!body?.user) return { data: null, error: null };
-      const user: User = {
-        ...body.user,
-        image: body.user.avatar || body.user.image,
+      const { data, error, response } = await api.GET("/auth/get-session");
+      if (response.status === 401) {
+        return { data: null, error: null };
+      }
+      if (error || !response.ok || !data?.user) {
+        if (!response.ok) {
+          const errBody = error as { error?: { message?: string } } | undefined;
+          return {
+            data: null,
+            error: new Error(
+              errBody?.error?.message ||
+                response.statusText ||
+                "Failed to get session",
+            ),
+          };
+        }
+        return { data: null, error: null };
+      }
+      return {
+        data: {
+          user: data.user,
+          session: data.session,
+        },
+        error: null,
       };
-      return { data: { user, session: body.session }, error: null };
     } catch (err) {
       return {
         data: null,
@@ -48,36 +57,29 @@ export const authClient = {
   },
 
   signIn: {
-    async social({
-      provider,
-      callbackURL,
-      locale,
-    }: {
-      provider: "google" | "github";
-      callbackURL: string;
-      locale?: string;
-    }): Promise<{ error?: { message: string } }> {
+    async social(
+      body: SignInSocialRequest,
+    ): Promise<{ error?: { message: string } }> {
       try {
-        const res = await fetch(`${env.apiUrl}/auth/sign-in/social`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            provider,
-            callbackURL,
-            callbackUrl: callbackURL,
-            locale,
-          }),
-        });
-        if (!res.ok) {
-          const body = await res.json().catch(() => null);
+        const { data, error, response } = await api.POST(
+          "/auth/sign-in/social",
+          { body },
+        );
+        if (error || !response.ok) {
+          const errBody = error as { error?: { message?: string } } | undefined;
           return {
-            error: { message: body?.error?.message || "Social login failed" },
+            error: {
+              message:
+                errBody?.error?.message ||
+                response.statusText ||
+                "Social login failed",
+            },
           };
         }
-        const data = await res.json();
         if (data?.url) {
-          window.location.href = data.url;
+          if (typeof window !== "undefined") {
+            window.location.href = data.url;
+          }
           return {};
         }
         return { error: { message: "No redirect URL received" } };
@@ -89,27 +91,28 @@ export const authClient = {
     },
   },
 
-  async updateUser(data: {
-    name?: string;
-    avatar?: string;
-    locale?: string;
-    currency?: string;
-  }): Promise<{ data?: User; error?: Error }> {
+  async updateUser(
+    data: UpdateUserRequest,
+  ): Promise<{ data?: UserResponse; error?: Error }> {
     try {
-      const res = await fetch(`${env.apiUrl}/users/me`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(data),
+      const {
+        data: resData,
+        error,
+        response,
+      } = await api.PUT("/users/me", {
+        body: data,
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
+      if (error || !response.ok) {
+        const errBody = error as { error?: { message?: string } } | undefined;
         return {
-          error: new Error(body?.error?.message || "Failed to update profile"),
+          error: new Error(
+            errBody?.error?.message ||
+              response.statusText ||
+              "Failed to update profile",
+          ),
         };
       }
-      const body = await res.json();
-      return { data: body.data };
+      return { data: resData?.data };
     } catch (err) {
       return {
         error: err instanceof Error ? err : new Error(String(err)),
@@ -119,10 +122,17 @@ export const authClient = {
 
   async signOut(): Promise<{ error?: Error }> {
     try {
-      await fetch(`${env.apiUrl}/auth/sign-out`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const { error, response } = await api.POST("/auth/sign-out");
+      if (error || !response.ok) {
+        const errBody = error as { error?: { message?: string } } | undefined;
+        return {
+          error: new Error(
+            errBody?.error?.message ||
+              response.statusText ||
+              "Failed to sign out",
+          ),
+        };
+      }
       return {};
     } catch (err) {
       return { error: err instanceof Error ? err : new Error(String(err)) };

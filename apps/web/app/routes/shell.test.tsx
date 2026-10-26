@@ -51,14 +51,14 @@ describe("Shell clientLoader", () => {
 
   it("returns user, workspaces and activeId on success", async () => {
     const mockUser = {
-      id: "usr_1",
+      id: 1,
       name: "Toni",
       email: "toni@example.com",
     };
     const mockWorkspaces = [{ id: 1, name: "Workspace 1", personal: true }];
 
     vi.mocked(authClient.getSession).mockResolvedValueOnce({
-      data: { user: mockUser, session: { id: "sess_1" } },
+      data: { user: mockUser, session: { id: 1 } },
       error: null,
     });
     vi.mocked(refreshWorkspaces).mockResolvedValueOnce(mockWorkspaces);
@@ -75,13 +75,13 @@ describe("Shell clientLoader", () => {
 
   it("catches errors and returns apiError when API fails", async () => {
     const mockUser = {
-      id: "usr_1",
+      id: 1,
       name: "Toni",
       email: "toni@example.com",
     };
 
     vi.mocked(authClient.getSession).mockResolvedValueOnce({
-      data: { user: mockUser, session: { id: "sess_1" } },
+      data: { user: mockUser, session: { id: 1 } },
       error: null,
     });
     vi.mocked(refreshWorkspaces).mockRejectedValueOnce(
@@ -100,7 +100,7 @@ describe("Shell clientLoader", () => {
 
 describe("Shell component", () => {
   const dummyUser = {
-    id: "usr_1",
+    id: 1,
     name: "Toni",
     email: "toni@example.com",
     locale: "en",

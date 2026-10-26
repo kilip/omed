@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
 import { Logo } from "~/components/Logo";
 import { LanguageMenu, ThemeMenu } from "~/components/PreferenceMenus";
+import type { User } from "~/lib/auth-client";
 import { findModule, type ModuleMenuItem } from "~/lib/modules";
 import type { Workspace } from "~/lib/workspace";
 
@@ -76,7 +77,7 @@ function mapToMenuItems(
 }
 
 type NavBarProps = {
-  user: { name: string; email: string; image?: string | null };
+  user: User;
   workspaces: Workspace[];
   activeId?: number;
   onWorkspaceChange: (id: number) => void;
@@ -195,9 +196,9 @@ export function NavBar({
           ],
         }}
       >
-        <Button type="text" aria-label={user.name}>
+        <Button type="text" aria-label={user.name ?? undefined}>
           <Avatar size={24} src={user.image ?? undefined}>
-            {user.name.slice(0, 1).toUpperCase()}
+            {(user.name ?? "").slice(0, 1).toUpperCase()}
           </Avatar>
         </Button>
       </Dropdown>
