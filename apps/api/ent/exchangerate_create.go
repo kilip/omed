@@ -14,6 +14,7 @@ import (
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/shopspring/decimal"
 )
 
 // ExchangeRateCreate is the builder for creating a ExchangeRate entity.
@@ -111,7 +112,7 @@ func (_c *ExchangeRateCreate) SetToCurrency(v string) *ExchangeRateCreate {
 }
 
 // SetRate sets the "rate" field.
-func (_c *ExchangeRateCreate) SetRate(v float64) *ExchangeRateCreate {
+func (_c *ExchangeRateCreate) SetRate(v decimal.Decimal) *ExchangeRateCreate {
 	_c.mutation.SetRate(v)
 	return _c
 }
@@ -273,11 +274,6 @@ func (_c *ExchangeRateCreate) check() error {
 	if _, ok := _c.mutation.Rate(); !ok {
 		return &ValidationError{Name: "rate", err: errors.New(`ent: missing required field "ExchangeRate.rate"`)}
 	}
-	if v, ok := _c.mutation.Rate(); ok {
-		if err := exchangerate.RateValidator(v); err != nil {
-			return &ValidationError{Name: "rate", err: fmt.Errorf(`ent: validator failed for field "ExchangeRate.rate": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.EffectiveDate(); !ok {
 		return &ValidationError{Name: "effective_date", err: errors.New(`ent: missing required field "ExchangeRate.effective_date"`)}
 	}
@@ -353,7 +349,7 @@ func (_c *ExchangeRateCreate) createSpec() (*ExchangeRate, *sqlgraph.CreateSpec)
 		_node.ToCurrency = value
 	}
 	if value, ok := _c.mutation.Rate(); ok {
-		_spec.SetField(exchangerate.FieldRate, field.TypeFloat64, value)
+		_spec.SetField(exchangerate.FieldRate, field.TypeOther, value)
 		_node.Rate = value
 	}
 	if value, ok := _c.mutation.EffectiveDate(); ok {
@@ -585,7 +581,7 @@ func (u *ExchangeRateUpsert) UpdateToCurrency() *ExchangeRateUpsert {
 }
 
 // SetRate sets the "rate" field.
-func (u *ExchangeRateUpsert) SetRate(v float64) *ExchangeRateUpsert {
+func (u *ExchangeRateUpsert) SetRate(v decimal.Decimal) *ExchangeRateUpsert {
 	u.Set(exchangerate.FieldRate, v)
 	return u
 }
@@ -593,12 +589,6 @@ func (u *ExchangeRateUpsert) SetRate(v float64) *ExchangeRateUpsert {
 // UpdateRate sets the "rate" field to the value that was provided on create.
 func (u *ExchangeRateUpsert) UpdateRate() *ExchangeRateUpsert {
 	u.SetExcluded(exchangerate.FieldRate)
-	return u
-}
-
-// AddRate adds v to the "rate" field.
-func (u *ExchangeRateUpsert) AddRate(v float64) *ExchangeRateUpsert {
-	u.Add(exchangerate.FieldRate, v)
 	return u
 }
 
@@ -793,16 +783,9 @@ func (u *ExchangeRateUpsertOne) UpdateToCurrency() *ExchangeRateUpsertOne {
 }
 
 // SetRate sets the "rate" field.
-func (u *ExchangeRateUpsertOne) SetRate(v float64) *ExchangeRateUpsertOne {
+func (u *ExchangeRateUpsertOne) SetRate(v decimal.Decimal) *ExchangeRateUpsertOne {
 	return u.Update(func(s *ExchangeRateUpsert) {
 		s.SetRate(v)
-	})
-}
-
-// AddRate adds v to the "rate" field.
-func (u *ExchangeRateUpsertOne) AddRate(v float64) *ExchangeRateUpsertOne {
-	return u.Update(func(s *ExchangeRateUpsert) {
-		s.AddRate(v)
 	})
 }
 
@@ -1174,16 +1157,9 @@ func (u *ExchangeRateUpsertBulk) UpdateToCurrency() *ExchangeRateUpsertBulk {
 }
 
 // SetRate sets the "rate" field.
-func (u *ExchangeRateUpsertBulk) SetRate(v float64) *ExchangeRateUpsertBulk {
+func (u *ExchangeRateUpsertBulk) SetRate(v decimal.Decimal) *ExchangeRateUpsertBulk {
 	return u.Update(func(s *ExchangeRateUpsert) {
 		s.SetRate(v)
-	})
-}
-
-// AddRate adds v to the "rate" field.
-func (u *ExchangeRateUpsertBulk) AddRate(v float64) *ExchangeRateUpsertBulk {
-	return u.Update(func(s *ExchangeRateUpsert) {
-		s.AddRate(v)
 	})
 }
 

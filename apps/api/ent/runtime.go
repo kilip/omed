@@ -23,6 +23,7 @@ import (
 	"github.com/kilip/omed/api/ent/workspace"
 	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
+	"github.com/shopspring/decimal"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -268,10 +269,6 @@ func init() {
 			return nil
 		}
 	}()
-	// exchangerateDescRate is the schema descriptor for rate field.
-	exchangerateDescRate := exchangerateFields[3].Descriptor()
-	// exchangerate.RateValidator is a validator for the "rate" field. It is called by the builders before save.
-	exchangerate.RateValidator = exchangerateDescRate.Validators[0].(func(float64) error)
 	fileMixin := schema.File{}.Mixin()
 	fileMixinFields1 := fileMixin[1].Fields()
 	_ = fileMixinFields1
@@ -341,14 +338,6 @@ func init() {
 	posting.DefaultUpdatedAt = postingDescUpdatedAt.Default.(func() time.Time)
 	// posting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	posting.UpdateDefaultUpdatedAt = postingDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// postingDescAmount is the schema descriptor for amount field.
-	postingDescAmount := postingFields[4].Descriptor()
-	// posting.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
-	posting.AmountValidator = postingDescAmount.Validators[0].(func(float64) error)
-	// postingDescBaseAmount is the schema descriptor for base_amount field.
-	postingDescBaseAmount := postingFields[5].Descriptor()
-	// posting.BaseAmountValidator is a validator for the "base_amount" field. It is called by the builders before save.
-	posting.BaseAmountValidator = postingDescBaseAmount.Validators[0].(func(float64) error)
 	// postingDescPosition is the schema descriptor for position field.
 	postingDescPosition := postingFields[6].Descriptor()
 	// posting.DefaultPosition holds the default value on creation for the position field.
@@ -413,9 +402,7 @@ func init() {
 	// transactionDescExchangeRate is the schema descriptor for exchange_rate field.
 	transactionDescExchangeRate := transactionFields[6].Descriptor()
 	// transaction.DefaultExchangeRate holds the default value on creation for the exchange_rate field.
-	transaction.DefaultExchangeRate = transactionDescExchangeRate.Default.(float64)
-	// transaction.ExchangeRateValidator is a validator for the "exchange_rate" field. It is called by the builders before save.
-	transaction.ExchangeRateValidator = transactionDescExchangeRate.Validators[0].(func(float64) error)
+	transaction.DefaultExchangeRate = transactionDescExchangeRate.Default.(decimal.Decimal)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.

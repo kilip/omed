@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/shopspring/decimal"
 )
 
 const (
@@ -135,9 +136,7 @@ var (
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
 	// DefaultExchangeRate holds the default value on creation for the "exchange_rate" field.
-	DefaultExchangeRate float64
-	// ExchangeRateValidator is a validator for the "exchange_rate" field. It is called by the builders before save.
-	ExchangeRateValidator func(float64) error
+	DefaultExchangeRate decimal.Decimal
 )
 
 // Source defines the type for the "source" enum field.

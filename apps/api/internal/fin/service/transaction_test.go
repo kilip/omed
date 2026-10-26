@@ -16,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/service"
 	"github.com/kilip/omed/api/internal/platform/s3x"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -149,7 +150,7 @@ func (s *TransactionServiceSuite) Test_Create_WithoutEntry() {
 	s.Equal("Header only transaction", tx.Description)
 	s.Equal("INV-001", tx.Reference)
 	s.Equal("IDR", tx.Currency)
-	s.Equal(1.0, tx.ExchangeRate)
+	s.True(tx.ExchangeRate.Equal(dec(1)))
 	s.Empty(tx.Entries)
 }
 
@@ -157,7 +158,7 @@ func (s *TransactionServiceSuite) Test_Create_WithValidInlineEntry() {
 	ctx := s.ctx()
 	tDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
 
-	rate := 1.0
+	rate := decimal.NewFromInt(1)
 	tx, err := s.svc.Create(ctx, model.CreateTransactionRequest{
 		TransactionDate: tDate,
 		Description:     "Transaction with inline entry",
@@ -168,8 +169,8 @@ func (s *TransactionServiceSuite) Test_Create_WithValidInlineEntry() {
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 1000},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 1000},
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(1000)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(1000)},
 			},
 		},
 	})
@@ -195,8 +196,8 @@ func (s *TransactionServiceSuite) Test_Create_WithInvalidInlineEntry_Validations
 			PeriodID:  s.periodID,
 			EntryDate: outDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 			},
 		},
 	})
@@ -209,8 +210,8 @@ func (s *TransactionServiceSuite) Test_Create_WithInvalidInlineEntry_Validations
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(200)},
 			},
 		},
 	})
@@ -232,8 +233,8 @@ func (s *TransactionServiceSuite) Test_Create_WithInvalidInlineEntry_Validations
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: nonPostable.ID, Direction: "DEBIT", Amount: 100},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+				{AccountID: nonPostable.ID, Direction: "DEBIT", Amount: dec(100)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 			},
 		},
 	})
@@ -255,8 +256,8 @@ func (s *TransactionServiceSuite) Test_Create_WithInvalidInlineEntry_Validations
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: inactive.ID, Direction: "DEBIT", Amount: 100},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+				{AccountID: inactive.ID, Direction: "DEBIT", Amount: dec(100)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 			},
 		},
 	})
@@ -294,8 +295,8 @@ func (s *TransactionServiceSuite) Test_Update() {
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 			},
 		},
 	})
@@ -332,8 +333,8 @@ func (s *TransactionServiceSuite) Test_Delete() {
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 			},
 		},
 	})
@@ -404,8 +405,8 @@ func (s *TransactionServiceSuite) Test_Attachments_Lifecycle_Validation_And_Post
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 500},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 500},
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(500)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(500)},
 			},
 		},
 	})

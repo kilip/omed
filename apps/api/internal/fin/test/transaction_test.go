@@ -91,8 +91,8 @@ func (s *TransactionApiSuite) Test_Create_InlineEntry_Successfully() {
 			EntryDate:   tDate,
 			Description: "Capital deposit",
 			Postings: []model.CreatePostingRequest{
-				{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 5000000},
-				{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 5000000},
+				{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(5000000)},
+				{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(5000000)},
 			},
 		},
 	})
@@ -239,8 +239,8 @@ func (s *TransactionApiSuite) Test_Update_BlockedIfPosted() {
 			EntryDate:   tDate,
 			Description: "Capital deposit",
 			Postings: []model.CreatePostingRequest{
-				{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 100000},
-				{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 100000},
+				{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(100000)},
+				{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(100000)},
 			},
 		},
 	})
@@ -302,8 +302,8 @@ func (s *TransactionApiSuite) Test_Attachments_UploadGetDelete_And_PostedLock() 
 			EntryDate:   tDate,
 			Description: "Receipt entry",
 			Postings: []model.CreatePostingRequest{
-				{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 250000},
-				{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 250000},
+				{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(250000)},
+				{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(250000)},
 			},
 		},
 	})

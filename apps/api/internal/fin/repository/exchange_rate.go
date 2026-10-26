@@ -11,6 +11,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/entx"
+	"github.com/shopspring/decimal"
 )
 
 // ExchangeRateRepository defines persistence operations for exchange rates in a workspace.
@@ -50,7 +51,7 @@ func (r ExchangeRateRepository) GetByID(c context.Context, id int64) (domain.Exc
 func (r ExchangeRateRepository) Create(c context.Context, req model.CreateExchangeRateRequest) (domain.ExchangeRate, error) {
 	var dom domain.ExchangeRate
 
-	if req.Rate <= 0 {
+	if !req.Rate.IsPositive() {
 		return dom, domain.ErrExchangeRateInvalid
 	}
 
@@ -103,7 +104,7 @@ func (r ExchangeRateRepository) Create(c context.Context, req model.CreateExchan
 func (r ExchangeRateRepository) Update(c context.Context, id int64, req model.UpdateExchangeRateRequest) (domain.ExchangeRate, error) {
 	var dom domain.ExchangeRate
 
-	if req.Rate <= 0 {
+	if !req.Rate.IsPositive() {
 		return dom, domain.ErrExchangeRateInvalid
 	}
 
@@ -221,11 +222,11 @@ func (r ExchangeRateRepository) Search(c context.Context, req model.SearchExchan
 
 // Lookup finds the latest exchange rate effective on or before the given date.
 // If a direct pair (from -> to) is found, returns the rate.
-// If an inverse pair (to -> from) is found, returns 1.0 / rate.
+// If an inverse pair (to -> from) is found, returns 1.0 / rate rounded to 8 decimal places.
 // If neither is found, returns domain.ErrExchangeRateNotFound.
-func (r ExchangeRateRepository) Lookup(c context.Context, from, to string, date time.Time) (float64, error) {
+func (r ExchangeRateRepository) Lookup(c context.Context, from, to string, date time.Time) (decimal.Decimal, error) {
 	if from == to {
-		return 1.0, nil
+		return decimal.NewFromInt(1), nil
 	}
 
 	// 1. Direct pair lookup
@@ -239,13 +240,13 @@ func (r ExchangeRateRepository) Lookup(c context.Context, from, to string, date 
 		Order(ent.Desc(exchangerate.FieldEffectiveDate), ent.Desc(exchangerate.FieldID)).
 		First(c)
 	if err == nil {
-		if direct.Rate <= 0 {
-			return 0, domain.ErrExchangeRateInvalid
+		if !direct.Rate.IsPositive() {
+			return decimal.Zero, domain.ErrExchangeRateInvalid
 		}
 		return direct.Rate, nil
 	}
 	if !ent.IsNotFound(err) {
-		return 0, err
+		return decimal.Zero, err
 	}
 
 	// 2. Inverse pair lookup
@@ -259,16 +260,16 @@ func (r ExchangeRateRepository) Lookup(c context.Context, from, to string, date 
 		Order(ent.Desc(exchangerate.FieldEffectiveDate), ent.Desc(exchangerate.FieldID)).
 		First(c)
 	if err == nil {
-		if inverse.Rate <= 0 {
-			return 0, domain.ErrExchangeRateInvalid
+		if !inverse.Rate.IsPositive() {
+			return decimal.Zero, domain.ErrExchangeRateInvalid
 		}
-		return 1.0 / inverse.Rate, nil
+		return decimal.NewFromInt(1).DivRound(inverse.Rate, 8), nil
 	}
 	if !ent.IsNotFound(err) {
-		return 0, err
+		return decimal.Zero, err
 	}
 
-	return 0, domain.ErrExchangeRateNotFound
+	return decimal.Zero, domain.ErrExchangeRateNotFound
 }
 
 func toExchangeRateDomain(er *ent.ExchangeRate) domain.ExchangeRate {

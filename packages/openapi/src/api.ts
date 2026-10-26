@@ -8437,10 +8437,10 @@ export interface components {
     };
     "model.AccountLedgerResponse": {
       accountId?: number;
-      /** @example 1000 */
-      balance?: number;
-      /** @example 15000000 */
-      baseBalance?: number;
+      /** @example 1000.00 */
+      balance?: string;
+      /** @example 15000000.00 */
+      baseBalance?: string;
       limit?: number;
       /** @example DEBIT */
       normalBalance?: string;
@@ -8509,8 +8509,8 @@ export interface components {
       effectiveDate: string;
       /** @example USD */
       fromCurrency: string;
-      /** @example 16250 */
-      rate: number;
+      /** @example 16250.00000000 */
+      rate?: string;
       /**
        * @example MANUAL
        * @enum {string}
@@ -8549,9 +8549,10 @@ export interface components {
     };
     "model.CreatePostingRequest": {
       accountId: number;
-      /** @example 100000 */
-      amount?: number;
-      baseAmount?: number;
+      /** @example 100000.00 */
+      amount?: string;
+      /** @example 100000.00 */
+      baseAmount?: string;
       description?: string;
       /**
        * @example DEBIT
@@ -8564,8 +8565,8 @@ export interface components {
       currency?: string;
       description?: string;
       entry?: components["schemas"]["model.CreateEntryInlineRequest"];
-      /** @example 1 */
-      exchangeRate?: number;
+      /** @example 1.00000000 */
+      exchangeRate?: string;
       reference?: string;
       /** @example 2026-01-01 */
       transactionDate: string;
@@ -8575,20 +8576,20 @@ export interface components {
       name: string;
     };
     "model.CurrencyBreakdownItem": {
-      /** @example 0 */
-      baseCredit?: number;
-      /** @example 1600000 */
-      baseDebit?: number;
-      /** @example 1600000 */
-      baseNet?: number;
-      /** @example 0 */
-      credit?: number;
+      /** @example 0.00 */
+      baseCredit?: string;
+      /** @example 1600000.00 */
+      baseDebit?: string;
+      /** @example 1600000.00 */
+      baseNet?: string;
+      /** @example 0.00 */
+      credit?: string;
       /** @example USD */
       currency?: string;
-      /** @example 100 */
-      debit?: number;
-      /** @example 100 */
-      netBalance?: number;
+      /** @example 100.00 */
+      debit?: string;
+      /** @example 100.00 */
+      netBalance?: string;
     };
     "model.CurrencyResponse": {
       code?: string;
@@ -8618,8 +8619,8 @@ export interface components {
       date?: string;
       /** @example USD */
       fromCurrency?: string;
-      /** @example 16250 */
-      rate?: number;
+      /** @example 16250.00000000 */
+      rate?: string;
       /** @example IDR */
       toCurrency?: string;
     };
@@ -8630,7 +8631,8 @@ export interface components {
       effectiveDate?: string;
       fromCurrency?: string;
       id?: number;
-      rate?: number;
+      /** @example 16250.00000000 */
+      rate?: string;
       source?: string;
       toCurrency?: string;
       updatedAt?: string;
@@ -8662,18 +8664,18 @@ export interface components {
       totals?: components["schemas"]["model.FinancialSummaryTotals"];
     };
     "model.FinancialSummaryTotals": {
-      /** @example 150000000 */
-      assets?: number;
-      /** @example 115000000 */
-      equity?: number;
-      /** @example 45000000 */
-      expense?: number;
-      /** @example 35000000 */
-      liabilities?: number;
-      /** @example 40000000 */
-      netIncome?: number;
-      /** @example 85000000 */
-      revenue?: number;
+      /** @example 150000000.00 */
+      assets?: string;
+      /** @example 115000000.00 */
+      equity?: string;
+      /** @example 45000000.00 */
+      expense?: string;
+      /** @example 35000000.00 */
+      liabilities?: string;
+      /** @example 40000000.00 */
+      netIncome?: string;
+      /** @example 85000000.00 */
+      revenue?: string;
     };
     "model.InvitationResponse": {
       createdAt?: string;
@@ -8712,12 +8714,12 @@ export interface components {
       workspaceId?: number;
     };
     "model.MonthlyRevenueExpenseItem": {
-      /** @example 15000000 */
-      expense?: number;
+      /** @example 15000000.00 */
+      expense?: string;
       /** @example 2026-10 */
       month?: string;
-      /** @example 25000000 */
-      revenue?: number;
+      /** @example 25000000.00 */
+      revenue?: string;
     };
     "model.PageResponse": {
       auditMeta?: components["schemas"]["base.AuditMeta"];
@@ -8771,15 +8773,15 @@ export interface components {
     };
     "model.PostingResponse": {
       accountId?: number;
-      /** @example 100000 */
-      amount?: number;
+      /** @example 100000.00 */
+      amount?: string;
       auditMeta?: components["schemas"]["base.AuditMeta"];
-      /** @example 100000 */
-      balance?: number;
-      /** @example 100000 */
-      baseAmount?: number;
-      /** @example 100000 */
-      baseBalance?: number;
+      /** @example 100000.00 */
+      balance?: string;
+      /** @example 100000.00 */
+      baseAmount?: string;
+      /** @example 100000.00 */
+      baseBalance?: string;
       description?: string;
       /** @example DEBIT */
       direction?: string;
@@ -8787,10 +8789,10 @@ export interface components {
       id?: number;
       /** @example 0 */
       position?: number;
-      /** @example 100000 */
-      runningBalance?: number;
-      /** @example 100000 */
-      runningBaseBalance?: number;
+      /** @example 100000.00 */
+      runningBalance?: string;
+      /** @example 100000.00 */
+      runningBaseBalance?: string;
       workspaceId?: number;
     };
     "model.PublicCoverImage": {
@@ -8974,8 +8976,8 @@ export interface components {
       currency?: string;
       description?: string;
       entries?: components["schemas"]["model.EntryResponse"][];
-      /** @example 1 */
-      exchangeRate?: number;
+      /** @example 1.00000000 */
+      exchangeRate?: string;
       id?: number;
       number?: string;
       reference?: string;
@@ -8991,13 +8993,13 @@ export interface components {
       accountId?: number;
       /** @example Bank BCA IDR */
       accountName?: string;
-      /** @example 0 */
-      credit?: number;
+      /** @example 0.00 */
+      credit?: string;
       currencies?: components["schemas"]["model.CurrencyBreakdownItem"][];
-      /** @example 1000000 */
-      debit?: number;
-      /** @example 1000000 */
-      netBalance?: number;
+      /** @example 1000000.00 */
+      debit?: string;
+      /** @example 1000000.00 */
+      netBalance?: string;
       /** @example ASSET */
       type?: string;
     };
@@ -9015,10 +9017,10 @@ export interface components {
       baseCurrency?: string;
       /** @example true */
       isBalanced?: boolean;
-      /** @example 5000000 */
-      totalCredit?: number;
-      /** @example 5000000 */
-      totalDebit?: number;
+      /** @example 5000000.00 */
+      totalCredit?: string;
+      /** @example 5000000.00 */
+      totalDebit?: string;
     };
     "model.UpdateAccountRequest": {
       code?: string;
@@ -9040,8 +9042,8 @@ export interface components {
     "model.UpdateExchangeRateRequest": {
       /** @example 2026-01-01 */
       effectiveDate: string;
-      /** @example 16300 */
-      rate: number;
+      /** @example 16300.00000000 */
+      rate?: string;
       /**
        * @example MANUAL
        * @enum {string}

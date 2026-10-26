@@ -12,6 +12,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/fin/service"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -109,7 +110,7 @@ func (s *ReportServiceSuite) Test_TrialBalance() {
 		SetNumber("TRX-2026-000001").
 		SetTransactionDate(eDate).
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(dec(1)).
 		SetSource("MANUAL").
 		Save(ctx)
 	s.Require().NoError(err)
@@ -125,7 +126,7 @@ func (s *ReportServiceSuite) Test_TrialBalance() {
 		Save(ctx)
 	s.Require().NoError(err)
 
-	amt := 10000000.0
+	amt := dec(10000000)
 	_, err = s.client.Posting.Create().
 		SetEntryID(e.ID).
 		SetAccountID(bankAcc.ID).
@@ -154,25 +155,25 @@ func (s *ReportServiceSuite) Test_TrialBalance() {
 	})
 	s.Require().NoError(err)
 	s.True(res.IsBalanced)
-	s.Equal(10000000.0, res.TotalDebit)
-	s.Equal(10000000.0, res.TotalCredit)
+	s.True(res.TotalDebit.Equal(dec(10000000)))
+	s.True(res.TotalCredit.Equal(dec(10000000)))
 	s.Equal("IDR", res.BaseCurrency)
 
 	var foundBank, foundCap bool
 	for _, item := range res.Accounts {
 		if item.AccountID == bankAcc.ID {
 			foundBank = true
-			s.Equal(10000000.0, item.Debit)
-			s.Equal(0.0, item.Credit)
-			s.Equal(10000000.0, item.NetBalance)
+			s.True(item.Debit.Equal(dec(10000000)))
+			s.True(item.Credit.Equal(decimal.Zero))
+			s.True(item.NetBalance.Equal(dec(10000000)))
 			s.NotEmpty(item.Currencies)
 			s.Equal("IDR", item.Currencies[0].Currency)
 		}
 		if item.AccountID == capAcc.ID {
 			foundCap = true
-			s.Equal(0.0, item.Debit)
-			s.Equal(10000000.0, item.Credit)
-			s.Equal(10000000.0, item.NetBalance)
+			s.True(item.Debit.Equal(decimal.Zero))
+			s.True(item.Credit.Equal(dec(10000000)))
+			s.True(item.NetBalance.Equal(dec(10000000)))
 		}
 	}
 	s.True(foundBank)
@@ -201,7 +202,7 @@ func (s *ReportServiceSuite) Test_Summary() {
 		SetDescription("Income and Expense Transaction").
 		SetSource("MANUAL").
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(dec(1)).
 		Save(ctx)
 	s.Require().NoError(err)
 
@@ -221,8 +222,8 @@ func (s *ReportServiceSuite) Test_Summary() {
 		SetEntryID(e1.ID).
 		SetAccountID(bankAcc.ID).
 		SetDirection("DEBIT").
-		SetAmount(10000000.0).
-		SetBaseAmount(10000000.0).
+		SetAmount(dec(10000000)).
+		SetBaseAmount(dec(10000000)).
 		SetPosition(0).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -232,8 +233,8 @@ func (s *ReportServiceSuite) Test_Summary() {
 		SetEntryID(e1.ID).
 		SetAccountID(revAcc.ID).
 		SetDirection("CREDIT").
-		SetAmount(10000000.0).
-		SetBaseAmount(10000000.0).
+		SetAmount(dec(10000000)).
+		SetBaseAmount(dec(10000000)).
 		SetPosition(1).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -254,8 +255,8 @@ func (s *ReportServiceSuite) Test_Summary() {
 		SetEntryID(e2.ID).
 		SetAccountID(expAcc.ID).
 		SetDirection("DEBIT").
-		SetAmount(4000000.0).
-		SetBaseAmount(4000000.0).
+		SetAmount(dec(4000000)).
+		SetBaseAmount(dec(4000000)).
 		SetPosition(0).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -265,8 +266,8 @@ func (s *ReportServiceSuite) Test_Summary() {
 		SetEntryID(e2.ID).
 		SetAccountID(bankAcc.ID).
 		SetDirection("CREDIT").
-		SetAmount(4000000.0).
-		SetBaseAmount(4000000.0).
+		SetAmount(dec(4000000)).
+		SetBaseAmount(dec(4000000)).
 		SetPosition(1).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -275,10 +276,10 @@ func (s *ReportServiceSuite) Test_Summary() {
 	s.Require().NoError(err)
 
 	s.Equal("IDR", summary.BaseCurrency)
-	s.Equal(6000000.0, summary.Totals.Assets)    // 10m debit - 4m credit
-	s.Equal(10000000.0, summary.Totals.Revenue)  // 10m credit
-	s.Equal(4000000.0, summary.Totals.Expense)   // 4m debit
-	s.Equal(6000000.0, summary.Totals.NetIncome) // 10m - 4m
+	s.True(summary.Totals.Assets.Equal(dec(6000000)))     // 10m debit - 4m credit
+	s.True(summary.Totals.Revenue.Equal(dec(10000000)))  // 10m credit
+	s.True(summary.Totals.Expense.Equal(dec(4000000)))   // 4m debit
+	s.True(summary.Totals.NetIncome.Equal(dec(6000000))) // 10m - 4m
 	s.Len(summary.Monthly, 6)
 
 	currentMonthStr := now.Format("2006-01")
@@ -286,8 +287,8 @@ func (s *ReportServiceSuite) Test_Summary() {
 	for _, m := range summary.Monthly {
 		if m.Month == currentMonthStr {
 			foundCurrentMonth = true
-			s.Equal(10000000.0, m.Revenue)
-			s.Equal(4000000.0, m.Expense)
+			s.True(m.Revenue.Equal(dec(10000000)))
+			s.True(m.Expense.Equal(dec(4000000)))
 		}
 	}
 	s.True(foundCurrentMonth)

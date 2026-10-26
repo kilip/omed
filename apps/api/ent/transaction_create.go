@@ -15,6 +15,7 @@ import (
 	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/shopspring/decimal"
 )
 
 // TransactionCreate is the builder for creating a Transaction entity.
@@ -154,13 +155,13 @@ func (_c *TransactionCreate) SetNillableCurrency(v *string) *TransactionCreate {
 }
 
 // SetExchangeRate sets the "exchange_rate" field.
-func (_c *TransactionCreate) SetExchangeRate(v float64) *TransactionCreate {
+func (_c *TransactionCreate) SetExchangeRate(v decimal.Decimal) *TransactionCreate {
 	_c.mutation.SetExchangeRate(v)
 	return _c
 }
 
 // SetNillableExchangeRate sets the "exchange_rate" field if the given value is not nil.
-func (_c *TransactionCreate) SetNillableExchangeRate(v *float64) *TransactionCreate {
+func (_c *TransactionCreate) SetNillableExchangeRate(v *decimal.Decimal) *TransactionCreate {
 	if v != nil {
 		_c.SetExchangeRate(*v)
 	}
@@ -344,11 +345,6 @@ func (_c *TransactionCreate) check() error {
 	if _, ok := _c.mutation.ExchangeRate(); !ok {
 		return &ValidationError{Name: "exchange_rate", err: errors.New(`ent: missing required field "Transaction.exchange_rate"`)}
 	}
-	if v, ok := _c.mutation.ExchangeRate(); ok {
-		if err := transaction.ExchangeRateValidator(v); err != nil {
-			return &ValidationError{Name: "exchange_rate", err: fmt.Errorf(`ent: validator failed for field "Transaction.exchange_rate": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Source(); !ok {
 		return &ValidationError{Name: "source", err: errors.New(`ent: missing required field "Transaction.source"`)}
 	}
@@ -433,7 +429,7 @@ func (_c *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 		_node.Currency = value
 	}
 	if value, ok := _c.mutation.ExchangeRate(); ok {
-		_spec.SetField(transaction.FieldExchangeRate, field.TypeFloat64, value)
+		_spec.SetField(transaction.FieldExchangeRate, field.TypeOther, value)
 		_node.ExchangeRate = value
 	}
 	if value, ok := _c.mutation.Source(); ok {
@@ -726,7 +722,7 @@ func (u *TransactionUpsert) UpdateCurrency() *TransactionUpsert {
 }
 
 // SetExchangeRate sets the "exchange_rate" field.
-func (u *TransactionUpsert) SetExchangeRate(v float64) *TransactionUpsert {
+func (u *TransactionUpsert) SetExchangeRate(v decimal.Decimal) *TransactionUpsert {
 	u.Set(transaction.FieldExchangeRate, v)
 	return u
 }
@@ -734,12 +730,6 @@ func (u *TransactionUpsert) SetExchangeRate(v float64) *TransactionUpsert {
 // UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
 func (u *TransactionUpsert) UpdateExchangeRate() *TransactionUpsert {
 	u.SetExcluded(transaction.FieldExchangeRate)
-	return u
-}
-
-// AddExchangeRate adds v to the "exchange_rate" field.
-func (u *TransactionUpsert) AddExchangeRate(v float64) *TransactionUpsert {
-	u.Add(transaction.FieldExchangeRate, v)
 	return u
 }
 
@@ -978,16 +968,9 @@ func (u *TransactionUpsertOne) UpdateCurrency() *TransactionUpsertOne {
 }
 
 // SetExchangeRate sets the "exchange_rate" field.
-func (u *TransactionUpsertOne) SetExchangeRate(v float64) *TransactionUpsertOne {
+func (u *TransactionUpsertOne) SetExchangeRate(v decimal.Decimal) *TransactionUpsertOne {
 	return u.Update(func(s *TransactionUpsert) {
 		s.SetExchangeRate(v)
-	})
-}
-
-// AddExchangeRate adds v to the "exchange_rate" field.
-func (u *TransactionUpsertOne) AddExchangeRate(v float64) *TransactionUpsertOne {
-	return u.Update(func(s *TransactionUpsert) {
-		s.AddExchangeRate(v)
 	})
 }
 
@@ -1401,16 +1384,9 @@ func (u *TransactionUpsertBulk) UpdateCurrency() *TransactionUpsertBulk {
 }
 
 // SetExchangeRate sets the "exchange_rate" field.
-func (u *TransactionUpsertBulk) SetExchangeRate(v float64) *TransactionUpsertBulk {
+func (u *TransactionUpsertBulk) SetExchangeRate(v decimal.Decimal) *TransactionUpsertBulk {
 	return u.Update(func(s *TransactionUpsert) {
 		s.SetExchangeRate(v)
-	})
-}
-
-// AddExchangeRate adds v to the "exchange_rate" field.
-func (u *TransactionUpsertBulk) AddExchangeRate(v float64) *TransactionUpsertBulk {
-	return u.Update(func(s *TransactionUpsert) {
-		s.AddExchangeRate(v)
 	})
 }
 

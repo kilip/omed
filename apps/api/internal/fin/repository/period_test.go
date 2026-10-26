@@ -11,6 +11,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -230,7 +231,7 @@ func (s *PeriodRepoSuite) Test_HasDraftEntries() {
 		SetNumber("TRX-2026-000002").
 		SetTransactionDate(time.Date(2026, 2, 15, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(decimal.NewFromInt(1)).
 		SetSource("MANUAL").
 		Save(ctx)
 	s.Require().NoError(err)
@@ -276,7 +277,7 @@ func (s *PeriodRepoSuite) Test_HasRevaluationEntry() {
 		SetNumber("TRX-2026-000003").
 		SetTransactionDate(time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(decimal.NewFromInt(1)).
 		SetReference(ref).
 		SetSource("SYSTEM").
 		Save(ctx)

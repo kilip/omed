@@ -11,6 +11,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/platform/money"
+	"github.com/shopspring/decimal"
 )
 
 // ReportRepository defines persistence queries required for financial reporting.
@@ -77,31 +78,31 @@ func (s ReportService) TrialBalance(ctx context.Context, req model.TrialBalanceR
 
 	includeBreakdown := req.IncludePerCurrencyBreakdown != nil && *req.IncludePerCurrencyBreakdown
 
-	var totalDebit, totalCredit float64
+	var totalDebit, totalCredit decimal.Decimal
 	var accountItems []model.TrialBalanceAccountItem
 
 	for _, acc := range accounts {
 		bal := balances[acc.ID]
 
 		// In trial balance: debit and credit are reported in base currency
-		baseDebit := money.Round(bal.BaseDebit, baseDecimals)
-		baseCredit := money.Round(bal.BaseCredit, baseDecimals)
+		baseDebit := money.Round(bal.BaseDebit, int32(baseDecimals))
+		baseCredit := money.Round(bal.BaseCredit, int32(baseDecimals))
 
 		// Calculate net balance based on normal balance
-		var netBalance float64
+		var netBalance decimal.Decimal
 		if acc.NormalBalance == domain.NormalBalanceDebit {
-			netBalance = money.Round(baseDebit-baseCredit, baseDecimals)
+			netBalance = money.Round(baseDebit.Sub(baseCredit), int32(baseDecimals))
 		} else {
-			netBalance = money.Round(baseCredit-baseDebit, baseDecimals)
+			netBalance = money.Round(baseCredit.Sub(baseDebit), int32(baseDecimals))
 		}
 
 		// Include active or accounts with transaction activity
-		if baseDebit == 0 && baseCredit == 0 && !acc.IsActive {
+		if baseDebit.IsZero() && baseCredit.IsZero() && !acc.IsActive {
 			continue
 		}
 
-		totalDebit += baseDebit
-		totalCredit += baseCredit
+		totalDebit = totalDebit.Add(baseDebit)
+		totalCredit = totalCredit.Add(baseCredit)
 
 		item := model.TrialBalanceAccountItem{
 			AccountID:   acc.ID,
@@ -118,20 +119,20 @@ func (s ReportService) TrialBalance(ctx context.Context, req model.TrialBalanceR
 			for currCode, cbal := range bal.Currencies {
 				cDebit := money.Round(cbal.Debit, 4)
 				cCredit := money.Round(cbal.Credit, 4)
-				var cNet float64
+				var cNet decimal.Decimal
 				if acc.NormalBalance == domain.NormalBalanceDebit {
-					cNet = money.Round(cDebit-cCredit, 4)
+					cNet = money.Round(cDebit.Sub(cCredit), 4)
 				} else {
-					cNet = money.Round(cCredit-cDebit, 4)
+					cNet = money.Round(cCredit.Sub(cDebit), 4)
 				}
 
-				cbDebit := money.Round(cbal.BaseDebit, baseDecimals)
-				cbCredit := money.Round(cbal.BaseCredit, baseDecimals)
-				var cbNet float64
+				cbDebit := money.Round(cbal.BaseDebit, int32(baseDecimals))
+				cbCredit := money.Round(cbal.BaseCredit, int32(baseDecimals))
+				var cbNet decimal.Decimal
 				if acc.NormalBalance == domain.NormalBalanceDebit {
-					cbNet = money.Round(cbDebit-cbCredit, baseDecimals)
+					cbNet = money.Round(cbDebit.Sub(cbCredit), int32(baseDecimals))
 				} else {
-					cbNet = money.Round(cbCredit-cbDebit, baseDecimals)
+					cbNet = money.Round(cbCredit.Sub(cbDebit), int32(baseDecimals))
 				}
 
 				currencies = append(currencies, model.CurrencyBreakdownItem{
@@ -153,9 +154,9 @@ func (s ReportService) TrialBalance(ctx context.Context, req model.TrialBalanceR
 		accountItems = append(accountItems, item)
 	}
 
-	totalDebit = money.Round(totalDebit, baseDecimals)
-	totalCredit = money.Round(totalCredit, baseDecimals)
-	isBalanced := money.Equal(totalDebit, totalCredit, baseDecimals)
+	totalDebit = money.Round(totalDebit, int32(baseDecimals))
+	totalCredit = money.Round(totalCredit, int32(baseDecimals))
+	isBalanced := money.Equal(totalDebit, totalCredit, int32(baseDecimals))
 
 	return model.TrialBalanceResponse{
 		AsOfDate:     req.AsOfDate,
@@ -195,29 +196,29 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 	var totals model.FinancialSummaryTotals
 	for _, acc := range accounts {
 		bal := balances[acc.ID]
-		baseDebit := money.Round(bal.BaseDebit, baseDecimals)
-		baseCredit := money.Round(bal.BaseCredit, baseDecimals)
+		baseDebit := money.Round(bal.BaseDebit, int32(baseDecimals))
+		baseCredit := money.Round(bal.BaseCredit, int32(baseDecimals))
 
 		switch acc.Type {
 		case domain.AccountTypeAsset:
-			totals.Assets += baseDebit - baseCredit
+			totals.Assets = totals.Assets.Add(baseDebit.Sub(baseCredit))
 		case domain.AccountTypeLiability:
-			totals.Liabilities += baseCredit - baseDebit
+			totals.Liabilities = totals.Liabilities.Add(baseCredit.Sub(baseDebit))
 		case domain.AccountTypeEquity:
-			totals.Equity += baseCredit - baseDebit
+			totals.Equity = totals.Equity.Add(baseCredit.Sub(baseDebit))
 		case domain.AccountTypeRevenue:
-			totals.Revenue += baseCredit - baseDebit
+			totals.Revenue = totals.Revenue.Add(baseCredit.Sub(baseDebit))
 		case domain.AccountTypeExpense:
-			totals.Expense += baseDebit - baseCredit
+			totals.Expense = totals.Expense.Add(baseDebit.Sub(baseCredit))
 		}
 	}
 
-	totals.Assets = money.Round(totals.Assets, baseDecimals)
-	totals.Liabilities = money.Round(totals.Liabilities, baseDecimals)
-	totals.Equity = money.Round(totals.Equity, baseDecimals)
-	totals.Revenue = money.Round(totals.Revenue, baseDecimals)
-	totals.Expense = money.Round(totals.Expense, baseDecimals)
-	totals.NetIncome = money.Round(totals.Revenue-totals.Expense, baseDecimals)
+	totals.Assets = money.Round(totals.Assets, int32(baseDecimals))
+	totals.Liabilities = money.Round(totals.Liabilities, int32(baseDecimals))
+	totals.Equity = money.Round(totals.Equity, int32(baseDecimals))
+	totals.Revenue = money.Round(totals.Revenue, int32(baseDecimals))
+	totals.Expense = money.Round(totals.Expense, int32(baseDecimals))
+	totals.NetIncome = money.Round(totals.Revenue.Sub(totals.Expense), int32(baseDecimals))
 
 	// Build list of months from (months-1) ago up to current month
 	monthList := make([]string, months)
@@ -236,8 +237,8 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 	}
 
 	type monthlyAccSum struct {
-		revenue float64
-		expense float64
+		revenue decimal.Decimal
+		expense decimal.Decimal
 	}
 	monthlySums := make(map[string]*monthlyAccSum)
 	for _, m := range monthList {
@@ -254,9 +255,9 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 			continue
 		}
 		if acc.Type == domain.AccountTypeRevenue {
-			ms.revenue += f.BaseCredit - f.BaseDebit
+			ms.revenue = ms.revenue.Add(f.BaseCredit.Sub(f.BaseDebit))
 		} else if acc.Type == domain.AccountTypeExpense {
-			ms.expense += f.BaseDebit - f.BaseCredit
+			ms.expense = ms.expense.Add(f.BaseDebit.Sub(f.BaseCredit))
 		}
 	}
 
@@ -265,8 +266,8 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 		ms := monthlySums[m]
 		monthlyItems = append(monthlyItems, model.MonthlyRevenueExpenseItem{
 			Month:   m,
-			Revenue: money.Round(ms.revenue, baseDecimals),
-			Expense: money.Round(ms.expense, baseDecimals),
+			Revenue: money.Round(ms.revenue, int32(baseDecimals)),
+			Expense: money.Round(ms.expense, int32(baseDecimals)),
 		})
 	}
 

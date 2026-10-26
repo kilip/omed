@@ -117,8 +117,6 @@ var (
 	FromCurrencyValidator func(string) error
 	// ToCurrencyValidator is a validator for the "to_currency" field. It is called by the builders before save.
 	ToCurrencyValidator func(string) error
-	// RateValidator is a validator for the "rate" field. It is called by the builders before save.
-	RateValidator func(float64) error
 )
 
 // Source defines the type for the "source" enum field.

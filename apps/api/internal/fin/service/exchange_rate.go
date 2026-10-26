@@ -7,6 +7,7 @@ import (
 
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
+	"github.com/shopspring/decimal"
 )
 
 // ExchangeRateRepository defines persistence operations for exchange rates.
@@ -16,7 +17,7 @@ type ExchangeRateRepository interface {
 	Update(c context.Context, id int64, req model.UpdateExchangeRateRequest) (domain.ExchangeRate, error)
 	Delete(c context.Context, id int64) error
 	Search(c context.Context, req model.SearchExchangeRateRequest) ([]domain.ExchangeRate, string, error)
-	Lookup(c context.Context, from, to string, date time.Time) (float64, error)
+	Lookup(c context.Context, from, to string, date time.Time) (decimal.Decimal, error)
 }
 
 // ExchangeRateService manages business logic and rate resolution for foreign exchange.
@@ -68,6 +69,6 @@ func (s ExchangeRateService) Search(c context.Context, req model.SearchExchangeR
 }
 
 // Lookup finds the latest exchange rate for a currency pair effective on or before the given date.
-func (s ExchangeRateService) Lookup(c context.Context, from, to string, date time.Time) (float64, error) {
+func (s ExchangeRateService) Lookup(c context.Context, from, to string, date time.Time) (decimal.Decimal, error) {
 	return s.repo.Lookup(c, from, to, date)
 }

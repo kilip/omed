@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"github.com/shopspring/decimal"
 )
 
 // Posting holds the schema definition for the Posting entity.
@@ -43,8 +44,14 @@ func (Posting) Fields() []ent.Field {
 		field.Int64("entry_id").Immutable(),
 		field.Int64("account_id"),
 		field.Enum("direction").Values("DEBIT", "CREDIT"),
-		field.Float("amount").Min(0).SchemaType(map[string]string{dialect.Postgres: "numeric(20,4)"}),
-		field.Float("base_amount").Min(0).SchemaType(map[string]string{dialect.Postgres: "numeric(20,4)"}),
+		field.Other("amount", decimal.Decimal{}).SchemaType(map[string]string{
+			dialect.Postgres: "numeric(20,4)",
+			dialect.SQLite:   "numeric(20,4)",
+		}),
+		field.Other("base_amount", decimal.Decimal{}).SchemaType(map[string]string{
+			dialect.Postgres: "numeric(20,4)",
+			dialect.SQLite:   "numeric(20,4)",
+		}),
 		field.Int("position").NonNegative().Default(0),
 		field.String("description").Optional(),
 	}

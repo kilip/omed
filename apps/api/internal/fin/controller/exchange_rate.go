@@ -10,6 +10,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
+	"github.com/shopspring/decimal"
 )
 
 // ExchangeRateServiceContract defines the operations required by ExchangeRateController.
@@ -19,7 +20,7 @@ type ExchangeRateServiceContract interface {
 	Update(c context.Context, id int64, req model.UpdateExchangeRateRequest) (domain.ExchangeRate, error)
 	Delete(c context.Context, id int64) error
 	Search(c context.Context, req model.SearchExchangeRateRequest) ([]domain.ExchangeRate, string, error)
-	Lookup(c context.Context, from, to string, date time.Time) (float64, error)
+	Lookup(c context.Context, from, to string, date time.Time) (decimal.Decimal, error)
 }
 
 // ExchangeRateController handles HTTP requests for Exchange Rates.

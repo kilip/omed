@@ -15,6 +15,7 @@ import (
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/shopspring/decimal"
 )
 
 // ExchangeRateUpdate is the builder for updating ExchangeRate entities.
@@ -133,23 +134,16 @@ func (_u *ExchangeRateUpdate) SetNillableToCurrency(v *string) *ExchangeRateUpda
 }
 
 // SetRate sets the "rate" field.
-func (_u *ExchangeRateUpdate) SetRate(v float64) *ExchangeRateUpdate {
-	_u.mutation.ResetRate()
+func (_u *ExchangeRateUpdate) SetRate(v decimal.Decimal) *ExchangeRateUpdate {
 	_u.mutation.SetRate(v)
 	return _u
 }
 
 // SetNillableRate sets the "rate" field if the given value is not nil.
-func (_u *ExchangeRateUpdate) SetNillableRate(v *float64) *ExchangeRateUpdate {
+func (_u *ExchangeRateUpdate) SetNillableRate(v *decimal.Decimal) *ExchangeRateUpdate {
 	if v != nil {
 		_u.SetRate(*v)
 	}
-	return _u
-}
-
-// AddRate adds value to the "rate" field.
-func (_u *ExchangeRateUpdate) AddRate(v float64) *ExchangeRateUpdate {
-	_u.mutation.AddRate(v)
 	return _u
 }
 
@@ -293,11 +287,6 @@ func (_u *ExchangeRateUpdate) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRate.to_currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Rate(); ok {
-		if err := exchangerate.RateValidator(v); err != nil {
-			return &ValidationError{Name: "rate", err: fmt.Errorf(`ent: validator failed for field "ExchangeRate.rate": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Source(); ok {
 		if err := exchangerate.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "ExchangeRate.source": %w`, err)}
@@ -343,10 +332,7 @@ func (_u *ExchangeRateUpdate) sqlSave(ctx context.Context) (_node int, err error
 		_spec.SetField(exchangerate.FieldToCurrency, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Rate(); ok {
-		_spec.SetField(exchangerate.FieldRate, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedRate(); ok {
-		_spec.AddField(exchangerate.FieldRate, field.TypeFloat64, value)
+		_spec.SetField(exchangerate.FieldRate, field.TypeOther, value)
 	}
 	if value, ok := _u.mutation.EffectiveDate(); ok {
 		_spec.SetField(exchangerate.FieldEffectiveDate, field.TypeTime, value)
@@ -572,23 +558,16 @@ func (_u *ExchangeRateUpdateOne) SetNillableToCurrency(v *string) *ExchangeRateU
 }
 
 // SetRate sets the "rate" field.
-func (_u *ExchangeRateUpdateOne) SetRate(v float64) *ExchangeRateUpdateOne {
-	_u.mutation.ResetRate()
+func (_u *ExchangeRateUpdateOne) SetRate(v decimal.Decimal) *ExchangeRateUpdateOne {
 	_u.mutation.SetRate(v)
 	return _u
 }
 
 // SetNillableRate sets the "rate" field if the given value is not nil.
-func (_u *ExchangeRateUpdateOne) SetNillableRate(v *float64) *ExchangeRateUpdateOne {
+func (_u *ExchangeRateUpdateOne) SetNillableRate(v *decimal.Decimal) *ExchangeRateUpdateOne {
 	if v != nil {
 		_u.SetRate(*v)
 	}
-	return _u
-}
-
-// AddRate adds value to the "rate" field.
-func (_u *ExchangeRateUpdateOne) AddRate(v float64) *ExchangeRateUpdateOne {
-	_u.mutation.AddRate(v)
 	return _u
 }
 
@@ -745,11 +724,6 @@ func (_u *ExchangeRateUpdateOne) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRate.to_currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Rate(); ok {
-		if err := exchangerate.RateValidator(v); err != nil {
-			return &ValidationError{Name: "rate", err: fmt.Errorf(`ent: validator failed for field "ExchangeRate.rate": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Source(); ok {
 		if err := exchangerate.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "ExchangeRate.source": %w`, err)}
@@ -812,10 +786,7 @@ func (_u *ExchangeRateUpdateOne) sqlSave(ctx context.Context) (_node *ExchangeRa
 		_spec.SetField(exchangerate.FieldToCurrency, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Rate(); ok {
-		_spec.SetField(exchangerate.FieldRate, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedRate(); ok {
-		_spec.AddField(exchangerate.FieldRate, field.TypeFloat64, value)
+		_spec.SetField(exchangerate.FieldRate, field.TypeOther, value)
 	}
 	if value, ok := _u.mutation.EffectiveDate(); ok {
 		_spec.SetField(exchangerate.FieldEffectiveDate, field.TypeTime, value)

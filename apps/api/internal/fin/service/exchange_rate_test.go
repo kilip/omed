@@ -14,6 +14,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/seed"
 	"github.com/kilip/omed/api/internal/fin/service"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -145,7 +146,7 @@ func (s *ExchangeRateServiceSuite) Test_Create_ValidatesCurrencies() {
 	_, err := s.svc.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "UNKNOWN",
 		ToCurrency:    "IDR",
-		Rate:          16000.0,
+		Rate:          decimal.NewFromInt(16000),
 		EffectiveDate: model.Date(d),
 	})
 	s.Assert().ErrorIs(err, domain.ErrCurrencyNotFound)
@@ -154,11 +155,11 @@ func (s *ExchangeRateServiceSuite) Test_Create_ValidatesCurrencies() {
 	created, err := s.svc.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16200.0,
+		Rate:          decimal.NewFromInt(16200),
 		EffectiveDate: model.Date(d),
 	})
 	s.Require().NoError(err)
-	s.Assert().Equal(16200.0, created.Rate)
+	s.Assert().True(created.Rate.Equal(decimal.NewFromInt(16200)))
 }
 
 func (s *ExchangeRateServiceSuite) Test_TransactionRateResolution() {
@@ -172,7 +173,7 @@ func (s *ExchangeRateServiceSuite) Test_TransactionRateResolution() {
 		Description:     "Base currency tx",
 	})
 	s.Require().NoError(err)
-	s.Assert().Equal(1.0, tx1.ExchangeRate)
+	s.Assert().True(tx1.ExchangeRate.Equal(decimal.NewFromInt(1)))
 
 	// 2. Transaction in foreign currency (USD) without explicit rate and without FX rate set -> ErrExchangeRateNotFound
 	_, err = s.txSvc.Create(ctx, model.CreateTransactionRequest{
@@ -186,7 +187,7 @@ func (s *ExchangeRateServiceSuite) Test_TransactionRateResolution() {
 	_, err = s.svc.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16250.0,
+		Rate:          decimal.NewFromInt(16250),
 		EffectiveDate: model.Date(d),
 	})
 	s.Require().NoError(err)
@@ -198,10 +199,10 @@ func (s *ExchangeRateServiceSuite) Test_TransactionRateResolution() {
 		Description:     "Foreign currency tx resolved from lookup",
 	})
 	s.Require().NoError(err)
-	s.Assert().Equal(16250.0, tx2.ExchangeRate)
+	s.Assert().True(tx2.ExchangeRate.Equal(decimal.NewFromInt(16250)))
 
 	// 4. Transaction with explicit rate uses explicit rate
-	explicitRate := 16000.0
+	explicitRate := decimal.NewFromInt(16000)
 	tx3, err := s.txSvc.Create(ctx, model.CreateTransactionRequest{
 		TransactionDate: model.Date(d),
 		Currency:        "USD",
@@ -209,5 +210,5 @@ func (s *ExchangeRateServiceSuite) Test_TransactionRateResolution() {
 		Description:     "Explicit rate tx",
 	})
 	s.Require().NoError(err)
-	s.Assert().Equal(16000.0, tx3.ExchangeRate)
+	s.Assert().True(tx3.ExchangeRate.Equal(decimal.NewFromInt(16000)))
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -110,7 +111,7 @@ func (s *TransactionRepoSuite) Test_CreateAndGetByID() {
 	ctx := s.ctx()
 
 	tDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
-	rate := 1.0
+	rate := decimal.NewFromInt(1)
 
 	t, err := s.repo.Create(ctx, model.CreateTransactionRequest{
 		TransactionDate: tDate,
@@ -124,7 +125,7 @@ func (s *TransactionRepoSuite) Test_CreateAndGetByID() {
 	s.Equal("Initial investment", t.Description)
 	s.Equal("REF-001", t.Reference)
 	s.Equal("IDR", t.Currency)
-	s.Equal(1.0, t.ExchangeRate)
+	s.True(t.ExchangeRate.Equal(decimal.NewFromInt(1)))
 	s.Equal(domain.TransactionSourceManual, t.Source)
 	s.Empty(t.Entries)
 
@@ -140,7 +141,7 @@ func (s *TransactionRepoSuite) Test_CreateWithInlineEntryAndPostings() {
 	ctx := s.ctx()
 
 	tDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
-	rate := 1.0
+	rate := decimal.NewFromInt(1)
 
 	t, err := s.repo.Create(ctx, model.CreateTransactionRequest{
 		TransactionDate: tDate,
@@ -156,13 +157,13 @@ func (s *TransactionRepoSuite) Test_CreateWithInlineEntryAndPostings() {
 				{
 					AccountID:   s.accountID1,
 					Direction:   "DEBIT",
-					Amount:      500000,
+					Amount:      decimal.NewFromInt(500000),
 					Description: "Debit cash",
 				},
 				{
 					AccountID:   s.accountID2,
 					Direction:   "CREDIT",
-					Amount:      500000,
+					Amount:      decimal.NewFromInt(500000),
 					Description: "Credit revenue",
 				},
 			},
@@ -181,15 +182,15 @@ func (s *TransactionRepoSuite) Test_CreateWithInlineEntryAndPostings() {
 	p1 := e.Postings[0]
 	s.Equal(s.accountID1, p1.AccountID)
 	s.Equal("DEBIT", p1.Direction)
-	s.Equal(500000.0, p1.Amount)
-	s.Equal(500000.0, p1.BaseAmount)
+	s.True(p1.Amount.Equal(decimal.NewFromInt(500000)))
+	s.True(p1.BaseAmount.Equal(decimal.NewFromInt(500000)))
 	s.Equal(0, p1.Position)
 
 	p2 := e.Postings[1]
 	s.Equal(s.accountID2, p2.AccountID)
 	s.Equal("CREDIT", p2.Direction)
-	s.Equal(500000.0, p2.Amount)
-	s.Equal(500000.0, p2.BaseAmount)
+	s.True(p2.Amount.Equal(decimal.NewFromInt(500000)))
+	s.True(p2.BaseAmount.Equal(decimal.NewFromInt(500000)))
 	s.Equal(1, p2.Position)
 }
 
@@ -245,8 +246,8 @@ func (s *TransactionRepoSuite) Test_Update_BlockedIfPostedEntries() {
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: decimal.NewFromInt(100)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: decimal.NewFromInt(100)},
 			},
 		},
 	})
@@ -279,8 +280,8 @@ func (s *TransactionRepoSuite) Test_Delete_SuccessAndBlocked() {
 			PeriodID:  s.periodID,
 			EntryDate: tDate,
 			Postings: []model.CreatePostingRequest{
-				{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-				{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+				{AccountID: s.accountID1, Direction: "DEBIT", Amount: decimal.NewFromInt(100)},
+				{AccountID: s.accountID2, Direction: "CREDIT", Amount: decimal.NewFromInt(100)},
 			},
 		},
 	})

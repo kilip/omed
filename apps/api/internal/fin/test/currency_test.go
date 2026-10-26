@@ -13,6 +13,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -108,7 +109,7 @@ func (s *CurrencyApiSuite) Test_UpdateBaseCurrency_SuccessAndLock() {
 		SetNumber("TRX-2026-999901").
 		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("USD").
-		SetExchangeRate(1.0).
+		SetExchangeRate(decimal.NewFromInt(1)).
 		Save(wsCtx)
 	s.Require().NoError(err)
 

@@ -29,6 +29,7 @@ import (
 	"github.com/kilip/omed/api/ent/workspace"
 	"github.com/kilip/omed/api/ent/workspaceinvitation"
 	"github.com/kilip/omed/api/ent/workspacemember"
+	"github.com/shopspring/decimal"
 )
 
 const (
@@ -8107,8 +8108,7 @@ type ExchangeRateMutation struct {
 	deleted_at       *time.Time
 	from_currency    *string
 	to_currency      *string
-	rate             *float64
-	addrate          *float64
+	rate             *decimal.Decimal
 	effective_date   *time.Time
 	source           *exchangerate.Source
 	clearedFields    map[string]struct{}
@@ -8580,13 +8580,12 @@ func (m *ExchangeRateMutation) ResetToCurrency() {
 }
 
 // SetRate sets the "rate" field.
-func (m *ExchangeRateMutation) SetRate(f float64) {
-	m.rate = &f
-	m.addrate = nil
+func (m *ExchangeRateMutation) SetRate(d decimal.Decimal) {
+	m.rate = &d
 }
 
 // Rate returns the value of the "rate" field in the mutation.
-func (m *ExchangeRateMutation) Rate() (r float64, exists bool) {
+func (m *ExchangeRateMutation) Rate() (r decimal.Decimal, exists bool) {
 	v := m.rate
 	if v == nil {
 		return
@@ -8597,7 +8596,7 @@ func (m *ExchangeRateMutation) Rate() (r float64, exists bool) {
 // OldRate returns the old "rate" field's value of the ExchangeRate entity.
 // If the ExchangeRate object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ExchangeRateMutation) OldRate(ctx context.Context) (v float64, err error) {
+func (m *ExchangeRateMutation) OldRate(ctx context.Context) (v decimal.Decimal, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRate is only allowed on UpdateOne operations")
 	}
@@ -8611,28 +8610,9 @@ func (m *ExchangeRateMutation) OldRate(ctx context.Context) (v float64, err erro
 	return oldValue.Rate, nil
 }
 
-// AddRate adds f to the "rate" field.
-func (m *ExchangeRateMutation) AddRate(f float64) {
-	if m.addrate != nil {
-		*m.addrate += f
-	} else {
-		m.addrate = &f
-	}
-}
-
-// AddedRate returns the value that was added to the "rate" field in this mutation.
-func (m *ExchangeRateMutation) AddedRate() (r float64, exists bool) {
-	v := m.addrate
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetRate resets all changes to the "rate" field.
 func (m *ExchangeRateMutation) ResetRate() {
 	m.rate = nil
-	m.addrate = nil
 }
 
 // SetEffectiveDate sets the "effective_date" field.
@@ -9063,7 +9043,7 @@ func (m *ExchangeRateMutation) SetField(name string, value ent.Value) error {
 		m.SetToCurrency(v)
 		return nil
 	case exchangerate.FieldRate:
-		v, ok := value.(float64)
+		v, ok := value.(decimal.Decimal)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -9091,9 +9071,6 @@ func (m *ExchangeRateMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *ExchangeRateMutation) AddedFields() []string {
 	var fields []string
-	if m.addrate != nil {
-		fields = append(fields, exchangerate.FieldRate)
-	}
 	return fields
 }
 
@@ -9102,8 +9079,6 @@ func (m *ExchangeRateMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *ExchangeRateMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case exchangerate.FieldRate:
-		return m.AddedRate()
 	}
 	return nil, false
 }
@@ -9113,13 +9088,6 @@ func (m *ExchangeRateMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ExchangeRateMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case exchangerate.FieldRate:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRate(v)
-		return nil
 	}
 	return fmt.Errorf("unknown ExchangeRate numeric field %s", name)
 }
@@ -12060,10 +12028,8 @@ type PostingMutation struct {
 	created_at       *time.Time
 	updated_at       *time.Time
 	direction        *posting.Direction
-	amount           *float64
-	addamount        *float64
-	base_amount      *float64
-	addbase_amount   *float64
+	amount           *decimal.Decimal
+	base_amount      *decimal.Decimal
 	position         *int
 	addposition      *int
 	description      *string
@@ -12476,13 +12442,12 @@ func (m *PostingMutation) ResetDirection() {
 }
 
 // SetAmount sets the "amount" field.
-func (m *PostingMutation) SetAmount(f float64) {
-	m.amount = &f
-	m.addamount = nil
+func (m *PostingMutation) SetAmount(d decimal.Decimal) {
+	m.amount = &d
 }
 
 // Amount returns the value of the "amount" field in the mutation.
-func (m *PostingMutation) Amount() (r float64, exists bool) {
+func (m *PostingMutation) Amount() (r decimal.Decimal, exists bool) {
 	v := m.amount
 	if v == nil {
 		return
@@ -12493,7 +12458,7 @@ func (m *PostingMutation) Amount() (r float64, exists bool) {
 // OldAmount returns the old "amount" field's value of the Posting entity.
 // If the Posting object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostingMutation) OldAmount(ctx context.Context) (v float64, err error) {
+func (m *PostingMutation) OldAmount(ctx context.Context) (v decimal.Decimal, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAmount is only allowed on UpdateOne operations")
 	}
@@ -12507,38 +12472,18 @@ func (m *PostingMutation) OldAmount(ctx context.Context) (v float64, err error) 
 	return oldValue.Amount, nil
 }
 
-// AddAmount adds f to the "amount" field.
-func (m *PostingMutation) AddAmount(f float64) {
-	if m.addamount != nil {
-		*m.addamount += f
-	} else {
-		m.addamount = &f
-	}
-}
-
-// AddedAmount returns the value that was added to the "amount" field in this mutation.
-func (m *PostingMutation) AddedAmount() (r float64, exists bool) {
-	v := m.addamount
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetAmount resets all changes to the "amount" field.
 func (m *PostingMutation) ResetAmount() {
 	m.amount = nil
-	m.addamount = nil
 }
 
 // SetBaseAmount sets the "base_amount" field.
-func (m *PostingMutation) SetBaseAmount(f float64) {
-	m.base_amount = &f
-	m.addbase_amount = nil
+func (m *PostingMutation) SetBaseAmount(d decimal.Decimal) {
+	m.base_amount = &d
 }
 
 // BaseAmount returns the value of the "base_amount" field in the mutation.
-func (m *PostingMutation) BaseAmount() (r float64, exists bool) {
+func (m *PostingMutation) BaseAmount() (r decimal.Decimal, exists bool) {
 	v := m.base_amount
 	if v == nil {
 		return
@@ -12549,7 +12494,7 @@ func (m *PostingMutation) BaseAmount() (r float64, exists bool) {
 // OldBaseAmount returns the old "base_amount" field's value of the Posting entity.
 // If the Posting object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostingMutation) OldBaseAmount(ctx context.Context) (v float64, err error) {
+func (m *PostingMutation) OldBaseAmount(ctx context.Context) (v decimal.Decimal, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldBaseAmount is only allowed on UpdateOne operations")
 	}
@@ -12563,28 +12508,9 @@ func (m *PostingMutation) OldBaseAmount(ctx context.Context) (v float64, err err
 	return oldValue.BaseAmount, nil
 }
 
-// AddBaseAmount adds f to the "base_amount" field.
-func (m *PostingMutation) AddBaseAmount(f float64) {
-	if m.addbase_amount != nil {
-		*m.addbase_amount += f
-	} else {
-		m.addbase_amount = &f
-	}
-}
-
-// AddedBaseAmount returns the value that was added to the "base_amount" field in this mutation.
-func (m *PostingMutation) AddedBaseAmount() (r float64, exists bool) {
-	v := m.addbase_amount
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetBaseAmount resets all changes to the "base_amount" field.
 func (m *PostingMutation) ResetBaseAmount() {
 	m.base_amount = nil
-	m.addbase_amount = nil
 }
 
 // SetPosition sets the "position" field.
@@ -13055,14 +12981,14 @@ func (m *PostingMutation) SetField(name string, value ent.Value) error {
 		m.SetDirection(v)
 		return nil
 	case posting.FieldAmount:
-		v, ok := value.(float64)
+		v, ok := value.(decimal.Decimal)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAmount(v)
 		return nil
 	case posting.FieldBaseAmount:
-		v, ok := value.(float64)
+		v, ok := value.(decimal.Decimal)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -13090,12 +13016,6 @@ func (m *PostingMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *PostingMutation) AddedFields() []string {
 	var fields []string
-	if m.addamount != nil {
-		fields = append(fields, posting.FieldAmount)
-	}
-	if m.addbase_amount != nil {
-		fields = append(fields, posting.FieldBaseAmount)
-	}
 	if m.addposition != nil {
 		fields = append(fields, posting.FieldPosition)
 	}
@@ -13107,10 +13027,6 @@ func (m *PostingMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *PostingMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case posting.FieldAmount:
-		return m.AddedAmount()
-	case posting.FieldBaseAmount:
-		return m.AddedBaseAmount()
 	case posting.FieldPosition:
 		return m.AddedPosition()
 	}
@@ -13122,20 +13038,6 @@ func (m *PostingMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *PostingMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case posting.FieldAmount:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddAmount(v)
-		return nil
-	case posting.FieldBaseAmount:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddBaseAmount(v)
-		return nil
 	case posting.FieldPosition:
 		v, ok := value.(int)
 		if !ok {
@@ -14133,8 +14035,7 @@ type TransactionMutation struct {
 	description      *string
 	reference        *string
 	currency         *string
-	exchange_rate    *float64
-	addexchange_rate *float64
+	exchange_rate    *decimal.Decimal
 	source           *transaction.Source
 	clearedFields    map[string]struct{}
 	workspace        *int64
@@ -14742,13 +14643,12 @@ func (m *TransactionMutation) ResetCurrency() {
 }
 
 // SetExchangeRate sets the "exchange_rate" field.
-func (m *TransactionMutation) SetExchangeRate(f float64) {
-	m.exchange_rate = &f
-	m.addexchange_rate = nil
+func (m *TransactionMutation) SetExchangeRate(d decimal.Decimal) {
+	m.exchange_rate = &d
 }
 
 // ExchangeRate returns the value of the "exchange_rate" field in the mutation.
-func (m *TransactionMutation) ExchangeRate() (r float64, exists bool) {
+func (m *TransactionMutation) ExchangeRate() (r decimal.Decimal, exists bool) {
 	v := m.exchange_rate
 	if v == nil {
 		return
@@ -14759,7 +14659,7 @@ func (m *TransactionMutation) ExchangeRate() (r float64, exists bool) {
 // OldExchangeRate returns the old "exchange_rate" field's value of the Transaction entity.
 // If the Transaction object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TransactionMutation) OldExchangeRate(ctx context.Context) (v float64, err error) {
+func (m *TransactionMutation) OldExchangeRate(ctx context.Context) (v decimal.Decimal, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldExchangeRate is only allowed on UpdateOne operations")
 	}
@@ -14773,28 +14673,9 @@ func (m *TransactionMutation) OldExchangeRate(ctx context.Context) (v float64, e
 	return oldValue.ExchangeRate, nil
 }
 
-// AddExchangeRate adds f to the "exchange_rate" field.
-func (m *TransactionMutation) AddExchangeRate(f float64) {
-	if m.addexchange_rate != nil {
-		*m.addexchange_rate += f
-	} else {
-		m.addexchange_rate = &f
-	}
-}
-
-// AddedExchangeRate returns the value that was added to the "exchange_rate" field in this mutation.
-func (m *TransactionMutation) AddedExchangeRate() (r float64, exists bool) {
-	v := m.addexchange_rate
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetExchangeRate resets all changes to the "exchange_rate" field.
 func (m *TransactionMutation) ResetExchangeRate() {
 	m.exchange_rate = nil
-	m.addexchange_rate = nil
 }
 
 // SetSource sets the "source" field.
@@ -15278,7 +15159,7 @@ func (m *TransactionMutation) SetField(name string, value ent.Value) error {
 		m.SetCurrency(v)
 		return nil
 	case transaction.FieldExchangeRate:
-		v, ok := value.(float64)
+		v, ok := value.(decimal.Decimal)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -15299,9 +15180,6 @@ func (m *TransactionMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *TransactionMutation) AddedFields() []string {
 	var fields []string
-	if m.addexchange_rate != nil {
-		fields = append(fields, transaction.FieldExchangeRate)
-	}
 	return fields
 }
 
@@ -15310,8 +15188,6 @@ func (m *TransactionMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *TransactionMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case transaction.FieldExchangeRate:
-		return m.AddedExchangeRate()
 	}
 	return nil, false
 }
@@ -15321,13 +15197,6 @@ func (m *TransactionMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *TransactionMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case transaction.FieldExchangeRate:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddExchangeRate(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Transaction numeric field %s", name)
 }

@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/platform/money"
+	"github.com/shopspring/decimal"
 )
 
 // EntryRepository defines persistence operations for journal entries and postings.
@@ -28,7 +28,7 @@ type EntryRepository interface {
 	Reverse(c context.Context, id int64, postedBy int64, entryDate time.Time, description string) (domain.Entry, error)
 	Void(c context.Context, id int64, postedBy ...int64) (domain.Entry, error)
 	GetAccountLedger(c context.Context, accountID int64, page int, limit int) ([]domain.Posting, int64, error)
-	GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (float64, float64, float64, float64, error)
+	GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (decimal.Decimal, decimal.Decimal, decimal.Decimal, decimal.Decimal, error)
 	GetAccountBalancesAsOf(c context.Context, asOfDate time.Time) (map[int64]repository.AccountBalanceSummary, error)
 	HasPostedEntries(c context.Context, workspaceID int64) (bool, error)
 	CreateSystemPostedEntry(
@@ -96,8 +96,8 @@ func (s EntryService) getBaseCurrencyAndDecimals(c context.Context) (string, int
 	return baseCurrency, baseDecimals
 }
 
-func (s EntryService) resolveRate(c context.Context, tx domain.Transaction) (float64, error) {
-	if tx.ExchangeRate > 0 {
+func (s EntryService) resolveRate(c context.Context, tx domain.Transaction) (decimal.Decimal, error) {
+	if tx.ExchangeRate.IsPositive() {
 		return tx.ExchangeRate, nil
 	}
 	curr := tx.Currency
@@ -106,10 +106,10 @@ func (s EntryService) resolveRate(c context.Context, tx domain.Transaction) (flo
 	}
 	baseCurrency, _ := s.getBaseCurrencyAndDecimals(c)
 	if curr == baseCurrency {
-		return 1.0, nil
+		return decimal.NewFromInt(1), nil
 	}
 	if s.rateRepo == nil {
-		return 1.0, nil
+		return decimal.NewFromInt(1), nil
 	}
 	return s.rateRepo.Lookup(c, curr, baseCurrency, tx.TransactionDate)
 }
@@ -147,14 +147,14 @@ func findRealizedFXAccounts(c context.Context, accountRepo AccountRepository) (g
 // RealizedFXPosting generates a balancing posting for realized FX gain or loss on foreign currency settlement.
 // isGain indicates whether the FX difference is a gain (true) or loss (false).
 // diff is the absolute difference in base currency.
-func (s EntryService) RealizedFXPosting(c context.Context, isGain bool, diff float64, description string) (model.CreatePostingRequest, error) {
+func (s EntryService) RealizedFXPosting(c context.Context, isGain bool, diff decimal.Decimal, description string) (model.CreatePostingRequest, error) {
 	gainAcc, lossAcc, err := findRealizedFXAccounts(c, s.accountRepo)
 	if err != nil {
 		return model.CreatePostingRequest{}, err
 	}
 
 	_, baseDecimals := s.getBaseCurrencyAndDecimals(c)
-	roundedDiff := money.Round(math.Abs(diff), baseDecimals)
+	roundedDiff := money.Round(diff.Abs(), int32(baseDecimals))
 
 	if isGain {
 		desc := description
@@ -164,7 +164,7 @@ func (s EntryService) RealizedFXPosting(c context.Context, isGain bool, diff flo
 		return model.CreatePostingRequest{
 			AccountID:   gainAcc.ID,
 			Direction:   domain.PostingDirectionCredit,
-			Amount:      0,
+			Amount:      decimal.Zero,
 			BaseAmount:  &roundedDiff,
 			Description: desc,
 		}, nil
@@ -177,7 +177,7 @@ func (s EntryService) RealizedFXPosting(c context.Context, isGain bool, diff flo
 	return model.CreatePostingRequest{
 		AccountID:   lossAcc.ID,
 		Direction:   domain.PostingDirectionDebit,
-		Amount:      0,
+		Amount:      decimal.Zero,
 		BaseAmount:  &roundedDiff,
 		Description: desc,
 	}, nil
@@ -400,17 +400,17 @@ func (s EntryService) GetAccountLedger(c context.Context, accountID int64, page 
 		return nil, 0, err
 	}
 
-	var startingBalance, startingBaseBalance float64
+	var startingBalance, startingBaseBalance decimal.Decimal
 	if len(postings) > 0 && page > 1 {
 		firstID := postings[0].ID
 		debits, credits, baseDebits, baseCredits, err := s.entryRepo.GetAccountBalanceBefore(c, accountID, firstID)
 		if err == nil {
 			if acc.NormalBalance == domain.NormalBalanceDebit {
-				startingBalance = debits - credits
-				startingBaseBalance = baseDebits - baseCredits
+				startingBalance = debits.Sub(credits)
+				startingBaseBalance = baseDebits.Sub(baseCredits)
 			} else {
-				startingBalance = credits - debits
-				startingBaseBalance = baseCredits - baseDebits
+				startingBalance = credits.Sub(debits)
+				startingBaseBalance = baseCredits.Sub(baseDebits)
 			}
 		}
 	}
@@ -422,19 +422,19 @@ func (s EntryService) GetAccountLedger(c context.Context, accountID int64, page 
 		baseAmt := postings[i].BaseAmount
 		if acc.NormalBalance == domain.NormalBalanceDebit {
 			if postings[i].Direction == domain.PostingDirectionDebit {
-				running += amt
-				runningBase += baseAmt
+				running = running.Add(amt)
+				runningBase = runningBase.Add(baseAmt)
 			} else {
-				running -= amt
-				runningBase -= baseAmt
+				running = running.Sub(amt)
+				runningBase = runningBase.Sub(baseAmt)
 			}
 		} else {
 			if postings[i].Direction == domain.PostingDirectionCredit {
-				running += amt
-				runningBase += baseAmt
+				running = running.Add(amt)
+				runningBase = runningBase.Add(baseAmt)
 			} else {
-				running -= amt
-				runningBase -= baseAmt
+				running = running.Sub(amt)
+				runningBase = runningBase.Sub(baseAmt)
 			}
 		}
 		postings[i].RunningBalance = money.Round(running, 4)
@@ -457,13 +457,6 @@ func (s EntryService) HasPostedEntries(c context.Context, workspaceID int64) (bo
 // 3. Each account exists, is_postable == true, is_active == true, amount >= 0
 // 4. Account currency matches transaction currency (if account restricts currency)
 // 5. sum(debit) == sum(credit) in transaction currency
-// 6. sum(base debit) == sum(base credit) in base currency
-// validateEntry validates journal entry postings and rules in strict order:
-// 1. Period exists and status OPEN, entry_date within [start_date, end_date]
-// 2. Minimal 2 postings
-// 3. Each account exists, is_postable == true, is_active == true, amount >= 0
-// 4. Account currency matches transaction currency (if account restricts currency)
-// 5. sum(debit) == sum(credit) in transaction currency
 // 6. sum(base debit) == sum(base credit) in base currency (with auto-balancing FX rounding)
 func validateEntry(
 	ctx context.Context,
@@ -473,7 +466,7 @@ func validateEntry(
 	entryDate time.Time,
 	postings []model.CreatePostingRequest,
 	txCurrency string,
-	txExchangeRate float64,
+	txExchangeRate decimal.Decimal,
 	baseDecimals int,
 ) ([]model.CreatePostingRequest, error) {
 	// 1. Period check
@@ -500,13 +493,13 @@ func validateEntry(
 		return nil, domain.ErrEntryMinPostings
 	}
 
-	// 3 & 4. Account validity, amount > 0, currency match
-	var debitSum, creditSum float64
-	var baseDebitSum, baseCreditSum float64
+	// 3 & 4. Account validity, amount >= 0, currency match
+	var debitSum, creditSum decimal.Decimal
+	var baseDebitSum, baseCreditSum decimal.Decimal
 
 	rate := txExchangeRate
-	if rate <= 0 {
-		rate = 1.0
+	if !rate.IsPositive() {
+		rate = decimal.NewFromInt(1)
 	}
 
 	validatedPostings := make([]model.CreatePostingRequest, len(postings))
@@ -514,10 +507,10 @@ func validateEntry(
 
 	for i := range validatedPostings {
 		p := &validatedPostings[i]
-		if p.Amount < 0 {
+		if p.Amount.IsNegative() {
 			return nil, domain.ErrPostingInvalidAmount
 		}
-		if p.Amount == 0 && (p.BaseAmount == nil || *p.BaseAmount <= 0) {
+		if p.Amount.IsZero() && (p.BaseAmount == nil || !p.BaseAmount.IsPositive()) {
 			return nil, domain.ErrPostingInvalidAmount
 		}
 
@@ -536,8 +529,8 @@ func validateEntry(
 			return nil, domain.ErrPostingCurrencyMismatch
 		}
 
-		baseAmt := money.Round(p.Amount*rate, baseDecimals)
-		if p.BaseAmount != nil && *p.BaseAmount > 0 {
+		baseAmt := money.Round(p.Amount.Mul(rate), int32(baseDecimals))
+		if p.BaseAmount != nil && p.BaseAmount.IsPositive() {
 			baseAmt = *p.BaseAmount
 		} else {
 			p.BaseAmount = &baseAmt
@@ -545,11 +538,11 @@ func validateEntry(
 
 		switch p.Direction {
 		case domain.PostingDirectionDebit:
-			debitSum += p.Amount
-			baseDebitSum += baseAmt
+			debitSum = debitSum.Add(p.Amount)
+			baseDebitSum = baseDebitSum.Add(baseAmt)
 		case domain.PostingDirectionCredit:
-			creditSum += p.Amount
-			baseCreditSum += baseAmt
+			creditSum = creditSum.Add(p.Amount)
+			baseCreditSum = baseCreditSum.Add(baseAmt)
 		default:
 			return nil, domain.ErrEntryNotBalanced
 		}
@@ -561,33 +554,33 @@ func validateEntry(
 	}
 
 	// 6. Balance in base currency (with auto-balancing FX rounding)
-	if money.Equal(baseDebitSum, baseCreditSum, baseDecimals) {
+	if money.Equal(baseDebitSum, baseCreditSum, int32(baseDecimals)) {
 		return validatedPostings, nil
 	}
 
-	diff := math.Abs(baseDebitSum - baseCreditSum)
-	smallestUnit := math.Pow(10, -float64(baseDecimals))
+	diff := baseDebitSum.Sub(baseCreditSum).Abs()
+	smallestUnit := decimal.New(1, -int32(baseDecimals))
 
-	if diff <= smallestUnit+1e-9 {
+	if diff.LessThanOrEqual(smallestUnit) {
 		fxAcc, err := findFXRoundingAccount(ctx, accountRepo)
 		if err != nil {
 			return nil, err
 		}
 
-		roundedDiff := money.Round(diff, baseDecimals)
-		if roundedDiff == 0 {
+		roundedDiff := money.Round(diff, int32(baseDecimals))
+		if roundedDiff.IsZero() {
 			return validatedPostings, nil
 		}
 
 		direction := domain.PostingDirectionCredit
-		if baseDebitSum < baseCreditSum {
+		if baseDebitSum.LessThan(baseCreditSum) {
 			direction = domain.PostingDirectionDebit
 		}
 
 		balancingPosting := model.CreatePostingRequest{
 			AccountID:   fxAcc.ID,
 			Direction:   direction,
-			Amount:      0,
+			Amount:      decimal.Zero,
 			BaseAmount:  &roundedDiff,
 			Description: "Foreign exchange rounding auto-balance",
 		}

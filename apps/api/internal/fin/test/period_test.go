@@ -318,7 +318,7 @@ func (s *PeriodApiSuite) Test_Revalue_Endpoints() {
 	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          15000,
+		Rate:          dec(15000),
 		EffectiveDate: parseApiDate("2026-01-01"),
 	})
 	s.Require().NoError(err)
@@ -326,7 +326,7 @@ func (s *PeriodApiSuite) Test_Revalue_Endpoints() {
 	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16000,
+		Rate:          dec(16000),
 		EffectiveDate: parseApiDate("2026-01-31"),
 	})
 	s.Require().NoError(err)
@@ -337,7 +337,7 @@ func (s *PeriodApiSuite) Test_Revalue_Endpoints() {
 		SetNumber("TRX-2026-000088").
 		SetTransactionDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("USD").
-		SetExchangeRate(15000).
+		SetExchangeRate(dec(15000)).
 		SetSource("MANUAL").
 		Save(ctx)
 	s.Require().NoError(err)
@@ -359,8 +359,8 @@ func (s *PeriodApiSuite) Test_Revalue_Endpoints() {
 		SetEntryID(e.ID).
 		SetAccountID(usdAcc.ID).
 		SetDirection("DEBIT").
-		SetAmount(100).
-		SetBaseAmount(1500000).
+		SetAmount(dec(100)).
+		SetBaseAmount(dec(1500000)).
 		SetPosition(0).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -370,8 +370,8 @@ func (s *PeriodApiSuite) Test_Revalue_Endpoints() {
 		SetEntryID(e.ID).
 		SetAccountID(capitalAcc.ID).
 		SetDirection("CREDIT").
-		SetAmount(100).
-		SetBaseAmount(1500000).
+		SetAmount(dec(100)).
+		SetBaseAmount(dec(1500000)).
 		SetPosition(1).
 		Save(ctx)
 	s.Require().NoError(err)

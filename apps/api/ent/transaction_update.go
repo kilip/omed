@@ -16,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/shopspring/decimal"
 )
 
 // TransactionUpdate is the builder for updating Transaction entities.
@@ -188,23 +189,16 @@ func (_u *TransactionUpdate) SetNillableCurrency(v *string) *TransactionUpdate {
 }
 
 // SetExchangeRate sets the "exchange_rate" field.
-func (_u *TransactionUpdate) SetExchangeRate(v float64) *TransactionUpdate {
-	_u.mutation.ResetExchangeRate()
+func (_u *TransactionUpdate) SetExchangeRate(v decimal.Decimal) *TransactionUpdate {
 	_u.mutation.SetExchangeRate(v)
 	return _u
 }
 
 // SetNillableExchangeRate sets the "exchange_rate" field if the given value is not nil.
-func (_u *TransactionUpdate) SetNillableExchangeRate(v *float64) *TransactionUpdate {
+func (_u *TransactionUpdate) SetNillableExchangeRate(v *decimal.Decimal) *TransactionUpdate {
 	if v != nil {
 		_u.SetExchangeRate(*v)
 	}
-	return _u
-}
-
-// AddExchangeRate adds value to the "exchange_rate" field.
-func (_u *TransactionUpdate) AddExchangeRate(v float64) *TransactionUpdate {
-	_u.mutation.AddExchangeRate(v)
 	return _u
 }
 
@@ -370,11 +364,6 @@ func (_u *TransactionUpdate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Transaction.currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ExchangeRate(); ok {
-		if err := transaction.ExchangeRateValidator(v); err != nil {
-			return &ValidationError{Name: "exchange_rate", err: fmt.Errorf(`ent: validator failed for field "Transaction.exchange_rate": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Source(); ok {
 		if err := transaction.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Transaction.source": %w`, err)}
@@ -435,10 +424,7 @@ func (_u *TransactionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 		_spec.SetField(transaction.FieldCurrency, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ExchangeRate(); ok {
-		_spec.SetField(transaction.FieldExchangeRate, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedExchangeRate(); ok {
-		_spec.AddField(transaction.FieldExchangeRate, field.TypeFloat64, value)
+		_spec.SetField(transaction.FieldExchangeRate, field.TypeOther, value)
 	}
 	if value, ok := _u.mutation.Source(); ok {
 		_spec.SetField(transaction.FieldSource, field.TypeEnum, value)
@@ -763,23 +749,16 @@ func (_u *TransactionUpdateOne) SetNillableCurrency(v *string) *TransactionUpdat
 }
 
 // SetExchangeRate sets the "exchange_rate" field.
-func (_u *TransactionUpdateOne) SetExchangeRate(v float64) *TransactionUpdateOne {
-	_u.mutation.ResetExchangeRate()
+func (_u *TransactionUpdateOne) SetExchangeRate(v decimal.Decimal) *TransactionUpdateOne {
 	_u.mutation.SetExchangeRate(v)
 	return _u
 }
 
 // SetNillableExchangeRate sets the "exchange_rate" field if the given value is not nil.
-func (_u *TransactionUpdateOne) SetNillableExchangeRate(v *float64) *TransactionUpdateOne {
+func (_u *TransactionUpdateOne) SetNillableExchangeRate(v *decimal.Decimal) *TransactionUpdateOne {
 	if v != nil {
 		_u.SetExchangeRate(*v)
 	}
-	return _u
-}
-
-// AddExchangeRate adds value to the "exchange_rate" field.
-func (_u *TransactionUpdateOne) AddExchangeRate(v float64) *TransactionUpdateOne {
-	_u.mutation.AddExchangeRate(v)
 	return _u
 }
 
@@ -958,11 +937,6 @@ func (_u *TransactionUpdateOne) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Transaction.currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ExchangeRate(); ok {
-		if err := transaction.ExchangeRateValidator(v); err != nil {
-			return &ValidationError{Name: "exchange_rate", err: fmt.Errorf(`ent: validator failed for field "Transaction.exchange_rate": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Source(); ok {
 		if err := transaction.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Transaction.source": %w`, err)}
@@ -1040,10 +1014,7 @@ func (_u *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transaction
 		_spec.SetField(transaction.FieldCurrency, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ExchangeRate(); ok {
-		_spec.SetField(transaction.FieldExchangeRate, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedExchangeRate(); ok {
-		_spec.AddField(transaction.FieldExchangeRate, field.TypeFloat64, value)
+		_spec.SetField(transaction.FieldExchangeRate, field.TypeOther, value)
 	}
 	if value, ok := _u.mutation.Source(); ok {
 		_spec.SetField(transaction.FieldSource, field.TypeEnum, value)

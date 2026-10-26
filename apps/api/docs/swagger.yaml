@@ -503,11 +503,11 @@ components:
         accountId:
           type: integer
         balance:
-          example: 1000
-          type: number
+          example: "1000.00"
+          type: string
         baseBalance:
-          example: 15000000
-          type: number
+          example: "15000000.00"
+          type: string
         limit:
           type: integer
         normalBalance:
@@ -664,8 +664,8 @@ components:
           example: USD
           type: string
         rate:
-          example: 16250
-          type: number
+          example: "16250.00000000"
+          type: string
         source:
           enum:
           - MANUAL
@@ -678,7 +678,6 @@ components:
       required:
       - effectiveDate
       - fromCurrency
-      - rate
       - toCurrency
       type: object
     model.CreateInvitationRequest:
@@ -751,11 +750,11 @@ components:
         accountId:
           type: integer
         amount:
-          example: 100000
-          minimum: 0
-          type: number
+          example: "100000.00"
+          type: string
         baseAmount:
-          type: number
+          example: "100000.00"
+          type: string
         description:
           type: string
         direction:
@@ -778,8 +777,8 @@ components:
         entry:
           $ref: '#/components/schemas/model.CreateEntryInlineRequest'
         exchangeRate:
-          example: 1
-          type: number
+          example: "1.00000000"
+          type: string
         reference:
           type: string
         transactionDate:
@@ -800,26 +799,26 @@ components:
     model.CurrencyBreakdownItem:
       properties:
         baseCredit:
-          example: 0
-          type: number
+          example: "0.00"
+          type: string
         baseDebit:
-          example: 1600000
-          type: number
+          example: "1600000.00"
+          type: string
         baseNet:
-          example: 1600000
-          type: number
+          example: "1600000.00"
+          type: string
         credit:
-          example: 0
-          type: number
+          example: "0.00"
+          type: string
         currency:
           example: USD
           type: string
         debit:
-          example: 100
-          type: number
+          example: "100.00"
+          type: string
         netBalance:
-          example: 100
-          type: number
+          example: "100.00"
+          type: string
       type: object
     model.CurrencyResponse:
       properties:
@@ -876,8 +875,8 @@ components:
           example: USD
           type: string
         rate:
-          example: 16250
-          type: number
+          example: "16250.00000000"
+          type: string
         toCurrency:
           example: IDR
           type: string
@@ -896,7 +895,8 @@ components:
         id:
           type: integer
         rate:
-          type: number
+          example: "16250.00000000"
+          type: string
         source:
           type: string
         toCurrency:
@@ -958,23 +958,23 @@ components:
     model.FinancialSummaryTotals:
       properties:
         assets:
-          example: 150000000
-          type: number
+          example: "150000000.00"
+          type: string
         equity:
-          example: 115000000
-          type: number
+          example: "115000000.00"
+          type: string
         expense:
-          example: 45000000
-          type: number
+          example: "45000000.00"
+          type: string
         liabilities:
-          example: 35000000
-          type: number
+          example: "35000000.00"
+          type: string
         netIncome:
-          example: 40000000
-          type: number
+          example: "40000000.00"
+          type: string
         revenue:
-          example: 85000000
-          type: number
+          example: "85000000.00"
+          type: string
       type: object
     model.InvitationResponse:
       properties:
@@ -1060,14 +1060,14 @@ components:
     model.MonthlyRevenueExpenseItem:
       properties:
         expense:
-          example: 15000000
-          type: number
+          example: "15000000.00"
+          type: string
         month:
           example: 2026-10
           type: string
         revenue:
-          example: 25000000
-          type: number
+          example: "25000000.00"
+          type: string
       type: object
     model.PageResponse:
       properties:
@@ -1171,19 +1171,19 @@ components:
         accountId:
           type: integer
         amount:
-          example: 100000
-          type: number
+          example: "100000.00"
+          type: string
         auditMeta:
           $ref: '#/components/schemas/base.AuditMeta'
         balance:
-          example: 100000
-          type: number
+          example: "100000.00"
+          type: string
         baseAmount:
-          example: 100000
-          type: number
+          example: "100000.00"
+          type: string
         baseBalance:
-          example: 100000
-          type: number
+          example: "100000.00"
+          type: string
         description:
           type: string
         direction:
@@ -1197,11 +1197,11 @@ components:
           example: 0
           type: integer
         runningBalance:
-          example: 100000
-          type: number
+          example: "100000.00"
+          type: string
         runningBaseBalance:
-          example: 100000
-          type: number
+          example: "100000.00"
+          type: string
         workspaceId:
           type: integer
       type: object
@@ -1566,8 +1566,8 @@ components:
           type: array
           uniqueItems: false
         exchangeRate:
-          example: 1
-          type: number
+          example: "1.00000000"
+          type: string
         id:
           type: integer
         number:
@@ -1594,19 +1594,19 @@ components:
           example: Bank BCA IDR
           type: string
         credit:
-          example: 0
-          type: number
+          example: "0.00"
+          type: string
         currencies:
           items:
             $ref: '#/components/schemas/model.CurrencyBreakdownItem'
           type: array
           uniqueItems: false
         debit:
-          example: 1000000
-          type: number
+          example: "1000000.00"
+          type: string
         netBalance:
-          example: 1000000
-          type: number
+          example: "1000000.00"
+          type: string
         type:
           example: ASSET
           type: string
@@ -1639,11 +1639,11 @@ components:
           example: true
           type: boolean
         totalCredit:
-          example: 5000000
-          type: number
+          example: "5000000.00"
+          type: string
         totalDebit:
-          example: 5000000
-          type: number
+          example: "5000000.00"
+          type: string
       type: object
     model.UpdateAccountRequest:
       properties:
@@ -1693,8 +1693,8 @@ components:
           example: "2026-01-01"
           type: string
         rate:
-          example: 16300
-          type: number
+          example: "16300.00000000"
+          type: string
         source:
           enum:
           - MANUAL
@@ -1703,7 +1703,6 @@ components:
           type: string
       required:
       - effectiveDate
-      - rate
       type: object
     model.UpdateFileRequest:
       properties:

@@ -3,11 +3,13 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"github.com/shopspring/decimal"
 )
 
 // Transaction holds the schema definition for the Transaction entity.
@@ -44,7 +46,10 @@ func (Transaction) Fields() []ent.Field {
 		field.String("description").Optional(),
 		field.String("reference").Optional(),
 		field.String("currency").MinLen(3).MaxLen(3).Default("IDR"),
-		field.Float("exchange_rate").Default(1).Positive(),
+		field.Other("exchange_rate", decimal.Decimal{}).Default(decimal.NewFromInt(1)).SchemaType(map[string]string{
+			dialect.Postgres: "numeric(20,8)",
+			dialect.SQLite:   "numeric(20,8)",
+		}),
 		field.Enum("source").Values("MANUAL", "IMPORT", "SYSTEM").Default("MANUAL"),
 	}
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/kilip/omed/api/internal/base"
 	coredomain "github.com/kilip/omed/api/internal/core/domain"
+	"github.com/shopspring/decimal"
 )
 
 // Standard transaction source types and entity type constants.
@@ -48,7 +49,7 @@ type Transaction struct {
 	Description     string            `json:"description,omitempty"`
 	Reference       string            `json:"reference,omitempty"`
 	Currency        string            `json:"currency"`
-	ExchangeRate    float64           `json:"exchangeRate"`
+	ExchangeRate    decimal.Decimal   `json:"exchangeRate"`
 	Source          string            `json:"source"`
 	Entries         []Entry           `json:"entries,omitempty"`
 	Attachments     []coredomain.File `json:"attachments,omitempty"`

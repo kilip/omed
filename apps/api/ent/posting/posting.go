@@ -122,10 +122,6 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// AmountValidator is a validator for the "amount" field. It is called by the builders before save.
-	AmountValidator func(float64) error
-	// BaseAmountValidator is a validator for the "base_amount" field. It is called by the builders before save.
-	BaseAmountValidator func(float64) error
 	// DefaultPosition holds the default value on creation for the "position" field.
 	DefaultPosition int
 	// PositionValidator is a validator for the "position" field. It is called by the builders before save.

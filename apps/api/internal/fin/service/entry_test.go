@@ -14,8 +14,13 @@ import (
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/fin/service"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
+
+func dec(v int64) decimal.Decimal {
+	return decimal.NewFromInt(v)
+}
 
 type EntryServiceSuite struct {
 	suite.Suite
@@ -111,7 +116,7 @@ func (s *EntryServiceSuite) SetupTest() {
 		SetNumber("TRX-2026-000001").
 		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(dec(1)).
 		SetSource("MANUAL").
 		Save(wsCtx)
 	s.Require().NoError(err)
@@ -135,8 +140,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  999999,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPeriodNotFound)
@@ -156,8 +161,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  closedP.ID,
 		EntryDate: febDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPeriodClosed)
@@ -168,8 +173,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: beforeDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryDateOutsidePeriod)
@@ -180,8 +185,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: afterDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryDateOutsidePeriod)
@@ -191,7 +196,7 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryMinPostings)
@@ -201,8 +206,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 0},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 0},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: decimal.Zero},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: decimal.Zero},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPostingInvalidAmount)
@@ -221,8 +226,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: nonPostable.ID, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: nonPostable.ID, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPostingAccountNotPostable)
@@ -241,8 +246,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: inactive.ID, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: inactive.ID, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPostingAccountInactive)
@@ -261,8 +266,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPostingCurrencyMismatch)
@@ -272,21 +277,21 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(200)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryNotBalanced)
 
 	// 6. Not balanced in base currency
-	baseDebit := 100.0
-	baseCredit := 150.0
+	baseDebit := dec(100)
+	baseCredit := dec(150)
 	_, err = s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100, BaseAmount: &baseDebit},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100, BaseAmount: &baseCredit},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100), BaseAmount: &baseDebit},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100), BaseAmount: &baseCredit},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryBaseNotBalanced)
@@ -296,8 +301,8 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 500},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 500},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(500)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(500)},
 		},
 	})
 	s.Require().NoError(err)
@@ -325,7 +330,7 @@ func (s *EntryServiceSuite) Test_ValidationOrder() {
 		PeriodID:  closedP.ID,
 		EntryDate: marDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPeriodClosed)
@@ -336,7 +341,7 @@ func (s *EntryServiceSuite) Test_ValidationOrder() {
 		PeriodID:  s.periodID,
 		EntryDate: outDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryDateOutsidePeriod)
@@ -355,7 +360,7 @@ func (s *EntryServiceSuite) Test_ValidationOrder() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: inactive.ID, Direction: "DEBIT", Amount: 100},
+			{AccountID: inactive.ID, Direction: "DEBIT", Amount: dec(100)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryMinPostings)
@@ -365,8 +370,8 @@ func (s *EntryServiceSuite) Test_ValidationOrder() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 0},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: decimal.Zero},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(200)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPostingInvalidAmount)
@@ -385,8 +390,8 @@ func (s *EntryServiceSuite) Test_ValidationOrder() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: nonPostable.ID, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+			{AccountID: nonPostable.ID, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(200)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPostingAccountNotPostable)
@@ -396,8 +401,8 @@ func (s *EntryServiceSuite) Test_ValidationOrder() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: inactive.ID, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+			{AccountID: inactive.ID, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(200)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPostingAccountInactive)
@@ -416,8 +421,8 @@ func (s *EntryServiceSuite) Test_ValidationOrder() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(200)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrPostingCurrencyMismatch)
@@ -431,8 +436,8 @@ func (s *EntryServiceSuite) Test_Update_DraftOnlyAndValidation() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -442,20 +447,20 @@ func (s *EntryServiceSuite) Test_Update_DraftOnlyAndValidation() {
 	updated, err := s.svc.Update(ctx, e.ID, model.UpdateEntryRequest{
 		Description: &newDesc,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 300},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 300},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(300)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(300)},
 		},
 	})
 	s.Require().NoError(err)
 	s.Equal("Updated draft entry", updated.Description)
 	s.Require().Len(updated.Postings, 2)
-	s.Equal(300.0, updated.Postings[0].Amount)
+	s.True(updated.Postings[0].Amount.Equal(dec(300)))
 
 	// Update with unbalanced postings fails
 	_, err = s.svc.Update(ctx, e.ID, model.UpdateEntryRequest{
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 300},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 400},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(300)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(400)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryNotBalanced)
@@ -467,8 +472,8 @@ func (s *EntryServiceSuite) Test_Update_DraftOnlyAndValidation() {
 	// Updating POSTED entry must fail with ErrEntryNotDraft
 	_, err = s.svc.Update(ctx, e.ID, model.UpdateEntryRequest{
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 500},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 500},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(500)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(500)},
 		},
 	})
 	s.ErrorIs(err, domain.ErrEntryNotDraft)
@@ -482,8 +487,8 @@ func (s *EntryServiceSuite) Test_Delete_DraftOnly() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -501,8 +506,8 @@ func (s *EntryServiceSuite) Test_Delete_DraftOnly() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 200},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(200)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(200)},
 		},
 	})
 	s.Require().NoError(err)
@@ -532,8 +537,8 @@ func (s *EntryServiceSuite) Test_Post_Validations() {
 		PeriodID:  febP.ID,
 		EntryDate: febDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -570,8 +575,8 @@ func (s *EntryServiceSuite) Test_Reverse() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 500, Description: "Original Debit"},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 500, Description: "Original Credit"},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(500), Description: "Original Debit"},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(500), Description: "Original Credit"},
 		},
 	})
 	s.Require().NoError(err)
@@ -591,9 +596,9 @@ func (s *EntryServiceSuite) Test_Reverse() {
 
 	// Verify swapped directions
 	s.Equal("CREDIT", rev.Postings[0].Direction)
-	s.Equal(500.0, rev.Postings[0].Amount)
+	s.True(rev.Postings[0].Amount.Equal(dec(500)))
 	s.Equal("DEBIT", rev.Postings[1].Direction)
-	s.Equal(500.0, rev.Postings[1].Amount)
+	s.True(rev.Postings[1].Amount.Equal(dec(500)))
 
 	// Reverse again fails with ErrEntryAlreadyReversed
 	_, err = s.svc.Reverse(ctx, e.ID, s.userID, revDate, "Second Reversal")
@@ -608,8 +613,8 @@ func (s *EntryServiceSuite) Test_Reverse_StatusAndPeriodValidations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 200},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(200)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(200)},
 		},
 	})
 	s.Require().NoError(err)
@@ -633,8 +638,8 @@ func (s *EntryServiceSuite) Test_Reverse_StatusAndPeriodValidations() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 300},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 300},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(300)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(300)},
 		},
 	})
 	s.Require().NoError(err)
@@ -691,8 +696,8 @@ func (s *EntryServiceSuite) Test_Void_DraftEntry() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -716,8 +721,8 @@ func (s *EntryServiceSuite) Test_Void_PostedEntry() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -755,8 +760,8 @@ func (s *EntryServiceSuite) Test_Void_Atomic_RollbackOnClosedPeriod() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -790,8 +795,8 @@ func (s *EntryServiceSuite) Test_Post_Concurrent() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -834,8 +839,8 @@ func (s *EntryServiceSuite) Test_Void_Concurrent() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -882,8 +887,8 @@ func (s *EntryServiceSuite) Test_GetAccountLedger() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 999},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 999},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(999)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(999)},
 		},
 	})
 	s.Require().NoError(err)
@@ -893,8 +898,8 @@ func (s *EntryServiceSuite) Test_GetAccountLedger() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -907,7 +912,7 @@ func (s *EntryServiceSuite) Test_GetAccountLedger() {
 	s.Require().NoError(err)
 	s.Equal(int64(1), total)
 	s.Require().Len(postings, 1)
-	s.Equal(100.0, postings[0].Amount)
+	s.True(postings[0].Amount.Equal(dec(100)))
 	s.Equal("DEBIT", postings[0].Direction)
 
 	// Query ledger for non-existent account
@@ -941,7 +946,7 @@ func (s *EntryServiceSuite) Test_FXRounding_AutoBalancing() {
 		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
 		SetDescription("USD Transaction with 1 IDR rounding diff").
 		SetCurrency("USD").
-		SetExchangeRate(10000.5).
+		SetExchangeRate(decimal.RequireFromString("10000.5")).
 		SetSource(domain.TransactionSourceManual).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -961,9 +966,9 @@ func (s *EntryServiceSuite) Test_FXRounding_AutoBalancing() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 1.0},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 0.5},
-			{AccountID: accCredit2.ID, Direction: "CREDIT", Amount: 0.5},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: decimal.NewFromInt(1)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: decimal.RequireFromString("0.5")},
+			{AccountID: accCredit2.ID, Direction: "CREDIT", Amount: decimal.RequireFromString("0.5")},
 		},
 	})
 	s.Require().NoError(err)
@@ -973,8 +978,8 @@ func (s *EntryServiceSuite) Test_FXRounding_AutoBalancing() {
 	fxPosting := createdEntry.Postings[3]
 	s.Equal(fxAcc.ID, fxPosting.AccountID)
 	s.Equal("CREDIT", fxPosting.Direction)
-	s.Equal(0.0, fxPosting.Amount)
-	s.Equal(1.0, fxPosting.BaseAmount)
+	s.True(fxPosting.Amount.Equal(decimal.Zero))
+	s.True(fxPosting.BaseAmount.Equal(decimal.NewFromInt(1)))
 
 	// Verify Post succeeds on the auto-balanced entry
 	postedEntry, err := s.svc.Post(ctx, createdEntry.ID, s.userID)
@@ -982,14 +987,14 @@ func (s *EntryServiceSuite) Test_FXRounding_AutoBalancing() {
 	s.Equal(domain.EntryStatusPosted, postedEntry.Status)
 
 	// 2. Reject when diff exceeds smallest unit (> 1 IDR)
-	baseAmtDebit := 10005.0
-	baseAmtCredit := 10000.0
+	baseAmtDebit := dec(10005)
+	baseAmtCredit := dec(10000)
 	_, err = s.svc.Create(ctx, txUSD.ID, model.CreateEntryRequest{
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 1.0, BaseAmount: &baseAmtDebit},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 1.0, BaseAmount: &baseAmtCredit},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: decimal.NewFromInt(1), BaseAmount: &baseAmtDebit},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: decimal.NewFromInt(1), BaseAmount: &baseAmtCredit},
 		},
 	})
 	s.Require().ErrorIs(err, domain.ErrEntryBaseNotBalanced)
@@ -1016,11 +1021,11 @@ func (s *EntryServiceSuite) Test_MultiCurrency_LedgerDualBalance() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: 100000},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100000},
+			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: dec(100000)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100000)},
 		},
 	})
-	s.Require().ErrorIs(err, domain.ErrPostingCurrencyMismatch)
+	s.ErrorIs(err, domain.ErrPostingCurrencyMismatch)
 
 	// 3. Post a USD transaction to the USD account
 	txUSD, err := s.client.Transaction.Create().
@@ -1029,7 +1034,7 @@ func (s *EntryServiceSuite) Test_MultiCurrency_LedgerDualBalance() {
 		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
 		SetDescription("USD Consulting revenue").
 		SetCurrency("USD").
-		SetExchangeRate(15000.0).
+		SetExchangeRate(dec(15000)).
 		SetSource(domain.TransactionSourceManual).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -1038,8 +1043,8 @@ func (s *EntryServiceSuite) Test_MultiCurrency_LedgerDualBalance() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: 100.0},
-			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100.0},
+			{AccountID: usdAcc.ID, Direction: "DEBIT", Amount: dec(100)},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
 		},
 	})
 	s.Require().NoError(err)
@@ -1054,13 +1059,13 @@ func (s *EntryServiceSuite) Test_MultiCurrency_LedgerDualBalance() {
 	s.Require().Len(postings, 1)
 
 	p := postings[0]
-	s.Equal(100.0, p.Amount)
-	s.Equal(1500000.0, p.BaseAmount)
+	s.True(p.Amount.Equal(dec(100)))
+	s.True(p.BaseAmount.Equal(dec(1500000)))
 	// Dual running balances
-	s.Equal(100.0, p.Balance)
-	s.Equal(100.0, p.RunningBalance)
-	s.Equal(1500000.0, p.BaseBalance)
-	s.Equal(1500000.0, p.RunningBaseBalance)
+	s.True(p.Balance.Equal(dec(100)))
+	s.True(p.RunningBalance.Equal(dec(100)))
+	s.True(p.BaseBalance.Equal(dec(1500000)))
+	s.True(p.RunningBaseBalance.Equal(dec(1500000)))
 }
 
 func (s *EntryServiceSuite) Test_RealizedFX_Settlement() {
@@ -1092,7 +1097,7 @@ func (s *EntryServiceSuite) Test_RealizedFX_Settlement() {
 		SetNumber("TRX-2026-000010").
 		SetTransactionDate(eDate.Time()).
 		SetCurrency("USD").
-		SetExchangeRate(15000.0).
+		SetExchangeRate(dec(15000)).
 		SetSource(domain.TransactionSourceManual).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -1101,8 +1106,8 @@ func (s *EntryServiceSuite) Test_RealizedFX_Settlement() {
 		PeriodID:  s.periodID,
 		EntryDate: eDate,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: arAcc.ID, Direction: "DEBIT", Amount: 1000.0},
-			{AccountID: revenueAcc.ID, Direction: "CREDIT", Amount: 1000.0},
+			{AccountID: arAcc.ID, Direction: "DEBIT", Amount: dec(1000)},
+			{AccountID: revenueAcc.ID, Direction: "CREDIT", Amount: dec(1000)},
 		},
 	})
 	s.Require().NoError(err)
@@ -1113,26 +1118,26 @@ func (s *EntryServiceSuite) Test_RealizedFX_Settlement() {
 	// Bank receives 16,000,000 IDR (DEBIT)
 	// AR cleared at booked value 15,000,000 IDR (CREDIT)
 	// Realized FX Gain = 1,000,000 IDR (CREDIT to 7210)
-	gainPosting, err := s.svc.RealizedFXPosting(ctx, true, 1000000.0, "Realized FX Gain on invoice TRX-2026-000010")
+	gainPosting, err := s.svc.RealizedFXPosting(ctx, true, dec(1000000), "Realized FX Gain on invoice TRX-2026-000010")
 	s.Require().NoError(err)
 	s.Equal("CREDIT", gainPosting.Direction)
-	s.Equal(0.0, gainPosting.Amount)
+	s.True(gainPosting.Amount.Equal(decimal.Zero))
 	s.Require().NotNil(gainPosting.BaseAmount)
-	s.Equal(1000000.0, *gainPosting.BaseAmount)
+	s.True(gainPosting.BaseAmount.Equal(dec(1000000)))
 
 	gainAcc, err := s.accountRepo.FindByCode(ctx, "7210")
 	s.Require().NoError(err)
 	s.Equal(gainAcc.ID, gainPosting.AccountID)
 
 	// Create settlement transaction in USD (1,000 USD settled at 16,000 IDR rate)
-	usd1k := 1000.0
-	base16m := 16000000.0
-	base15m := 15000000.0
+	usd1k := dec(1000)
+	base16m := dec(16000000)
+	base15m := dec(15000000)
 	txSettle, err := s.client.Transaction.Create().
 		SetNumber("TRX-2026-000011").
 		SetTransactionDate(settleDate.Time()).
 		SetCurrency("USD").
-		SetExchangeRate(16000.0).
+		SetExchangeRate(dec(16000)).
 		SetSource(domain.TransactionSourceManual).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -1155,12 +1160,12 @@ func (s *EntryServiceSuite) Test_RealizedFX_Settlement() {
 
 	// 3. Settlement with FX Loss: Invoice booked at 15,000 IDR, settled at 14,000 IDR
 	// Loss = 1,000,000 IDR
-	lossPosting, err := s.svc.RealizedFXPosting(ctx, false, 1000000.0, "Realized FX Loss on settlement")
+	lossPosting, err := s.svc.RealizedFXPosting(ctx, false, dec(1000000), "Realized FX Loss on settlement")
 	s.Require().NoError(err)
 	s.Equal("DEBIT", lossPosting.Direction)
-	s.Equal(0.0, lossPosting.Amount)
+	s.True(lossPosting.Amount.Equal(decimal.Zero))
 	s.Require().NotNil(lossPosting.BaseAmount)
-	s.Equal(1000000.0, *lossPosting.BaseAmount)
+	s.True(lossPosting.BaseAmount.Equal(dec(1000000)))
 
 	lossAcc, err := s.accountRepo.FindByCode(ctx, "7310")
 	s.Require().NoError(err)

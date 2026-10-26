@@ -16,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/entx"
+	"github.com/shopspring/decimal"
 )
 
 // forUpdate applies row-level locking (FOR UPDATE) if the dialect supports it (e.g. Postgres).
@@ -34,10 +35,10 @@ type EntryRepository struct {
 
 // AccountBalanceSummary holds aggregated debit and credit sums for an account.
 type AccountBalanceSummary struct {
-	Debit      float64
-	Credit     float64
-	BaseDebit  float64
-	BaseCredit float64
+	Debit      decimal.Decimal
+	Credit     decimal.Decimal
+	BaseDebit  decimal.Decimal
+	BaseCredit decimal.Decimal
 	Currencies map[string]*CurrencyBalanceSummary
 }
 
@@ -45,17 +46,17 @@ type AccountBalanceSummary struct {
 type MonthlyAccountFlow struct {
 	Month      string
 	AccountID  int64
-	BaseDebit  float64
-	BaseCredit float64
+	BaseDebit  decimal.Decimal
+	BaseCredit decimal.Decimal
 }
 
 // CurrencyBalanceSummary holds aggregated amounts for a specific currency on an account.
 type CurrencyBalanceSummary struct {
 	Currency   string
-	Debit      float64
-	Credit     float64
-	BaseDebit  float64
-	BaseCredit float64
+	Debit      decimal.Decimal
+	Credit     decimal.Decimal
+	BaseDebit  decimal.Decimal
+	BaseCredit decimal.Decimal
 }
 
 // NewEntryRepository constructs a new EntryRepository backed by the given Ent client.
@@ -117,8 +118,8 @@ func (r EntryRepository) Create(c context.Context, txID int64, req model.CreateE
 			}
 
 			rate := t.ExchangeRate
-			if rate <= 0 {
-				rate = 1.0
+			if !rate.IsPositive() {
+				rate = decimal.NewFromInt(1)
 			}
 
 			num, err := GenerateEntryNumber(c, tx, year)
@@ -144,8 +145,8 @@ func (r EntryRepository) Create(c context.Context, txID int64, req model.CreateE
 			createdID = createdEntry.ID
 
 			for pos, pReq := range req.Postings {
-				baseAmt := pReq.Amount * rate
-				if pReq.BaseAmount != nil && *pReq.BaseAmount > 0 {
+				baseAmt := pReq.Amount.Mul(rate)
+				if pReq.BaseAmount != nil && pReq.BaseAmount.IsPositive() {
 					baseAmt = *pReq.BaseAmount
 				}
 				pBuilder := tx.Posting.Create().
@@ -211,8 +212,8 @@ func (r EntryRepository) Update(c context.Context, id int64, req model.UpdateEnt
 			return domain.ErrEntryNotDraft
 		}
 
-		rate := 1.0
-		if e.Edges.Transaction != nil && e.Edges.Transaction.ExchangeRate > 0 {
+		rate := decimal.NewFromInt(1)
+		if e.Edges.Transaction != nil && e.Edges.Transaction.ExchangeRate.IsPositive() {
 			rate = e.Edges.Transaction.ExchangeRate
 		}
 
@@ -231,8 +232,8 @@ func (r EntryRepository) Update(c context.Context, id int64, req model.UpdateEnt
 
 		// Insert replacement postings
 		for pos, pReq := range req.Postings {
-			baseAmt := pReq.Amount * rate
-			if pReq.BaseAmount != nil && *pReq.BaseAmount > 0 {
+			baseAmt := pReq.Amount.Mul(rate)
+			if pReq.BaseAmount != nil && pReq.BaseAmount.IsPositive() {
 				baseAmt = *pReq.BaseAmount
 			}
 			pBuilder := tx.Posting.Create().
@@ -401,8 +402,8 @@ func (r EntryRepository) Post(c context.Context, id int64, postedBy int64, balan
 			}
 
 			if len(balancedPostings) > 0 && len(balancedPostings[0]) > 0 {
-				rate := 1.0
-				if e.Edges.Transaction != nil && e.Edges.Transaction.ExchangeRate > 0 {
+				rate := decimal.NewFromInt(1)
+				if e.Edges.Transaction != nil && e.Edges.Transaction.ExchangeRate.IsPositive() {
 					rate = e.Edges.Transaction.ExchangeRate
 				}
 
@@ -413,7 +414,7 @@ func (r EntryRepository) Post(c context.Context, id int64, postedBy int64, balan
 
 				// Insert replacement postings
 				for pos, pReq := range balancedPostings[0] {
-					baseAmt := pReq.Amount * rate
+					baseAmt := pReq.Amount.Mul(rate)
 					if pReq.BaseAmount != nil {
 						baseAmt = *pReq.BaseAmount
 					}
@@ -817,9 +818,9 @@ func (r EntryRepository) GetAccountLedger(c context.Context, accountID int64, pa
 }
 
 // GetAccountBalanceBefore calculates cumulative debit and credit sums (amount and baseAmount) for an account prior to a given posting ID.
-func (r EntryRepository) GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (float64, float64, float64, float64, error) {
+func (r EntryRepository) GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (decimal.Decimal, decimal.Decimal, decimal.Decimal, decimal.Decimal, error) {
 	if beforePostingID <= 0 {
-		return 0, 0, 0, 0, nil
+		return decimal.Zero, decimal.Zero, decimal.Zero, decimal.Zero, nil
 	}
 
 	items, err := r.cli.Posting.Query().
@@ -833,17 +834,17 @@ func (r EntryRepository) GetAccountBalanceBefore(c context.Context, accountID in
 		).
 		All(c)
 	if err != nil {
-		return 0, 0, 0, 0, err
+		return decimal.Zero, decimal.Zero, decimal.Zero, decimal.Zero, err
 	}
 
-	var debits, credits, baseDebits, baseCredits float64
+	var debits, credits, baseDebits, baseCredits decimal.Decimal
 	for _, it := range items {
 		if it.Direction == posting.DirectionDEBIT {
-			debits += it.Amount
-			baseDebits += it.BaseAmount
+			debits = debits.Add(it.Amount)
+			baseDebits = baseDebits.Add(it.BaseAmount)
 		} else {
-			credits += it.Amount
-			baseCredits += it.BaseAmount
+			credits = credits.Add(it.Amount)
+			baseCredits = baseCredits.Add(it.BaseAmount)
 		}
 	}
 	return debits, credits, baseDebits, baseCredits, nil
@@ -983,15 +984,15 @@ func (r EntryRepository) GetAccountBalancesAsOf(c context.Context, asOfDate time
 		}
 
 		if it.Direction == posting.DirectionDEBIT {
-			bal.Debit += it.Amount
-			bal.BaseDebit += it.BaseAmount
-			cbal.Debit += it.Amount
-			cbal.BaseDebit += it.BaseAmount
+			bal.Debit = bal.Debit.Add(it.Amount)
+			bal.BaseDebit = bal.BaseDebit.Add(it.BaseAmount)
+			cbal.Debit = cbal.Debit.Add(it.Amount)
+			cbal.BaseDebit = cbal.BaseDebit.Add(it.BaseAmount)
 		} else {
-			bal.Credit += it.Amount
-			bal.BaseCredit += it.BaseAmount
-			cbal.Credit += it.Amount
-			cbal.BaseCredit += it.BaseAmount
+			bal.Credit = bal.Credit.Add(it.Amount)
+			bal.BaseCredit = bal.BaseCredit.Add(it.BaseAmount)
+			cbal.Credit = cbal.Credit.Add(it.Amount)
+			cbal.BaseCredit = cbal.BaseCredit.Add(it.BaseAmount)
 		}
 		result[it.AccountID] = bal
 	}
@@ -1037,9 +1038,9 @@ func (r EntryRepository) GetMonthlyAccountFlows(c context.Context, startDate tim
 			grouped[k] = flow
 		}
 		if it.Direction == posting.DirectionDEBIT {
-			flow.BaseDebit += it.BaseAmount
+			flow.BaseDebit = flow.BaseDebit.Add(it.BaseAmount)
 		} else {
-			flow.BaseCredit += it.BaseAmount
+			flow.BaseCredit = flow.BaseCredit.Add(it.BaseAmount)
 		}
 	}
 
@@ -1078,7 +1079,7 @@ func (r EntryRepository) CreateSystemPostedEntry(
 				SetNumber(trxNum).
 				SetTransactionDate(entryDate).
 				SetCurrency("IDR").
-				SetExchangeRate(1.0).
+				SetExchangeRate(decimal.NewFromInt(1)).
 				SetSource(transaction.Source(domain.TransactionSourceSystem))
 
 			if trxDescription != "" {

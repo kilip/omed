@@ -13,6 +13,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/platform/money"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -81,7 +82,7 @@ func (s *ExchangeRateRepoSuite) Test_Create_And_GetByID() {
 	req := model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16200.0,
+		Rate:          decimal.NewFromInt(16200),
 		EffectiveDate: model.Date(d),
 	}
 
@@ -89,7 +90,7 @@ func (s *ExchangeRateRepoSuite) Test_Create_And_GetByID() {
 	s.Require().NoError(err)
 	s.Assert().Equal("USD", created.FromCurrency)
 	s.Assert().Equal("IDR", created.ToCurrency)
-	s.Assert().Equal(16200.0, created.Rate)
+	s.Assert().True(created.Rate.Equal(decimal.NewFromInt(16200)))
 	s.Assert().Equal(domain.ExchangeRateSourceManual, created.Source)
 
 	// Fetch by ID
@@ -103,7 +104,7 @@ func (s *ExchangeRateRepoSuite) Test_Create_And_GetByID() {
 
 	// Non-positive rate fails
 	reqInvalid := req
-	reqInvalid.Rate = -1
+	reqInvalid.Rate = decimal.NewFromInt(-1)
 	_, err = s.repo.Create(ctx, reqInvalid)
 	s.Assert().ErrorIs(err, domain.ErrExchangeRateInvalid)
 }
@@ -116,18 +117,18 @@ func (s *ExchangeRateRepoSuite) Test_Update_And_Delete() {
 	created, err := s.repo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16000.0,
+		Rate:          decimal.NewFromInt(16000),
 		EffectiveDate: model.Date(d1),
 	})
 	s.Require().NoError(err)
 
 	// Update rate and effective date
 	updated, err := s.repo.Update(ctx, created.ID, model.UpdateExchangeRateRequest{
-		Rate:          16100.0,
+		Rate:          decimal.NewFromInt(16100),
 		EffectiveDate: model.Date(d2),
 	})
 	s.Require().NoError(err)
-	s.Assert().Equal(16100.0, updated.Rate)
+	s.Assert().True(updated.Rate.Equal(decimal.NewFromInt(16100)))
 
 	// Delete
 	err = s.repo.Delete(ctx, created.ID)
@@ -146,7 +147,7 @@ func (s *ExchangeRateRepoSuite) Test_Lookup() {
 	// 1. Same currency returns 1.0
 	r, err := s.repo.Lookup(ctx, "USD", "USD", time.Now())
 	s.Require().NoError(err)
-	s.Assert().Equal(1.0, r)
+	s.Assert().True(r.Equal(decimal.NewFromInt(1)))
 
 	// 2. No rates yet -> ErrExchangeRateNotFound
 	_, err = s.repo.Lookup(ctx, "USD", "IDR", d2)
@@ -156,7 +157,7 @@ func (s *ExchangeRateRepoSuite) Test_Lookup() {
 	_, err = s.repo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16000.0,
+		Rate:          decimal.NewFromInt(16000),
 		EffectiveDate: model.Date(d1),
 	})
 	s.Require().NoError(err)
@@ -164,7 +165,7 @@ func (s *ExchangeRateRepoSuite) Test_Lookup() {
 	_, err = s.repo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16500.0,
+		Rate:          decimal.NewFromInt(16500),
 		EffectiveDate: model.Date(d2),
 	})
 	s.Require().NoError(err)
@@ -172,17 +173,17 @@ func (s *ExchangeRateRepoSuite) Test_Lookup() {
 	// On 2026-01-05 -> should find d1 rate (16000)
 	rate05, err := s.repo.Lookup(ctx, "USD", "IDR", time.Date(2026, 1, 5, 0, 0, 0, 0, time.UTC))
 	s.Require().NoError(err)
-	s.Assert().Equal(16000.0, rate05)
+	s.Assert().True(rate05.Equal(decimal.NewFromInt(16000)))
 
 	// On 2026-01-20 -> should find d2 rate (16500)
 	rate20, err := s.repo.Lookup(ctx, "USD", "IDR", time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC))
 	s.Require().NoError(err)
-	s.Assert().Equal(16500.0, rate20)
+	s.Assert().True(rate20.Equal(decimal.NewFromInt(16500)))
 
 	// 4. Inverse lookup: IDR -> USD on 2026-01-20 should be 1.0 / 16500.0
 	invRate, err := s.repo.Lookup(ctx, "IDR", "USD", time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC))
 	s.Require().NoError(err)
-	s.Assert().True(money.Equal(invRate, 1.0/16500.0, 8))
+	s.Assert().True(money.Equal(invRate, decimal.NewFromInt(1).DivRound(decimal.NewFromInt(16500), 8), 8))
 }
 
 func (s *ExchangeRateRepoSuite) Test_Search() {
@@ -193,7 +194,7 @@ func (s *ExchangeRateRepoSuite) Test_Search() {
 	_, err := s.repo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16000.0,
+		Rate:          decimal.NewFromInt(16000),
 		EffectiveDate: model.Date(d1),
 	})
 	s.Require().NoError(err)
@@ -201,7 +202,7 @@ func (s *ExchangeRateRepoSuite) Test_Search() {
 	_, err = s.repo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency:  "EUR",
 		ToCurrency:    "IDR",
-		Rate:          17500.0,
+		Rate:          decimal.NewFromInt(17500),
 		EffectiveDate: model.Date(d2),
 	})
 	s.Require().NoError(err)

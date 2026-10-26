@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
+	"github.com/shopspring/decimal"
 )
 
 // ID filters vertices based on their ID field.
@@ -102,7 +103,7 @@ func ToCurrency(v string) predicate.ExchangeRate {
 }
 
 // Rate applies equality check predicate on the "rate" field. It's identical to RateEQ.
-func Rate(v float64) predicate.ExchangeRate {
+func Rate(v decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldEQ(FieldRate, v))
 }
 
@@ -462,42 +463,42 @@ func ToCurrencyContainsFold(v string) predicate.ExchangeRate {
 }
 
 // RateEQ applies the EQ predicate on the "rate" field.
-func RateEQ(v float64) predicate.ExchangeRate {
+func RateEQ(v decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldEQ(FieldRate, v))
 }
 
 // RateNEQ applies the NEQ predicate on the "rate" field.
-func RateNEQ(v float64) predicate.ExchangeRate {
+func RateNEQ(v decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldNEQ(FieldRate, v))
 }
 
 // RateIn applies the In predicate on the "rate" field.
-func RateIn(vs ...float64) predicate.ExchangeRate {
+func RateIn(vs ...decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldIn(FieldRate, vs...))
 }
 
 // RateNotIn applies the NotIn predicate on the "rate" field.
-func RateNotIn(vs ...float64) predicate.ExchangeRate {
+func RateNotIn(vs ...decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldNotIn(FieldRate, vs...))
 }
 
 // RateGT applies the GT predicate on the "rate" field.
-func RateGT(v float64) predicate.ExchangeRate {
+func RateGT(v decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldGT(FieldRate, v))
 }
 
 // RateGTE applies the GTE predicate on the "rate" field.
-func RateGTE(v float64) predicate.ExchangeRate {
+func RateGTE(v decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldGTE(FieldRate, v))
 }
 
 // RateLT applies the LT predicate on the "rate" field.
-func RateLT(v float64) predicate.ExchangeRate {
+func RateLT(v decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldLT(FieldRate, v))
 }
 
 // RateLTE applies the LTE predicate on the "rate" field.
-func RateLTE(v float64) predicate.ExchangeRate {
+func RateLTE(v decimal.Decimal) predicate.ExchangeRate {
 	return predicate.ExchangeRate(sql.FieldLTE(FieldRate, v))
 }
 

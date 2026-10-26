@@ -14,6 +14,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/seed"
 	"github.com/kilip/omed/api/internal/fin/service"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -164,8 +165,8 @@ func (s *CurrencyServiceSuite) Test_UpdateBaseCurrency_LockedWhenPosted() {
 		PeriodID:  s.periodID,
 		EntryDate: model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: domain.PostingDirectionDebit, Amount: 1000},
-			{AccountID: s.accountID2, Direction: domain.PostingDirectionCredit, Amount: 1000},
+			{AccountID: s.accountID1, Direction: domain.PostingDirectionDebit, Amount: decimal.NewFromInt(1000)},
+			{AccountID: s.accountID2, Direction: domain.PostingDirectionCredit, Amount: decimal.NewFromInt(1000)},
 		},
 	})
 	s.Require().NoError(err)

@@ -12,6 +12,7 @@ import (
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/shopspring/decimal"
 )
 
 // ExchangeRate is the model entity for the ExchangeRate schema.
@@ -38,7 +39,7 @@ type ExchangeRate struct {
 	// ToCurrency holds the value of the "to_currency" field.
 	ToCurrency string `json:"to_currency,omitempty"`
 	// Rate holds the value of the "rate" field.
-	Rate float64 `json:"rate,omitempty"`
+	Rate decimal.Decimal `json:"rate,omitempty"`
 	// EffectiveDate holds the value of the "effective_date" field.
 	EffectiveDate time.Time `json:"effective_date,omitempty"`
 	// Source holds the value of the "source" field.
@@ -114,7 +115,7 @@ func (*ExchangeRate) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case exchangerate.FieldRate:
-			values[i] = new(sql.NullFloat64)
+			values[i] = new(decimal.Decimal)
 		case exchangerate.FieldID, exchangerate.FieldWorkspaceID, exchangerate.FieldCreatedBy, exchangerate.FieldUpdatedBy, exchangerate.FieldDeletedByID:
 			values[i] = new(sql.NullInt64)
 		case exchangerate.FieldFromCurrency, exchangerate.FieldToCurrency, exchangerate.FieldSource:
@@ -199,10 +200,10 @@ func (_m *ExchangeRate) assignValues(columns []string, values []any) error {
 				_m.ToCurrency = value.String
 			}
 		case exchangerate.FieldRate:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*decimal.Decimal); !ok {
 				return fmt.Errorf("unexpected type %T for field rate", values[i])
-			} else if value.Valid {
-				_m.Rate = value.Float64
+			} else if value != nil {
+				_m.Rate = *value
 			}
 		case exchangerate.FieldEffectiveDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {

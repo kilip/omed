@@ -10,7 +10,9 @@ import (
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
+	"github.com/kilip/omed/api/internal/platform/money"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -36,14 +38,14 @@ func (s *ExchangeRateApiSuite) Test_ExchangeRate_Lifecycle() {
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/exchange-rates", ws.ID), fiber.MethodPost, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16200.0,
+		Rate:          dec(16200),
 		EffectiveDate: parseApiDate("2026-01-01"),
 	})
 	s.Created()
 	created := s.GetResponse().Data
 	s.Equal("USD", created.FromCurrency)
 	s.Equal("IDR", created.ToCurrency)
-	s.Equal(16200.0, created.Rate)
+	s.True(created.Rate.Equal(dec(16200)))
 
 	// 2. Get by ID
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/exchange-rates/%d", ws.ID, created.ID), fiber.MethodGet, nil)
@@ -53,25 +55,26 @@ func (s *ExchangeRateApiSuite) Test_ExchangeRate_Lifecycle() {
 
 	// 3. Update rate
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/exchange-rates/%d", ws.ID, created.ID), fiber.MethodPut, model.UpdateExchangeRateRequest{
-		Rate:          16300.0,
+		Rate:          dec(16300),
 		EffectiveDate: parseApiDate("2026-01-01"),
 	})
 	s.OK()
 	updated := s.GetResponse().Data
-	s.Equal(16300.0, updated.Rate)
+	s.True(updated.Rate.Equal(dec(16300)))
 
 	// 4. Lookup direct rate
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/exchange-rates/lookup?from=USD&to=IDR&date=2026-01-10", ws.ID), fiber.MethodGet, nil)
 	s.OK()
 	var lookupResp httpx.WebResponse[model.ExchangeRateLookupResponse]
 	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&lookupResp))
-	s.Equal(16300.0, lookupResp.Data.Rate)
+	s.True(lookupResp.Data.Rate.Equal(dec(16300)))
 
 	// 5. Lookup inverse rate (IDR -> USD)
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/exchange-rates/lookup?from=IDR&to=USD&date=2026-01-10", ws.ID), fiber.MethodGet, nil)
 	s.OK()
 	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&lookupResp))
-	s.InDelta(1.0/16300.0, lookupResp.Data.Rate, 1e-6)
+	expectedInv := money.Round(decimal.NewFromInt(1).Div(dec(16300)), 8)
+	s.True(lookupResp.Data.Rate.Equal(expectedInv))
 
 	// 6. Search
 	usd := "USD"
@@ -103,7 +106,7 @@ func (s *ExchangeRateApiSuite) Test_RBAC() {
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/exchange-rates", ws.ID), fiber.MethodPost, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16200.0,
+		Rate:          dec(16200),
 		EffectiveDate: parseApiDate("2026-01-01"),
 	})
 	s.AssertStatus(fiber.StatusForbidden)
@@ -115,7 +118,7 @@ func (s *ExchangeRateApiSuite) Test_RBAC() {
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/exchange-rates", ws.ID), fiber.MethodPost, model.CreateExchangeRateRequest{
 		FromCurrency:  "USD",
 		ToCurrency:    "IDR",
-		Rate:          16200.0,
+		Rate:          dec(16200),
 		EffectiveDate: parseApiDate("2026-01-01"),
 	})
 	s.Created()

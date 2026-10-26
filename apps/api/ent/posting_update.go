@@ -16,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
+	"github.com/shopspring/decimal"
 )
 
 // PostingUpdate is the builder for updating Posting entities.
@@ -94,44 +95,30 @@ func (_u *PostingUpdate) SetNillableDirection(v *posting.Direction) *PostingUpda
 }
 
 // SetAmount sets the "amount" field.
-func (_u *PostingUpdate) SetAmount(v float64) *PostingUpdate {
-	_u.mutation.ResetAmount()
+func (_u *PostingUpdate) SetAmount(v decimal.Decimal) *PostingUpdate {
 	_u.mutation.SetAmount(v)
 	return _u
 }
 
 // SetNillableAmount sets the "amount" field if the given value is not nil.
-func (_u *PostingUpdate) SetNillableAmount(v *float64) *PostingUpdate {
+func (_u *PostingUpdate) SetNillableAmount(v *decimal.Decimal) *PostingUpdate {
 	if v != nil {
 		_u.SetAmount(*v)
 	}
 	return _u
 }
 
-// AddAmount adds value to the "amount" field.
-func (_u *PostingUpdate) AddAmount(v float64) *PostingUpdate {
-	_u.mutation.AddAmount(v)
-	return _u
-}
-
 // SetBaseAmount sets the "base_amount" field.
-func (_u *PostingUpdate) SetBaseAmount(v float64) *PostingUpdate {
-	_u.mutation.ResetBaseAmount()
+func (_u *PostingUpdate) SetBaseAmount(v decimal.Decimal) *PostingUpdate {
 	_u.mutation.SetBaseAmount(v)
 	return _u
 }
 
 // SetNillableBaseAmount sets the "base_amount" field if the given value is not nil.
-func (_u *PostingUpdate) SetNillableBaseAmount(v *float64) *PostingUpdate {
+func (_u *PostingUpdate) SetNillableBaseAmount(v *decimal.Decimal) *PostingUpdate {
 	if v != nil {
 		_u.SetBaseAmount(*v)
 	}
-	return _u
-}
-
-// AddBaseAmount adds value to the "base_amount" field.
-func (_u *PostingUpdate) AddBaseAmount(v float64) *PostingUpdate {
-	_u.mutation.AddBaseAmount(v)
 	return _u
 }
 
@@ -269,16 +256,6 @@ func (_u *PostingUpdate) check() error {
 			return &ValidationError{Name: "direction", err: fmt.Errorf(`ent: validator failed for field "Posting.direction": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Amount(); ok {
-		if err := posting.AmountValidator(v); err != nil {
-			return &ValidationError{Name: "amount", err: fmt.Errorf(`ent: validator failed for field "Posting.amount": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.BaseAmount(); ok {
-		if err := posting.BaseAmountValidator(v); err != nil {
-			return &ValidationError{Name: "base_amount", err: fmt.Errorf(`ent: validator failed for field "Posting.base_amount": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Position(); ok {
 		if err := posting.PositionValidator(v); err != nil {
 			return &ValidationError{Name: "position", err: fmt.Errorf(`ent: validator failed for field "Posting.position": %w`, err)}
@@ -321,16 +298,10 @@ func (_u *PostingUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.SetField(posting.FieldDirection, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Amount(); ok {
-		_spec.SetField(posting.FieldAmount, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedAmount(); ok {
-		_spec.AddField(posting.FieldAmount, field.TypeFloat64, value)
+		_spec.SetField(posting.FieldAmount, field.TypeOther, value)
 	}
 	if value, ok := _u.mutation.BaseAmount(); ok {
-		_spec.SetField(posting.FieldBaseAmount, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedBaseAmount(); ok {
-		_spec.AddField(posting.FieldBaseAmount, field.TypeFloat64, value)
+		_spec.SetField(posting.FieldBaseAmount, field.TypeOther, value)
 	}
 	if value, ok := _u.mutation.Position(); ok {
 		_spec.SetField(posting.FieldPosition, field.TypeInt, value)
@@ -522,44 +493,30 @@ func (_u *PostingUpdateOne) SetNillableDirection(v *posting.Direction) *PostingU
 }
 
 // SetAmount sets the "amount" field.
-func (_u *PostingUpdateOne) SetAmount(v float64) *PostingUpdateOne {
-	_u.mutation.ResetAmount()
+func (_u *PostingUpdateOne) SetAmount(v decimal.Decimal) *PostingUpdateOne {
 	_u.mutation.SetAmount(v)
 	return _u
 }
 
 // SetNillableAmount sets the "amount" field if the given value is not nil.
-func (_u *PostingUpdateOne) SetNillableAmount(v *float64) *PostingUpdateOne {
+func (_u *PostingUpdateOne) SetNillableAmount(v *decimal.Decimal) *PostingUpdateOne {
 	if v != nil {
 		_u.SetAmount(*v)
 	}
 	return _u
 }
 
-// AddAmount adds value to the "amount" field.
-func (_u *PostingUpdateOne) AddAmount(v float64) *PostingUpdateOne {
-	_u.mutation.AddAmount(v)
-	return _u
-}
-
 // SetBaseAmount sets the "base_amount" field.
-func (_u *PostingUpdateOne) SetBaseAmount(v float64) *PostingUpdateOne {
-	_u.mutation.ResetBaseAmount()
+func (_u *PostingUpdateOne) SetBaseAmount(v decimal.Decimal) *PostingUpdateOne {
 	_u.mutation.SetBaseAmount(v)
 	return _u
 }
 
 // SetNillableBaseAmount sets the "base_amount" field if the given value is not nil.
-func (_u *PostingUpdateOne) SetNillableBaseAmount(v *float64) *PostingUpdateOne {
+func (_u *PostingUpdateOne) SetNillableBaseAmount(v *decimal.Decimal) *PostingUpdateOne {
 	if v != nil {
 		_u.SetBaseAmount(*v)
 	}
-	return _u
-}
-
-// AddBaseAmount adds value to the "base_amount" field.
-func (_u *PostingUpdateOne) AddBaseAmount(v float64) *PostingUpdateOne {
-	_u.mutation.AddBaseAmount(v)
 	return _u
 }
 
@@ -710,16 +667,6 @@ func (_u *PostingUpdateOne) check() error {
 			return &ValidationError{Name: "direction", err: fmt.Errorf(`ent: validator failed for field "Posting.direction": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Amount(); ok {
-		if err := posting.AmountValidator(v); err != nil {
-			return &ValidationError{Name: "amount", err: fmt.Errorf(`ent: validator failed for field "Posting.amount": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.BaseAmount(); ok {
-		if err := posting.BaseAmountValidator(v); err != nil {
-			return &ValidationError{Name: "base_amount", err: fmt.Errorf(`ent: validator failed for field "Posting.base_amount": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Position(); ok {
 		if err := posting.PositionValidator(v); err != nil {
 			return &ValidationError{Name: "position", err: fmt.Errorf(`ent: validator failed for field "Posting.position": %w`, err)}
@@ -779,16 +726,10 @@ func (_u *PostingUpdateOne) sqlSave(ctx context.Context) (_node *Posting, err er
 		_spec.SetField(posting.FieldDirection, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Amount(); ok {
-		_spec.SetField(posting.FieldAmount, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedAmount(); ok {
-		_spec.AddField(posting.FieldAmount, field.TypeFloat64, value)
+		_spec.SetField(posting.FieldAmount, field.TypeOther, value)
 	}
 	if value, ok := _u.mutation.BaseAmount(); ok {
-		_spec.SetField(posting.FieldBaseAmount, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedBaseAmount(); ok {
-		_spec.AddField(posting.FieldBaseAmount, field.TypeFloat64, value)
+		_spec.SetField(posting.FieldBaseAmount, field.TypeOther, value)
 	}
 	if value, ok := _u.mutation.Position(); ok {
 		_spec.SetField(posting.FieldPosition, field.TypeInt, value)

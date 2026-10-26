@@ -13,6 +13,7 @@ import (
 	coremodel "github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
+	"github.com/shopspring/decimal"
 )
 
 // TransactionRepository defines persistence operations for transactions.
@@ -104,8 +105,11 @@ func (s TransactionService) GetByID(c context.Context, id int64) (domain.Transac
 	return tx, nil
 }
 
-func (s TransactionService) resolveRate(c context.Context, currency string, explicitRate *float64, date time.Time) (float64, error) {
-	if explicitRate != nil && *explicitRate > 0 {
+func (s TransactionService) resolveRate(c context.Context, currency string, explicitRate *decimal.Decimal, date time.Time) (decimal.Decimal, error) {
+	if explicitRate != nil {
+		if !explicitRate.IsPositive() {
+			return decimal.Zero, domain.ErrExchangeRateInvalid
+		}
 		return *explicitRate, nil
 	}
 	baseCurrency := "IDR"
@@ -118,10 +122,10 @@ func (s TransactionService) resolveRate(c context.Context, currency string, expl
 		}
 	}
 	if currency == "" || currency == baseCurrency {
-		return 1.0, nil
+		return decimal.NewFromInt(1), nil
 	}
 	if s.rateRepo == nil {
-		return 1.0, nil
+		return decimal.NewFromInt(1), nil
 	}
 	return s.rateRepo.Lookup(c, currency, baseCurrency, date)
 }

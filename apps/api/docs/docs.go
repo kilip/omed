@@ -734,12 +734,12 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "balance": {
-                        "example": 1000,
-                        "type": "number"
+                        "example": "1000.00",
+                        "type": "string"
                     },
                     "baseBalance": {
-                        "example": 15000000,
-                        "type": "number"
+                        "example": "15000000.00",
+                        "type": "string"
                     },
                     "limit": {
                         "type": "integer"
@@ -967,8 +967,8 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "rate": {
-                        "example": 16250,
-                        "type": "number"
+                        "example": "16250.00000000",
+                        "type": "string"
                     },
                     "source": {
                         "enum": [
@@ -986,7 +986,6 @@ const docTemplate = `{
                 "required": [
                     "effectiveDate",
                     "fromCurrency",
-                    "rate",
                     "toCurrency"
                 ],
                 "type": "object"
@@ -1092,12 +1091,12 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "amount": {
-                        "example": 100000,
-                        "minimum": 0,
-                        "type": "number"
+                        "example": "100000.00",
+                        "type": "string"
                     },
                     "baseAmount": {
-                        "type": "number"
+                        "example": "100000.00",
+                        "type": "string"
                     },
                     "description": {
                         "type": "string"
@@ -1130,8 +1129,8 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/model.CreateEntryInlineRequest"
                     },
                     "exchangeRate": {
-                        "example": 1,
-                        "type": "number"
+                        "example": "1.00000000",
+                        "type": "string"
                     },
                     "reference": {
                         "type": "string"
@@ -1163,32 +1162,32 @@ const docTemplate = `{
             "model.CurrencyBreakdownItem": {
                 "properties": {
                     "baseCredit": {
-                        "example": 0,
-                        "type": "number"
+                        "example": "0.00",
+                        "type": "string"
                     },
                     "baseDebit": {
-                        "example": 1600000,
-                        "type": "number"
+                        "example": "1600000.00",
+                        "type": "string"
                     },
                     "baseNet": {
-                        "example": 1600000,
-                        "type": "number"
+                        "example": "1600000.00",
+                        "type": "string"
                     },
                     "credit": {
-                        "example": 0,
-                        "type": "number"
+                        "example": "0.00",
+                        "type": "string"
                     },
                     "currency": {
                         "example": "USD",
                         "type": "string"
                     },
                     "debit": {
-                        "example": 100,
-                        "type": "number"
+                        "example": "100.00",
+                        "type": "string"
                     },
                     "netBalance": {
-                        "example": 100,
-                        "type": "number"
+                        "example": "100.00",
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -1273,8 +1272,8 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "rate": {
-                        "example": 16250,
-                        "type": "number"
+                        "example": "16250.00000000",
+                        "type": "string"
                     },
                     "toCurrency": {
                         "example": "IDR",
@@ -1302,7 +1301,8 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "rate": {
-                        "type": "number"
+                        "example": "16250.00000000",
+                        "type": "string"
                     },
                     "source": {
                         "type": "string"
@@ -1396,28 +1396,28 @@ const docTemplate = `{
             "model.FinancialSummaryTotals": {
                 "properties": {
                     "assets": {
-                        "example": 150000000,
-                        "type": "number"
+                        "example": "150000000.00",
+                        "type": "string"
                     },
                     "equity": {
-                        "example": 115000000,
-                        "type": "number"
+                        "example": "115000000.00",
+                        "type": "string"
                     },
                     "expense": {
-                        "example": 45000000,
-                        "type": "number"
+                        "example": "45000000.00",
+                        "type": "string"
                     },
                     "liabilities": {
-                        "example": 35000000,
-                        "type": "number"
+                        "example": "35000000.00",
+                        "type": "string"
                     },
                     "netIncome": {
-                        "example": 40000000,
-                        "type": "number"
+                        "example": "40000000.00",
+                        "type": "string"
                     },
                     "revenue": {
-                        "example": 85000000,
-                        "type": "number"
+                        "example": "85000000.00",
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -1546,16 +1546,16 @@ const docTemplate = `{
             "model.MonthlyRevenueExpenseItem": {
                 "properties": {
                     "expense": {
-                        "example": 15000000,
-                        "type": "number"
+                        "example": "15000000.00",
+                        "type": "string"
                     },
                     "month": {
                         "example": "2026-10",
                         "type": "string"
                     },
                     "revenue": {
-                        "example": 25000000,
-                        "type": "number"
+                        "example": "25000000.00",
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -1711,23 +1711,23 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "amount": {
-                        "example": 100000,
-                        "type": "number"
+                        "example": "100000.00",
+                        "type": "string"
                     },
                     "auditMeta": {
                         "$ref": "#/components/schemas/base.AuditMeta"
                     },
                     "balance": {
-                        "example": 100000,
-                        "type": "number"
+                        "example": "100000.00",
+                        "type": "string"
                     },
                     "baseAmount": {
-                        "example": 100000,
-                        "type": "number"
+                        "example": "100000.00",
+                        "type": "string"
                     },
                     "baseBalance": {
-                        "example": 100000,
-                        "type": "number"
+                        "example": "100000.00",
+                        "type": "string"
                     },
                     "description": {
                         "type": "string"
@@ -1747,12 +1747,12 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "runningBalance": {
-                        "example": 100000,
-                        "type": "number"
+                        "example": "100000.00",
+                        "type": "string"
                     },
                     "runningBaseBalance": {
-                        "example": 100000,
-                        "type": "number"
+                        "example": "100000.00",
+                        "type": "string"
                     },
                     "workspaceId": {
                         "type": "integer"
@@ -2289,8 +2289,8 @@ const docTemplate = `{
                         "uniqueItems": false
                     },
                     "exchangeRate": {
-                        "example": 1,
-                        "type": "number"
+                        "example": "1.00000000",
+                        "type": "string"
                     },
                     "id": {
                         "type": "integer"
@@ -2329,8 +2329,8 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "credit": {
-                        "example": 0,
-                        "type": "number"
+                        "example": "0.00",
+                        "type": "string"
                     },
                     "currencies": {
                         "items": {
@@ -2340,12 +2340,12 @@ const docTemplate = `{
                         "uniqueItems": false
                     },
                     "debit": {
-                        "example": 1000000,
-                        "type": "number"
+                        "example": "1000000.00",
+                        "type": "string"
                     },
                     "netBalance": {
-                        "example": 1000000,
-                        "type": "number"
+                        "example": "1000000.00",
+                        "type": "string"
                     },
                     "type": {
                         "example": "ASSET",
@@ -2392,12 +2392,12 @@ const docTemplate = `{
                         "type": "boolean"
                     },
                     "totalCredit": {
-                        "example": 5000000,
-                        "type": "number"
+                        "example": "5000000.00",
+                        "type": "string"
                     },
                     "totalDebit": {
-                        "example": 5000000,
-                        "type": "number"
+                        "example": "5000000.00",
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -2472,8 +2472,8 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "rate": {
-                        "example": 16300,
-                        "type": "number"
+                        "example": "16300.00000000",
+                        "type": "string"
                     },
                     "source": {
                         "enum": [
@@ -2485,8 +2485,7 @@ const docTemplate = `{
                     }
                 },
                 "required": [
-                    "effectiveDate",
-                    "rate"
+                    "effectiveDate"
                 ],
                 "type": "object"
             },

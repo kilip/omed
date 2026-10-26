@@ -6,6 +6,7 @@ import (
 
 	"github.com/kilip/omed/api/internal/base"
 	coremodel "github.com/kilip/omed/api/internal/core/model"
+	"github.com/shopspring/decimal"
 )
 
 // CreateTransactionRequest defines the payload required to create a new financial transaction.
@@ -14,7 +15,7 @@ type CreateTransactionRequest struct {
 	Description     string                    `json:"description,omitempty"`
 	Reference       string                    `json:"reference,omitempty"`
 	Currency        string                    `json:"currency,omitempty" validate:"omitempty,len=3" example:"IDR"`
-	ExchangeRate    *float64                  `json:"exchangeRate,omitempty" validate:"omitempty,gt=0" example:"1"`
+	ExchangeRate    *decimal.Decimal          `json:"exchangeRate,omitempty" swaggertype:"string" example:"1.00000000"`
 	Entry           *CreateEntryInlineRequest `json:"entry,omitempty"`
 }
 
@@ -53,7 +54,7 @@ type TransactionResponse struct {
 	Description     string                   `json:"description,omitempty"`
 	Reference       string                   `json:"reference,omitempty"`
 	Currency        string                   `json:"currency" example:"IDR"`
-	ExchangeRate    float64                  `json:"exchangeRate" example:"1"`
+	ExchangeRate    decimal.Decimal          `json:"exchangeRate" swaggertype:"string" example:"1.00000000"`
 	Source          string                   `json:"source" example:"MANUAL"`
 	Entries         []EntryResponse          `json:"entries,omitempty"`
 	Attachments     []coremodel.FileResponse `json:"attachments,omitempty"`

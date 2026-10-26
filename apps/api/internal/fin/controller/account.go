@@ -9,6 +9,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
+	"github.com/shopspring/decimal"
 )
 
 // AccountServiceContract defines the operations required by AccountController.
@@ -288,7 +289,7 @@ func (ctl AccountController) Ledger(c fiber.Ctx) error {
 	}
 
 	out := make([]model.PostingResponse, len(postings))
-	var lastBalance, lastBaseBalance float64
+	var lastBalance, lastBaseBalance decimal.Decimal
 	for i, p := range postings {
 		out[i] = toPostingResponse(p)
 	}

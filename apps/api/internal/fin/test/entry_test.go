@@ -15,8 +15,13 @@ import (
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
+
+func dec(v int64) decimal.Decimal {
+	return decimal.NewFromInt(v)
+}
 
 type EntryApiSuite struct {
 	testutil.ApiTestSuite[model.EntryResponse]
@@ -70,7 +75,7 @@ func (s *EntryApiSuite) ensureTransaction(wsID int64, desc, ref string, tDate ti
 		SetDescription(desc).
 		SetReference(ref).
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(dec(1)).
 		SetSource(domain.TransactionSourceManual).
 		Save(base.WithWorkspaceID(s.Context, wsID))
 	s.Require().NoError(err)
@@ -99,8 +104,8 @@ func (s *EntryApiSuite) Test_Create_DraftEntry_Successfully() {
 		EntryDate:     model.Date(tDate),
 		Description:   "Consulting fees",
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 1500000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 1500000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(1500000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(1500000)},
 		},
 	})
 	s.Created()
@@ -125,8 +130,8 @@ func (s *EntryApiSuite) Test_GetByID_Successfully() {
 		EntryDate:     model.Date(tDate),
 		Description:   "Consulting fees",
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 2000000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 2000000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(2000000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(2000000)},
 		},
 	})
 	s.Created()
@@ -155,8 +160,8 @@ func (s *EntryApiSuite) Test_Update_DraftEntry_Successfully() {
 		EntryDate:     model.Date(tDate),
 		Description:   "Before update",
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 1000000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 1000000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(1000000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(1000000)},
 		},
 	})
 	s.Created()
@@ -166,15 +171,15 @@ func (s *EntryApiSuite) Test_Update_DraftEntry_Successfully() {
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries/%d", ws.ID, created.ID), fiber.MethodPut, model.UpdateEntryRequest{
 		Description: &newDesc,
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 3000000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 3000000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(3000000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(3000000)},
 		},
 	})
 	s.OK()
 
 	res := s.GetResponse()
 	s.Equal("After update", res.Data.Description)
-	s.Equal(3000000.0, res.Data.Postings[0].Amount)
+	s.True(res.Data.Postings[0].Amount.Equal(dec(3000000)))
 }
 
 func (s *EntryApiSuite) Test_Delete_DraftEntry_Successfully() {
@@ -190,8 +195,8 @@ func (s *EntryApiSuite) Test_Delete_DraftEntry_Successfully() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 1000000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 1000000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(1000000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(1000000)},
 		},
 	})
 	s.Created()
@@ -218,8 +223,8 @@ func (s *EntryApiSuite) Test_Post_Entry_Successfully() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 500000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 500000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(500000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(500000)},
 		},
 	})
 	s.Created()
@@ -251,8 +256,8 @@ func (s *EntryApiSuite) Test_Reverse_Entry_Successfully() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 750000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 750000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(750000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(750000)},
 		},
 	})
 	s.Created()
@@ -293,8 +298,8 @@ func (s *EntryApiSuite) Test_Void_Entry_Successfully() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 1200000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 1200000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(1200000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(1200000)},
 		},
 	})
 	s.Created()
@@ -325,8 +330,8 @@ func (s *EntryApiSuite) Test_Search_Entries_Successfully() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: 100000},
-			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: 100000},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(100000)},
+			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(100000)},
 		},
 	})
 	s.Created()
@@ -355,8 +360,8 @@ func (s *EntryApiSuite) Test_AccountLedger_Endpoint_Successfully() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: 500},
-			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: 500},
+			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: dec(500)},
+			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: dec(500)},
 		},
 	})
 	s.Created()
@@ -370,8 +375,8 @@ func (s *EntryApiSuite) Test_AccountLedger_Endpoint_Successfully() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: 300},
-			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: 300},
+			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: dec(300)},
+			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: dec(300)},
 		},
 	})
 	s.Created()
@@ -387,15 +392,15 @@ func (s *EntryApiSuite) Test_AccountLedger_Endpoint_Successfully() {
 	err := json.NewDecoder(s.HttpResponse.Body).Decode(&ledgerRes)
 	s.Require().NoError(err)
 	s.Equal(int64(2), ledgerRes.Data.Total)
-	s.Equal(800.0, ledgerRes.Data.Balance)
-	s.Equal(800.0, ledgerRes.Data.BaseBalance)
+	s.True(ledgerRes.Data.Balance.Equal(dec(800)))
+	s.True(ledgerRes.Data.BaseBalance.Equal(dec(800)))
 	s.Require().Len(ledgerRes.Data.Postings, 2)
-	s.Equal(500.0, ledgerRes.Data.Postings[0].RunningBalance)
-	s.Equal(500.0, ledgerRes.Data.Postings[0].Balance)
-	s.Equal(500.0, ledgerRes.Data.Postings[0].BaseBalance)
-	s.Equal(800.0, ledgerRes.Data.Postings[1].RunningBalance)
-	s.Equal(800.0, ledgerRes.Data.Postings[1].Balance)
-	s.Equal(800.0, ledgerRes.Data.Postings[1].BaseBalance)
+	s.True(ledgerRes.Data.Postings[0].RunningBalance.Equal(dec(500)))
+	s.True(ledgerRes.Data.Postings[0].Balance.Equal(dec(500)))
+	s.True(ledgerRes.Data.Postings[0].BaseBalance.Equal(dec(500)))
+	s.True(ledgerRes.Data.Postings[1].RunningBalance.Equal(dec(800)))
+	s.True(ledgerRes.Data.Postings[1].Balance.Equal(dec(800)))
+	s.True(ledgerRes.Data.Postings[1].BaseBalance.Equal(dec(800)))
 }
 
 func (s *EntryApiSuite) Test_FXRounding_AutoBalancing_Endpoint() {
@@ -416,7 +421,7 @@ func (s *EntryApiSuite) Test_FXRounding_AutoBalancing_Endpoint() {
 		SetTransactionDate(tDate).
 		SetDescription("USD with rounding diff").
 		SetCurrency("USD").
-		SetExchangeRate(10000.5).
+		SetExchangeRate(decimal.RequireFromString("10000.5")).
 		SetSource(domain.TransactionSourceManual).
 		Save(base.WithWorkspaceID(s.Context, ws.ID))
 	s.Require().NoError(err)
@@ -428,9 +433,9 @@ func (s *EntryApiSuite) Test_FXRounding_AutoBalancing_Endpoint() {
 		EntryDate:     model.Date(tDate),
 		Description:   "USD entry with 1 IDR rounding diff",
 		Postings: []model.CreatePostingRequest{
-			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: 1.0},
-			{AccountID: accRev1, Direction: domain.PostingDirectionCredit, Amount: 0.5},
-			{AccountID: accRev2, Direction: domain.PostingDirectionCredit, Amount: 0.5},
+			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: dec(1)},
+			{AccountID: accRev1, Direction: domain.PostingDirectionCredit, Amount: decimal.RequireFromString("0.5")},
+			{AccountID: accRev2, Direction: domain.PostingDirectionCredit, Amount: decimal.RequireFromString("0.5")},
 		},
 	})
 	s.Created()
@@ -439,24 +444,24 @@ func (s *EntryApiSuite) Test_FXRounding_AutoBalancing_Endpoint() {
 	s.Require().Len(entryRes.Postings, 4)
 	s.Equal(fxAcc, entryRes.Postings[3].AccountID)
 	s.Equal("CREDIT", entryRes.Postings[3].Direction)
-	s.Equal(0.0, entryRes.Postings[3].Amount)
-	s.Equal(1.0, entryRes.Postings[3].BaseAmount)
+	s.True(entryRes.Postings[3].Amount.Equal(decimal.Zero))
+	s.True(entryRes.Postings[3].BaseAmount.Equal(dec(1)))
 
 	// Post the entry
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries/%d/post", ws.ID, entryRes.ID), fiber.MethodPost, nil)
 	s.OK()
 
 	// 2. Difference > 1.0 IDR should reject with ENTRY_BASE_NOT_BALANCED
-	baseAmtDebit := 10005.0
-	baseAmtCredit := 10000.0
+	baseAmtDebit := dec(10005)
+	baseAmtCredit := dec(10000)
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{
 		TransactionID: tx.ID,
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Description:   "USD entry with large base imbalance",
 		Postings: []model.CreatePostingRequest{
-			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: 1.0, BaseAmount: &baseAmtDebit},
-			{AccountID: accRev1, Direction: domain.PostingDirectionCredit, Amount: 1.0, BaseAmount: &baseAmtCredit},
+			{AccountID: accCash, Direction: domain.PostingDirectionDebit, Amount: dec(1), BaseAmount: &baseAmtDebit},
+			{AccountID: accRev1, Direction: domain.PostingDirectionCredit, Amount: dec(1), BaseAmount: &baseAmtCredit},
 		},
 	})
 	s.Require().Equal(fiber.StatusUnprocessableEntity, s.HttpResponse.StatusCode)
@@ -492,8 +497,8 @@ func (s *EntryApiSuite) Test_MultiCurrency_Ledger_Endpoint() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: usdAcc.ID, Direction: domain.PostingDirectionDebit, Amount: 150000},
-			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: 150000},
+			{AccountID: usdAcc.ID, Direction: domain.PostingDirectionDebit, Amount: dec(150000)},
+			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: dec(150000)},
 		},
 	})
 	s.Require().Equal(fiber.StatusUnprocessableEntity, s.HttpResponse.StatusCode)
@@ -507,7 +512,7 @@ func (s *EntryApiSuite) Test_MultiCurrency_Ledger_Endpoint() {
 		SetTransactionDate(tDate).
 		SetDescription("USD Consulting").
 		SetCurrency("USD").
-		SetExchangeRate(15000.0).
+		SetExchangeRate(dec(15000)).
 		SetSource(domain.TransactionSourceManual).
 		Save(base.WithWorkspaceID(s.Context, ws.ID))
 	s.Require().NoError(err)
@@ -517,8 +522,8 @@ func (s *EntryApiSuite) Test_MultiCurrency_Ledger_Endpoint() {
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Postings: []model.CreatePostingRequest{
-			{AccountID: usdAcc.ID, Direction: domain.PostingDirectionDebit, Amount: 100.0},
-			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: 100.0},
+			{AccountID: usdAcc.ID, Direction: domain.PostingDirectionDebit, Amount: dec(100)},
+			{AccountID: accRev, Direction: domain.PostingDirectionCredit, Amount: dec(100)},
 		},
 	})
 	s.Created()
@@ -535,17 +540,17 @@ func (s *EntryApiSuite) Test_MultiCurrency_Ledger_Endpoint() {
 	err = json.NewDecoder(s.HttpResponse.Body).Decode(&ledgerRes)
 	s.Require().NoError(err)
 	s.Equal(int64(1), ledgerRes.Data.Total)
-	s.Equal(100.0, ledgerRes.Data.Balance)
-	s.Equal(1500000.0, ledgerRes.Data.BaseBalance)
+	s.True(ledgerRes.Data.Balance.Equal(dec(100)))
+	s.True(ledgerRes.Data.BaseBalance.Equal(dec(1500000)))
 	s.Require().Len(ledgerRes.Data.Postings, 1)
 
 	p := ledgerRes.Data.Postings[0]
-	s.Equal(100.0, p.Amount)
-	s.Equal(1500000.0, p.BaseAmount)
-	s.Equal(100.0, p.Balance)
-	s.Equal(100.0, p.RunningBalance)
-	s.Equal(1500000.0, p.BaseBalance)
-	s.Equal(1500000.0, p.RunningBaseBalance)
+	s.True(p.Amount.Equal(dec(100)))
+	s.True(p.BaseAmount.Equal(dec(1500000)))
+	s.True(p.Balance.Equal(dec(100)))
+	s.True(p.RunningBalance.Equal(dec(100)))
+	s.True(p.BaseBalance.Equal(dec(1500000)))
+	s.True(p.RunningBaseBalance.Equal(dec(1500000)))
 }
 
 func TestEntryApiSuite(t *testing.T) {

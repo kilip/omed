@@ -14,6 +14,7 @@ import (
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/shopspring/decimal"
 )
 
 // Posting is the model entity for the Posting schema.
@@ -38,9 +39,9 @@ type Posting struct {
 	// Direction holds the value of the "direction" field.
 	Direction posting.Direction `json:"direction,omitempty"`
 	// Amount holds the value of the "amount" field.
-	Amount float64 `json:"amount,omitempty"`
+	Amount decimal.Decimal `json:"amount,omitempty"`
 	// BaseAmount holds the value of the "base_amount" field.
-	BaseAmount float64 `json:"base_amount,omitempty"`
+	BaseAmount decimal.Decimal `json:"base_amount,omitempty"`
 	// Position holds the value of the "position" field.
 	Position int `json:"position,omitempty"`
 	// Description holds the value of the "description" field.
@@ -129,7 +130,7 @@ func (*Posting) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case posting.FieldAmount, posting.FieldBaseAmount:
-			values[i] = new(sql.NullFloat64)
+			values[i] = new(decimal.Decimal)
 		case posting.FieldID, posting.FieldWorkspaceID, posting.FieldCreatedBy, posting.FieldUpdatedBy, posting.FieldEntryID, posting.FieldAccountID, posting.FieldPosition:
 			values[i] = new(sql.NullInt64)
 		case posting.FieldDirection, posting.FieldDescription:
@@ -206,16 +207,16 @@ func (_m *Posting) assignValues(columns []string, values []any) error {
 				_m.Direction = posting.Direction(value.String)
 			}
 		case posting.FieldAmount:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*decimal.Decimal); !ok {
 				return fmt.Errorf("unexpected type %T for field amount", values[i])
-			} else if value.Valid {
-				_m.Amount = value.Float64
+			} else if value != nil {
+				_m.Amount = *value
 			}
 		case posting.FieldBaseAmount:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*decimal.Decimal); !ok {
 				return fmt.Errorf("unexpected type %T for field base_amount", values[i])
-			} else if value.Valid {
-				_m.BaseAmount = value.Float64
+			} else if value != nil {
+				_m.BaseAmount = *value
 			}
 		case posting.FieldPosition:
 			if value, ok := values[i].(*sql.NullInt64); !ok {

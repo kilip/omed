@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
+	"github.com/shopspring/decimal"
 )
 
 // ID filters vertices based on their ID field.
@@ -92,12 +93,12 @@ func AccountID(v int64) predicate.Posting {
 }
 
 // Amount applies equality check predicate on the "amount" field. It's identical to AmountEQ.
-func Amount(v float64) predicate.Posting {
+func Amount(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldEQ(FieldAmount, v))
 }
 
 // BaseAmount applies equality check predicate on the "base_amount" field. It's identical to BaseAmountEQ.
-func BaseAmount(v float64) predicate.Posting {
+func BaseAmount(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldEQ(FieldBaseAmount, v))
 }
 
@@ -312,82 +313,82 @@ func DirectionNotIn(vs ...Direction) predicate.Posting {
 }
 
 // AmountEQ applies the EQ predicate on the "amount" field.
-func AmountEQ(v float64) predicate.Posting {
+func AmountEQ(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldEQ(FieldAmount, v))
 }
 
 // AmountNEQ applies the NEQ predicate on the "amount" field.
-func AmountNEQ(v float64) predicate.Posting {
+func AmountNEQ(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldNEQ(FieldAmount, v))
 }
 
 // AmountIn applies the In predicate on the "amount" field.
-func AmountIn(vs ...float64) predicate.Posting {
+func AmountIn(vs ...decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldIn(FieldAmount, vs...))
 }
 
 // AmountNotIn applies the NotIn predicate on the "amount" field.
-func AmountNotIn(vs ...float64) predicate.Posting {
+func AmountNotIn(vs ...decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldNotIn(FieldAmount, vs...))
 }
 
 // AmountGT applies the GT predicate on the "amount" field.
-func AmountGT(v float64) predicate.Posting {
+func AmountGT(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldGT(FieldAmount, v))
 }
 
 // AmountGTE applies the GTE predicate on the "amount" field.
-func AmountGTE(v float64) predicate.Posting {
+func AmountGTE(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldGTE(FieldAmount, v))
 }
 
 // AmountLT applies the LT predicate on the "amount" field.
-func AmountLT(v float64) predicate.Posting {
+func AmountLT(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldLT(FieldAmount, v))
 }
 
 // AmountLTE applies the LTE predicate on the "amount" field.
-func AmountLTE(v float64) predicate.Posting {
+func AmountLTE(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldLTE(FieldAmount, v))
 }
 
 // BaseAmountEQ applies the EQ predicate on the "base_amount" field.
-func BaseAmountEQ(v float64) predicate.Posting {
+func BaseAmountEQ(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldEQ(FieldBaseAmount, v))
 }
 
 // BaseAmountNEQ applies the NEQ predicate on the "base_amount" field.
-func BaseAmountNEQ(v float64) predicate.Posting {
+func BaseAmountNEQ(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldNEQ(FieldBaseAmount, v))
 }
 
 // BaseAmountIn applies the In predicate on the "base_amount" field.
-func BaseAmountIn(vs ...float64) predicate.Posting {
+func BaseAmountIn(vs ...decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldIn(FieldBaseAmount, vs...))
 }
 
 // BaseAmountNotIn applies the NotIn predicate on the "base_amount" field.
-func BaseAmountNotIn(vs ...float64) predicate.Posting {
+func BaseAmountNotIn(vs ...decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldNotIn(FieldBaseAmount, vs...))
 }
 
 // BaseAmountGT applies the GT predicate on the "base_amount" field.
-func BaseAmountGT(v float64) predicate.Posting {
+func BaseAmountGT(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldGT(FieldBaseAmount, v))
 }
 
 // BaseAmountGTE applies the GTE predicate on the "base_amount" field.
-func BaseAmountGTE(v float64) predicate.Posting {
+func BaseAmountGTE(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldGTE(FieldBaseAmount, v))
 }
 
 // BaseAmountLT applies the LT predicate on the "base_amount" field.
-func BaseAmountLT(v float64) predicate.Posting {
+func BaseAmountLT(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldLT(FieldBaseAmount, v))
 }
 
 // BaseAmountLTE applies the LTE predicate on the "base_amount" field.
-func BaseAmountLTE(v float64) predicate.Posting {
+func BaseAmountLTE(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldLTE(FieldBaseAmount, v))
 }
 

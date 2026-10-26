@@ -13,6 +13,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/fin/service"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -212,7 +213,7 @@ func (s *PeriodServiceSuite) Test_Close_PeriodWithDraftEntriesFails() {
 		SetNumber("TRX-2026-000001").
 		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(decimal.NewFromInt(1)).
 		SetSource("MANUAL").
 		Save(ctx)
 	s.Require().NoError(err)
@@ -278,7 +279,7 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency: "USD",
 		ToCurrency:   "IDR",
-		Rate:         15000,
+		Rate:         decimal.NewFromInt(15000),
 		EffectiveDate: model.Date(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)),
 	})
 	s.Require().NoError(err)
@@ -288,7 +289,7 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 		SetNumber("TRX-2026-000001").
 		SetTransactionDate(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("USD").
-		SetExchangeRate(15000).
+		SetExchangeRate(decimal.NewFromInt(15000)).
 		SetSource("MANUAL").
 		Save(ctx)
 	s.Require().NoError(err)
@@ -309,8 +310,8 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 		SetEntryID(e.ID).
 		SetAccountID(usdAcc.ID).
 		SetDirection("DEBIT").
-		SetAmount(100).
-		SetBaseAmount(1500000).
+		SetAmount(decimal.NewFromInt(100)).
+		SetBaseAmount(decimal.NewFromInt(1500000)).
 		SetPosition(0).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -319,8 +320,8 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 		SetEntryID(e.ID).
 		SetAccountID(capitalAcc.ID).
 		SetDirection("CREDIT").
-		SetAmount(100).
-		SetBaseAmount(1500000).
+		SetAmount(decimal.NewFromInt(100)).
+		SetBaseAmount(decimal.NewFromInt(1500000)).
 		SetPosition(1).
 		Save(ctx)
 	s.Require().NoError(err)
@@ -330,7 +331,7 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 	_, err = rateRepo.Create(ctx, model.CreateExchangeRateRequest{
 		FromCurrency: "USD",
 		ToCurrency:   "IDR",
-		Rate:         16000,
+		Rate:         decimal.NewFromInt(16000),
 		EffectiveDate: model.Date(time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)),
 	})
 	s.Require().NoError(err)
@@ -352,13 +353,13 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 		if posting.AccountID == usdAcc.ID {
 			foundForeign = true
 			s.Equal("DEBIT", posting.Direction)
-			s.Equal(0.0, posting.Amount)
-			s.Equal(100000.0, posting.BaseAmount)
+			s.True(posting.Amount.Equal(decimal.Zero))
+			s.True(posting.BaseAmount.Equal(decimal.NewFromInt(100000)))
 		} else if posting.AccountID == gainAcc.ID {
 			foundGain = true
 			s.Equal("CREDIT", posting.Direction)
-			s.Equal(0.0, posting.Amount)
-			s.Equal(100000.0, posting.BaseAmount)
+			s.True(posting.Amount.Equal(decimal.Zero))
+			s.True(posting.BaseAmount.Equal(decimal.NewFromInt(100000)))
 		}
 	}
 	s.True(foundForeign)

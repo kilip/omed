@@ -65,7 +65,7 @@ func (s *ReportApiSuite) Test_TrialBalance_Endpoint() {
 		SetNumber("TRX-2026-000099").
 		SetTransactionDate(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)).
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(dec(1)).
 		SetSource("MANUAL").
 		Save(ctx)
 	s.Require().NoError(err)
@@ -82,7 +82,7 @@ func (s *ReportApiSuite) Test_TrialBalance_Endpoint() {
 		Save(ctx)
 	s.Require().NoError(err)
 
-	amt := 5000000.0
+	amt := dec(5000000)
 	_, err = client.Posting.Create().
 		SetWorkspaceID(ws.ID).
 		SetEntryID(e.ID).
@@ -117,8 +117,8 @@ func (s *ReportApiSuite) Test_TrialBalance_Endpoint() {
 	err = json.NewDecoder(s.HttpResponse.Body).Decode(&tbRes)
 	s.Require().NoError(err)
 	s.True(tbRes.Data.IsBalanced)
-	s.Equal(5000000.0, tbRes.Data.TotalDebit)
-	s.Equal(5000000.0, tbRes.Data.TotalCredit)
+	s.True(tbRes.Data.TotalDebit.Equal(dec(5000000)))
+	s.True(tbRes.Data.TotalCredit.Equal(dec(5000000)))
 	s.Equal("IDR", tbRes.Data.BaseCurrency)
 }
 
@@ -154,7 +154,7 @@ func (s *ReportApiSuite) Test_Summary_Endpoint() {
 		SetNumber("TRX-TEST-SUMMARY").
 		SetTransactionDate(now).
 		SetCurrency("IDR").
-		SetExchangeRate(1.0).
+		SetExchangeRate(dec(1)).
 		SetSource("MANUAL").
 		Save(ctx)
 	s.Require().NoError(err)
@@ -171,7 +171,7 @@ func (s *ReportApiSuite) Test_Summary_Endpoint() {
 		Save(ctx)
 	s.Require().NoError(err)
 
-	amt := 7500000.0
+	amt := dec(7500000)
 	_, err = client.Posting.Create().
 		SetWorkspaceID(ws.ID).
 		SetEntryID(e.ID).
@@ -201,9 +201,9 @@ func (s *ReportApiSuite) Test_Summary_Endpoint() {
 	err = json.NewDecoder(s.HttpResponse.Body).Decode(&sumRes)
 	s.Require().NoError(err)
 	s.Equal("IDR", sumRes.Data.BaseCurrency)
-	s.Equal(7500000.0, sumRes.Data.Totals.Assets)
-	s.Equal(7500000.0, sumRes.Data.Totals.Revenue)
-	s.Equal(7500000.0, sumRes.Data.Totals.NetIncome)
+	s.True(sumRes.Data.Totals.Assets.Equal(dec(7500000)))
+	s.True(sumRes.Data.Totals.Revenue.Equal(dec(7500000)))
+	s.True(sumRes.Data.Totals.NetIncome.Equal(dec(7500000)))
 	s.Len(sumRes.Data.Monthly, 6)
 }
 

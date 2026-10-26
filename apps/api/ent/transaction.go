@@ -12,6 +12,7 @@ import (
 	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/shopspring/decimal"
 )
 
 // Transaction is the model entity for the Transaction schema.
@@ -44,7 +45,7 @@ type Transaction struct {
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
 	// ExchangeRate holds the value of the "exchange_rate" field.
-	ExchangeRate float64 `json:"exchange_rate,omitempty"`
+	ExchangeRate decimal.Decimal `json:"exchange_rate,omitempty"`
 	// Source holds the value of the "source" field.
 	Source transaction.Source `json:"source,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -129,7 +130,7 @@ func (*Transaction) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case transaction.FieldExchangeRate:
-			values[i] = new(sql.NullFloat64)
+			values[i] = new(decimal.Decimal)
 		case transaction.FieldID, transaction.FieldWorkspaceID, transaction.FieldCreatedBy, transaction.FieldUpdatedBy, transaction.FieldDeletedByID:
 			values[i] = new(sql.NullInt64)
 		case transaction.FieldNumber, transaction.FieldDescription, transaction.FieldReference, transaction.FieldCurrency, transaction.FieldSource:
@@ -232,10 +233,10 @@ func (_m *Transaction) assignValues(columns []string, values []any) error {
 				_m.Currency = value.String
 			}
 		case transaction.FieldExchangeRate:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*decimal.Decimal); !ok {
 				return fmt.Errorf("unexpected type %T for field exchange_rate", values[i])
-			} else if value.Valid {
-				_m.ExchangeRate = value.Float64
+			} else if value != nil {
+				_m.ExchangeRate = *value
 			}
 		case transaction.FieldSource:
 			if value, ok := values[i].(*sql.NullString); !ok {

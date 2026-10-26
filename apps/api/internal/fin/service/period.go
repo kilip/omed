@@ -4,7 +4,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/money"
+	"github.com/shopspring/decimal"
 )
 
 // PeriodRepository defines the persistence operations required by PeriodService.
@@ -275,20 +275,20 @@ func (s PeriodService) Revalue(ctx context.Context, periodID int64, requestedBy 
 		bal := balances[acc.ID]
 
 		// Net account balance in account currency
-		var netAmount float64
+		var netAmount decimal.Decimal
 		// Net account balance in base currency currently recorded in ledger
-		var currentBaseBalance float64
+		var currentBaseBalance decimal.Decimal
 
 		if acc.NormalBalance == domain.NormalBalanceDebit {
-			netAmount = bal.Debit - bal.Credit
-			currentBaseBalance = bal.BaseDebit - bal.BaseCredit
+			netAmount = bal.Debit.Sub(bal.Credit)
+			currentBaseBalance = bal.BaseDebit.Sub(bal.BaseCredit)
 		} else {
-			netAmount = bal.Credit - bal.Debit
-			currentBaseBalance = bal.BaseCredit - bal.BaseDebit
+			netAmount = bal.Credit.Sub(bal.Debit)
+			currentBaseBalance = bal.BaseCredit.Sub(bal.BaseDebit)
 		}
 
 		// If account has zero balance in foreign currency, check if there is an unadjusted base amount
-		if money.Equal(netAmount, 0, 4) && money.Equal(currentBaseBalance, 0, baseDecimals) {
+		if money.Equal(netAmount, decimal.Zero, 4) && money.Equal(currentBaseBalance, decimal.Zero, int32(baseDecimals)) {
 			continue
 		}
 
@@ -297,16 +297,16 @@ func (s PeriodService) Revalue(ctx context.Context, periodID int64, requestedBy 
 			return domain.Entry{}, err
 		}
 
-		newBaseValue := money.Round(netAmount*rate, baseDecimals)
-		diff := money.Round(newBaseValue-currentBaseBalance, baseDecimals)
+		newBaseValue := money.Round(netAmount.Mul(rate), int32(baseDecimals))
+		diff := money.Round(newBaseValue.Sub(currentBaseBalance), int32(baseDecimals))
 
-		if money.Equal(diff, 0, baseDecimals) {
+		if money.Equal(diff, decimal.Zero, int32(baseDecimals)) {
 			continue
 		}
 
-		if diff > 0 {
+		if diff.IsPositive() {
 			// Gain
-			absDiff := money.Round(diff, baseDecimals)
+			absDiff := money.Round(diff, int32(baseDecimals))
 			// Posting to foreign account:
 			foreignDirection := domain.PostingDirectionDebit
 			if acc.NormalBalance == domain.NormalBalanceCredit {
@@ -315,20 +315,20 @@ func (s PeriodService) Revalue(ctx context.Context, periodID int64, requestedBy 
 			postings = append(postings, model.CreatePostingRequest{
 				AccountID:   acc.ID,
 				Direction:   foreignDirection,
-				Amount:      0,
+				Amount:      decimal.Zero,
 				BaseAmount:  &absDiff,
-				Description: fmt.Sprintf("FX Revaluation (%s @ %.4f)", acc.Currency, rate),
+				Description: fmt.Sprintf("FX Revaluation (%s @ %s)", acc.Currency, rate.StringFixed(4)),
 			})
 			postings = append(postings, model.CreatePostingRequest{
 				AccountID:   unrealizedGainAcc.ID,
 				Direction:   domain.PostingDirectionCredit,
-				Amount:      0,
+				Amount:      decimal.Zero,
 				BaseAmount:  &absDiff,
 				Description: fmt.Sprintf("Unrealized FX Gain on %s (%s)", acc.Code, acc.Currency),
 			})
 		} else {
 			// Loss (diff < 0)
-			absDiff := money.Round(math.Abs(diff), baseDecimals)
+			absDiff := money.Round(diff.Abs(), int32(baseDecimals))
 			// Posting to foreign account:
 			foreignDirection := domain.PostingDirectionCredit
 			if acc.NormalBalance == domain.NormalBalanceCredit {
@@ -337,14 +337,14 @@ func (s PeriodService) Revalue(ctx context.Context, periodID int64, requestedBy 
 			postings = append(postings, model.CreatePostingRequest{
 				AccountID:   acc.ID,
 				Direction:   foreignDirection,
-				Amount:      0,
+				Amount:      decimal.Zero,
 				BaseAmount:  &absDiff,
-				Description: fmt.Sprintf("FX Revaluation (%s @ %.4f)", acc.Currency, rate),
+				Description: fmt.Sprintf("FX Revaluation (%s @ %s)", acc.Currency, rate.StringFixed(4)),
 			})
 			postings = append(postings, model.CreatePostingRequest{
 				AccountID:   unrealizedLossAcc.ID,
 				Direction:   domain.PostingDirectionDebit,
-				Amount:      0,
+				Amount:      decimal.Zero,
 				BaseAmount:  &absDiff,
 				Description: fmt.Sprintf("Unrealized FX Loss on %s (%s)", acc.Code, acc.Currency),
 			})

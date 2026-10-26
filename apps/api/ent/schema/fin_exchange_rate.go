@@ -3,10 +3,12 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"github.com/shopspring/decimal"
 )
 
 // ExchangeRate holds the schema definition for the ExchangeRate entity.
@@ -38,7 +40,10 @@ func (ExchangeRate) Fields() []ent.Field {
 		field.Int64("id"),
 		field.String("from_currency").MinLen(3).MaxLen(3),
 		field.String("to_currency").MinLen(3).MaxLen(3),
-		field.Float("rate").Positive(),
+		field.Other("rate", decimal.Decimal{}).SchemaType(map[string]string{
+			dialect.Postgres: "numeric(20,8)",
+			dialect.SQLite:   "numeric(20,8)",
+		}),
 		field.Time("effective_date"),
 		field.Enum("source").Values("MANUAL", "IMPORT").Default("MANUAL"),
 	}

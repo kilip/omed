@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/internal/base"
+	"github.com/shopspring/decimal"
 )
 
 // ExchangeRateSource defines the source mechanism for currency exchange rates.
@@ -23,7 +24,7 @@ type ExchangeRate struct {
 	WorkspaceID   int64              `json:"workspaceId"`
 	FromCurrency  string             `json:"fromCurrency"`
 	ToCurrency    string             `json:"toCurrency"`
-	Rate          float64            `json:"rate"`
+	Rate          decimal.Decimal    `json:"rate"`
 	EffectiveDate time.Time          `json:"effectiveDate"`
 	Source        ExchangeRateSource `json:"source"`
 	CreatedByID   int64              `json:"createdById"`

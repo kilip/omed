@@ -14,6 +14,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/entx"
+	"github.com/shopspring/decimal"
 )
 
 // TransactionRepository defines operations for persisting and querying financial transactions.
@@ -83,8 +84,8 @@ func (r TransactionRepository) Create(c context.Context, req model.CreateTransac
 				curr = req.Currency
 			}
 
-			rate := 1.0
-			if req.ExchangeRate != nil && *req.ExchangeRate > 0 {
+			rate := decimal.NewFromInt(1)
+			if req.ExchangeRate != nil && req.ExchangeRate.IsPositive() {
 				rate = *req.ExchangeRate
 			}
 
@@ -132,8 +133,8 @@ func (r TransactionRepository) Create(c context.Context, req model.CreateTransac
 				}
 
 				for pos, pReq := range req.Entry.Postings {
-					baseAmt := pReq.Amount * rate
-					if pReq.BaseAmount != nil && *pReq.BaseAmount > 0 {
+					baseAmt := pReq.Amount.Mul(rate)
+					if pReq.BaseAmount != nil && pReq.BaseAmount.IsPositive() {
 						baseAmt = *pReq.BaseAmount
 					}
 					pBuilder := tx.Posting.Create().

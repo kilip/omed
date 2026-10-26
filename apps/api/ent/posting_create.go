@@ -16,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
+	"github.com/shopspring/decimal"
 )
 
 // PostingCreate is the builder for creating a Posting entity.
@@ -91,13 +92,13 @@ func (_c *PostingCreate) SetDirection(v posting.Direction) *PostingCreate {
 }
 
 // SetAmount sets the "amount" field.
-func (_c *PostingCreate) SetAmount(v float64) *PostingCreate {
+func (_c *PostingCreate) SetAmount(v decimal.Decimal) *PostingCreate {
 	_c.mutation.SetAmount(v)
 	return _c
 }
 
 // SetBaseAmount sets the "base_amount" field.
-func (_c *PostingCreate) SetBaseAmount(v float64) *PostingCreate {
+func (_c *PostingCreate) SetBaseAmount(v decimal.Decimal) *PostingCreate {
 	_c.mutation.SetBaseAmount(v)
 	return _c
 }
@@ -256,18 +257,8 @@ func (_c *PostingCreate) check() error {
 	if _, ok := _c.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "Posting.amount"`)}
 	}
-	if v, ok := _c.mutation.Amount(); ok {
-		if err := posting.AmountValidator(v); err != nil {
-			return &ValidationError{Name: "amount", err: fmt.Errorf(`ent: validator failed for field "Posting.amount": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.BaseAmount(); !ok {
 		return &ValidationError{Name: "base_amount", err: errors.New(`ent: missing required field "Posting.base_amount"`)}
-	}
-	if v, ok := _c.mutation.BaseAmount(); ok {
-		if err := posting.BaseAmountValidator(v); err != nil {
-			return &ValidationError{Name: "base_amount", err: fmt.Errorf(`ent: validator failed for field "Posting.base_amount": %w`, err)}
-		}
 	}
 	if _, ok := _c.mutation.Position(); !ok {
 		return &ValidationError{Name: "position", err: errors.New(`ent: missing required field "Posting.position"`)}
@@ -339,11 +330,11 @@ func (_c *PostingCreate) createSpec() (*Posting, *sqlgraph.CreateSpec) {
 		_node.Direction = value
 	}
 	if value, ok := _c.mutation.Amount(); ok {
-		_spec.SetField(posting.FieldAmount, field.TypeFloat64, value)
+		_spec.SetField(posting.FieldAmount, field.TypeOther, value)
 		_node.Amount = value
 	}
 	if value, ok := _c.mutation.BaseAmount(); ok {
-		_spec.SetField(posting.FieldBaseAmount, field.TypeFloat64, value)
+		_spec.SetField(posting.FieldBaseAmount, field.TypeOther, value)
 		_node.BaseAmount = value
 	}
 	if value, ok := _c.mutation.Position(); ok {
@@ -557,7 +548,7 @@ func (u *PostingUpsert) UpdateDirection() *PostingUpsert {
 }
 
 // SetAmount sets the "amount" field.
-func (u *PostingUpsert) SetAmount(v float64) *PostingUpsert {
+func (u *PostingUpsert) SetAmount(v decimal.Decimal) *PostingUpsert {
 	u.Set(posting.FieldAmount, v)
 	return u
 }
@@ -568,14 +559,8 @@ func (u *PostingUpsert) UpdateAmount() *PostingUpsert {
 	return u
 }
 
-// AddAmount adds v to the "amount" field.
-func (u *PostingUpsert) AddAmount(v float64) *PostingUpsert {
-	u.Add(posting.FieldAmount, v)
-	return u
-}
-
 // SetBaseAmount sets the "base_amount" field.
-func (u *PostingUpsert) SetBaseAmount(v float64) *PostingUpsert {
+func (u *PostingUpsert) SetBaseAmount(v decimal.Decimal) *PostingUpsert {
 	u.Set(posting.FieldBaseAmount, v)
 	return u
 }
@@ -583,12 +568,6 @@ func (u *PostingUpsert) SetBaseAmount(v float64) *PostingUpsert {
 // UpdateBaseAmount sets the "base_amount" field to the value that was provided on create.
 func (u *PostingUpsert) UpdateBaseAmount() *PostingUpsert {
 	u.SetExcluded(posting.FieldBaseAmount)
-	return u
-}
-
-// AddBaseAmount adds v to the "base_amount" field.
-func (u *PostingUpsert) AddBaseAmount(v float64) *PostingUpsert {
-	u.Add(posting.FieldBaseAmount, v)
 	return u
 }
 
@@ -756,16 +735,9 @@ func (u *PostingUpsertOne) UpdateDirection() *PostingUpsertOne {
 }
 
 // SetAmount sets the "amount" field.
-func (u *PostingUpsertOne) SetAmount(v float64) *PostingUpsertOne {
+func (u *PostingUpsertOne) SetAmount(v decimal.Decimal) *PostingUpsertOne {
 	return u.Update(func(s *PostingUpsert) {
 		s.SetAmount(v)
-	})
-}
-
-// AddAmount adds v to the "amount" field.
-func (u *PostingUpsertOne) AddAmount(v float64) *PostingUpsertOne {
-	return u.Update(func(s *PostingUpsert) {
-		s.AddAmount(v)
 	})
 }
 
@@ -777,16 +749,9 @@ func (u *PostingUpsertOne) UpdateAmount() *PostingUpsertOne {
 }
 
 // SetBaseAmount sets the "base_amount" field.
-func (u *PostingUpsertOne) SetBaseAmount(v float64) *PostingUpsertOne {
+func (u *PostingUpsertOne) SetBaseAmount(v decimal.Decimal) *PostingUpsertOne {
 	return u.Update(func(s *PostingUpsert) {
 		s.SetBaseAmount(v)
-	})
-}
-
-// AddBaseAmount adds v to the "base_amount" field.
-func (u *PostingUpsertOne) AddBaseAmount(v float64) *PostingUpsertOne {
-	return u.Update(func(s *PostingUpsert) {
-		s.AddBaseAmount(v)
 	})
 }
 
@@ -1133,16 +1098,9 @@ func (u *PostingUpsertBulk) UpdateDirection() *PostingUpsertBulk {
 }
 
 // SetAmount sets the "amount" field.
-func (u *PostingUpsertBulk) SetAmount(v float64) *PostingUpsertBulk {
+func (u *PostingUpsertBulk) SetAmount(v decimal.Decimal) *PostingUpsertBulk {
 	return u.Update(func(s *PostingUpsert) {
 		s.SetAmount(v)
-	})
-}
-
-// AddAmount adds v to the "amount" field.
-func (u *PostingUpsertBulk) AddAmount(v float64) *PostingUpsertBulk {
-	return u.Update(func(s *PostingUpsert) {
-		s.AddAmount(v)
 	})
 }
 
@@ -1154,16 +1112,9 @@ func (u *PostingUpsertBulk) UpdateAmount() *PostingUpsertBulk {
 }
 
 // SetBaseAmount sets the "base_amount" field.
-func (u *PostingUpsertBulk) SetBaseAmount(v float64) *PostingUpsertBulk {
+func (u *PostingUpsertBulk) SetBaseAmount(v decimal.Decimal) *PostingUpsertBulk {
 	return u.Update(func(s *PostingUpsert) {
 		s.SetBaseAmount(v)
-	})
-}
-
-// AddBaseAmount adds v to the "base_amount" field.
-func (u *PostingUpsertBulk) AddBaseAmount(v float64) *PostingUpsertBulk {
-	return u.Update(func(s *PostingUpsert) {
-		s.AddBaseAmount(v)
 	})
 }
 
