@@ -10,8 +10,9 @@ func initFirewall(state State, sessions service.SessionService) {
 	cfg := state.Config
 
 	app.Use(middleware.NewAuthMiddleware(middleware.AuthConfig{
-		SessionService: sessions,
-		Logger:         state.Logger,
-		CookieName:     cfg.SessionCookieName,
+		SessionService:      sessions,
+		Logger:              state.Logger,
+		CookieName:          cfg.SessionCookieName,
+		IsTestRoutesEnabled: cfg.IsTestRoutesEnabled(),
 	}))
 }

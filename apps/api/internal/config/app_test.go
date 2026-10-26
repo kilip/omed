@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -160,6 +161,64 @@ func (s *AppSuite) Test_Boot_DefaultApp_WithBaseMiddleware() {
 	defer resp.Body.Close()
 
 	s.NotEmpty(resp.Header.Get("X-Request-Id"))
+}
+
+func (s *AppSuite) Test_Boot_TestRoutesWarning_Enabled() {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&buf, nil))
+
+	cfg := config.Config{
+		Env: "development",
+	}
+	fApp := config.GetFiber(cfg, logger)
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   logger,
+		EntCli:   s.entCli,
+		Config:   cfg,
+	}
+
+	app := config.New(state)
+	err := app.Boot()
+	s.Require().NoError(err)
+
+	s.Contains(buf.String(), "⚠️ WARNING: Test endpoints enabled (/test/*). DO NOT ENABLE IN PRODUCTION!")
+
+	// Verify test routes are mounted and accessible without auth
+	req := httptest.NewRequest(fiber.MethodGet, "/test/mailer/messages", nil)
+	resp, err := fApp.Test(req)
+	s.Require().NoError(err)
+	defer resp.Body.Close()
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+}
+
+func (s *AppSuite) Test_Boot_TestRoutesWarning_DisabledInProduction() {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&buf, nil))
+
+	cfg := config.Config{
+		Env: "production",
+	}
+	fApp := config.GetFiber(cfg, logger)
+	state := config.State{
+		FiberApp: fApp,
+		Logger:   logger,
+		EntCli:   s.entCli,
+		Config:   cfg,
+	}
+
+	app := config.New(state)
+	err := app.Boot()
+	s.Require().NoError(err)
+
+	s.NotContains(buf.String(), "Test endpoints enabled")
+
+	// Verify test routes are not accessible without auth in production (firewall returns 401)
+	req := httptest.NewRequest(fiber.MethodGet, "/test/mailer/messages", nil)
+	resp, err := fApp.Test(req)
+	s.Require().NoError(err)
+	defer resp.Body.Close()
+	s.Equal(fiber.StatusUnauthorized, resp.StatusCode)
 }
 
 func (s *AppSuite) Test_Boot_LifecycleOrder() {

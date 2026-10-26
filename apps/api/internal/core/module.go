@@ -15,23 +15,24 @@ import (
 )
 
 type Config struct {
-	FiberApp          *fiber.App
-	Logger            *slog.Logger
-	EntCli            *ent.Client
-	AuthSecret        string
-	ApiURL            string
-	WebURL            string
-	TrustedOrigins    []string
-	GoogleID          string
-	GoogleSecret      string
-	GithubID          string
-	GithubSecret      string
-	SessionTTL        time.Duration
-	SessionCookieName string
-	Mailer            mailx.Mailer
-	Storage           s3x.Storage
-	Env               string
-	ApiUrl            string
+	FiberApp            *fiber.App
+	Logger              *slog.Logger
+	EntCli              *ent.Client
+	AuthSecret          string
+	ApiURL              string
+	WebURL              string
+	TrustedOrigins      []string
+	GoogleID            string
+	GoogleSecret        string
+	GithubID            string
+	GithubSecret        string
+	SessionTTL          time.Duration
+	SessionCookieName   string
+	Mailer              mailx.Mailer
+	Storage             s3x.Storage
+	Env                 string
+	ApiUrl              string
+	IsTestRoutesEnabled bool
 }
 
 // CoreModule represents the core module implementing base.Module.

@@ -12,13 +12,15 @@ import (
 
 // AuthConfig defines configuration options for the session authentication middleware.
 type AuthConfig struct {
-	SessionService service.SessionService
-	Logger         *slog.Logger
-	CookieName     string
+	SessionService      service.SessionService
+	Logger              *slog.Logger
+	CookieName          string
+	IsTestRoutesEnabled bool
 }
 
 // NewAuthMiddleware returns a Fiber handler that authenticates requests using SessionService.
-// It bypasses OPTIONS, /healthz, /readyz, /internal/*, /auth, /auth/*, GET /invitations/:token, and unauthenticated GET/HEAD requests to /public/*.
+// It bypasses OPTIONS, /healthz, /readyz, /internal/*, /auth, /auth/*, GET /invitations/:token,
+// unauthenticated GET/HEAD requests to /public/*, and /test/* (when IsTestRoutesEnabled is true).
 func NewAuthMiddleware(cfg AuthConfig) fiber.Handler {
 	cookieName := cfg.CookieName
 	if cookieName == "" {
@@ -33,8 +35,7 @@ func NewAuthMiddleware(cfg AuthConfig) fiber.Handler {
 			strings.HasPrefix(c.Path(), "/internal") ||
 			strings.HasPrefix(c.Path(), "/auth/") ||
 			c.Path() == "/auth" ||
-			strings.HasPrefix(c.Path(), "/test/") ||
-			c.Path() == "/test" ||
+			(cfg.IsTestRoutesEnabled && (strings.HasPrefix(c.Path(), "/test/") || c.Path() == "/test")) ||
 			((c.Method() == fiber.MethodGet || c.Method() == fiber.MethodHead) && strings.HasPrefix(c.Path(), "/public/")) ||
 			(c.Method() == fiber.MethodGet && strings.HasPrefix(c.Path(), "/invitations/") && !strings.HasSuffix(c.Path(), "/accept")) {
 			return c.Next()

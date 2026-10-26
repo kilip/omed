@@ -39,7 +39,7 @@ func (m *mockSessionService) RevokeAllUserSessions(ctx context.Context, userID i
 	return nil
 }
 
-func setupTestApp(sessions *mockSessionService, cookieName string) (*fiber.App, *base.UserContext) {
+func setupTestApp(sessions *mockSessionService, cookieName string, isTestRoutesEnabled ...bool) (*fiber.App, *base.UserContext) {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			status, _ := httpx.MapError(err)
@@ -48,9 +48,15 @@ func setupTestApp(sessions *mockSessionService, cookieName string) (*fiber.App, 
 	})
 	var capturedUser base.UserContext
 
+	testRoutesEnabled := false
+	if len(isTestRoutesEnabled) > 0 {
+		testRoutesEnabled = isTestRoutesEnabled[0]
+	}
+
 	app.Use(middleware.NewAuthMiddleware(middleware.AuthConfig{
-		SessionService: sessions,
-		CookieName:     cookieName,
+		SessionService:      sessions,
+		CookieName:          cookieName,
+		IsTestRoutesEnabled: testRoutesEnabled,
 	}))
 
 	app.All("/internal/health", func(c fiber.Ctx) error {
@@ -79,6 +85,12 @@ func setupTestApp(sessions *mockSessionService, cookieName string) (*fiber.App, 
 	})
 	app.Post("/public/x", func(c fiber.Ctx) error {
 		return c.SendString("public post ok")
+	})
+	app.All("/test/status", func(c fiber.Ctx) error {
+		return c.SendString("test ok")
+	})
+	app.All("/test", func(c fiber.Ctx) error {
+		return c.SendString("test root ok")
 	})
 	app.All("/api/protected", func(c fiber.Ctx) error {
 		if u, ok := c.Locals(base.USER_CONTEXT_KEY).(base.UserContext); ok {
@@ -269,4 +281,36 @@ func TestAuthMiddleware_Authorized_CustomCookie(t *testing.T) {
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 	assert.Equal(t, int64(99), captured.ID)
 	assert.Equal(t, "Cookie Monster", captured.Name)
+}
+
+func TestAuthMiddleware_TestRoutesGating(t *testing.T) {
+	mockSvc := &mockSessionService{}
+
+	t.Run("when IsTestRoutesEnabled is false, /test/ requires authentication", func(t *testing.T) {
+		app, _ := setupTestApp(mockSvc, "token", false)
+
+		req1 := httptest.NewRequest(fiber.MethodGet, "/test/status", nil)
+		resp1, err := app.Test(req1)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusUnauthorized, resp1.StatusCode)
+
+		req2 := httptest.NewRequest(fiber.MethodGet, "/test", nil)
+		resp2, err := app.Test(req2)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusUnauthorized, resp2.StatusCode)
+	})
+
+	t.Run("when IsTestRoutesEnabled is true, /test/ is bypassed without token", func(t *testing.T) {
+		app, _ := setupTestApp(mockSvc, "token", true)
+
+		req1 := httptest.NewRequest(fiber.MethodGet, "/test/status", nil)
+		resp1, err := app.Test(req1)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, resp1.StatusCode)
+
+		req2 := httptest.NewRequest(fiber.MethodGet, "/test", nil)
+		resp2, err := app.Test(req2)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, resp2.StatusCode)
+	})
 }

@@ -142,6 +142,44 @@ func (s *FirewallSuite) Test_InitFirewall() {
 	s.Equal(fiber.StatusOK, respCookie.StatusCode)
 }
 
+func (s *FirewallSuite) Test_InitFirewall_TestRoutes() {
+	sessions := &mockSessionService{}
+
+	s.Run("test routes require auth in production", func() {
+		cfg := config.Config{Env: "production"}
+		app := config.GetFiber(cfg, s.logger)
+		state := config.State{FiberApp: app, Logger: s.logger, Config: cfg}
+		config.InitFirewall(state, sessions)
+
+		app.All("/test/hello", func(c fiber.Ctx) error {
+			return c.SendString("hello")
+		})
+
+		req := httptest.NewRequest(fiber.MethodGet, "/test/hello", nil)
+		resp, err := app.Test(req)
+		s.Require().NoError(err)
+		defer resp.Body.Close()
+		s.Equal(fiber.StatusUnauthorized, resp.StatusCode)
+	})
+
+	s.Run("test routes bypassed in development", func() {
+		cfg := config.Config{Env: "development"}
+		app := config.GetFiber(cfg, s.logger)
+		state := config.State{FiberApp: app, Logger: s.logger, Config: cfg}
+		config.InitFirewall(state, sessions)
+
+		app.All("/test/hello", func(c fiber.Ctx) error {
+			return c.SendString("hello")
+		})
+
+		req := httptest.NewRequest(fiber.MethodGet, "/test/hello", nil)
+		resp, err := app.Test(req)
+		s.Require().NoError(err)
+		defer resp.Body.Close()
+		s.Equal(fiber.StatusOK, resp.StatusCode)
+	})
+}
+
 func TestFirewallSuite(t *testing.T) {
 	suite.Run(t, new(FirewallSuite))
 }

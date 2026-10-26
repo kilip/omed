@@ -79,22 +79,23 @@ func New(state State) Omed {
 	}
 
 	coreMod := core.New(core.Config{
-		FiberApp:          state.FiberApp,
-		Logger:            state.Logger,
-		EntCli:            state.EntCli,
-		AuthSecret:        state.Config.AuthSecret,
-		ApiURL:            state.Config.ApiUrl,
-		ApiUrl:            state.Config.ApiUrl,
-		Env:               state.Config.Env,
-		WebURL:            state.Config.WebUrl,
-		TrustedOrigins:    state.Config.TrustedOrigins,
-		GoogleID:          state.Config.GoogleClientID,
-		GoogleSecret:      state.Config.GoogleClientSecret,
-		GithubID:          state.Config.GithubClientID,
-		GithubSecret:      state.Config.GithubClientSecret,
-		SessionCookieName: state.Config.SessionCookieName,
-		Mailer:            state.Mailer,
-		Storage:           state.Storage,
+		FiberApp:            state.FiberApp,
+		Logger:              state.Logger,
+		EntCli:              state.EntCli,
+		AuthSecret:          state.Config.AuthSecret,
+		ApiURL:              state.Config.ApiUrl,
+		ApiUrl:              state.Config.ApiUrl,
+		Env:                 state.Config.Env,
+		WebURL:              state.Config.WebUrl,
+		TrustedOrigins:      state.Config.TrustedOrigins,
+		GoogleID:            state.Config.GoogleClientID,
+		GoogleSecret:        state.Config.GoogleClientSecret,
+		GithubID:            state.Config.GithubClientID,
+		GithubSecret:        state.Config.GithubClientSecret,
+		SessionCookieName:   state.Config.SessionCookieName,
+		Mailer:              state.Mailer,
+		Storage:             state.Storage,
+		IsTestRoutesEnabled: state.Config.IsTestRoutesEnabled(),
 	})
 
 	az, err := authz.New(coreMod.MemberService)
@@ -202,6 +203,9 @@ func (a *Omed) Boot() error {
 	}
 
 	if a.state.Config.IsTestRoutesEnabled() && a.state.EntCli != nil {
+		if a.state.Logger != nil {
+			a.state.Logger.Warn("⚠️ WARNING: Test endpoints enabled (/test/*). DO NOT ENABLE IN PRODUCTION!")
+		}
 		ctl := testctl.NewController(a.state.EntCli, a.state.Mailer, a.state.Config.SessionCookieName)
 		ctl.RegisterRoutes(a.state.FiberApp)
 	}
