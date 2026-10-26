@@ -68,6 +68,83 @@ func (s *OAuthServiceSuite) SetupSuite() {
 				"email":      "github.user@example.com",
 				"avatar_url": "https://example.com/gh.png",
 			})
+		case "/userinfo/google-unverified":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"id":             "google-unverified-1",
+				"email":          "existing@example.com",
+				"name":           "Google Unverified",
+				"picture":        "https://example.com/avatar.jpg",
+				"verified_email": false,
+			})
+		case "/userinfo/google-verified":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"id":             "google-verified-1",
+				"email":          "existing@example.com",
+				"name":           "Google Verified",
+				"picture":        "https://example.com/avatar.jpg",
+				"verified_email": true,
+			})
+		case "/userinfo/github-unverified":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"id":         2003,
+				"login":      "githubunverified",
+				"name":       "GitHub Unverified",
+				"email":      "existing@example.com",
+				"avatar_url": "https://example.com/gh.png",
+			})
+		case "/userinfo/github-unverified/emails":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode([]map[string]any{
+				{
+					"email":    "existing@example.com",
+					"primary":  true,
+					"verified": false,
+				},
+			})
+		case "/userinfo/github-verified":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"id":         2004,
+				"login":      "githubverified",
+				"name":       "GitHub Verified",
+				"email":      "existing@example.com",
+				"avatar_url": "https://example.com/gh.png",
+			})
+		case "/userinfo/github-verified/emails":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode([]map[string]any{
+				{
+					"email":    "existing@example.com",
+					"primary":  true,
+					"verified": true,
+				},
+			})
+		case "/userinfo/github-fallback":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"id":         2005,
+				"login":      "githubfallback",
+				"name":       "GitHub Fallback",
+				"email":      "",
+				"avatar_url": "https://example.com/gh.png",
+			})
+		case "/userinfo/github-fallback/emails":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode([]map[string]any{
+				{
+					"email":    "unverified@example.com",
+					"primary":  true,
+					"verified": false,
+				},
+				{
+					"email":    "verified-fallback@example.com",
+					"primary":  false,
+					"verified": true,
+				},
+			})
 		default:
 			http.NotFound(w, r)
 		}
@@ -102,6 +179,18 @@ func (s *OAuthServiceSuite) SetupSuite() {
 			Scopes:      []string{"openid", "email"},
 			UserInfoURL: s.mockServer.URL + "/userinfo/google",
 		})
+		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+			ID:           domain.ProviderGithub,
+			ClientID:     "mock-github-id",
+			ClientSecret: "mock-github-secret",
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  s.mockServer.URL + "/auth",
+				TokenURL: s.mockServer.URL + "/token",
+			},
+			Scopes:      []string{"read:user", "user:email"},
+			UserInfoURL: s.mockServer.URL + "/userinfo/github",
+			EmailsURL:   s.mockServer.URL + "/userinfo/github/emails",
+		})
 	}
 }
 
@@ -121,6 +210,34 @@ func (s *OAuthServiceSuite) SetupTest() {
 	_, _ = s.client.WorkspaceMember.Delete().Exec(ctx)
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
 	_, _ = s.client.User.Delete().Exec(ctx)
+
+	if svcWithReg, ok := s.oauthSvc.(interface {
+		RegisterProvider(service.OAuthProviderConfig)
+	}); ok {
+		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+			ID:           domain.ProviderGoogle,
+			ClientID:     "mock-google-id",
+			ClientSecret: "mock-google-secret",
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  s.mockServer.URL + "/auth",
+				TokenURL: s.mockServer.URL + "/token",
+			},
+			Scopes:      []string{"openid", "email"},
+			UserInfoURL: s.mockServer.URL + "/userinfo/google",
+		})
+		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+			ID:           domain.ProviderGithub,
+			ClientID:     "mock-github-id",
+			ClientSecret: "mock-github-secret",
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  s.mockServer.URL + "/auth",
+				TokenURL: s.mockServer.URL + "/token",
+			},
+			Scopes:      []string{"read:user", "user:email"},
+			UserInfoURL: s.mockServer.URL + "/userinfo/github",
+			EmailsURL:   s.mockServer.URL + "/userinfo/github/emails",
+		})
+	}
 }
 
 func (s *OAuthServiceSuite) Test_GetAuthURL_Success() {
@@ -270,6 +387,287 @@ func (s *OAuthServiceSuite) Test_OAuth_LocalePreserved_Indonesian() {
 		Only(s.ctx)
 	s.Require().NoError(err)
 	s.Equal("IDR", ws.BaseCurrency)
+}
+
+func (s *OAuthServiceSuite) getState(req model.SignInSocialRequest) string {
+	authRes, err := s.oauthSvc.GetAuthURL(req)
+	s.Require().NoError(err)
+
+	for _, part := range splitQuery(authRes.URL) {
+		if len(part) > 6 && part[:6] == "state=" {
+			return part[6:]
+		}
+	}
+	s.Fail("state not found in auth URL")
+	return ""
+}
+
+func (s *OAuthServiceSuite) Test_AccountLinking_Google_UnverifiedEmail_Rejected() {
+	// 1. Create existing user
+	_, err := s.userRepo.Create(s.ctx, model.CreateUserRequest{
+		Name:     "Existing User",
+		Email:    "existing@example.com",
+		Locale:   "en",
+		Currency: "USD",
+	})
+	s.Require().NoError(err)
+
+	// Override Google provider to return unverified profile
+	svcWithReg := s.oauthSvc.(interface {
+		RegisterProvider(service.OAuthProviderConfig)
+	})
+	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+		ID:           domain.ProviderGoogle,
+		ClientID:     "mock-google-id",
+		ClientSecret: "mock-google-secret",
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token",
+		},
+		Scopes:      []string{"openid", "email"},
+		UserInfoURL: s.mockServer.URL + "/userinfo/google-unverified",
+	})
+
+	state := s.getState(model.SignInSocialRequest{
+		Provider:    domain.ProviderGoogle,
+		CallbackURL: "http://localhost:3000/dashboard",
+	})
+
+	_, _, _, err = s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, domain.ErrEmailNotVerified)
+
+	// Ensure no account was linked
+	_, err = s.accountRepo.FindByProviderAndAccountID(s.ctx, domain.ProviderGoogle, "google-unverified-1")
+	s.Require().Error(err)
+}
+
+func (s *OAuthServiceSuite) Test_AccountLinking_Google_VerifiedEmail_Success() {
+	// 1. Create existing user
+	existingUser, err := s.userRepo.Create(s.ctx, model.CreateUserRequest{
+		Name:     "Existing User",
+		Email:    "existing@example.com",
+		Locale:   "en",
+		Currency: "USD",
+	})
+	s.Require().NoError(err)
+
+	// Override Google provider to return verified profile
+	svcWithReg := s.oauthSvc.(interface {
+		RegisterProvider(service.OAuthProviderConfig)
+	})
+	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+		ID:           domain.ProviderGoogle,
+		ClientID:     "mock-google-id",
+		ClientSecret: "mock-google-secret",
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token",
+		},
+		Scopes:      []string{"openid", "email"},
+		UserInfoURL: s.mockServer.URL + "/userinfo/google-verified",
+	})
+
+	state := s.getState(model.SignInSocialRequest{
+		Provider:    domain.ProviderGoogle,
+		CallbackURL: "http://localhost:3000/dashboard",
+	})
+
+	sess, user, _, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().NoError(err)
+	s.Equal(existingUser.ID, user.ID)
+	s.Equal(existingUser.Email, user.Email)
+	s.NotEmpty(sess.Token)
+
+	// Verify Account was created and linked to existing user
+	acc, err := s.accountRepo.FindByProviderAndAccountID(s.ctx, domain.ProviderGoogle, "google-verified-1")
+	s.Require().NoError(err)
+	s.Equal(existingUser.ID, acc.UserID)
+}
+
+func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_UnverifiedEmail_Rejected() {
+	// 1. Create existing user
+	_, err := s.userRepo.Create(s.ctx, model.CreateUserRequest{
+		Name:     "Existing User",
+		Email:    "existing@example.com",
+		Locale:   "en",
+		Currency: "USD",
+	})
+	s.Require().NoError(err)
+
+	// Override GitHub provider to return unverified profile
+	svcWithReg := s.oauthSvc.(interface {
+		RegisterProvider(service.OAuthProviderConfig)
+	})
+	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+		ID:           domain.ProviderGithub,
+		ClientID:     "mock-github-id",
+		ClientSecret: "mock-github-secret",
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token",
+		},
+		Scopes:      []string{"read:user", "user:email"},
+		UserInfoURL: s.mockServer.URL + "/userinfo/github-unverified",
+		EmailsURL:   s.mockServer.URL + "/userinfo/github-unverified/emails",
+	})
+
+	state := s.getState(model.SignInSocialRequest{
+		Provider:    domain.ProviderGithub,
+		CallbackURL: "http://localhost:3000/dashboard",
+	})
+
+	_, _, _, err = s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGithub,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, domain.ErrEmailNotVerified)
+
+	// Ensure no account was linked
+	_, err = s.accountRepo.FindByProviderAndAccountID(s.ctx, domain.ProviderGithub, "2003")
+	s.Require().Error(err)
+}
+
+func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_VerifiedEmail_Success() {
+	// 1. Create existing user
+	existingUser, err := s.userRepo.Create(s.ctx, model.CreateUserRequest{
+		Name:     "Existing User",
+		Email:    "existing@example.com",
+		Locale:   "en",
+		Currency: "USD",
+	})
+	s.Require().NoError(err)
+
+	// Override GitHub provider to return verified profile
+	svcWithReg := s.oauthSvc.(interface {
+		RegisterProvider(service.OAuthProviderConfig)
+	})
+	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+		ID:           domain.ProviderGithub,
+		ClientID:     "mock-github-id",
+		ClientSecret: "mock-github-secret",
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token",
+		},
+		Scopes:      []string{"read:user", "user:email"},
+		UserInfoURL: s.mockServer.URL + "/userinfo/github-verified",
+		EmailsURL:   s.mockServer.URL + "/userinfo/github-verified/emails",
+	})
+
+	state := s.getState(model.SignInSocialRequest{
+		Provider:    domain.ProviderGithub,
+		CallbackURL: "http://localhost:3000/dashboard",
+	})
+
+	sess, user, _, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGithub,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().NoError(err)
+	s.Equal(existingUser.ID, user.ID)
+	s.Equal(existingUser.Email, user.Email)
+	s.NotEmpty(sess.Token)
+
+	// Verify Account was created and linked to existing user
+	acc, err := s.accountRepo.FindByProviderAndAccountID(s.ctx, domain.ProviderGithub, "2004")
+	s.Require().NoError(err)
+	s.Equal(existingUser.ID, acc.UserID)
+}
+
+func (s *OAuthServiceSuite) Test_AccountLinking_NewUser_UnverifiedEmail_Rejected() {
+	svcWithReg := s.oauthSvc.(interface {
+		RegisterProvider(service.OAuthProviderConfig)
+	})
+	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+		ID:           domain.ProviderGoogle,
+		ClientID:     "mock-google-id",
+		ClientSecret: "mock-google-secret",
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token",
+		},
+		Scopes:      []string{"openid", "email"},
+		UserInfoURL: s.mockServer.URL + "/userinfo/google-unverified",
+	})
+
+	state := s.getState(model.SignInSocialRequest{
+		Provider:    domain.ProviderGoogle,
+		CallbackURL: "http://localhost:3000/dashboard",
+	})
+
+	_, _, _, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, domain.ErrEmailNotVerified)
+
+	// Ensure user was NOT created in DB
+	_, err = s.userRepo.FindByEmail(s.ctx, "existing@example.com")
+	s.Require().Error(err)
+}
+
+func (s *OAuthServiceSuite) Test_FetchGithubEmail_PicksVerifiedNonPrimaryWhenPrimaryUnverified() {
+	svcWithReg := s.oauthSvc.(interface {
+		RegisterProvider(service.OAuthProviderConfig)
+	})
+	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+		ID:           domain.ProviderGithub,
+		ClientID:     "mock-github-id",
+		ClientSecret: "mock-github-secret",
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token",
+		},
+		Scopes:      []string{"read:user", "user:email"},
+		UserInfoURL: s.mockServer.URL + "/userinfo/github-fallback",
+		EmailsURL:   s.mockServer.URL + "/userinfo/github-fallback/emails",
+	})
+
+	state := s.getState(model.SignInSocialRequest{
+		Provider:    domain.ProviderGithub,
+		CallbackURL: "http://localhost:3000/dashboard",
+	})
+
+	sess, user, _, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGithub,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().NoError(err)
+	s.Equal("verified-fallback@example.com", user.Email)
+	s.NotEmpty(sess.Token)
 }
 
 func splitQuery(rawURL string) []string {

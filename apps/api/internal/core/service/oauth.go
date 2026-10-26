@@ -40,6 +40,7 @@ type OAuthProviderConfig struct {
 	Endpoint     oauth2.Endpoint
 	Scopes       []string
 	UserInfoURL  string
+	EmailsURL    string
 }
 
 type oauthService struct {
@@ -108,6 +109,7 @@ func NewOAuthService(p OAuthServiceParams) OAuthService {
 				"user:email",
 			},
 			UserInfoURL: "https://api.github.com/user",
+			EmailsURL:   "https://api.github.com/user/emails",
 		}
 	}
 
@@ -265,7 +267,12 @@ func (s *oauthService) resolveUser(ctx context.Context, provider string, info mo
 		}
 	}
 
-	// 2. Check if user with same email exists
+	// 2. Ensure email is verified before linking to existing user or provisioning new user
+	if !info.EmailVerified {
+		return domain.User{}, domain.ErrEmailNotVerified
+	}
+
+	// 3. Check if user with same email exists
 	if info.Email != "" {
 		usr, err := s.users.FindByEmail(ctx, info.Email)
 		if err == nil {
@@ -273,7 +280,7 @@ func (s *oauthService) resolveUser(ctx context.Context, provider string, info mo
 		}
 	}
 
-	// 3. User does not exist, provision new user (which also auto-creates personal workspace)
+	// 4. User does not exist, provision new user (which also auto-creates personal workspace)
 	name := info.Name
 	if name == "" {
 		name = strings.Split(info.Email, "@")[0]
@@ -331,6 +338,7 @@ func (s *oauthService) fetchUserInfo(ctx context.Context, p *OAuthProviderConfig
 			ID            string `json:"id"`
 			Email         string `json:"email"`
 			VerifiedEmail bool   `json:"verified_email"`
+			EmailVerified bool   `json:"email_verified"`
 			Name          string `json:"name"`
 			Picture       string `json:"picture"`
 			Locale        string `json:"locale"`
@@ -343,17 +351,19 @@ func (s *oauthService) fetchUserInfo(ctx context.Context, p *OAuthProviderConfig
 			Email:         gUser.Email,
 			Name:          gUser.Name,
 			Avatar:        gUser.Picture,
-			EmailVerified: gUser.VerifiedEmail,
+			EmailVerified: gUser.VerifiedEmail || gUser.EmailVerified,
 			Locale:        gUser.Locale,
 		}, nil
 
 	case domain.ProviderGithub:
 		var ghUser struct {
-			ID        int64  `json:"id"`
-			Login     string `json:"login"`
-			Name      string `json:"name"`
-			Email     string `json:"email"`
-			AvatarURL string `json:"avatar_url"`
+			ID            int64  `json:"id"`
+			Login         string `json:"login"`
+			Name          string `json:"name"`
+			Email         string `json:"email"`
+			AvatarURL     string `json:"avatar_url"`
+			EmailVerified *bool  `json:"email_verified"`
+			Verified      *bool  `json:"verified"`
 		}
 		if err := json.Unmarshal(body, &ghUser); err != nil {
 			return model.OAuthUserInfo{}, err
@@ -362,10 +372,16 @@ func (s *oauthService) fetchUserInfo(ctx context.Context, p *OAuthProviderConfig
 		userEmail := ghUser.Email
 		emailVerified := false
 
-		// GitHub users often have private emails, fetch from /user/emails if needed
-		if userEmail == "" {
-			userEmail, emailVerified = s.fetchGithubEmail(ctx, token.AccessToken)
-		} else {
+		if ghUser.EmailVerified != nil {
+			emailVerified = *ghUser.EmailVerified
+		} else if ghUser.Verified != nil {
+			emailVerified = *ghUser.Verified
+		}
+
+		// GitHub users often have private emails or unverified profile emails.
+		// Query /user/emails to get a verified email address.
+		if vEmail, ok := s.fetchGithubEmail(ctx, token.AccessToken); ok {
+			userEmail = vEmail
 			emailVerified = true
 		}
 
@@ -388,7 +404,12 @@ func (s *oauthService) fetchUserInfo(ctx context.Context, p *OAuthProviderConfig
 }
 
 func (s *oauthService) fetchGithubEmail(ctx context.Context, accessToken string) (string, bool) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.github.com/user/emails", nil)
+	emailsURL := "https://api.github.com/user/emails"
+	if p, ok := s.providers[domain.ProviderGithub]; ok && p.EmailsURL != "" {
+		emailsURL = p.EmailsURL
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, emailsURL, nil)
 	if err != nil {
 		return "", false
 	}
@@ -420,8 +441,10 @@ func (s *oauthService) fetchGithubEmail(ctx context.Context, accessToken string)
 			return e.Email, true
 		}
 	}
-	if len(emails) > 0 {
-		return emails[0].Email, emails[0].Verified
+	for _, e := range emails {
+		if e.Verified {
+			return e.Email, true
+		}
 	}
 
 	return "", false

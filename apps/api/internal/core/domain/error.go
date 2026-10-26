@@ -11,6 +11,9 @@ import (
 // ErrEmailTaken indicates that the specified email address is already in use by another account.
 var ErrEmailTaken = errors.New("USER_EMAIL_TAKEN")
 
+// ErrEmailNotVerified indicates that the OAuth email address has not been verified by the provider.
+var ErrEmailNotVerified = errors.New("AUTH_EMAIL_NOT_VERIFIED")
+
 var (
 	// ErrInvalidRole indicates that a role being assigned is not registered by any module.
 	ErrInvalidRole = errors.New("MEMBER_INVALID_ROLE")
@@ -37,6 +40,7 @@ var (
 )
 
 func init() {
+	base.AddToErrorMap(ErrEmailNotVerified, fiber.StatusBadRequest, "oauth email is not verified")
 	base.AddToErrorMap(ErrEmailTaken, fiber.StatusConflict, "email already used")
 	base.AddToErrorMap(ErrInvalidRole, fiber.StatusUnprocessableEntity, "role is not registered")
 	base.AddToErrorMap(ErrOwnerImmutable, fiber.StatusConflict, "workspace owner cannot be managed as a member")
