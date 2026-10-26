@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/period"
@@ -16,6 +17,15 @@ import (
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/platform/entx"
 )
+
+// forUpdate applies row-level locking (FOR UPDATE) if the dialect supports it (e.g. Postgres).
+// In SQLite (used in test memory db), FOR UPDATE is not supported and transactions are serialized.
+func forUpdate(q *ent.EntryQuery, tx *ent.Tx) *ent.EntryQuery {
+	if tx != nil && tx.Dialect() != dialect.SQLite {
+		return q.ForUpdate()
+	}
+	return q
+}
 
 // EntryRepository defines operations for persisting and querying journal entries and postings.
 type EntryRepository struct {
@@ -183,7 +193,7 @@ func (r EntryRepository) Update(c context.Context, id int64, req model.UpdateEnt
 	var dom domain.Entry
 
 	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
-		e, err := tx.Entry.Query().
+		e, err := forUpdate(tx.Entry.Query(), tx).
 			Where(
 				entry.ID(id),
 				entry.DeletedAtIsNil(),
@@ -260,7 +270,7 @@ func (r EntryRepository) Update(c context.Context, id int64, req model.UpdateEnt
 // Deletes its postings and soft-deletes the entry in a single entx.WithTx.
 func (r EntryRepository) Delete(c context.Context, id int64) error {
 	return entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
-		e, err := tx.Entry.Query().
+		e, err := forUpdate(tx.Entry.Query(), tx).
 			Where(
 				entry.ID(id),
 				entry.DeletedAtIsNil(),
@@ -361,40 +371,95 @@ func (r EntryRepository) Search(c context.Context, req model.SearchEntryRequest)
 }
 
 // Post transitions entry status from DRAFT to POSTED, setting posted_at and posted_by.
-func (r EntryRepository) Post(c context.Context, id int64, postedBy int64) (domain.Entry, error) {
+// If balancedPostings are provided and non-empty, replaces existing postings with them inside the same transaction.
+func (r EntryRepository) Post(c context.Context, id int64, postedBy int64, balancedPostings ...[]model.CreatePostingRequest) (domain.Entry, error) {
 	var dom domain.Entry
 
-	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
-		e, err := tx.Entry.Query().
-			Where(
-				entry.ID(id),
-				entry.DeletedAtIsNil(),
-			).
-			Only(c)
-		if err != nil {
-			if ent.IsNotFound(err) {
-				return domain.ErrEntryNotFound
+	const maxRetries = 5
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
+			e, err := forUpdate(tx.Entry.Query(), tx).
+				Where(
+					entry.ID(id),
+					entry.DeletedAtIsNil(),
+				).
+				WithTransaction().
+				WithPostings(func(pq *ent.PostingQuery) {
+					pq.Order(ent.Asc(posting.FieldPosition))
+				}).
+				Only(c)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return domain.ErrEntryNotFound
+				}
+				return err
 			}
-			return err
+
+			if string(e.Status) != domain.EntryStatusDraft {
+				return domain.ErrEntryNotDraft
+			}
+
+			if len(balancedPostings) > 0 && len(balancedPostings[0]) > 0 {
+				rate := 1.0
+				if e.Edges.Transaction != nil && e.Edges.Transaction.ExchangeRate > 0 {
+					rate = e.Edges.Transaction.ExchangeRate
+				}
+
+				// Delete existing postings
+				if _, err := tx.Posting.Delete().Where(posting.EntryIDEQ(id)).Exec(c); err != nil {
+					return err
+				}
+
+				// Insert replacement postings
+				for pos, pReq := range balancedPostings[0] {
+					baseAmt := pReq.Amount * rate
+					if pReq.BaseAmount != nil {
+						baseAmt = *pReq.BaseAmount
+					}
+					pBuilder := tx.Posting.Create().
+						SetEntryID(id).
+						SetAccountID(pReq.AccountID).
+						SetDirection(posting.Direction(pReq.Direction)).
+						SetAmount(pReq.Amount).
+						SetBaseAmount(baseAmt).
+						SetPosition(pos)
+
+					pDesc := pReq.Description
+					if pDesc == "" && e.Description != "" {
+						pDesc = e.Description
+					}
+					if pDesc != "" {
+						pBuilder.SetDescription(pDesc)
+					}
+
+					if _, err := pBuilder.Save(c); err != nil {
+						return err
+					}
+				}
+			}
+
+			now := time.Now()
+			return tx.Entry.UpdateOneID(id).
+				SetStatus(entry.Status(domain.EntryStatusPosted)).
+				SetPostedAt(now).
+				SetPostedBy(postedBy).
+				Exec(c)
+		})
+
+		if err == nil {
+			return r.GetByID(c, id)
 		}
 
-		if string(e.Status) != domain.EntryStatusDraft {
-			return domain.ErrEntryNotDraft
+		if ent.IsConstraintError(err) || isLockOrConflictError(err) {
+			time.Sleep(10 * time.Millisecond)
+			continue
 		}
 
-		now := time.Now()
-		return tx.Entry.UpdateOneID(id).
-			SetStatus(entry.Status(domain.EntryStatusPosted)).
-			SetPostedAt(now).
-			SetPostedBy(postedBy).
-			Exec(c)
-	})
-
-	if err != nil {
 		return dom, err
 	}
 
-	return r.GetByID(c, id)
+	return dom, domain.ErrEntryRetryExhausted
 }
 
 // Reverse creates a reversing entry with POSTED status in a single entx.WithTx.
@@ -407,7 +472,7 @@ func (r EntryRepository) Reverse(c context.Context, id int64, postedBy int64, en
 
 	for attempt := 0; attempt < maxRetries; attempt++ {
 		err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
-			orig, err := tx.Entry.Query().
+			orig, err := forUpdate(tx.Entry.Query(), tx).
 				Where(
 					entry.ID(id),
 					entry.DeletedAtIsNil(),
@@ -543,34 +608,166 @@ func (r EntryRepository) Reverse(c context.Context, id int64, postedBy int64, en
 	return dom, domain.ErrEntryRetryExhausted
 }
 
-// Void marks an entry status as VOID.
-func (r EntryRepository) Void(c context.Context, id int64) (domain.Entry, error) {
+// Void voids a journal entry.
+// If the entry is POSTED, creates a reversing entry and marks the original VOID atomically in the same transaction.
+// If the entry is DRAFT, marks it VOID.
+// If the entry is already VOID, returns the current entry without changes.
+func (r EntryRepository) Void(c context.Context, id int64, postedBy ...int64) (domain.Entry, error) {
 	var dom domain.Entry
+	var pBy int64
+	if len(postedBy) > 0 {
+		pBy = postedBy[0]
+	}
 
-	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
-		exists, err := tx.Entry.Query().
-			Where(
-				entry.ID(id),
-				entry.DeletedAtIsNil(),
-			).
-			Exist(c)
-		if err != nil {
-			return err
+	const maxRetries = 5
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
+			orig, err := forUpdate(tx.Entry.Query(), tx).
+				Where(
+					entry.ID(id),
+					entry.DeletedAtIsNil(),
+				).
+				WithPostings(func(pq *ent.PostingQuery) {
+					pq.Order(ent.Asc(posting.FieldPosition))
+				}).
+				Only(c)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return domain.ErrEntryNotFound
+				}
+				return err
+			}
+
+			// If already VOID, nothing to do
+			if string(orig.Status) == domain.EntryStatusVoid {
+				return nil
+			}
+
+			// If DRAFT, mark as VOID directly
+			if string(orig.Status) == domain.EntryStatusDraft {
+				return tx.Entry.UpdateOneID(id).
+					SetStatus(entry.Status(domain.EntryStatusVoid)).
+					Exec(c)
+			}
+
+			if string(orig.Status) != domain.EntryStatusPosted {
+				return domain.ErrEntryNotPosted
+			}
+
+			// Entry is POSTED: check if already reversed
+			alreadyReversed, err := tx.Entry.Query().
+				Where(
+					entry.ReversalOfIDEQ(id),
+					entry.DeletedAtIsNil(),
+				).
+				Exist(c)
+			if err != nil {
+				return err
+			}
+
+			if !alreadyReversed {
+				effectiveDate := orig.EntryDate
+				d := time.Date(effectiveDate.Year(), effectiveDate.Month(), effectiveDate.Day(), 0, 0, 0, 0, time.UTC)
+				dEnd := time.Date(effectiveDate.Year(), effectiveDate.Month(), effectiveDate.Day(), 23, 59, 59, 999999999, time.UTC)
+
+				p, err := tx.Period.Query().
+					Where(
+						period.DeletedAtIsNil(),
+						period.StartDateLTE(dEnd),
+						period.EndDateGTE(d),
+					).
+					First(c)
+				if err != nil {
+					if ent.IsNotFound(err) {
+						return domain.ErrPeriodNotFound
+					}
+					return err
+				}
+
+				start := time.Date(p.StartDate.Year(), p.StartDate.Month(), p.StartDate.Day(), 0, 0, 0, 0, time.UTC)
+				end := time.Date(p.EndDate.Year(), p.EndDate.Month(), p.EndDate.Day(), 0, 0, 0, 0, time.UTC)
+				if d.Before(start) || d.After(end) {
+					return domain.ErrPeriodNotFound
+				}
+
+				if string(p.Status) == domain.PeriodStatusClosed {
+					return domain.ErrPeriodClosed
+				}
+
+				year := effectiveDate.Year()
+				num, err := GenerateEntryNumber(c, tx, year)
+				if err != nil {
+					return err
+				}
+
+				now := time.Now()
+				desc := "Void reversal of " + orig.Number
+
+				revBuilder := tx.Entry.Create().
+					SetTransactionID(orig.TransactionID).
+					SetPeriodID(p.ID).
+					SetNumber(num).
+					SetEntryDate(effectiveDate).
+					SetDescription(desc).
+					SetStatus(entry.Status(domain.EntryStatusPosted)).
+					SetPostedAt(now).
+					SetReversalOfID(orig.ID)
+
+				if pBy > 0 {
+					revBuilder.SetPostedBy(pBy)
+				}
+
+				revEntry, err := revBuilder.Save(c)
+				if err != nil {
+					return err
+				}
+
+				for pos, p := range orig.Edges.Postings {
+					newDirection := posting.DirectionCREDIT
+					if p.Direction == posting.DirectionCREDIT {
+						newDirection = posting.DirectionDEBIT
+					}
+
+					pBuilder := tx.Posting.Create().
+						SetEntryID(revEntry.ID).
+						SetAccountID(p.AccountID).
+						SetDirection(newDirection).
+						SetAmount(p.Amount).
+						SetBaseAmount(p.BaseAmount).
+						SetPosition(pos)
+
+					pDesc := p.Description
+					if pDesc == "" {
+						pDesc = desc
+					}
+					pBuilder.SetDescription(pDesc)
+
+					if _, err := pBuilder.Save(c); err != nil {
+						return err
+					}
+				}
+			}
+
+			// Mark original entry as VOID
+			return tx.Entry.UpdateOneID(id).
+				SetStatus(entry.Status(domain.EntryStatusVoid)).
+				Exec(c)
+		})
+
+		if err == nil {
+			return r.GetByID(c, id)
 		}
-		if !exists {
-			return domain.ErrEntryNotFound
+
+		if ent.IsConstraintError(err) || isLockOrConflictError(err) {
+			time.Sleep(10 * time.Millisecond)
+			continue
 		}
 
-		return tx.Entry.UpdateOneID(id).
-			SetStatus(entry.Status(domain.EntryStatusVoid)).
-			Exec(c)
-	})
-
-	if err != nil {
 		return dom, err
 	}
 
-	return r.GetByID(c, id)
+	return dom, domain.ErrEntryRetryExhausted
 }
 
 // GetAccountLedger queries postings for the given account from entries with POSTED status, paginated.

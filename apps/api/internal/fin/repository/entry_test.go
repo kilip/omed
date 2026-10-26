@@ -2,12 +2,14 @@ package repository_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/domain"
 	"github.com/kilip/omed/api/internal/fin/model"
@@ -15,6 +17,8 @@ import (
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )
+
+type faultKey struct{}
 
 type EntryRepoSuite struct {
 	suite.Suite
@@ -31,6 +35,29 @@ type EntryRepoSuite struct {
 
 func (s *EntryRepoSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:entry_repo_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
+	s.client.Entry.Use(func(next ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if val, ok := ctx.Value(faultKey{}).(string); ok {
+				if val == "entry_update" && m.Op().Is(ent.OpUpdateOne) {
+					return nil, errors.New("simulated entry update failure")
+				}
+				if val == "entry_create" && m.Op().Is(ent.OpCreate) {
+					return nil, errors.New("simulated entry create failure")
+				}
+			}
+			return next.Mutate(ctx, m)
+		})
+	})
+	s.client.Posting.Use(func(next ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if val, ok := ctx.Value(faultKey{}).(string); ok {
+				if val == "posting_create" && m.Op().Is(ent.OpCreate) {
+					return nil, errors.New("simulated posting create failure")
+				}
+			}
+			return next.Mutate(ctx, m)
+		})
+	})
 	s.repo = repository.NewEntryRepository(s.client)
 	s.txRepo = repository.NewTransactionRepository(s.client)
 }
@@ -376,7 +403,7 @@ func (s *EntryRepoSuite) Test_Reverse_StatusAndPeriodValidations() {
 	_ = closedP
 }
 
-func (s *EntryRepoSuite) Test_Void() {
+func (s *EntryRepoSuite) Test_Post_Atomic_WithBalancedPostings() {
 	ctx := s.ctx()
 	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
 
@@ -390,9 +417,346 @@ func (s *EntryRepoSuite) Test_Void() {
 	})
 	s.Require().NoError(err)
 
-	voided, err := s.repo.Void(ctx, e.ID)
+	diff := 1.0
+	balanced := []model.CreatePostingRequest{
+		{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+		{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		{AccountID: s.accountID2, Direction: "CREDIT", Amount: 0, BaseAmount: &diff, Description: "Rounding"},
+	}
+
+	posted, err := s.repo.Post(ctx, e.ID, s.userID, balanced)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, posted.Status)
+	s.Len(posted.Postings, 3)
+}
+
+func (s *EntryRepoSuite) Test_Post_Atomic_RollbackOnFailure() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	diff := 1.0
+	balanced := []model.CreatePostingRequest{
+		{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+		{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		{AccountID: s.accountID2, Direction: "CREDIT", Amount: 0, BaseAmount: &diff, Description: "Rounding"},
+	}
+
+	// Inject fault on entry update (simulating failure during status update)
+	failCtx := context.WithValue(ctx, faultKey{}, "entry_update")
+	_, err = s.repo.Post(failCtx, e.ID, s.userID, balanced)
+	s.Require().Error(err)
+	s.Contains(err.Error(), "simulated entry update failure")
+
+	// Verify original entry remains DRAFT and postings remain unchanged (2 postings, not 3)
+	curr, err := s.repo.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusDraft, curr.Status)
+	s.Len(curr.Postings, 2)
+}
+
+func (s *EntryRepoSuite) Test_Post_Concurrent() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	const concurrency = 5
+	var wg sync.WaitGroup
+	var successCount int
+	var conflictCount int
+	var mu sync.Mutex
+
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := s.repo.Post(ctx, e.ID, s.userID)
+			mu.Lock()
+			defer mu.Unlock()
+			if err == nil {
+				successCount++
+			} else if errors.Is(err, domain.ErrEntryNotDraft) {
+				conflictCount++
+			}
+		}()
+	}
+	wg.Wait()
+
+	s.Equal(1, successCount)
+	s.Equal(concurrency-1, conflictCount)
+
+	curr, err := s.repo.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, curr.Status)
+}
+
+func (s *EntryRepoSuite) Test_Void_DraftEntry() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	voided, err := s.repo.Void(ctx, e.ID, s.userID)
 	s.Require().NoError(err)
 	s.Equal(domain.EntryStatusVoid, voided.Status)
+
+	// No reversal entry created
+	res, _, err := s.repo.Search(ctx, model.SearchEntryRequest{})
+	s.Require().NoError(err)
+	s.Len(res, 1)
+}
+
+func (s *EntryRepoSuite) Test_Void_PostedEntry() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	voided, err := s.repo.Void(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusVoid, voided.Status)
+
+	// Reversal entry created
+	res, _, err := s.repo.Search(ctx, model.SearchEntryRequest{})
+	s.Require().NoError(err)
+	s.Len(res, 2)
+
+	var revEntry *domain.Entry
+	for _, it := range res {
+		if it.ID != e.ID {
+			revEntry = &it
+			break
+		}
+	}
+	s.Require().NotNil(revEntry)
+	s.Equal(domain.EntryStatusPosted, revEntry.Status)
+	s.Equal(&e.ID, revEntry.ReversalOfID)
+}
+
+func (s *EntryRepoSuite) Test_Void_AlreadyVoid_Idempotent() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Void once
+	voided1, err := s.repo.Void(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusVoid, voided1.Status)
+
+	// Void again -> idempotent, no additional reversal entry
+	voided2, err := s.repo.Void(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusVoid, voided2.Status)
+
+	res, _, err := s.repo.Search(ctx, model.SearchEntryRequest{})
+	s.Require().NoError(err)
+	s.Len(res, 2) // exactly 1 original + 1 reversal
+}
+
+func (s *EntryRepoSuite) Test_Void_Atomic_RollbackOnPostingFailure() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Inject fault when creating reversal postings
+	failCtx := context.WithValue(ctx, faultKey{}, "posting_create")
+	_, err = s.repo.Void(failCtx, e.ID, s.userID)
+	s.Require().Error(err)
+	s.Contains(err.Error(), "simulated posting create failure")
+
+	// Verify original entry is STILL POSTED and no reversal entry exists
+	curr, err := s.repo.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, curr.Status)
+
+	count, err := s.client.Entry.Query().Where(entry.ReversalOfIDEQ(e.ID)).Count(ctx)
+	s.Require().NoError(err)
+	s.Equal(0, count)
+
+	totalEntries, err := s.client.Entry.Query().Count(ctx)
+	s.Require().NoError(err)
+	s.Equal(1, totalEntries)
+}
+
+func (s *EntryRepoSuite) Test_Void_Atomic_RollbackOnEntryUpdateFailure() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Inject fault when updating original entry status to VOID
+	failCtx := context.WithValue(ctx, faultKey{}, "entry_update")
+	_, err = s.repo.Void(failCtx, e.ID, s.userID)
+	s.Require().Error(err)
+	s.Contains(err.Error(), "simulated entry update failure")
+
+	// Verify original entry is STILL POSTED and no orphan reversal entry was committed
+	curr, err := s.repo.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, curr.Status)
+
+	count, err := s.client.Entry.Query().Where(entry.ReversalOfIDEQ(e.ID)).Count(ctx)
+	s.Require().NoError(err)
+	s.Equal(0, count)
+
+	totalEntries, err := s.client.Entry.Query().Count(ctx)
+	s.Require().NoError(err)
+	s.Equal(1, totalEntries)
+}
+
+func (s *EntryRepoSuite) Test_Void_Atomic_RollbackOnClosedPeriod() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Close the period
+	err = s.client.Period.UpdateOneID(s.periodID).SetStatus("CLOSED").Exec(ctx)
+	s.Require().NoError(err)
+
+	// Voiding should fail with ErrPeriodClosed
+	_, err = s.repo.Void(ctx, e.ID, s.userID)
+	s.Require().ErrorIs(err, domain.ErrPeriodClosed)
+
+	// Original entry remains POSTED and no reversal was created
+	curr, err := s.repo.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, curr.Status)
+
+	count, err := s.client.Entry.Query().Where(entry.ReversalOfIDEQ(e.ID)).Count(ctx)
+	s.Require().NoError(err)
+	s.Equal(0, count)
+}
+
+func (s *EntryRepoSuite) Test_Void_Concurrent() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.repo.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	const concurrency = 5
+	var wg sync.WaitGroup
+	var errCount int
+	var mu sync.Mutex
+
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := s.repo.Void(ctx, e.ID, s.userID)
+			if err != nil {
+				mu.Lock()
+				errCount++
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+
+	s.Equal(0, errCount)
+
+	curr, err := s.repo.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusVoid, curr.Status)
+
+	// Exactly 1 reversal entry created despite 5 concurrent calls
+	count, err := s.client.Entry.Query().Where(entry.ReversalOfIDEQ(e.ID)).Count(ctx)
+	s.Require().NoError(err)
+	s.Equal(1, count)
 }
 
 func (s *EntryRepoSuite) Test_Search() {

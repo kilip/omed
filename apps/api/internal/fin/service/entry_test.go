@@ -2,6 +2,8 @@ package service_test
 
 import (
 	"context"
+	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -743,6 +745,132 @@ func (s *EntryServiceSuite) Test_Void_PostedEntry() {
 	s.Require().NotNil(revEntry)
 	s.Equal(domain.EntryStatusPosted, revEntry.Status)
 	s.Equal(&e.ID, revEntry.ReversalOfID)
+}
+
+func (s *EntryServiceSuite) Test_Void_Atomic_RollbackOnClosedPeriod() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.svc.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	// Close the period
+	err = s.client.Period.UpdateOneID(s.periodID).SetStatus("CLOSED").Exec(ctx)
+	s.Require().NoError(err)
+
+	// Voiding should fail with ErrPeriodClosed
+	_, err = s.svc.Void(ctx, e.ID, s.userID)
+	s.Require().ErrorIs(err, domain.ErrPeriodClosed)
+
+	// Original entry remains POSTED and no reversal was created
+	curr, err := s.svc.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, curr.Status)
+
+	searchRes, _, err := s.svc.Search(ctx, model.SearchEntryRequest{})
+	s.Require().NoError(err)
+	s.Len(searchRes, 1)
+}
+
+func (s *EntryServiceSuite) Test_Post_Concurrent() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	const concurrency = 5
+	var wg sync.WaitGroup
+	var successCount int
+	var conflictCount int
+	var mu sync.Mutex
+
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := s.svc.Post(ctx, e.ID, s.userID)
+			mu.Lock()
+			defer mu.Unlock()
+			if err == nil {
+				successCount++
+			} else if errors.Is(err, domain.ErrEntryNotDraft) {
+				conflictCount++
+			}
+		}()
+	}
+	wg.Wait()
+
+	s.Equal(1, successCount)
+	s.Equal(concurrency-1, conflictCount)
+
+	curr, err := s.svc.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, curr.Status)
+}
+
+func (s *EntryServiceSuite) Test_Void_Concurrent() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	e, err := s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 100},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 100},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.svc.Post(ctx, e.ID, s.userID)
+	s.Require().NoError(err)
+
+	const concurrency = 5
+	var wg sync.WaitGroup
+	var errCount int
+	var mu sync.Mutex
+
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := s.svc.Void(ctx, e.ID, s.userID)
+			if err != nil {
+				mu.Lock()
+				errCount++
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+
+	s.Equal(0, errCount)
+
+	curr, err := s.svc.GetByID(ctx, e.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusVoid, curr.Status)
+
+	searchRes, _, err := s.svc.Search(ctx, model.SearchEntryRequest{})
+	s.Require().NoError(err)
+	s.Len(searchRes, 2) // exactly 1 original + 1 reversal
 }
 
 func (s *EntryServiceSuite) Test_GetAccountLedger() {

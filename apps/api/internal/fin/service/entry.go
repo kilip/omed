@@ -24,9 +24,9 @@ type EntryRepository interface {
 	Update(c context.Context, id int64, req model.UpdateEntryRequest) (domain.Entry, error)
 	Delete(c context.Context, id int64) error
 	Search(c context.Context, req model.SearchEntryRequest) ([]domain.Entry, string, error)
-	Post(c context.Context, id int64, postedBy int64) (domain.Entry, error)
+	Post(c context.Context, id int64, postedBy int64, balancedPostings ...[]model.CreatePostingRequest) (domain.Entry, error)
 	Reverse(c context.Context, id int64, postedBy int64, entryDate time.Time, description string) (domain.Entry, error)
-	Void(c context.Context, id int64) (domain.Entry, error)
+	Void(c context.Context, id int64, postedBy ...int64) (domain.Entry, error)
 	GetAccountLedger(c context.Context, accountID int64, page int, limit int) ([]domain.Posting, int64, error)
 	GetAccountBalanceBefore(c context.Context, accountID int64, beforePostingID int64) (float64, float64, float64, float64, error)
 	GetAccountBalancesAsOf(c context.Context, asOfDate time.Time) (map[int64]repository.AccountBalanceSummary, error)
@@ -337,17 +337,12 @@ func (s EntryService) Post(c context.Context, id int64, postedBy int64) (domain.
 		return domain.Entry{}, err
 	}
 
+	var newPostings []model.CreatePostingRequest
 	if len(balancedPostings) > len(postings) {
-		// A balancing posting was added, save to draft entry first
-		curr, err = s.entryRepo.Update(c, id, model.UpdateEntryRequest{
-			Postings: balancedPostings,
-		})
-		if err != nil {
-			return domain.Entry{}, err
-		}
+		newPostings = balancedPostings
 	}
 
-	return s.entryRepo.Post(c, id, postedBy)
+	return s.entryRepo.Post(c, id, postedBy, newPostings)
 }
 
 // Reverse creates a reversing journal entry with POSTED status, swapping DEBIT and CREDIT.
@@ -388,23 +383,9 @@ func (s EntryService) Reverse(c context.Context, id int64, postedBy int64, entry
 	return s.entryRepo.Reverse(c, id, postedBy, effectiveDate, description)
 }
 
-// Void voids a journal entry. If the entry is POSTED, creates a reversing entry and marks the original VOID.
+// Void voids a journal entry. If the entry is POSTED, creates a reversing entry and marks the original VOID atomically.
 func (s EntryService) Void(c context.Context, id int64, postedBy int64) (domain.Entry, error) {
-	curr, err := s.entryRepo.GetByID(c, id)
-	if err != nil {
-		return domain.Entry{}, err
-	}
-
-	if curr.Status == domain.EntryStatusPosted {
-		revDate := curr.EntryDate
-		desc := "Void reversal of " + curr.Number
-		_, err := s.Reverse(c, id, postedBy, revDate, desc)
-		if err != nil {
-			return domain.Entry{}, err
-		}
-	}
-
-	return s.entryRepo.Void(c, id)
+	return s.entryRepo.Void(c, id, postedBy)
 }
 
 // GetAccountLedger returns postings for an account with running balance, paginated.
