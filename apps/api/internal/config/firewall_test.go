@@ -96,28 +96,28 @@ func (s *FirewallSuite) Test_InitFirewall() {
 	reqInternal := httptest.NewRequest(fiber.MethodGet, "/internal/health", nil)
 	respInternal, err := app.Test(reqInternal)
 	s.Require().NoError(err)
-	defer respInternal.Body.Close()
+	defer func() { _ = respInternal.Body.Close() }()
 	s.Equal(fiber.StatusOK, respInternal.StatusCode)
 
 	// 2. Bypass OPTIONS
 	reqOpt := httptest.NewRequest(fiber.MethodOptions, "/api/protected", nil)
 	respOpt, err := app.Test(reqOpt)
 	s.Require().NoError(err)
-	defer respOpt.Body.Close()
+	defer func() { _ = respOpt.Body.Close() }()
 	s.Equal(fiber.StatusOK, respOpt.StatusCode)
 
 	// 3. Bypass /auth/*
 	reqAuthPath := httptest.NewRequest(fiber.MethodGet, "/auth/login", nil)
 	respAuthPath, err := app.Test(reqAuthPath)
 	s.Require().NoError(err)
-	defer respAuthPath.Body.Close()
+	defer func() { _ = respAuthPath.Body.Close() }()
 	s.Equal(fiber.StatusOK, respAuthPath.StatusCode)
 
 	// 4. Unauthorized request without token
 	reqNoToken := httptest.NewRequest(fiber.MethodGet, "/api/protected", nil)
 	respNoToken, err := app.Test(reqNoToken)
 	s.Require().NoError(err)
-	defer respNoToken.Body.Close()
+	defer func() { _ = respNoToken.Body.Close() }()
 	s.Equal(fiber.StatusUnauthorized, respNoToken.StatusCode)
 
 	// 5. Authorized request with Bearer token
@@ -126,7 +126,7 @@ func (s *FirewallSuite) Test_InitFirewall() {
 
 	respAuth, err := app.Test(reqAuth)
 	s.Require().NoError(err)
-	defer respAuth.Body.Close()
+	defer func() { _ = respAuth.Body.Close() }()
 	s.Equal(fiber.StatusOK, respAuth.StatusCode)
 	s.Equal(int64(99), capturedUser.ID)
 
@@ -138,7 +138,7 @@ func (s *FirewallSuite) Test_InitFirewall() {
 	})
 	respCookie, err := app.Test(reqCookie)
 	s.Require().NoError(err)
-	defer respCookie.Body.Close()
+	defer func() { _ = respCookie.Body.Close() }()
 	s.Equal(fiber.StatusOK, respCookie.StatusCode)
 }
 

@@ -12,7 +12,7 @@ import (
 
 func TestSeedCurrencies(t *testing.T) {
 	client := testutil.CreateTestDB("file:currency_seed_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	ctx := context.Background()
 

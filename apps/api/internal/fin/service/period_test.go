@@ -351,12 +351,13 @@ func (s *PeriodServiceSuite) Test_Revalue() {
 
 	var foundForeign, foundGain bool
 	for _, posting := range revalEntry.Postings {
-		if posting.AccountID == usdAcc.ID {
+		switch posting.AccountID {
+		case usdAcc.ID:
 			foundForeign = true
 			s.Equal("DEBIT", posting.Direction)
 			s.True(posting.Amount.Equal(decimal.Zero))
 			s.True(posting.BaseAmount.Equal(decimal.NewFromInt(100000)))
-		} else if posting.AccountID == gainAcc.ID {
+		case gainAcc.ID:
 			foundGain = true
 			s.Equal("CREDIT", posting.Direction)
 			s.True(posting.Amount.Equal(decimal.Zero))

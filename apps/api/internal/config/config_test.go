@@ -24,58 +24,58 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 
 	// Ensure default TrustedOrigins is tested
 	originalOrigins, hadOrigins := os.LookupEnv("OMED_TRUSTED_ORIGINS")
-	os.Unsetenv("OMED_TRUSTED_ORIGINS")
+	s.Require().NoError(os.Unsetenv("OMED_TRUSTED_ORIGINS"))
 	s.T().Cleanup(func() {
 		if hadOrigins {
-			os.Setenv("OMED_TRUSTED_ORIGINS", originalOrigins)
+			s.Require().NoError(os.Setenv("OMED_TRUSTED_ORIGINS", originalOrigins))
 		}
 	})
 
 	originalRateLimit, hadRateLimit := os.LookupEnv("OMED_RATE_LIMIT_ENABLED")
-	os.Unsetenv("OMED_RATE_LIMIT_ENABLED")
+	s.Require().NoError(os.Unsetenv("OMED_RATE_LIMIT_ENABLED"))
 	s.T().Cleanup(func() {
 		if hadRateLimit {
-			os.Setenv("OMED_RATE_LIMIT_ENABLED", originalRateLimit)
+			s.Require().NoError(os.Setenv("OMED_RATE_LIMIT_ENABLED", originalRateLimit))
 		}
 	})
 
 	originalReadTimeout, hadReadTimeout := os.LookupEnv("OMED_READ_TIMEOUT")
-	os.Unsetenv("OMED_READ_TIMEOUT")
+	s.Require().NoError(os.Unsetenv("OMED_READ_TIMEOUT"))
 	s.T().Cleanup(func() {
 		if hadReadTimeout {
-			os.Setenv("OMED_READ_TIMEOUT", originalReadTimeout)
+			s.Require().NoError(os.Setenv("OMED_READ_TIMEOUT", originalReadTimeout))
 		}
 	})
 
 	originalWriteTimeout, hadWriteTimeout := os.LookupEnv("OMED_WRITE_TIMEOUT")
-	os.Unsetenv("OMED_WRITE_TIMEOUT")
+	s.Require().NoError(os.Unsetenv("OMED_WRITE_TIMEOUT"))
 	s.T().Cleanup(func() {
 		if hadWriteTimeout {
-			os.Setenv("OMED_WRITE_TIMEOUT", originalWriteTimeout)
+			s.Require().NoError(os.Setenv("OMED_WRITE_TIMEOUT", originalWriteTimeout))
 		}
 	})
 
 	originalIdleTimeout, hadIdleTimeout := os.LookupEnv("OMED_IDLE_TIMEOUT")
-	os.Unsetenv("OMED_IDLE_TIMEOUT")
+	s.Require().NoError(os.Unsetenv("OMED_IDLE_TIMEOUT"))
 	s.T().Cleanup(func() {
 		if hadIdleTimeout {
-			os.Setenv("OMED_IDLE_TIMEOUT", originalIdleTimeout)
+			s.Require().NoError(os.Setenv("OMED_IDLE_TIMEOUT", originalIdleTimeout))
 		}
 	})
 
 	originalCmsMediaMaxSize, hadCmsMediaMaxSize := os.LookupEnv("OMED_CMS_MEDIA_MAX_SIZE_MB")
-	os.Unsetenv("OMED_CMS_MEDIA_MAX_SIZE_MB")
+	s.Require().NoError(os.Unsetenv("OMED_CMS_MEDIA_MAX_SIZE_MB"))
 	s.T().Cleanup(func() {
 		if hadCmsMediaMaxSize {
-			os.Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", originalCmsMediaMaxSize)
+			s.Require().NoError(os.Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", originalCmsMediaMaxSize))
 		}
 	})
 
 	originalPort, hadPort := os.LookupEnv("OMED_API_PORT")
-	os.Unsetenv("OMED_API_PORT")
+	s.Require().NoError(os.Unsetenv("OMED_API_PORT"))
 	s.T().Cleanup(func() {
 		if hadPort {
-			os.Setenv("OMED_API_PORT", originalPort)
+			s.Require().NoError(os.Setenv("OMED_API_PORT", originalPort))
 		}
 	})
 

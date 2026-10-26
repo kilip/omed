@@ -26,7 +26,6 @@ import (
 
 // Omed manages application modules and the HTTP server lifecycle.
 type Omed struct {
-	cfg            Config
 	state          State
 	modules        []Module
 	sessionService service.SessionService

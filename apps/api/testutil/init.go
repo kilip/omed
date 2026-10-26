@@ -79,7 +79,9 @@ func init() {
 	}
 
 	a := config.New(state)
-	a.Boot()
+	if err := a.Boot(); err != nil {
+		panic(err)
+	}
 	state = a.State()
 }
 

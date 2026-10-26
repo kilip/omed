@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/core/model"
-	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/internal/platform/mailx"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
@@ -106,8 +105,7 @@ func (s *InvitationSuite) Test_Search_Successfully() {
 	})
 	s.OK()
 
-	var listResp httpx.WebResponse[[]model.InvitationResponse]
-	listResp = testutil.DecodeOther[[]model.InvitationResponse](s)
+	listResp := testutil.DecodeOther[[]model.InvitationResponse](s)
 	s.GreaterOrEqual(len(listResp.Data), 2)
 }
 
@@ -124,8 +122,7 @@ func (s *InvitationSuite) Test_GetPublic_Successfully() {
 	s.Request(fmt.Sprintf("/invitations/%s", token), fiber.MethodGet, nil)
 	s.OK()
 
-	var pubResp httpx.WebResponse[model.PublicInvitationResponse]
-	pubResp = testutil.DecodeOther[model.PublicInvitationResponse](s)
+	pubResp := testutil.DecodeOther[model.PublicInvitationResponse](s)
 	s.Equal(ws.ID, pubResp.Data.WorkspaceID)
 	s.Equal("Acme Corp", pubResp.Data.WorkspaceName)
 	s.Equal([]string{"core:member"}, pubResp.Data.Roles)
@@ -152,8 +149,7 @@ func (s *InvitationSuite) Test_Accept_Successfully() {
 	s.Request(fmt.Sprintf("/invitations/%s/accept", token), fiber.MethodPost, nil)
 	s.Created()
 
-	var memberResp httpx.WebResponse[model.MemberResponse]
-	memberResp = testutil.DecodeOther[model.MemberResponse](s)
+	memberResp := testutil.DecodeOther[model.MemberResponse](s)
 	s.Equal(ws.ID, memberResp.Data.WorkspaceID)
 	s.Equal(charlie.ID, memberResp.Data.User.ID)
 	s.Equal([]string{"core:member"}, memberResp.Data.Roles)

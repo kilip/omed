@@ -39,7 +39,7 @@ func (s *S3XSuite) Test_MemoryDriver_FullLifecycle() {
 	ctx := context.Background()
 	st, err := s3x.New(s3x.Config{Driver: "memory"})
 	s.Require().NoError(err)
-	defer st.Close()
+	defer func() { _ = st.Close() }()
 
 	// Invalid workspace ID
 	_, err = st.EnsureWorkspaceBucket(ctx, 0)
@@ -77,7 +77,7 @@ func (s *S3XSuite) Test_MemoryDriver_FullLifecycle() {
 	// GetObject
 	obj, err := st.GetObject(ctx, bucket, "docs/readme.txt")
 	s.Require().NoError(err)
-	defer obj.Body.Close()
+	defer func() { _ = obj.Body.Close() }()
 	readBytes, err := io.ReadAll(obj.Body)
 	s.Require().NoError(err)
 	s.Equal(payload, readBytes)
@@ -210,7 +210,7 @@ func (m *mockS3Server) handle(w http.ResponseWriter, r *http.Request) {
 			var sb strings.Builder
 			sb.WriteString(`<?xml version="1.0" encoding="UTF-8"?><ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><IsTruncated>false</IsTruncated>`)
 			for k, v := range objs {
-				sb.WriteString(fmt.Sprintf(`<Contents><Key>%s</Key><Size>%d</Size></Contents>`, k, len(v.data)))
+				fmt.Fprintf(&sb, `<Contents><Key>%s</Key><Size>%d</Size></Contents>`, k, len(v.data))
 			}
 			sb.WriteString(`</ListBucketResult>`)
 			_, _ = w.Write([]byte(sb.String()))
@@ -304,7 +304,7 @@ func (s *S3XSuite) Test_S3Driver_FullLifecycle() {
 		},
 	})
 	require.NoError(s.T(), err)
-	defer st.Close()
+	defer func() { _ = st.Close() }()
 
 	bucket, err := st.EnsureWorkspaceBucket(ctx, 77)
 	s.Require().NoError(err)

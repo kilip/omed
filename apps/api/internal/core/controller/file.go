@@ -75,7 +75,7 @@ func (ctl FileController) Upload(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	mimeType := strings.TrimSpace(fh.Header.Get("Content-Type"))
 	if mimeType == "" || mimeType == "application/octet-stream" {
@@ -183,7 +183,7 @@ func (ctl FileController) Download(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	defer obj.Body.Close()
+	defer func() { _ = obj.Body.Close() }()
 
 	data, err := io.ReadAll(obj.Body)
 	if err != nil {

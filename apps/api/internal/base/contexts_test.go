@@ -36,13 +36,17 @@ func (m mockLocalGetter) Locals(key any, value ...any) any {
 	if s, ok := key.(string); ok {
 		return m.locals[s]
 	}
+	if ck, ok := key.(base.ContextKey); ok {
+		return m.locals[string(ck)]
+	}
 	return nil
 }
 
 func TestWorkspaceContext(t *testing.T) {
 	// Nil context
-	assert.Equal(t, int64(0), base.WorkspaceIDFromContext(nil))
-	assert.False(t, base.SkipWorkspaceFilterFromContext(nil))
+	var nilCtx context.Context
+	assert.Equal(t, int64(0), base.WorkspaceIDFromContext(nilCtx))
+	assert.False(t, base.SkipWorkspaceFilterFromContext(nilCtx))
 
 	// Standard context
 	ctx := context.Background()
@@ -59,8 +63,8 @@ func TestWorkspaceContext(t *testing.T) {
 	fctx := mockLocalGetter{
 		Context: context.Background(),
 		locals: map[string]any{
-			base.WORKSPACE_CONTEXT_KEY:     int64(456),
-			base.SKIP_WORKSPACE_FILTER_KEY: true,
+			string(base.WORKSPACE_CONTEXT_KEY):     int64(456),
+			string(base.SKIP_WORKSPACE_FILTER_KEY): true,
 		},
 	}
 	assert.Equal(t, int64(456), base.WorkspaceIDFromContext(fctx))

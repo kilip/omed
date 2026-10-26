@@ -543,11 +543,6 @@ func (s *OAuthServiceSuite) getStateAndNonce(req model.SignInSocialRequest) (str
 	return "", ""
 }
 
-func (s *OAuthServiceSuite) getState(req model.SignInSocialRequest) string {
-	state, _ := s.getStateAndNonce(req)
-	return state
-}
-
 func (s *OAuthServiceSuite) Test_AccountLinking_Google_UnverifiedEmail_Rejected() {
 	// 1. Create existing user
 	_, err := s.userRepo.Create(s.ctx, model.CreateUserRequest{

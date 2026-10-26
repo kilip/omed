@@ -91,7 +91,7 @@ func (d *SMTPDriver) Send(ctx context.Context, msg Message) error {
 	m.Subject(msg.Subject)
 
 	for k, v := range msg.Headers {
-		m.SetHeader(mail.Header(k), v)
+		m.SetGenHeader(mail.Header(k), v)
 	}
 
 	hasText := msg.TextBody != ""
@@ -108,7 +108,9 @@ func (d *SMTPDriver) Send(ctx context.Context, msg Message) error {
 	}
 
 	for _, att := range msg.Attachments {
-		m.AttachReader(att.Filename, bytes.NewReader(att.Data))
+		if err := m.AttachReader(att.Filename, bytes.NewReader(att.Data)); err != nil {
+			return fmt.Errorf("mailx: attach %q: %w", att.Filename, err)
+		}
 	}
 
 	if err := d.client.DialAndSendWithContext(ctx, m); err != nil {

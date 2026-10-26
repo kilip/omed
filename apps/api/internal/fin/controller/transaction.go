@@ -229,7 +229,7 @@ func (ctl TransactionController) UploadAttachment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	mimeType := strings.TrimSpace(fh.Header.Get("Content-Type"))
 	if mimeType == "" || mimeType == "application/octet-stream" {

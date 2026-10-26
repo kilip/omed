@@ -81,7 +81,7 @@ func (s *HelperSuite) Test_DoGetByID_Int64_Success() {
 	req := httptest.NewRequest(fiber.MethodGet, "/items/42", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NoError(capturedErr)
 	s.Equal(fiber.StatusOK, resp.StatusCode)
@@ -114,7 +114,7 @@ func (s *HelperSuite) Test_DoGetByID_UUID_Success() {
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/items/%s", targetUUID.String()), nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NoError(capturedErr)
 	s.Equal(fiber.StatusOK, resp.StatusCode)
@@ -203,7 +203,7 @@ func (s *HelperSuite) Test_DoCreate_Success() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NoError(capturedErr)
 	s.Equal(fiber.StatusCreated, resp.StatusCode)
@@ -299,7 +299,7 @@ func (s *HelperSuite) Test_DoUpdate_Int64_Success() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NoError(capturedErr)
 	s.Equal(fiber.StatusOK, resp.StatusCode)
@@ -336,7 +336,7 @@ func (s *HelperSuite) Test_DoUpdate_UUID_Success() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NoError(capturedErr)
 	s.Equal(fiber.StatusOK, resp.StatusCode)
@@ -459,7 +459,7 @@ func (s *HelperSuite) Test_DoDelete_Int64_Success() {
 	req := httptest.NewRequest(fiber.MethodDelete, "/items/77", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NoError(capturedErr)
 	s.Equal(int64(77), deletedID)
@@ -489,7 +489,7 @@ func (s *HelperSuite) Test_DoDelete_UUID_Success() {
 	req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/items/%s", targetUUID.String()), nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NoError(capturedErr)
 	s.Equal(targetUUID, deletedID)
@@ -578,7 +578,7 @@ func (s *HelperSuite) Test_DoSearch_Success() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NoError(capturedErr)
 	s.Equal(fiber.StatusOK, resp.StatusCode)

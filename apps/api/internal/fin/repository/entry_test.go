@@ -988,6 +988,7 @@ func (s *EntryRepoSuite) Test_CreateSystemPostedEntry() {
 		postings,
 		s.userID,
 	)
+	s.Require().NoError(err)
 	s.Equal(domain.EntryStatusPosted, entry.Status)
 	s.Equal("System test entry", entry.Description)
 	s.Require().NotNil(entry.PostedBy)

@@ -17,7 +17,7 @@ func TestMailer_Send_Validation(t *testing.T) {
 		FromName:    "Omed System",
 	})
 	require.NoError(t, err)
-	defer mailer.Close()
+	defer func() { _ = mailer.Close() }()
 
 	ctx := context.Background()
 
@@ -54,7 +54,7 @@ func TestMailer_Send_And_SendAsync(t *testing.T) {
 		FromName:    "Omed System",
 	})
 	require.NoError(t, err)
-	defer mailer.Close()
+	defer func() { _ = mailer.Close() }()
 
 	ctx := context.Background()
 	driver, ok := mailer.Driver().(*mailx.MemoryDriver)

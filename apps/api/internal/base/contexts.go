@@ -4,8 +4,11 @@ import (
 	"context"
 )
 
+// ContextKey defines a custom type for context keys to avoid collisions.
+type ContextKey string
+
 // USER_CONTEXT_KEY is the context key used to store and retrieve authenticated user details.
-const USER_CONTEXT_KEY = "user"
+const USER_CONTEXT_KEY ContextKey = "user"
 
 // UserRole represents the authorization role assigned to a user.
 type UserRole string
@@ -36,14 +39,20 @@ func (u UserContext) HasRole(role UserRole) bool {
 // UserFromContext retrieves the authenticated UserContext from a context.Context.
 // UserContext always exists, otherwise there's something wrong with fiber middleware
 func UserFromContext(ctx context.Context) UserContext {
+	if u, ok := ctx.Value(USER_CONTEXT_KEY).(UserContext); ok {
+		return u
+	}
+	if u, ok := ctx.Value(string(USER_CONTEXT_KEY)).(UserContext); ok {
+		return u
+	}
 	return ctx.Value(USER_CONTEXT_KEY).(UserContext)
 }
 
 // WORKSPACE_CONTEXT_KEY is the context key used to store and retrieve the active workspace ID.
-const WORKSPACE_CONTEXT_KEY = "workspace_id"
+const WORKSPACE_CONTEXT_KEY ContextKey = "workspace_id"
 
 // SKIP_WORKSPACE_FILTER_KEY is the context key used to bypass workspace query filtering.
-const SKIP_WORKSPACE_FILTER_KEY = "skip_workspace_filter"
+const SKIP_WORKSPACE_FILTER_KEY ContextKey = "skip_workspace_filter"
 
 type contextLocalGetter interface {
 	Locals(key any, value ...any) any
@@ -63,8 +72,14 @@ func WorkspaceIDFromContext(ctx context.Context) int64 {
 		if id, ok := fctx.Locals(WORKSPACE_CONTEXT_KEY).(int64); ok {
 			return id
 		}
+		if id, ok := fctx.Locals(string(WORKSPACE_CONTEXT_KEY)).(int64); ok {
+			return id
+		}
 	}
 	if id, ok := ctx.Value(WORKSPACE_CONTEXT_KEY).(int64); ok {
+		return id
+	}
+	if id, ok := ctx.Value(string(WORKSPACE_CONTEXT_KEY)).(int64); ok {
 		return id
 	}
 	return 0
@@ -84,15 +99,21 @@ func SkipWorkspaceFilterFromContext(ctx context.Context) bool {
 		if skip, ok := fctx.Locals(SKIP_WORKSPACE_FILTER_KEY).(bool); ok {
 			return skip
 		}
+		if skip, ok := fctx.Locals(string(SKIP_WORKSPACE_FILTER_KEY)).(bool); ok {
+			return skip
+		}
 	}
 	if skip, ok := ctx.Value(SKIP_WORKSPACE_FILTER_KEY).(bool); ok {
+		return skip
+	}
+	if skip, ok := ctx.Value(string(SKIP_WORKSPACE_FILTER_KEY)).(bool); ok {
 		return skip
 	}
 	return false
 }
 
 // SKIP_AUDIT_MUTATOR_KEY is the context key used to bypass audit mutator field injection.
-const SKIP_AUDIT_MUTATOR_KEY = "skip_audit_mutator"
+const SKIP_AUDIT_MUTATOR_KEY ContextKey = "skip_audit_mutator"
 
 // WithSkipAuditMutator returns a child context indicating that audit mutator should be bypassed.
 func WithSkipAuditMutator(ctx context.Context) context.Context {
@@ -108,8 +129,14 @@ func SkipAuditMutatorFromContext(ctx context.Context) bool {
 		if skip, ok := fctx.Locals(SKIP_AUDIT_MUTATOR_KEY).(bool); ok {
 			return skip
 		}
+		if skip, ok := fctx.Locals(string(SKIP_AUDIT_MUTATOR_KEY)).(bool); ok {
+			return skip
+		}
 	}
 	if skip, ok := ctx.Value(SKIP_AUDIT_MUTATOR_KEY).(bool); ok {
+		return skip
+	}
+	if skip, ok := ctx.Value(string(SKIP_AUDIT_MUTATOR_KEY)).(bool); ok {
 		return skip
 	}
 	return false

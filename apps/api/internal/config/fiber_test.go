@@ -167,7 +167,7 @@ func (s *FiberSuite) Test_ErrorHandler_MappedError() {
 	reqNF := httptest.NewRequest(fiber.MethodGet, "/not-found", nil)
 	respNF, err := app.Test(reqNF)
 	s.Require().NoError(err)
-	defer respNF.Body.Close()
+	defer func() { _ = respNF.Body.Close() }()
 
 	s.Equal(fiber.StatusNotFound, respNF.StatusCode)
 	var errRespNF httpx.ErrorResponse
@@ -179,7 +179,7 @@ func (s *FiberSuite) Test_ErrorHandler_MappedError() {
 	reqID := httptest.NewRequest(fiber.MethodGet, "/invalid-id", nil)
 	respID, err := app.Test(reqID)
 	s.Require().NoError(err)
-	defer respID.Body.Close()
+	defer func() { _ = respID.Body.Close() }()
 
 	s.Equal(fiber.StatusBadRequest, respID.StatusCode)
 	var errRespID httpx.ErrorResponse
@@ -310,21 +310,21 @@ func (s *FiberSuite) Test_GetFiber_RateLimiting_General() {
 	req1 := httptest.NewRequest(fiber.MethodGet, "/items", nil)
 	resp1, err := app.Test(req1)
 	s.Require().NoError(err)
-	resp1.Body.Close()
+	_ = resp1.Body.Close()
 	s.Equal(fiber.StatusOK, resp1.StatusCode)
 
 	// 2nd request -> 200
 	req2 := httptest.NewRequest(fiber.MethodGet, "/items", nil)
 	resp2, err := app.Test(req2)
 	s.Require().NoError(err)
-	resp2.Body.Close()
+	_ = resp2.Body.Close()
 	s.Equal(fiber.StatusOK, resp2.StatusCode)
 
 	// 3rd request -> 429
 	req3 := httptest.NewRequest(fiber.MethodGet, "/items", nil)
 	resp3, err := app.Test(req3)
 	s.Require().NoError(err)
-	defer resp3.Body.Close()
+	defer func() { _ = resp3.Body.Close() }()
 	s.Equal(fiber.StatusTooManyRequests, resp3.StatusCode)
 
 	var errResp httpx.ErrorResponse
@@ -350,21 +350,21 @@ func (s *FiberSuite) Test_GetFiber_RateLimiting_Sensitive_Auth() {
 	req1 := httptest.NewRequest(fiber.MethodPost, "/auth/sign-in/social", nil)
 	resp1, err := app.Test(req1)
 	s.Require().NoError(err)
-	resp1.Body.Close()
+	_ = resp1.Body.Close()
 	s.Equal(fiber.StatusOK, resp1.StatusCode)
 
 	// 2nd request -> 200
 	req2 := httptest.NewRequest(fiber.MethodPost, "/auth/sign-in/social", nil)
 	resp2, err := app.Test(req2)
 	s.Require().NoError(err)
-	resp2.Body.Close()
+	_ = resp2.Body.Close()
 	s.Equal(fiber.StatusOK, resp2.StatusCode)
 
 	// 3rd request -> 429
 	req3 := httptest.NewRequest(fiber.MethodPost, "/auth/sign-in/social", nil)
 	resp3, err := app.Test(req3)
 	s.Require().NoError(err)
-	defer resp3.Body.Close()
+	defer func() { _ = resp3.Body.Close() }()
 	s.Equal(fiber.StatusTooManyRequests, resp3.StatusCode)
 }
 
@@ -389,21 +389,21 @@ func (s *FiberSuite) Test_GetFiber_RateLimiting_Sensitive_Invitations() {
 	req1 := httptest.NewRequest(fiber.MethodPost, "/workspaces/ws-1/invitations", nil)
 	resp1, err := app.Test(req1)
 	s.Require().NoError(err)
-	resp1.Body.Close()
+	_ = resp1.Body.Close()
 	s.Equal(fiber.StatusOK, resp1.StatusCode)
 
 	// 2nd request -> 200
 	req2 := httptest.NewRequest(fiber.MethodPost, "/workspaces/ws-1/invitations/inv-1/send", nil)
 	resp2, err := app.Test(req2)
 	s.Require().NoError(err)
-	resp2.Body.Close()
+	_ = resp2.Body.Close()
 	s.Equal(fiber.StatusOK, resp2.StatusCode)
 
 	// 3rd request -> 429
 	req3 := httptest.NewRequest(fiber.MethodPost, "/workspaces/ws-1/invitations", nil)
 	resp3, err := app.Test(req3)
 	s.Require().NoError(err)
-	defer resp3.Body.Close()
+	defer func() { _ = resp3.Body.Close() }()
 	s.Equal(fiber.StatusTooManyRequests, resp3.StatusCode)
 }
 
@@ -429,13 +429,13 @@ func (s *FiberSuite) Test_GetFiber_RateLimiting_HealthBypass() {
 		reqH := httptest.NewRequest(fiber.MethodGet, "/healthz", nil)
 		respH, err := app.Test(reqH)
 		s.Require().NoError(err)
-		respH.Body.Close()
+		_ = respH.Body.Close()
 		s.Equal(fiber.StatusOK, respH.StatusCode)
 
 		reqR := httptest.NewRequest(fiber.MethodGet, "/readyz", nil)
 		respR, err := app.Test(reqR)
 		s.Require().NoError(err)
-		respR.Body.Close()
+		_ = respR.Body.Close()
 		s.Equal(fiber.StatusOK, respR.StatusCode)
 	}
 }

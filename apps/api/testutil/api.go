@@ -276,7 +276,7 @@ func (s *ApiTestSuite[T]) RequestMultipartWithClaims(path string, method string,
 func (s *ApiTestSuite[T]) GetResponse() httpx.WebResponse[T] {
 	var env httpx.WebResponse[T]
 	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
+	defer func() { _ = s.HttpResponse.Body.Close() }()
 	require.NoError(s.T(), json.NewDecoder(s.HttpResponse.Body).Decode(&env))
 	return env
 }
@@ -285,7 +285,7 @@ func (s *ApiTestSuite[T]) GetResponse() httpx.WebResponse[T] {
 func (s *ApiTestSuite[T]) PagedResponse() httpx.WebResponse[[]T] {
 	var env httpx.WebResponse[[]T]
 	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
+	defer func() { _ = s.HttpResponse.Body.Close() }()
 	require.NoError(s.T(), json.NewDecoder(s.HttpResponse.Body).Decode(&env))
 	return env
 }
@@ -294,7 +294,7 @@ func (s *ApiTestSuite[T]) PagedResponse() httpx.WebResponse[[]T] {
 func (s *ApiTestSuite[T]) GetErrorResponse() httpx.ErrorResponse {
 	var env httpx.ErrorResponse
 	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
+	defer func() { _ = s.HttpResponse.Body.Close() }()
 	require.NoError(s.T(), json.NewDecoder(s.HttpResponse.Body).Decode(&env))
 	return env
 }
@@ -303,8 +303,8 @@ func (s *ApiTestSuite[T]) GetErrorResponse() httpx.ErrorResponse {
 func DecodeOther[R any](s interface{ GetHttpResponse() *http.Response }) httpx.WebResponse[R] {
 	var env httpx.WebResponse[R]
 	resp := s.GetHttpResponse()
-	defer resp.Body.Close()
-	json.NewDecoder(resp.Body).Decode(&env)
+	defer func() { _ = resp.Body.Close() }()
+	_ = json.NewDecoder(resp.Body).Decode(&env)
 	return env
 }
 

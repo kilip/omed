@@ -254,9 +254,10 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 		if !ok {
 			continue
 		}
-		if acc.Type == domain.AccountTypeRevenue {
+		switch acc.Type {
+		case domain.AccountTypeRevenue:
 			ms.revenue = ms.revenue.Add(f.BaseCredit.Sub(f.BaseDebit))
-		} else if acc.Type == domain.AccountTypeExpense {
+		case domain.AccountTypeExpense:
 			ms.expense = ms.expense.Add(f.BaseDebit.Sub(f.BaseCredit))
 		}
 	}
