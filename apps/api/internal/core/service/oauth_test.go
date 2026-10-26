@@ -2,7 +2,11 @@ package service_test
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -278,6 +282,63 @@ func (s *OAuthServiceSuite) Test_HandleCallback_InvalidState() {
 		"TestAgent",
 	)
 	s.Require().ErrorIs(err, domain.ErrInvalidState)
+}
+
+func (s *OAuthServiceSuite) Test_HandleCallback_UntrustedCallbackURL() {
+	// Attacker crafts or manipulates state with an untrusted external callback URL
+	claims := model.OAuthStateClaims{
+		Nonce:       "attacker-nonce",
+		Provider:    domain.ProviderGoogle,
+		CallbackURL: "https://evil.attacker.com/steal-token",
+		ExpiresAt:   time.Now().Add(10 * time.Minute).Unix(),
+	}
+	data, err := json.Marshal(claims)
+	s.Require().NoError(err)
+	payload := base64.RawURLEncoding.EncodeToString(data)
+
+	// HMAC sign with auth secret
+	mac := hmac.New(sha256.New, []byte("test-secret-key-at-least-32-bytes-long"))
+	mac.Write([]byte(payload))
+	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	state := fmt.Sprintf("%s.%s", payload, sig)
+
+	_, _, _, err = s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().ErrorIs(err, domain.ErrInvalidState)
+}
+
+func (s *OAuthServiceSuite) Test_HandleCallback_TrustedExternalCallbackURL() {
+	claims := model.OAuthStateClaims{
+		Nonce:       "valid-nonce",
+		Provider:    domain.ProviderGoogle,
+		CallbackURL: "https://app.example.com/welcome",
+		ExpiresAt:   time.Now().Add(10 * time.Minute).Unix(),
+	}
+	data, err := json.Marshal(claims)
+	s.Require().NoError(err)
+	payload := base64.RawURLEncoding.EncodeToString(data)
+
+	mac := hmac.New(sha256.New, []byte("test-secret-key-at-least-32-bytes-long"))
+	mac.Write([]byte(payload))
+	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	state := fmt.Sprintf("%s.%s", payload, sig)
+
+	_, _, redirectURL, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().NoError(err)
+	s.Equal("https://app.example.com/welcome", redirectURL)
 }
 
 func (s *OAuthServiceSuite) Test_HandleCallback_SuccessNewUser() {

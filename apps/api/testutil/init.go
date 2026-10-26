@@ -41,6 +41,10 @@ func init() {
 		_ = os.Setenv("API_INTERNAL_KEY", "test-internal-key-for-domus-api-at-least-32-chars")
 	}
 
+	if os.Getenv("OMED_AUTH_SECRET") == "" {
+		_ = os.Setenv("OMED_AUTH_SECRET", "test-secret-at-least-32-chars-long!")
+	}
+
 	cfg = config.GetConfig()
 
 	_, b, _, _ := runtime.Caller(0)

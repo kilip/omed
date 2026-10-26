@@ -2,11 +2,14 @@ package config
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	_ "github.com/joho/godotenv/autoload"
 	envconfig "github.com/sethvargo/go-envconfig"
 )
+
+var logFatalf = log.Fatalf
 
 // Config holds the application-level environment configuration settings.
 type Config struct {
@@ -79,6 +82,15 @@ func (c Config) IsTestRoutesEnabled() bool {
 	return c.Env == "development" || c.Env == "test"
 }
 
+// Validate checks application configuration integrity.
+// In production mode, AuthSecret must be at least 32 bytes long.
+func (c Config) Validate() error {
+	if c.Env == "production" && len(c.AuthSecret) < 32 {
+		return errors.New("OMED_AUTH_SECRET must be at least 32 bytes in production")
+	}
+	return nil
+}
+
 // GetConfig reads environment variables and returns a populated Config instance.
 // It applies default fallback values for AuthPath and SessionCookieName if they are omitted.
 func GetConfig() Config {
@@ -90,6 +102,10 @@ func GetConfig() Config {
 
 	if config.Env == "" {
 		config.Env = "production"
+	}
+
+	if err := config.Validate(); err != nil {
+		logFatalf("%s", err)
 	}
 
 	if config.AuthPath == "" {

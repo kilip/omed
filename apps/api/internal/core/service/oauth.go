@@ -188,6 +188,10 @@ func (s *oauthService) HandleCallback(
 		return domain.Session{}, domain.User{}, "", domain.ErrInvalidState
 	}
 
+	if claims.CallbackURL != "" && !s.isAllowedURL(claims.CallbackURL) {
+		return domain.Session{}, domain.User{}, "", domain.ErrInvalidState
+	}
+
 	conf, pCfg, err := s.getOAuthConfig(provider)
 	if err != nil {
 		return domain.Session{}, domain.User{}, "", err
