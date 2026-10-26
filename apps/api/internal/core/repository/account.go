@@ -3,6 +3,14 @@ package repository
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"io"
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/useraccount"
@@ -13,11 +21,69 @@ import (
 // AccountRepository manages persistence for OAuth accounts.
 type AccountRepository struct {
 	cli *ent.Client
+	key []byte
 }
 
-// NewAccountRepository creates a new AccountRepository.
-func NewAccountRepository(cli *ent.Client) AccountRepository {
-	return AccountRepository{cli: cli}
+// NewAccountRepository creates a new AccountRepository with token encryption using the given secret.
+func NewAccountRepository(cli *ent.Client, secret string) AccountRepository {
+	k := sha256.Sum256([]byte(secret))
+	return AccountRepository{
+		cli: cli,
+		key: k[:],
+	}
+}
+
+func (r AccountRepository) cipher() (cipher.AEAD, error) {
+	key := r.key
+	if len(key) != 32 {
+		k := sha256.Sum256(key)
+		key = k[:]
+	}
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, fmt.Errorf("create cipher: %w", err)
+	}
+	return cipher.NewGCM(block)
+}
+
+func (r AccountRepository) encrypt(plaintext string) (string, error) {
+	if plaintext == "" {
+		return "", nil
+	}
+	gcm, err := r.cipher()
+	if err != nil {
+		return "", err
+	}
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", fmt.Errorf("read random nonce: %w", err)
+	}
+	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
+}
+
+func (r AccountRepository) decrypt(ciphertext string) (string, error) {
+	if ciphertext == "" {
+		return "", nil
+	}
+	data, err := base64.StdEncoding.DecodeString(ciphertext)
+	if err != nil {
+		return "", fmt.Errorf("decode token: %w", err)
+	}
+	gcm, err := r.cipher()
+	if err != nil {
+		return "", err
+	}
+	if len(data) < gcm.NonceSize() {
+		return "", errors.New("ciphertext too short")
+	}
+	nonce := data[:gcm.NonceSize()]
+	payload := data[gcm.NonceSize():]
+	plaintext, err := gcm.Open(nil, nonce, payload, nil)
+	if err != nil {
+		return "", fmt.Errorf("decrypt token: %w", err)
+	}
+	return string(plaintext), nil
 }
 
 // FindByProviderAndAccountID retrieves an account by provider ID and external account ID.
@@ -35,7 +101,7 @@ func (r AccountRepository) FindByProviderAndAccountID(ctx context.Context, provi
 		}
 		return acc, err
 	}
-	return toAccountDomain(a), nil
+	return r.toAccountDomain(a)
 }
 
 // FindByUserID retrieves all accounts linked to a given user ID.
@@ -48,7 +114,11 @@ func (r AccountRepository) FindByUserID(ctx context.Context, userID int64) ([]do
 	}
 	res := make([]domain.Account, len(accounts))
 	for i, a := range accounts {
-		res[i] = toAccountDomain(a)
+		da, err := r.toAccountDomain(a)
+		if err != nil {
+			return nil, err
+		}
+		res[i] = da
 	}
 	return res, nil
 }
@@ -61,13 +131,25 @@ func (r AccountRepository) Upsert(ctx context.Context, a domain.Account) (domain
 		SetAccountID(a.AccountID)
 
 	if a.AccessToken != "" {
-		builder.SetAccessToken(a.AccessToken)
+		enc, err := r.encrypt(a.AccessToken)
+		if err != nil {
+			return domain.Account{}, fmt.Errorf("encrypting access token: %w", err)
+		}
+		builder.SetAccessToken(enc)
 	}
 	if a.RefreshToken != "" {
-		builder.SetRefreshToken(a.RefreshToken)
+		enc, err := r.encrypt(a.RefreshToken)
+		if err != nil {
+			return domain.Account{}, fmt.Errorf("encrypting refresh token: %w", err)
+		}
+		builder.SetRefreshToken(enc)
 	}
 	if a.IDToken != "" {
-		builder.SetIDToken(a.IDToken)
+		enc, err := r.encrypt(a.IDToken)
+		if err != nil {
+			return domain.Account{}, fmt.Errorf("encrypting id token: %w", err)
+		}
+		builder.SetIDToken(enc)
 	}
 	if a.AccessTokenExpiresAt != nil {
 		builder.SetAccessTokenExpiresAt(*a.AccessTokenExpiresAt)
@@ -100,15 +182,28 @@ func (r AccountRepository) DeleteByUserID(ctx context.Context, userID int64) err
 	return err
 }
 
-func toAccountDomain(a *ent.UserAccount) domain.Account {
+func (r AccountRepository) toAccountDomain(a *ent.UserAccount) (domain.Account, error) {
+	accessToken, err := r.decrypt(a.AccessToken)
+	if err != nil {
+		return domain.Account{}, fmt.Errorf("decrypting access token: %w", err)
+	}
+	refreshToken, err := r.decrypt(a.RefreshToken)
+	if err != nil {
+		return domain.Account{}, fmt.Errorf("decrypting refresh token: %w", err)
+	}
+	idToken, err := r.decrypt(a.IDToken)
+	if err != nil {
+		return domain.Account{}, fmt.Errorf("decrypting id token: %w", err)
+	}
+
 	acc := domain.Account{
 		ID:           a.ID,
 		UserID:       a.UserID,
 		ProviderID:   a.ProviderID,
 		AccountID:    a.AccountID,
-		AccessToken:  a.AccessToken,
-		RefreshToken: a.RefreshToken,
-		IDToken:      a.IDToken,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		IDToken:      idToken,
 		Scope:        a.Scope,
 		Password:     a.Password,
 		CreatedAt:    a.CreatedAt,
@@ -120,5 +215,5 @@ func toAccountDomain(a *ent.UserAccount) domain.Account {
 	if !a.RefreshTokenExpiresAt.IsZero() {
 		acc.RefreshTokenExpiresAt = &a.RefreshTokenExpiresAt
 	}
-	return acc
+	return acc, nil
 }

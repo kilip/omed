@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -25,6 +26,14 @@ import (
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
 )
+
+// AccountRepository defines persistence operations for OAuth accounts.
+type AccountRepository interface {
+	FindByProviderAndAccountID(ctx context.Context, providerID, accountID string) (domain.Account, error)
+	FindByUserID(ctx context.Context, userID int64) ([]domain.Account, error)
+	Upsert(ctx context.Context, a domain.Account) (domain.Account, error)
+	DeleteByUserID(ctx context.Context, userID int64) error
+}
 
 // OAuthService handles third-party OAuth2 flows, user linking, and session initialization.
 type OAuthService interface {
@@ -44,7 +53,7 @@ type OAuthProviderConfig struct {
 }
 
 type oauthService struct {
-	accounts       repository.AccountRepository
+	accounts       AccountRepository
 	users          repository.UserRepository
 	sessions       SessionService
 	authSecret     string
@@ -52,11 +61,12 @@ type oauthService struct {
 	trustedOrigins []string
 	providers      map[string]OAuthProviderConfig
 	httpClient     *http.Client
+	logger         *slog.Logger
 }
 
 // OAuthServiceParams defines initialization options for NewOAuthService.
 type OAuthServiceParams struct {
-	Accounts       repository.AccountRepository
+	Accounts       AccountRepository
 	Users          repository.UserRepository
 	Sessions       SessionService
 	AuthSecret     string
@@ -67,6 +77,7 @@ type OAuthServiceParams struct {
 	GithubID       string
 	GithubSecret   string
 	HTTPClient     *http.Client
+	Logger         *slog.Logger
 }
 
 // NewOAuthService constructs an OAuthService configured with providers and verification keys.
@@ -74,6 +85,11 @@ func NewOAuthService(p OAuthServiceParams) OAuthService {
 	client := p.HTTPClient
 	if client == nil {
 		client = &http.Client{Timeout: 10 * time.Second}
+	}
+
+	logger := p.Logger
+	if logger == nil {
+		logger = slog.Default()
 	}
 
 	apiURL := strings.TrimRight(p.ApiURL, "/")
@@ -122,6 +138,7 @@ func NewOAuthService(p OAuthServiceParams) OAuthService {
 		trustedOrigins: p.TrustedOrigins,
 		providers:      providers,
 		httpClient:     client,
+		logger:         logger,
 	}
 }
 
@@ -250,7 +267,12 @@ func (s *oauthService) HandleCallback(
 		Scope:                scope,
 	})
 	if err != nil {
-		// Log or handle error, proceed if non-fatal
+		s.logger.ErrorContext(ctx, "failed to upsert user oauth account",
+			slog.String("provider", provider),
+			slog.Int64("user_id", usr.ID),
+			slog.Any("error", err),
+		)
+		return domain.Session{}, domain.User{}, "", fmt.Errorf("failed to save oauth account: %w", err)
 	}
 
 	// Create user session in database

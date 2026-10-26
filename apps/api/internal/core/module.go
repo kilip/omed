@@ -74,7 +74,7 @@ func New(cfg Config) *CoreModule {
 	members := repository.NewMemberRepository(cfg.EntCli)
 	invitations := repository.NewInvitationRepository(cfg.EntCli)
 	files := repository.NewFileRepository(cfg.EntCli)
-	accounts := repository.NewAccountRepository(cfg.EntCli)
+	accounts := repository.NewAccountRepository(cfg.EntCli, cfg.AuthSecret)
 	sessions := repository.NewSessionRepository(cfg.EntCli)
 
 	userSvc := service.NewUserService(users)
@@ -94,6 +94,7 @@ func New(cfg Config) *CoreModule {
 		GoogleSecret:   cfg.GoogleSecret,
 		GithubID:       cfg.GithubID,
 		GithubSecret:   cfg.GithubSecret,
+		Logger:         cfg.Logger,
 	})
 
 	mod := &CoreModule{

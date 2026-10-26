@@ -1,18 +1,22 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/useraccount"
 	"github.com/kilip/omed/api/ent/workspace"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
@@ -38,7 +42,7 @@ type OAuthServiceSuite struct {
 func (s *OAuthServiceSuite) SetupSuite() {
 	s.client = testutil.CreateTestDB("file:oauth_svc_test?mode=memory&cache=shared&_fk=1&_busy_timeout=5000")
 	s.userRepo = repository.NewUserRepository(s.client)
-	s.accountRepo = repository.NewAccountRepository(s.client)
+	s.accountRepo = repository.NewAccountRepository(s.client, "test-secret-key-at-least-32-bytes-long")
 	sessionRepo := repository.NewSessionRepository(s.client)
 	s.sessionSvc = service.NewSessionService(sessionRepo, s.userRepo, 24*time.Hour)
 	s.ctx = testutil.NewUserContext()
@@ -434,11 +438,25 @@ func (s *OAuthServiceSuite) Test_HandleCallback_SuccessNewUser() {
 	s.NotEmpty(sess.Token)
 	s.Equal(user.ID, sess.UserID)
 
-	// Verify Account was created
+	// Verify raw tokens stored in database after login are encrypted at rest
+	rawAcc, err := s.client.UserAccount.Query().
+		Where(
+			useraccount.ProviderIDEQ(domain.ProviderGoogle),
+			useraccount.AccountIDEQ("google-1001"),
+		).
+		Only(s.ctx)
+	s.Require().NoError(err)
+	s.NotEmpty(rawAcc.AccessToken)
+	s.NotEqual("mock-access-token-123", rawAcc.AccessToken)
+	s.NotEmpty(rawAcc.RefreshToken)
+	s.NotEqual("mock-refresh-token-456", rawAcc.RefreshToken)
+
+	// Verify Account returned by repository has decrypted tokens
 	acc, err := s.accountRepo.FindByProviderAndAccountID(s.ctx, domain.ProviderGoogle, "google-1001")
 	s.Require().NoError(err)
 	s.Equal(user.ID, acc.UserID)
 	s.Equal("mock-access-token-123", acc.AccessToken)
+	s.Equal("mock-refresh-token-456", acc.RefreshToken)
 
 	// Verify personal workspace was auto-created
 	ws, err := s.client.Workspace.Query().
@@ -802,6 +820,90 @@ func (s *OAuthServiceSuite) Test_FetchGithubEmail_PicksVerifiedNonPrimaryWhenPri
 	s.Require().NoError(err)
 	s.Equal("verified-fallback@example.com", user.Email)
 	s.NotEmpty(sess.Token)
+}
+
+type failingAccountRepo struct {
+	repository.AccountRepository
+	upsertErr error
+}
+
+func (f failingAccountRepo) Upsert(ctx context.Context, a domain.Account) (domain.Account, error) {
+	if f.upsertErr != nil {
+		return domain.Account{}, f.upsertErr
+	}
+	return f.AccountRepository.Upsert(ctx, a)
+}
+
+func (s *OAuthServiceSuite) Test_HandleCallback_AccountUpsertError_LoggedAndReturned() {
+	var logBuf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logBuf, nil))
+
+	failingRepo := failingAccountRepo{
+		AccountRepository: s.accountRepo,
+		upsertErr:         errors.New("db disk full or constraint violation"),
+	}
+
+	oauthSvc := service.NewOAuthService(service.OAuthServiceParams{
+		Accounts:       failingRepo,
+		Users:          s.userRepo,
+		Sessions:       s.sessionSvc,
+		AuthSecret:     "test-secret-key-at-least-32-bytes-long",
+		ApiURL:         "http://localhost:8001",
+		TrustedOrigins: []string{"http://localhost:3000"},
+		GoogleID:       "mock-google-id",
+		GoogleSecret:   "mock-google-secret",
+		HTTPClient:     s.mockServer.Client(),
+		Logger:         logger,
+	})
+
+	if svcWithReg, ok := oauthSvc.(interface {
+		RegisterProvider(service.OAuthProviderConfig)
+	}); ok {
+		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
+			ID:           domain.ProviderGoogle,
+			ClientID:     "mock-google-id",
+			ClientSecret: "mock-google-secret",
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  s.mockServer.URL + "/auth",
+				TokenURL: s.mockServer.URL + "/token",
+			},
+			Scopes:      []string{"openid", "email"},
+			UserInfoURL: s.mockServer.URL + "/userinfo/google",
+		})
+	}
+
+	authRes, err := oauthSvc.GetAuthURL(model.SignInSocialRequest{
+		Provider:    domain.ProviderGoogle,
+		CallbackURL: "http://localhost:3000/dashboard",
+	})
+	s.Require().NoError(err)
+
+	var state string
+	for _, part := range splitQuery(authRes.URL) {
+		if len(part) > 6 && part[:6] == "state=" {
+			state = part[6:]
+			break
+		}
+	}
+	s.NotEmpty(state)
+
+	_, _, _, err = oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		authRes.Nonce,
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().Error(err)
+	s.Contains(err.Error(), "failed to save oauth account")
+	s.Contains(err.Error(), "db disk full")
+
+	// Verify error was logged with context
+	logged := logBuf.String()
+	s.Contains(logged, "failed to upsert user oauth account")
+	s.Contains(logged, "db disk full")
 }
 
 func splitQuery(rawURL string) []string {
