@@ -353,7 +353,7 @@ func (s *oauthService) fetchUserInfo(ctx context.Context, p *OAuthProviderConfig
 	if err != nil {
 		return model.OAuthUserInfo{}, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		b, _ := io.ReadAll(resp.Body)
@@ -453,7 +453,7 @@ func (s *oauthService) fetchGithubEmail(ctx context.Context, accessToken string)
 	if err != nil {
 		return "", false
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", false

@@ -55,7 +55,7 @@ func (s *FiberSuite) Test_GetFiber_StructValidator_Valid() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 }
@@ -76,7 +76,7 @@ func (s *FiberSuite) Test_GetFiber_StructValidator_Invalid() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusUnprocessableEntity, resp.StatusCode)
 
@@ -98,7 +98,7 @@ func (s *FiberSuite) Test_GetFiber_CORS_AllowedOrigin() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 	s.Equal("http://trusted.com", resp.Header.Get("Access-Control-Allow-Origin"))
@@ -116,7 +116,7 @@ func (s *FiberSuite) Test_GetFiber_CORS_DisallowedOrigin() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 	s.Empty(resp.Header.Get("Access-Control-Allow-Origin"))
@@ -134,7 +134,7 @@ func (s *FiberSuite) Test_GetFiber_CORS_Preflight() {
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal("http://trusted.com", resp.Header.Get("Access-Control-Allow-Origin"))
 	s.Contains(resp.Header.Get("Access-Control-Allow-Methods"), "POST")
@@ -149,7 +149,7 @@ func (s *FiberSuite) Test_GetFiber_RecoverMiddleware() {
 	req := httptest.NewRequest(fiber.MethodGet, "/panic", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusInternalServerError, resp.StatusCode)
 }
@@ -197,7 +197,7 @@ func (s *FiberSuite) Test_ErrorHandler_UnknownError() {
 	req := httptest.NewRequest(fiber.MethodGet, "/unknown", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusInternalServerError, resp.StatusCode)
 	var errResp httpx.ErrorResponse
@@ -258,7 +258,7 @@ func (s *FiberSuite) Test_GetFiber_SecurityHeaders() {
 	req := httptest.NewRequest(fiber.MethodGet, "/test-sec", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 	s.Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
@@ -284,7 +284,7 @@ func (s *FiberSuite) Test_GetFiber_SecurityHeaders_HSTS_Production() {
 	req.Header.Set("X-Forwarded-Proto", "https")
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 	s.Contains(resp.Header.Get("Strict-Transport-Security"), "max-age=31536000")

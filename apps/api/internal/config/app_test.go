@@ -158,7 +158,7 @@ func (s *AppSuite) Test_Boot_DefaultApp_WithBaseMiddleware() {
 	req = req.WithContext(ctx)
 	resp, err := fApp.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.NotEmpty(resp.Header.Get("X-Request-Id"))
 }
@@ -188,7 +188,7 @@ func (s *AppSuite) Test_Boot_TestRoutesWarning_Enabled() {
 	req := httptest.NewRequest(fiber.MethodGet, "/test/mailer/messages", nil)
 	resp, err := fApp.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 }
 
@@ -217,7 +217,7 @@ func (s *AppSuite) Test_Boot_TestRoutesWarning_DisabledInProduction() {
 	req := httptest.NewRequest(fiber.MethodGet, "/test/mailer/messages", nil)
 	resp, err := fApp.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	s.Equal(fiber.StatusUnauthorized, resp.StatusCode)
 }
 
@@ -569,7 +569,7 @@ func (s *AppSuite) Test_Healthz_Endpoint() {
 	req := httptest.NewRequest(fiber.MethodGet, "/healthz", nil)
 	resp, err := fApp.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 	var body map[string]any
@@ -591,7 +591,7 @@ func (s *AppSuite) Test_Readyz_Endpoint_Healthy() {
 	req := httptest.NewRequest(fiber.MethodGet, "/readyz", nil)
 	resp, err := fApp.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 	var body map[string]any
@@ -619,7 +619,7 @@ func (s *AppSuite) Test_Readyz_Endpoint_DBUnavailable() {
 	req := httptest.NewRequest(fiber.MethodGet, "/readyz", nil)
 	resp, err := fApp.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusServiceUnavailable, resp.StatusCode)
 	var body map[string]any

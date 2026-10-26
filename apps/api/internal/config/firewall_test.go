@@ -158,7 +158,7 @@ func (s *FirewallSuite) Test_InitFirewall_TestRoutes() {
 		req := httptest.NewRequest(fiber.MethodGet, "/test/hello", nil)
 		resp, err := app.Test(req)
 		s.Require().NoError(err)
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		s.Equal(fiber.StatusUnauthorized, resp.StatusCode)
 	})
 
@@ -175,7 +175,7 @@ func (s *FirewallSuite) Test_InitFirewall_TestRoutes() {
 		req := httptest.NewRequest(fiber.MethodGet, "/test/hello", nil)
 		resp, err := app.Test(req)
 		s.Require().NoError(err)
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		s.Equal(fiber.StatusOK, resp.StatusCode)
 	})
 }
