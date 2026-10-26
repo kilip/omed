@@ -8,6 +8,7 @@ import (
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/entry"
+	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/transaction"
 	"github.com/kilip/omed/api/internal/base"
@@ -402,7 +403,6 @@ func (r EntryRepository) Reverse(c context.Context, id int64, postedBy int64, en
 	var dom domain.Entry
 	var createdID int64
 
-	year := entryDate.Year()
 	const maxRetries = 5
 
 	for attempt := 0; attempt < maxRetries; attempt++ {
@@ -423,6 +423,10 @@ func (r EntryRepository) Reverse(c context.Context, id int64, postedBy int64, en
 				return err
 			}
 
+			if string(orig.Status) != domain.EntryStatusPosted {
+				return domain.ErrEntryNotPosted
+			}
+
 			// Check if already reversed
 			alreadyReversed, err := tx.Entry.Query().
 				Where(
@@ -437,6 +441,39 @@ func (r EntryRepository) Reverse(c context.Context, id int64, postedBy int64, en
 				return domain.ErrEntryAlreadyReversed
 			}
 
+			effectiveDate := entryDate
+			if effectiveDate.IsZero() {
+				effectiveDate = orig.EntryDate
+			}
+
+			d := time.Date(effectiveDate.Year(), effectiveDate.Month(), effectiveDate.Day(), 0, 0, 0, 0, time.UTC)
+			dEnd := time.Date(effectiveDate.Year(), effectiveDate.Month(), effectiveDate.Day(), 23, 59, 59, 999999999, time.UTC)
+
+			p, err := tx.Period.Query().
+				Where(
+					period.DeletedAtIsNil(),
+					period.StartDateLTE(dEnd),
+					period.EndDateGTE(d),
+				).
+				First(c)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return domain.ErrPeriodNotFound
+				}
+				return err
+			}
+
+			start := time.Date(p.StartDate.Year(), p.StartDate.Month(), p.StartDate.Day(), 0, 0, 0, 0, time.UTC)
+			end := time.Date(p.EndDate.Year(), p.EndDate.Month(), p.EndDate.Day(), 0, 0, 0, 0, time.UTC)
+			if d.Before(start) || d.After(end) {
+				return domain.ErrPeriodNotFound
+			}
+
+			if string(p.Status) == domain.PeriodStatusClosed {
+				return domain.ErrPeriodClosed
+			}
+
+			year := effectiveDate.Year()
 			num, err := GenerateEntryNumber(c, tx, year)
 			if err != nil {
 				return err
@@ -450,9 +487,9 @@ func (r EntryRepository) Reverse(c context.Context, id int64, postedBy int64, en
 
 			revBuilder := tx.Entry.Create().
 				SetTransactionID(orig.TransactionID).
-				SetPeriodID(orig.PeriodID).
+				SetPeriodID(p.ID).
 				SetNumber(num).
-				SetEntryDate(entryDate).
+				SetEntryDate(effectiveDate).
 				SetDescription(desc).
 				SetStatus(entry.Status(domain.EntryStatusPosted)).
 				SetPostedAt(now).
@@ -495,14 +532,15 @@ func (r EntryRepository) Reverse(c context.Context, id int64, postedBy int64, en
 			return r.GetByID(c, createdID)
 		}
 
-		if ent.IsConstraintError(err) {
+		if ent.IsConstraintError(err) || isLockOrConflictError(err) {
+			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 
 		return dom, err
 	}
 
-	return dom, domain.ErrEntryNotFound
+	return dom, domain.ErrEntryRetryExhausted
 }
 
 // Void marks an entry status as VOID.

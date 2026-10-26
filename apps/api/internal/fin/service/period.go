@@ -17,6 +17,7 @@ import (
 // PeriodRepository defines the persistence operations required by PeriodService.
 type PeriodRepository interface {
 	GetByID(c context.Context, id int64) (domain.Period, error)
+	FindByDate(c context.Context, date time.Time) (domain.Period, error)
 	Search(c context.Context, req model.SearchPeriodRequest) ([]domain.Period, string, error)
 	Create(c context.Context, req model.CreatePeriodRequest) (domain.Period, error)
 	Update(c context.Context, id int64, req model.UpdatePeriodRequest) (domain.Period, error)

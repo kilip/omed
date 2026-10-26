@@ -70,6 +70,10 @@ var (
 	ErrEntryDateOutsidePeriod = errors.New("ENTRY_DATE_OUTSIDE_PERIOD")
 	// ErrEntryAlreadyReversed indicates the entry has already been reversed.
 	ErrEntryAlreadyReversed = errors.New("ENTRY_ALREADY_REVERSED")
+	// ErrEntryNotPosted indicates the entry is not in posted status and cannot be reversed.
+	ErrEntryNotPosted = errors.New("ENTRY_NOT_POSTED")
+	// ErrEntryRetryExhausted indicates entry operation exceeded retry limit due to concurrent updates or conflicts.
+	ErrEntryRetryExhausted = errors.New("ENTRY_RETRY_EXHAUSTED")
 
 	// ErrPostingAccountNotPostable indicates an account cannot accept direct postings.
 	ErrPostingAccountNotPostable = errors.New("POSTING_ACCOUNT_NOT_POSTABLE")
@@ -130,6 +134,8 @@ func init() {
 	base.AddToErrorMap(ErrEntryMinPostings, fiber.StatusUnprocessableEntity, "entry must have at least two postings")
 	base.AddToErrorMap(ErrEntryDateOutsidePeriod, fiber.StatusUnprocessableEntity, "entry date is outside the accounting period")
 	base.AddToErrorMap(ErrEntryAlreadyReversed, fiber.StatusConflict, "entry has already been reversed")
+	base.AddToErrorMap(ErrEntryNotPosted, fiber.StatusConflict, "entry is not in posted status")
+	base.AddToErrorMap(ErrEntryRetryExhausted, fiber.StatusConflict, "entry operation retry limit exceeded")
 
 	base.AddToErrorMap(ErrPostingAccountNotPostable, fiber.StatusUnprocessableEntity, "account is not postable")
 	base.AddToErrorMap(ErrPostingAccountInactive, fiber.StatusUnprocessableEntity, "account is inactive")

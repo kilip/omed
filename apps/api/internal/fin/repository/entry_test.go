@@ -293,6 +293,89 @@ func (s *EntryRepoSuite) Test_Reverse() {
 	s.Require().ErrorIs(err, domain.ErrEntryAlreadyReversed)
 }
 
+func (s *EntryRepoSuite) Test_Reverse_StatusAndPeriodValidations() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	eDraft, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 200},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 200},
+		},
+	})
+	s.Require().NoError(err)
+
+	revDate := time.Date(2026, 1, 16, 0, 0, 0, 0, time.UTC)
+
+	// 1. Attempt to reverse DRAFT entry fails with ErrEntryNotPosted
+	_, err = s.repo.Reverse(ctx, eDraft.ID, s.userID, revDate, "Reverse draft")
+	s.Require().ErrorIs(err, domain.ErrEntryNotPosted)
+
+	// 2. Void the draft entry and attempt to reverse VOID entry -> fails with ErrEntryNotPosted
+	voided, err := s.repo.Void(ctx, eDraft.ID)
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusVoid, voided.Status)
+
+	_, err = s.repo.Reverse(ctx, eDraft.ID, s.userID, revDate, "Reverse voided")
+	s.Require().ErrorIs(err, domain.ErrEntryNotPosted)
+
+	// Create and post a new entry for period tests
+	ePosted, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: 300},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: 300},
+		},
+	})
+	s.Require().NoError(err)
+
+	_, err = s.repo.Post(ctx, ePosted.ID, s.userID)
+	s.Require().NoError(err)
+
+	// 3. Attempt to reverse with date outside any period -> fails with ErrPeriodNotFound
+	outDate := time.Date(2028, 5, 1, 0, 0, 0, 0, time.UTC)
+	_, err = s.repo.Reverse(ctx, ePosted.ID, s.userID, outDate, "Reverse outside period")
+	s.Require().ErrorIs(err, domain.ErrPeriodNotFound)
+
+	// Create a closed period in 2027
+	closedP, err := s.client.Period.Create().
+		SetName("Jan 2027 Closed").
+		SetStartDate(time.Date(2027, 1, 1, 0, 0, 0, 0, time.UTC)).
+		SetEndDate(time.Date(2027, 1, 31, 0, 0, 0, 0, time.UTC)).
+		SetFiscalYear(2027).
+		SetStatus("CLOSED").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// 4. Attempt to reverse with date in a CLOSED period -> fails with ErrPeriodClosed
+	jan27Date := time.Date(2027, 1, 10, 0, 0, 0, 0, time.UTC)
+	_, err = s.repo.Reverse(ctx, ePosted.ID, s.userID, jan27Date, "Reverse in closed period")
+	s.Require().ErrorIs(err, domain.ErrPeriodClosed)
+
+	// Create a new OPEN period (Feb 2027)
+	feb27P, err := s.client.Period.Create().
+		SetName("Feb 2027 Open").
+		SetStartDate(time.Date(2027, 2, 1, 0, 0, 0, 0, time.UTC)).
+		SetEndDate(time.Date(2027, 2, 28, 0, 0, 0, 0, time.UTC)).
+		SetFiscalYear(2027).
+		SetStatus("OPEN").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// 5. Successful reversal in a different open period from original entry
+	feb27Date := time.Date(2027, 2, 15, 0, 0, 0, 0, time.UTC)
+	revFeb27, err := s.repo.Reverse(ctx, ePosted.ID, s.userID, feb27Date, "Reverse in Feb 2027")
+	s.Require().NoError(err)
+	s.Equal(domain.EntryStatusPosted, revFeb27.Status)
+	s.Equal(feb27P.ID, revFeb27.PeriodID)
+	s.NotEqual(s.periodID, revFeb27.PeriodID)
+	s.Equal(&ePosted.ID, revFeb27.ReversalOfID)
+	_ = closedP
+}
+
 func (s *EntryRepoSuite) Test_Void() {
 	ctx := s.ctx()
 	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))

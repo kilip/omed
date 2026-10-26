@@ -48,6 +48,40 @@ func (r PeriodRepository) GetByID(c context.Context, id int64) (domain.Period, e
 	return toPeriodDomain(p), nil
 }
 
+// FindByDate retrieves the active period containing the given date.
+// Returns base.ErrNotFound if no active period contains the date.
+func (r PeriodRepository) FindByDate(c context.Context, date time.Time) (domain.Period, error) {
+	var dom domain.Period
+
+	d := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+	dEnd := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, time.UTC)
+
+	p, err := r.cli.Period.Query().
+		Where(
+			period.DeletedAtIsNil(),
+			period.StartDateLTE(dEnd),
+			period.EndDateGTE(d),
+		).
+		WithCreator().
+		WithUpdater().
+		WithDeleter().
+		First(c)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return dom, base.ErrNotFound
+		}
+		return dom, err
+	}
+
+	start := time.Date(p.StartDate.Year(), p.StartDate.Month(), p.StartDate.Day(), 0, 0, 0, 0, time.UTC)
+	end := time.Date(p.EndDate.Year(), p.EndDate.Month(), p.EndDate.Day(), 0, 0, 0, 0, time.UTC)
+	if d.Before(start) || d.After(end) {
+		return dom, base.ErrNotFound
+	}
+
+	return toPeriodDomain(p), nil
+}
+
 // Search returns all active periods in the workspace matching the filter criteria.
 func (r PeriodRepository) Search(c context.Context, req model.SearchPeriodRequest) ([]domain.Period, string, error) {
 	q := r.cli.Period.Query().

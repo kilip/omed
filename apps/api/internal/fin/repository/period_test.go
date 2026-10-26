@@ -296,6 +296,37 @@ func (s *PeriodRepoSuite) Test_HasRevaluationEntry() {
 	s.True(hasReval)
 }
 
+func (s *PeriodRepoSuite) Test_FindByDate() {
+	ctx := s.ctx()
+
+	p, err := s.repo.Create(ctx, model.CreatePeriodRequest{
+		Name:       "Jan 2026",
+		StartDate:  parseDate("2026-01-01"),
+		EndDate:    parseDate("2026-01-31"),
+		FiscalYear: 2026,
+	})
+	s.Require().NoError(err)
+
+	// Within period
+	found, err := s.repo.FindByDate(ctx, time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC))
+	s.Require().NoError(err)
+	s.Equal(p.ID, found.ID)
+
+	// First day of period
+	found, err = s.repo.FindByDate(ctx, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+	s.Require().NoError(err)
+	s.Equal(p.ID, found.ID)
+
+	// Last day of period
+	found, err = s.repo.FindByDate(ctx, time.Date(2026, 1, 31, 23, 59, 0, 0, time.UTC))
+	s.Require().NoError(err)
+	s.Equal(p.ID, found.ID)
+
+	// Outside period
+	_, err = s.repo.FindByDate(ctx, time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC))
+	s.Require().ErrorIs(err, base.ErrNotFound)
+}
+
 func TestPeriodRepoSuite(t *testing.T) {
 	suite.Run(t, new(PeriodRepoSuite))
 }

@@ -352,10 +352,40 @@ func (s EntryService) Post(c context.Context, id int64, postedBy int64) (domain.
 
 // Reverse creates a reversing journal entry with POSTED status, swapping DEBIT and CREDIT.
 func (s EntryService) Reverse(c context.Context, id int64, postedBy int64, entryDate time.Time, description string) (domain.Entry, error) {
-	if entryDate.IsZero() {
-		entryDate = time.Now()
+	curr, err := s.entryRepo.GetByID(c, id)
+	if err != nil {
+		return domain.Entry{}, err
 	}
-	return s.entryRepo.Reverse(c, id, postedBy, entryDate, description)
+
+	if curr.Status != domain.EntryStatusPosted {
+		return domain.Entry{}, domain.ErrEntryNotPosted
+	}
+
+	effectiveDate := entryDate
+	if effectiveDate.IsZero() {
+		effectiveDate = curr.EntryDate
+	}
+
+	p, err := s.periodRepo.FindByDate(c, effectiveDate)
+	if err != nil {
+		if errors.Is(err, base.ErrNotFound) || ent.IsNotFound(err) || errors.Is(err, domain.ErrPeriodNotFound) {
+			return domain.Entry{}, domain.ErrPeriodNotFound
+		}
+		return domain.Entry{}, err
+	}
+
+	if p.Status == domain.PeriodStatusClosed {
+		return domain.Entry{}, domain.ErrPeriodClosed
+	}
+
+	d := time.Date(effectiveDate.Year(), effectiveDate.Month(), effectiveDate.Day(), 0, 0, 0, 0, time.UTC)
+	start := time.Date(p.StartDate.Year(), p.StartDate.Month(), p.StartDate.Day(), 0, 0, 0, 0, time.UTC)
+	end := time.Date(p.EndDate.Year(), p.EndDate.Month(), p.EndDate.Day(), 0, 0, 0, 0, time.UTC)
+	if d.Before(start) || d.After(end) {
+		return domain.Entry{}, domain.ErrPeriodNotFound
+	}
+
+	return s.entryRepo.Reverse(c, id, postedBy, effectiveDate, description)
 }
 
 // Void voids a journal entry. If the entry is POSTED, creates a reversing entry and marks the original VOID.
@@ -366,9 +396,9 @@ func (s EntryService) Void(c context.Context, id int64, postedBy int64) (domain.
 	}
 
 	if curr.Status == domain.EntryStatusPosted {
-		revDate := time.Now()
+		revDate := curr.EntryDate
 		desc := "Void reversal of " + curr.Number
-		_, err := s.entryRepo.Reverse(c, id, postedBy, revDate, desc)
+		_, err := s.Reverse(c, id, postedBy, revDate, desc)
 		if err != nil {
 			return domain.Entry{}, err
 		}
