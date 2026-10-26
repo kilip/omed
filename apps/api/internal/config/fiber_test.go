@@ -457,7 +457,7 @@ func (s *FiberSuite) Test_GetFiber_RateLimiting_TestEnvSkip() {
 		req := httptest.NewRequest(fiber.MethodGet, "/test-skip", nil)
 		resp, err := app.Test(req)
 		s.Require().NoError(err)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		s.Equal(fiber.StatusOK, resp.StatusCode)
 	}
 
@@ -466,14 +466,14 @@ func (s *FiberSuite) Test_GetFiber_RateLimiting_TestEnvSkip() {
 	req1.Header.Set("X-Test-Rate-Limit", "true")
 	resp1, err := app.Test(req1)
 	s.Require().NoError(err)
-	resp1.Body.Close()
+	_ = resp1.Body.Close()
 	s.Equal(fiber.StatusOK, resp1.StatusCode)
 
 	req2 := httptest.NewRequest(fiber.MethodGet, "/test-skip", nil)
 	req2.Header.Set("X-Test-Rate-Limit", "true")
 	resp2, err := app.Test(req2)
 	s.Require().NoError(err)
-	resp2.Body.Close()
+	_ = resp2.Body.Close()
 	s.Equal(fiber.StatusTooManyRequests, resp2.StatusCode)
 }
 

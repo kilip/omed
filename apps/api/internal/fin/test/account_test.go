@@ -35,7 +35,7 @@ func (s *AccountApiSuite) ensureWorkspace(name string, ownerID int64) *ent.Works
 func (s *AccountApiSuite) getListResponse() httpx.WebResponse[[]model.AccountResponse] {
 	var res httpx.WebResponse[[]model.AccountResponse]
 	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
+	defer func() { _ = s.HttpResponse.Body.Close() }()
 	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&res))
 	return res
 }

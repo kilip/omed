@@ -85,7 +85,7 @@ func (s *EntryApiSuite) ensureTransaction(wsID int64, desc, ref string, tDate ti
 func (s *EntryApiSuite) getListResponse() httpx.WebResponse[[]model.EntryResponse] {
 	var res httpx.WebResponse[[]model.EntryResponse]
 	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
+	defer func() { _ = s.HttpResponse.Body.Close() }()
 	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&res))
 	return res
 }

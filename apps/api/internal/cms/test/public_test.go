@@ -42,7 +42,7 @@ func (s *PublicContentSuite) publicGet(path string) {
 
 func (s *PublicContentSuite) readRawBody() []byte {
 	resp := s.GetHttpResponse()
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	bytes, err := io.ReadAll(resp.Body)
 	s.Require().NoError(err)
 	return bytes

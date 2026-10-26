@@ -34,7 +34,7 @@ func (s *WorkspaceSuite) ensureWorkspace(name, desc string, ownerID int64) *ent.
 func (s *WorkspaceSuite) getErrorResponse() httpx.ErrorResponse {
 	var res httpx.ErrorResponse
 	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
+	defer func() { _ = s.HttpResponse.Body.Close() }()
 	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&res))
 	return res
 }

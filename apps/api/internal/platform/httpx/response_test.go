@@ -73,7 +73,7 @@ func (s *ResponseSuite) Test_Success() {
 	req := httptest.NewRequest(fiber.MethodGet, "/success", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusAccepted, resp.StatusCode)
 
@@ -94,7 +94,7 @@ func (s *ResponseSuite) Test_OK() {
 	req := httptest.NewRequest(fiber.MethodGet, "/ok", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 
@@ -115,7 +115,7 @@ func (s *ResponseSuite) Test_Created() {
 	req := httptest.NewRequest(fiber.MethodPost, "/created", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusCreated, resp.StatusCode)
 
@@ -139,7 +139,7 @@ func (s *ResponseSuite) Test_WithCursor() {
 	req := httptest.NewRequest(fiber.MethodGet, "/cursor", nil)
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	s.Equal(fiber.StatusOK, resp.StatusCode)
 

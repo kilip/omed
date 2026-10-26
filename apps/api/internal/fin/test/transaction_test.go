@@ -70,7 +70,7 @@ func (s *TransactionApiSuite) ensurePeriod(wsID int64, name string, start, end t
 func (s *TransactionApiSuite) getListResponse() httpx.WebResponse[[]model.TransactionResponse] {
 	var res httpx.WebResponse[[]model.TransactionResponse]
 	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
+	defer func() { _ = s.HttpResponse.Body.Close() }()
 	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&res))
 	return res
 }

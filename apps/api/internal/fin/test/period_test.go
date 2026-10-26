@@ -34,7 +34,7 @@ func (s *PeriodApiSuite) ensureWorkspace(name string, ownerID int64) *ent.Worksp
 func (s *PeriodApiSuite) getListResponse() httpx.WebResponse[[]model.PeriodResponse] {
 	var res httpx.WebResponse[[]model.PeriodResponse]
 	s.T().Helper()
-	defer s.HttpResponse.Body.Close()
+	defer func() { _ = s.HttpResponse.Body.Close() }()
 	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&res))
 	return res
 }

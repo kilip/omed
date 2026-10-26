@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/core/model"
-	"github.com/kilip/omed/api/internal/platform/httpx"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 )
@@ -157,8 +156,7 @@ func (s *MemberSuite) Test_Permissions_Owner() {
 	s.Request(fmt.Sprintf("/workspaces/%d/permissions", ws.ID), fiber.MethodGet, nil)
 	s.OK()
 
-	var resp httpx.WebResponse[model.PermissionsResponse]
-	resp = testutil.DecodeOther[model.PermissionsResponse](s)
+	resp := testutil.DecodeOther[model.PermissionsResponse](s)
 	s.True(resp.Data.Owner)
 	s.Equal(ws.ID, resp.Data.WorkspaceID)
 	s.Equal([]model.PermissionItem{{Object: "*", Action: "*"}}, resp.Data.Permissions)
@@ -173,8 +171,7 @@ func (s *MemberSuite) Test_Permissions_Member() {
 	s.Request(fmt.Sprintf("/workspaces/%d/permissions", ws.ID), fiber.MethodGet, nil)
 	s.OK()
 
-	var resp httpx.WebResponse[model.PermissionsResponse]
-	resp = testutil.DecodeOther[model.PermissionsResponse](s)
+	resp := testutil.DecodeOther[model.PermissionsResponse](s)
 	s.False(resp.Data.Owner)
 	s.Equal([]string{"core:member"}, resp.Data.Roles)
 	s.NotEmpty(resp.Data.Permissions)
