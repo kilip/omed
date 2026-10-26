@@ -23,6 +23,7 @@ type InvitationRepository interface {
 	Search(ctx context.Context, wid int64, req model.SearchInvitationRequest) ([]domain.Invitation, string, error)
 	IncrementUses(ctx context.Context, id int64) error
 	Revoke(ctx context.Context, wid, id int64) error
+	Accept(ctx context.Context, id int64, userID int64) (domain.Member, error)
 }
 
 // InvitationService coordinates business logic for workspace invitations.
@@ -232,13 +233,7 @@ func (s InvitationService) Accept(ctx context.Context, token string, userID int6
 		return domain.Member{}, err
 	}
 
-	m, err := s.members.Create(ctx, inv.WorkspaceID, userID, inv.Roles)
-	if err != nil {
-		return domain.Member{}, err
-	}
-
-	_ = s.invitations.IncrementUses(ctx, inv.ID)
-	return m, nil
+	return s.invitations.Accept(ctx, inv.ID, userID)
 }
 
 // Search searches invitations for a given workspace.

@@ -230,6 +230,51 @@ func (s *InvitationSuite) Test_Accept_MaxUsesReached() {
 	s.AssertStatus(fiber.StatusUnprocessableEntity)
 }
 
+func (s *InvitationSuite) Test_Accept_MaxUsesZero_Unlimited() {
+	ws := s.ensureWorkspace("Acme Unlimited WS", s.User.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations", ws.ID), fiber.MethodPost, model.CreateInvitationRequest{
+		Roles:   []string{"core:member"},
+		MaxUses: 0,
+	})
+	s.Created()
+	token := s.GetResponse().Data.Token
+
+	// First user accepts: succeeds
+	s.AsUser("unlimited1@example.com", "User One")
+	s.Request(fmt.Sprintf("/invitations/%s/accept", token), fiber.MethodPost, nil)
+	s.Created()
+
+	// Second user accepts: succeeds
+	s.AsUser("unlimited2@example.com", "User Two")
+	s.Request(fmt.Sprintf("/invitations/%s/accept", token), fiber.MethodPost, nil)
+	s.Created()
+}
+
+func (s *InvitationSuite) Test_Accept_AlreadyMember_DoesNotIncrementUses() {
+	ws := s.ensureWorkspace("Acme Member WS", s.User.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/invitations", ws.ID), fiber.MethodPost, model.CreateInvitationRequest{
+		Roles:   []string{"core:member"},
+		MaxUses: 1,
+	})
+	s.Created()
+	inv := s.GetResponse().Data
+	token := inv.Token
+
+	member := s.AsUser("existing@example.com", "Existing Member")
+	s.AddMember(ws.ID, member.ID, "core:member")
+
+	// Accepting should fail with 409 Conflict
+	s.Request(fmt.Sprintf("/invitations/%s/accept", token), fiber.MethodPost, nil)
+	s.AssertStatus(fiber.StatusConflict)
+
+	// Another user accepts: succeeds because uses_count was not incremented
+	s.AsUser("newuser@example.com", "New User")
+	s.Request(fmt.Sprintf("/invitations/%s/accept", token), fiber.MethodPost, nil)
+	s.Created()
+}
+
 func (s *InvitationSuite) Test_Accept_PersonalWorkspace_Conflict() {
 	owner := s.EnsureUser(ent.User{Name: "PW Owner Accept", Email: "pw-owner-accept@example.com"})
 	client := testutil.GetEntCli()

@@ -3,10 +3,14 @@ package repository
 import (
 	"context"
 	"strconv"
+	"strings"
+	"time"
 
+	"entgo.io/ent/dialect"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/workspaceinvitation"
+	"github.com/kilip/omed/api/ent/workspacemember"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/core/model"
@@ -130,12 +134,180 @@ func (r InvitationRepository) Search(ctx context.Context, wid int64, req model.S
 	return res, cursor, nil
 }
 
-// IncrementUses increments the uses_count counter of an invitation.
+// IncrementUses increments the uses_count counter of an invitation if max_uses has not been reached.
 func (r InvitationRepository) IncrementUses(ctx context.Context, id int64) error {
 	ctx = base.WithSkipWorkspaceFilter(ctx)
-	return r.cli.WorkspaceInvitation.UpdateOneID(id).
-		AddUsesCount(1).
-		Exec(ctx)
+
+	const maxRetries = 10
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		err := entx.WithTx(ctx, r.cli, func(tx *ent.Tx) error {
+			inv, err := forUpdate(tx.WorkspaceInvitation.Query(), tx).
+				Where(workspaceinvitation.IDEQ(id)).
+				Only(ctx)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return domain.ErrInvitationNotFound
+				}
+				return err
+			}
+
+			if inv.MaxUses > 0 && inv.UsesCount >= inv.MaxUses {
+				return domain.ErrInvitationMaxUsesReached
+			}
+
+			predicates := []predicate.WorkspaceInvitation{
+				workspaceinvitation.IDEQ(id),
+			}
+			if inv.MaxUses > 0 {
+				predicates = append(predicates, workspaceinvitation.UsesCountLT(inv.MaxUses))
+			}
+			affected, err := tx.WorkspaceInvitation.Update().
+				Where(predicates...).
+				AddUsesCount(1).
+				Save(ctx)
+			if err != nil {
+				return err
+			}
+			if affected == 0 {
+				return domain.ErrInvitationMaxUsesReached
+			}
+			return nil
+		})
+
+		if err == nil {
+			return nil
+		}
+
+		if isLockOrConflictError(err) {
+			if attempt < maxRetries-1 {
+				time.Sleep(10 * time.Millisecond)
+				continue
+			}
+		}
+
+		return err
+	}
+
+	return domain.ErrInvitationMaxUsesReached
+}
+
+// Accept creates a workspace member and increments uses_count conditionally within a single transaction.
+func (r InvitationRepository) Accept(ctx context.Context, id int64, userID int64) (domain.Member, error) {
+	var dom domain.Member
+	ctx = base.WithSkipWorkspaceFilter(ctx)
+
+	const maxRetries = 10
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		var wid int64
+		err := entx.WithTx(ctx, r.cli, func(tx *ent.Tx) error {
+			inv, err := forUpdate(tx.WorkspaceInvitation.Query(), tx).
+				Where(workspaceinvitation.IDEQ(id)).
+				Only(ctx)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return domain.ErrInvitationNotFound
+				}
+				return err
+			}
+
+			if inv.IsRevoked {
+				return domain.ErrInvitationRevoked
+			}
+
+			if inv.ExpiresAt != nil && time.Now().After(*inv.ExpiresAt) {
+				return domain.ErrInvitationExpired
+			}
+
+			if inv.MaxUses > 0 && inv.UsesCount >= inv.MaxUses {
+				return domain.ErrInvitationMaxUsesReached
+			}
+
+			predicates := []predicate.WorkspaceInvitation{
+				workspaceinvitation.IDEQ(id),
+			}
+			if inv.MaxUses > 0 {
+				predicates = append(predicates, workspaceinvitation.UsesCountLT(inv.MaxUses))
+			}
+			affected, err := tx.WorkspaceInvitation.Update().
+				Where(predicates...).
+				AddUsesCount(1).
+				Save(ctx)
+			if err != nil {
+				return err
+			}
+			if affected == 0 {
+				return domain.ErrInvitationMaxUsesReached
+			}
+
+			exists, err := tx.WorkspaceMember.Query().
+				Where(
+					workspacemember.WorkspaceIDEQ(inv.WorkspaceID),
+					workspacemember.UserIDEQ(userID),
+				).
+				Exist(ctx)
+			if err != nil {
+				return err
+			}
+			if exists {
+				return domain.ErrAlreadyMember
+			}
+
+			_, err = tx.WorkspaceMember.Create().
+				SetWorkspaceID(inv.WorkspaceID).
+				SetUserID(userID).
+				SetRoles(inv.Roles).
+				Save(ctx)
+			if err != nil {
+				if ent.IsConstraintError(err) {
+					return domain.ErrAlreadyMember
+				}
+				return err
+			}
+
+			wid = inv.WorkspaceID
+			return nil
+		})
+
+		if err == nil {
+			m, findErr := r.cli.WorkspaceMember.Query().
+				Where(
+					workspacemember.WorkspaceIDEQ(wid),
+					workspacemember.UserIDEQ(userID),
+				).
+				WithUser().
+				Only(ctx)
+			if findErr != nil {
+				return dom, findErr
+			}
+			return toMemberDomain(m), nil
+		}
+
+		if isLockOrConflictError(err) {
+			if attempt < maxRetries-1 {
+				time.Sleep(10 * time.Millisecond)
+				continue
+			}
+		}
+
+		return dom, err
+	}
+
+	return dom, domain.ErrInvitationMaxUsesReached
+}
+
+func forUpdate(q *ent.WorkspaceInvitationQuery, tx *ent.Tx) *ent.WorkspaceInvitationQuery {
+	if tx != nil && tx.Dialect() != dialect.SQLite {
+		return q.ForUpdate()
+	}
+	return q
+}
+
+func isLockOrConflictError(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := err.Error()
+	return strings.Contains(s, "locked") || strings.Contains(s, "busy")
 }
 
 // Revoke marks an invitation as revoked.
