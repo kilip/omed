@@ -180,8 +180,8 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
           setExistingEntryId(null);
           setExistingEntryNumber(null);
         }
-      } catch (err) {
-        console.error("Failed to check existing opening entry:", err);
+      } catch {
+        // Silently ignore search error; manual entry remains available
       } finally {
         if (!isCancelled) {
           setIsSearchingEntry(false);
@@ -244,11 +244,8 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
               params: { path: { wid, id: existingEntryId } },
             }),
           );
-        } catch (voidErr) {
-          console.warn(
-            "Could not void existing entry, proceeding to create new entry:",
-            voidErr,
-          );
+        } catch {
+          // Proceed to create new entry if voiding previous entry fails
         }
       }
 
@@ -479,7 +476,7 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
                   >
                     <div className="flex items-center gap-3">
                       <CreditCardOutlined
-                        style={{ fontSize: 18, color: "#fa541c" }}
+                        style={{ fontSize: 18, color: "var(--omed-danger)" }}
                       />
                       <div className="flex flex-col">
                         <Space>
@@ -532,7 +529,10 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
                     </Text>
                     <Title
                       level={4}
-                      style={{ margin: "4px 0 0", color: "#1890ff" }}
+                      style={{
+                        margin: "4px 0 0",
+                        color: "var(--omed-info-text)",
+                      }}
                     >
                       Rp {totalAssets.toLocaleString("id-ID")}
                     </Title>
@@ -548,7 +548,10 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
                     </Text>
                     <Title
                       level={4}
-                      style={{ margin: "4px 0 0", color: "#fa541c" }}
+                      style={{
+                        margin: "4px 0 0",
+                        color: "var(--omed-danger-text)",
+                      }}
                     >
                       Rp {totalLiabilities.toLocaleString("id-ID")}
                     </Title>
