@@ -54,6 +54,8 @@ export const en = {
     workspace: "Workspace",
     personalWorkspace: "Personal workspace",
     signOut: "Sign out",
+    apiErrorTitle: "API connection error",
+    retry: "Retry",
   },
   launcher: {
     title: "Apps",

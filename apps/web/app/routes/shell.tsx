@@ -1,4 +1,6 @@
+import { Alert, Button, Result } from "antd";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Outlet, redirect, useNavigate, useRevalidator } from "react-router";
 import { NavBar } from "~/components/NavBar";
 import i18n, { setLanguage } from "~/i18n";
@@ -30,9 +32,10 @@ export async function clientLoader() {
 }
 
 export default function Shell({ loaderData }: Route.ComponentProps) {
-  const { user, workspaces, activeId } = loaderData;
+  const { user, workspaces, activeId, apiError } = loaderData;
   const navigate = useNavigate();
   const revalidator = useRevalidator();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (
@@ -49,6 +52,8 @@ export default function Shell({ loaderData }: Route.ComponentProps) {
     navigate("/login");
   };
 
+  const isRevalidating = revalidator.state === "loading";
+
   return (
     <div className="flex min-h-screen flex-col">
       <NavBar
@@ -61,8 +66,46 @@ export default function Shell({ loaderData }: Route.ComponentProps) {
         }}
         onSignOut={signOut}
       />
+      {apiError && (
+        <Alert
+          type="error"
+          showIcon
+          banner
+          title={t("shell.apiErrorTitle")}
+          description={apiError}
+          action={
+            <Button
+              size="small"
+              danger
+              loading={isRevalidating}
+              onClick={() => void revalidator.revalidate()}
+            >
+              {t("shell.retry")}
+            </Button>
+          }
+        />
+      )}
       <main className="flex min-w-0 flex-1 flex-col">
-        <Outlet />
+        {apiError && (!activeId || workspaces.length === 0) ? (
+          <div className="flex flex-1 items-center justify-center p-6">
+            <Result
+              status="error"
+              title={t("shell.apiErrorTitle")}
+              subTitle={apiError}
+              extra={
+                <Button
+                  type="primary"
+                  loading={isRevalidating}
+                  onClick={() => void revalidator.revalidate()}
+                >
+                  {t("shell.retry")}
+                </Button>
+              }
+            />
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </main>
     </div>
   );

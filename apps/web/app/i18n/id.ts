@@ -56,6 +56,8 @@ export const id: Translation = {
     workspace: "Workspace",
     personalWorkspace: "Workspace pribadi",
     signOut: "Keluar",
+    apiErrorTitle: "Kesalahan koneksi API",
+    retry: "Coba lagi",
   },
   launcher: {
     title: "Aplikasi",
