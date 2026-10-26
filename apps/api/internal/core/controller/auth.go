@@ -200,7 +200,6 @@ func toSessionResponse(s domain.Session, u domain.User) model.SessionResponse {
 	return model.SessionResponse{
 		Session: &model.SessionData{
 			ID:        s.ID,
-			Token:     s.Token,
 			UserID:    s.UserID,
 			ExpiresAt: s.ExpiresAt,
 			IPAddress: s.IPAddress,

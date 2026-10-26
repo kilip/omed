@@ -21,7 +21,6 @@ type SignInSocialResponse struct {
 // SessionData holds the serialized session information.
 type SessionData struct {
 	ID        int64     `json:"id"`
-	Token     string    `json:"token"`
 	UserID    int64     `json:"userId"`
 	ExpiresAt time.Time `json:"expiresAt"`
 	IPAddress string    `json:"ipAddress,omitempty"`

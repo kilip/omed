@@ -2205,9 +2205,6 @@ const docTemplate = `{
                     "ipAddress": {
                         "type": "string"
                     },
-                    "token": {
-                        "type": "string"
-                    },
                     "updatedAt": {
                         "type": "string"
                     },

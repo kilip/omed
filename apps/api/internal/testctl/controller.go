@@ -4,6 +4,7 @@ package testctl
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"os"
 	"runtime/coverage"
@@ -156,9 +157,12 @@ func (ctl Controller) CreateSession(c fiber.Ctx) error {
 	token := hex.EncodeToString(bytes)
 	expiresAt := time.Now().Add(24 * time.Hour)
 
+	h := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(h[:])
+
 	_, err := ctl.client.Session.Create().
 		SetUserID(req.UserID).
-		SetToken(token).
+		SetToken(tokenHash).
 		SetExpiresAt(expiresAt).
 		Save(ctx)
 	if err != nil {

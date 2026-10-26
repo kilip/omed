@@ -2,6 +2,8 @@ package service_test
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"testing"
 	"time"
 
@@ -63,6 +65,20 @@ func (s *SessionServiceSuite) Test_CreateAndValidateSession() {
 	s.Equal("192.168.1.1", sess.IPAddress)
 	s.Equal("Chrome", sess.UserAgent)
 
+	// Verify that raw token is hashed before storing into DB:
+	// 1. Querying DB directly with raw token returns not found.
+	_, err = s.sessionRepo.FindByToken(s.ctx, sess.Token)
+	s.Require().ErrorIs(err, base.ErrNotFound)
+
+	// 2. Querying DB directly with sha256(rawToken) finds it.
+	h := sha256.Sum256([]byte(sess.Token))
+	tokenHash := hex.EncodeToString(h[:])
+	storedSess, err := s.sessionRepo.FindByToken(s.ctx, tokenHash)
+	s.Require().NoError(err)
+	s.Equal(sess.ID, storedSess.ID)
+	s.Equal(tokenHash, storedSess.Token)
+
+	// ValidateSession with raw token succeeds.
 	validSess, validUser, err := s.svc.ValidateSession(s.ctx, sess.Token)
 	s.Require().NoError(err)
 	s.Equal(sess.ID, validSess.ID)
@@ -73,16 +89,24 @@ func (s *SessionServiceSuite) Test_CreateAndValidateSession() {
 func (s *SessionServiceSuite) Test_ValidateSession_Expired() {
 	user := s.createTestUser("Bob", "bob@example.com")
 
-	// Create an expired session directly in repository
-	expiredSess, err := s.sessionRepo.Create(s.ctx, domain.Session{
+	rawToken := "expired-token"
+	h := sha256.Sum256([]byte(rawToken))
+	tokenHash := hex.EncodeToString(h[:])
+
+	// Create an expired session directly in repository with token hash
+	_, err := s.sessionRepo.Create(s.ctx, domain.Session{
 		UserID:    user.ID,
-		Token:     "expired-token",
+		Token:     tokenHash,
 		ExpiresAt: time.Now().Add(-1 * time.Hour),
 	})
 	s.Require().NoError(err)
 
-	_, _, err = s.svc.ValidateSession(s.ctx, expiredSess.Token)
+	_, _, err = s.svc.ValidateSession(s.ctx, rawToken)
 	s.Require().ErrorIs(err, domain.ErrSessionExpired)
+
+	// Verify session was deleted from DB
+	_, err = s.sessionRepo.FindByToken(s.ctx, tokenHash)
+	s.Require().ErrorIs(err, base.ErrNotFound)
 }
 
 func (s *SessionServiceSuite) Test_ValidateSession_NotFound() {
@@ -96,11 +120,18 @@ func (s *SessionServiceSuite) Test_RevokeSession() {
 	sess, err := s.svc.CreateSession(s.ctx, user.ID, "127.0.0.1", "Firefox")
 	s.Require().NoError(err)
 
+	// RevokeSession with raw token succeeds
 	err = s.svc.RevokeSession(s.ctx, sess.Token)
 	s.Require().NoError(err)
 
 	_, _, err = s.svc.ValidateSession(s.ctx, sess.Token)
 	s.Require().ErrorIs(err, domain.ErrSessionNotFound)
+
+	// Verify querying DB directly with token hash returns not found
+	h := sha256.Sum256([]byte(sess.Token))
+	tokenHash := hex.EncodeToString(h[:])
+	_, err = s.sessionRepo.FindByToken(s.ctx, tokenHash)
+	s.Require().ErrorIs(err, base.ErrNotFound)
 }
 
 func (s *SessionServiceSuite) Test_RevokeAllUserSessions() {

@@ -195,7 +195,6 @@ func (s *AuthControllerSuite) Test_GetSession_WithCookie() {
 	_ = json.NewDecoder(resp.Body).Decode(&res)
 	s.Require().NotNil(res.Session)
 	s.Require().NotNil(res.User)
-	s.Equal("mock-session-token", res.Session.Token)
 	s.Equal("mock@example.com", res.User.Email)
 }
 
@@ -210,7 +209,7 @@ func (s *AuthControllerSuite) Test_GetSession_WithBearer() {
 	var res model.SessionResponse
 	_ = json.NewDecoder(resp.Body).Decode(&res)
 	s.Require().NotNil(res.Session)
-	s.Equal("mock-session-token", res.Session.Token)
+	s.Require().NotNil(res.User)
 }
 
 func (s *AuthControllerSuite) Test_GetSession_MissingToken() {

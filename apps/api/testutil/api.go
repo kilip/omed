@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -117,6 +118,8 @@ func (s *ApiTestSuite[T]) EnsureSession(userID int64) string {
 	_, err := rand.Read(bytes)
 	require.NoError(s.T(), err)
 	token := hex.EncodeToString(bytes)
+	h := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(h[:])
 
 	ctx := s.Context
 	if ctx == nil || ctx.Value(base.USER_CONTEXT_KEY) == nil {
@@ -125,7 +128,7 @@ func (s *ApiTestSuite[T]) EnsureSession(userID int64) string {
 
 	_, err = entClient.Session.Create().
 		SetUserID(userID).
-		SetToken(token).
+		SetToken(tokenHash).
 		SetExpiresAt(time.Now().Add(24 * time.Hour)).
 		Save(ctx)
 	require.NoError(s.T(), err)

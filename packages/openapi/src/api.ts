@@ -8948,7 +8948,6 @@ export interface components {
       expiresAt?: string;
       id?: number;
       ipAddress?: string;
-      token?: string;
       updatedAt?: string;
       userAgent?: string;
       userId?: number;

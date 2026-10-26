@@ -4,6 +4,7 @@ package service
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"time"
@@ -39,22 +40,33 @@ func NewSessionService(sessions repository.SessionRepository, users repository.U
 	}
 }
 
+func hashToken(token string) string {
+	h := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(h[:])
+}
+
 func (s *sessionService) CreateSession(ctx context.Context, userID int64, ipAddress string, userAgent string) (domain.Session, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
 		return domain.Session{}, err
 	}
-	token := hex.EncodeToString(bytes)
+	rawToken := hex.EncodeToString(bytes)
+	tokenHash := hashToken(rawToken)
 
 	newSession := domain.Session{
 		UserID:    userID,
-		Token:     token,
+		Token:     tokenHash,
 		ExpiresAt: time.Now().Add(s.ttl),
 		IPAddress: ipAddress,
 		UserAgent: userAgent,
 	}
 
-	return s.sessions.Create(ctx, newSession)
+	created, err := s.sessions.Create(ctx, newSession)
+	if err != nil {
+		return domain.Session{}, err
+	}
+	created.Token = rawToken
+	return created, nil
 }
 
 func (s *sessionService) ValidateSession(ctx context.Context, token string) (domain.Session, domain.User, error) {
@@ -62,7 +74,8 @@ func (s *sessionService) ValidateSession(ctx context.Context, token string) (dom
 		return domain.Session{}, domain.User{}, domain.ErrSessionNotFound
 	}
 
-	sess, err := s.sessions.FindByToken(ctx, token)
+	tokenHash := hashToken(token)
+	sess, err := s.sessions.FindByToken(ctx, tokenHash)
 	if err != nil {
 		if errors.Is(err, base.ErrNotFound) {
 			return domain.Session{}, domain.User{}, domain.ErrSessionNotFound
@@ -71,7 +84,7 @@ func (s *sessionService) ValidateSession(ctx context.Context, token string) (dom
 	}
 
 	if sess.ExpiresAt.Before(time.Now()) {
-		_ = s.sessions.DeleteByToken(ctx, token)
+		_ = s.sessions.DeleteByToken(ctx, tokenHash)
 		return domain.Session{}, domain.User{}, domain.ErrSessionExpired
 	}
 
@@ -84,7 +97,7 @@ func (s *sessionService) ValidateSession(ctx context.Context, token string) (dom
 }
 
 func (s *sessionService) RevokeSession(ctx context.Context, token string) error {
-	return s.sessions.DeleteByToken(ctx, token)
+	return s.sessions.DeleteByToken(ctx, hashToken(token))
 }
 
 func (s *sessionService) RevokeAllUserSessions(ctx context.Context, userID int64) error {
