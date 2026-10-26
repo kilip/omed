@@ -63,6 +63,14 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 		}
 	})
 
+	originalCmsMediaMaxSize, hadCmsMediaMaxSize := os.LookupEnv("OMED_CMS_MEDIA_MAX_SIZE_MB")
+	os.Unsetenv("OMED_CMS_MEDIA_MAX_SIZE_MB")
+	s.T().Cleanup(func() {
+		if hadCmsMediaMaxSize {
+			os.Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", originalCmsMediaMaxSize)
+		}
+	})
+
 	cfg := config.GetConfig()
 	s.Equal("/auth", cfg.AuthPath)
 	s.Equal("omed_session", cfg.SessionCookieName)
@@ -77,6 +85,7 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 	s.Equal(1*time.Minute, cfg.RateLimitGeneralExpiration)
 	s.Equal(10, cfg.RateLimitSensitiveMax)
 	s.Equal(1*time.Minute, cfg.RateLimitSensitiveExpiration)
+	s.Equal(int64(25), cfg.CmsMediaMaxSizeMB)
 }
 
 func (s *ConfigSuite) Test_GetConfig_CustomValues() {
@@ -93,6 +102,7 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_RATE_LIMIT_GENERAL_EXPIRATION", "2m")
 	s.T().Setenv("OMED_RATE_LIMIT_SENSITIVE_MAX", "20")
 	s.T().Setenv("OMED_RATE_LIMIT_SENSITIVE_EXPIRATION", "30s")
+	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "50")
 
 	cfg := config.GetConfig()
 	s.Equal("/api/v1/auth", cfg.AuthPath)
@@ -108,6 +118,7 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.Equal(2*time.Minute, cfg.RateLimitGeneralExpiration)
 	s.Equal(20, cfg.RateLimitSensitiveMax)
 	s.Equal(30*time.Second, cfg.RateLimitSensitiveExpiration)
+	s.Equal(int64(50), cfg.CmsMediaMaxSizeMB)
 }
 
 func (s *ConfigSuite) Test_GetConfig_Fallbacks() {

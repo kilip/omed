@@ -231,6 +231,24 @@ func (s *FiberSuite) Test_GetFiber_Timeouts() {
 	s.Equal(120*time.Second, defCfg.IdleTimeout)
 }
 
+func (s *FiberSuite) Test_GetFiber_BodyLimit() {
+	// AttachmentMaxSizeMB = 10, CmsMediaMaxSizeMB = 25 -> max 25MB + 1MB
+	cfg1 := config.Config{
+		AttachmentMaxSizeMB: 10,
+		CmsMediaMaxSizeMB:   25,
+	}
+	app1 := config.GetFiber(cfg1, s.logger)
+	s.Equal(int(25*1024*1024)+1024*1024, app1.Config().BodyLimit)
+
+	// AttachmentMaxSizeMB = 50, CmsMediaMaxSizeMB = 25 -> max 50MB + 1MB
+	cfg2 := config.Config{
+		AttachmentMaxSizeMB: 50,
+		CmsMediaMaxSizeMB:   25,
+	}
+	app2 := config.GetFiber(cfg2, s.logger)
+	s.Equal(int(50*1024*1024)+1024*1024, app2.Config().BodyLimit)
+}
+
 func (s *FiberSuite) Test_GetFiber_SecurityHeaders() {
 	app := config.GetFiber(s.cfg, s.logger)
 	app.Get("/test-sec", func(c fiber.Ctx) error {

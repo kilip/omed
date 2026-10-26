@@ -45,11 +45,14 @@ func isSensitiveRoute(c fiber.Ctx) bool {
 // GetFiber creates and configures the root Fiber HTTP application instance,
 // including timeouts, security headers, rate limiting, struct validation, custom error handling, CORS origins, recovery, and structured logging.
 func GetFiber(cfg Config, logger *slog.Logger) *fiber.App {
-	maxSizeMB := cfg.AttachmentMaxSizeMB
-	if maxSizeMB <= 0 {
-		maxSizeMB = 10
+	maxLimitMB := cfg.AttachmentMaxSizeMB
+	if cfg.CmsMediaMaxSizeMB > maxLimitMB {
+		maxLimitMB = cfg.CmsMediaMaxSizeMB
 	}
-	bodyLimit := int(maxSizeMB*1024*1024) + 1024*1024
+	if maxLimitMB <= 0 {
+		maxLimitMB = 10
+	}
+	bodyLimit := int(maxLimitMB*1024*1024) + 1024*1024 // +1MB overhead for multipart headers
 
 	readTimeout := cfg.ReadTimeout
 	if readTimeout <= 0 {

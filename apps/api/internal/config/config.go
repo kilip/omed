@@ -68,6 +68,8 @@ type Config struct {
 	S3BucketPrefix string `env:"OMED_S3_BUCKET_PREFIX,default=omed-ws-"`
 	// AttachmentMaxSizeMB is the maximum allowed attachment file size in megabytes. Defaults to 10.
 	AttachmentMaxSizeMB int64 `env:"OMED_ATTACHMENT_MAX_SIZE_MB,default=10"`
+	// CmsMediaMaxSizeMB is the maximum allowed CMS media file size in megabytes. Defaults to 25.
+	CmsMediaMaxSizeMB int64 `env:"OMED_CMS_MEDIA_MAX_SIZE_MB,default=25"`
 	// AttachmentAllowedTypes lists allowed file extensions for attachments.
 	AttachmentAllowedTypes []string `env:"OMED_ATTACHMENT_ALLOWED_TYPES,separator=,default=.pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx"`
 	// CMSMediaMaxSizeMB is the maximum allowed CMS media file size in megabytes. Defaults to 10.
@@ -171,6 +173,10 @@ func GetConfig() Config {
 
 	if config.AttachmentMaxSizeMB <= 0 {
 		config.AttachmentMaxSizeMB = 10
+	}
+
+	if config.CmsMediaMaxSizeMB <= 0 {
+		config.CmsMediaMaxSizeMB = 25
 	}
 
 	if len(config.AttachmentAllowedTypes) == 0 {
