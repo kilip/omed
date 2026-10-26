@@ -53,6 +53,47 @@ jobs:
       - name: Run typecheck
         run: bun run typecheck
 
+  check-generated:
+    name: Check Generated Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/api/go.mod
+          cache-dependency-path: apps/api/go.sum
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/v2/cmd/swag@latest
+
+      - name: Regenerate Ent
+        working-directory: apps/api
+        run: go generate ./ent
+
+      - name: Regenerate Swagger
+        working-directory: apps/api
+        run: swag init --parseInternal --v3.1
+
+      - name: Regenerate OpenAPI TypeScript types
+        run: bunx openapi-typescript apps/api/docs/swagger.json -o packages/openapi/src/api.ts
+
+      - name: Format generated code
+        run: bun run format
+
+      - name: Fail on git diff
+        run: git diff --exit-code
+
   vet:
     name: Go Vet
     runs-on: ubuntu-latest
