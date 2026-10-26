@@ -189,9 +189,10 @@ func TestAuthMiddleware_Authorized_BearerToken(t *testing.T) {
 					Token:     token,
 					ExpiresAt: time.Now().Add(time.Hour),
 				}, domain.User{
-					ID:    42,
-					Name:  "Test User",
-					Email: "test@example.com",
+					ID:            42,
+					Name:          "Test User",
+					Email:         "test@example.com",
+					EmailVerified: true,
 				}, nil
 			}
 			return domain.Session{}, domain.User{}, domain.ErrSessionNotFound
@@ -207,6 +208,37 @@ func TestAuthMiddleware_Authorized_BearerToken(t *testing.T) {
 	assert.Equal(t, int64(42), captured.ID)
 	assert.Equal(t, "Test User", captured.Name)
 	assert.True(t, captured.EmailVerified)
+}
+
+func TestAuthMiddleware_Authorized_UnverifiedEmail(t *testing.T) {
+	mockSvc := &mockSessionService{
+		validateFn: func(ctx context.Context, token string) (domain.Session, domain.User, error) {
+			if token == "unverified-token" {
+				return domain.Session{
+					ID:        2,
+					UserID:    43,
+					Token:     token,
+					ExpiresAt: time.Now().Add(time.Hour),
+				}, domain.User{
+					ID:            43,
+					Name:          "Unverified User",
+					Email:         "unverified@example.com",
+					EmailVerified: false,
+				}, nil
+			}
+			return domain.Session{}, domain.User{}, domain.ErrSessionNotFound
+		},
+	}
+	app, captured := setupTestApp(mockSvc, "token")
+
+	req := httptest.NewRequest(fiber.MethodGet, "/api/protected", nil)
+	req.Header.Set("Authorization", "Bearer unverified-token")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	assert.Equal(t, int64(43), captured.ID)
+	assert.Equal(t, "Unverified User", captured.Name)
+	assert.False(t, captured.EmailVerified)
 }
 
 func TestAuthMiddleware_Authorized_CustomCookie(t *testing.T) {

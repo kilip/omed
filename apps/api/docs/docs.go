@@ -2746,6 +2746,9 @@ const docTemplate = `{
                     "email": {
                         "type": "string"
                     },
+                    "emailVerified": {
+                        "type": "boolean"
+                    },
                     "id": {
                         "type": "integer"
                     },

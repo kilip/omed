@@ -93,9 +93,10 @@ func toUserResponse(u domain.User) model.UserResponse {
 		Name:      u.Name,
 		Email:     u.Email,
 		Avatar:    u.Avatar,
-		Locale:    u.Locale,
-		Currency:  u.Currency,
-		CreatedAt: u.CreatedAt,
+		Locale:        u.Locale,
+		Currency:      u.Currency,
+		EmailVerified: u.EmailVerified,
+		CreatedAt:     u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}
 }

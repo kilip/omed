@@ -275,7 +275,7 @@ func toSessionResponse(s domain.Session, u domain.User) model.SessionResponse {
 			Avatar:        u.Avatar,
 			Locale:        u.Locale,
 			Currency:      u.Currency,
-			EmailVerified: true,
+			EmailVerified: u.EmailVerified,
 		},
 	}
 }

@@ -78,6 +78,20 @@ func (_c *UserCreate) SetNillableCurrency(v *string) *UserCreate {
 	return _c
 }
 
+// SetEmailVerified sets the "email_verified" field.
+func (_c *UserCreate) SetEmailVerified(v bool) *UserCreate {
+	_c.mutation.SetEmailVerified(v)
+	return _c
+}
+
+// SetNillableEmailVerified sets the "email_verified" field if the given value is not nil.
+func (_c *UserCreate) SetNillableEmailVerified(v *bool) *UserCreate {
+	if v != nil {
+		_c.SetEmailVerified(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *UserCreate) SetCreatedAt(v time.Time) *UserCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -185,6 +199,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultCurrency
 		_c.mutation.SetCurrency(v)
 	}
+	if _, ok := _c.mutation.EmailVerified(); !ok {
+		v := user.DefaultEmailVerified
+		_c.mutation.SetEmailVerified(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := user.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -228,6 +246,9 @@ func (_c *UserCreate) check() error {
 		if err := user.CurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "User.currency": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.EmailVerified(); !ok {
+		return &ValidationError{Name: "email_verified", err: errors.New(`ent: missing required field "User.email_verified"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
@@ -288,6 +309,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(user.FieldCurrency, field.TypeString, value)
 		_node.Currency = value
+	}
+	if value, ok := _c.mutation.EmailVerified(); ok {
+		_spec.SetField(user.FieldEmailVerified, field.TypeBool, value)
+		_node.EmailVerified = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -449,6 +474,18 @@ func (u *UserUpsert) UpdateCurrency() *UserUpsert {
 	return u
 }
 
+// SetEmailVerified sets the "email_verified" field.
+func (u *UserUpsert) SetEmailVerified(v bool) *UserUpsert {
+	u.Set(user.FieldEmailVerified, v)
+	return u
+}
+
+// UpdateEmailVerified sets the "email_verified" field to the value that was provided on create.
+func (u *UserUpsert) UpdateEmailVerified() *UserUpsert {
+	u.SetExcluded(user.FieldEmailVerified)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *UserUpsert) SetUpdatedAt(v time.Time) *UserUpsert {
 	u.Set(user.FieldUpdatedAt, v)
@@ -586,6 +623,20 @@ func (u *UserUpsertOne) SetCurrency(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateCurrency() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateCurrency()
+	})
+}
+
+// SetEmailVerified sets the "email_verified" field.
+func (u *UserUpsertOne) SetEmailVerified(v bool) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEmailVerified(v)
+	})
+}
+
+// UpdateEmailVerified sets the "email_verified" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateEmailVerified() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEmailVerified()
 	})
 }
 
@@ -894,6 +945,20 @@ func (u *UserUpsertBulk) SetCurrency(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateCurrency() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateCurrency()
+	})
+}
+
+// SetEmailVerified sets the "email_verified" field.
+func (u *UserUpsertBulk) SetEmailVerified(v bool) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEmailVerified(v)
+	})
+}
+
+// UpdateEmailVerified sets the "email_verified" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateEmailVerified() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEmailVerified()
 	})
 }
 

@@ -136,7 +136,8 @@ func (r UserRepository) Create(c context.Context, req model.CreateUserRequest) (
 			SetEmail(req.Email).
 			SetLocale(locale).
 			SetCurrency(currency).
-			SetNillableAvatar(&req.Avatar)
+			SetNillableAvatar(&req.Avatar).
+			SetEmailVerified(req.EmailVerified)
 
 		usr, err = uCreate.Save(c)
 		if err != nil {
@@ -239,9 +240,10 @@ func toDomain(u *ent.User) domain.User {
 		Name:      u.Name,
 		Email:     u.Email,
 		Avatar:    u.Avatar,
-		Locale:    u.Locale,
-		Currency:  u.Currency,
-		CreatedAt: u.CreatedAt,
+		Locale:        u.Locale,
+		Currency:      u.Currency,
+		EmailVerified: u.EmailVerified,
+		CreatedAt:     u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}
 }

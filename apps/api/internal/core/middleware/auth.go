@@ -56,7 +56,7 @@ func NewAuthMiddleware(cfg AuthConfig) fiber.Handler {
 		userCtx := base.UserContext{
 			ID:            usr.ID,
 			Name:          usr.Name,
-			EmailVerified: true,
+			EmailVerified: usr.EmailVerified,
 		}
 
 		c.Locals(base.USER_CONTEXT_KEY, userCtx)

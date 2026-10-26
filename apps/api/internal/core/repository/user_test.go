@@ -63,8 +63,23 @@ func (s *UserRepoSuite) Test_GetByID_Success() {
 	s.Equal("John Doe", usr.Name)
 	s.Equal("john@example.com", usr.Email)
 	s.Equal("https://example.com/avatar.png", usr.Avatar)
+	s.True(usr.EmailVerified)
 	s.False(usr.CreatedAt.IsZero())
 	s.False(usr.UpdatedAt.IsZero())
+}
+
+func (s *UserRepoSuite) Test_GetByID_UnverifiedEmail() {
+	ctx := context.Background()
+	created, err := s.client.User.Create().
+		SetName("Unverified").
+		SetEmail("unverified@example.com").
+		SetEmailVerified(false).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	usr, err := s.repo.GetByID(ctx, created.ID)
+	s.Require().NoError(err)
+	s.False(usr.EmailVerified)
 }
 
 func (s *UserRepoSuite) Test_GetByID_NotFound() {

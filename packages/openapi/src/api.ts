@@ -9285,6 +9285,7 @@ export interface components {
       createdAt?: string;
       currency?: string;
       email?: string;
+      emailVerified?: boolean;
       id?: number;
       locale?: string;
       name?: string;

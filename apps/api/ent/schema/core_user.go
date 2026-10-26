@@ -32,6 +32,7 @@ func (User) Fields() []ent.Field {
 		field.String("avatar").Optional(),
 		field.String("locale").Default("en").NotEmpty(),
 		field.String("currency").Default("USD").MinLen(3).MaxLen(3),
+		field.Bool("email_verified").Default(true),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

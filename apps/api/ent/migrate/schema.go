@@ -888,6 +888,7 @@ var (
 		{Name: "avatar", Type: field.TypeString, Nullable: true},
 		{Name: "locale", Type: field.TypeString, Default: "en"},
 		{Name: "currency", Type: field.TypeString, Size: 3, Default: "USD"},
+		{Name: "email_verified", Type: field.TypeBool, Default: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

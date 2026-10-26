@@ -75,9 +75,10 @@ func (m *mockSessionService) ValidateSession(ctx context.Context, token string) 
 		UserID:    10,
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}, domain.User{
-		ID:    10,
-		Name:  "Mock User",
-		Email: "mock@example.com",
+		ID:            10,
+		Name:          "Mock User",
+		Email:         "mock@example.com",
+		EmailVerified: true,
 	}, nil
 }
 
@@ -349,6 +350,7 @@ func (s *AuthControllerSuite) Test_GetSession_WithCookie() {
 	s.Require().NotNil(res.Session)
 	s.Require().NotNil(res.User)
 	s.Equal("mock@example.com", res.User.Email)
+	s.True(res.User.EmailVerified)
 }
 
 func (s *AuthControllerSuite) Test_GetSession_WithBearer() {
@@ -363,6 +365,36 @@ func (s *AuthControllerSuite) Test_GetSession_WithBearer() {
 	_ = json.NewDecoder(resp.Body).Decode(&res)
 	s.Require().NotNil(res.Session)
 	s.Require().NotNil(res.User)
+	s.True(res.User.EmailVerified)
+}
+
+func (s *AuthControllerSuite) Test_GetSession_UnverifiedEmail() {
+	s.sessSvc.validateSessionFunc = func(ctx context.Context, token string) (domain.Session, domain.User, error) {
+		return domain.Session{
+			ID:        1,
+			Token:     token,
+			UserID:    10,
+			ExpiresAt: time.Now().Add(24 * time.Hour),
+		}, domain.User{
+			ID:            10,
+			Name:          "Unverified User",
+			Email:         "unverified@example.com",
+			EmailVerified: false,
+		}, nil
+	}
+
+	req := httptest.NewRequest(fiber.MethodGet, "/auth/get-session", nil)
+	req.Header.Set("Authorization", "Bearer mock-session-token")
+
+	resp, err := s.app.Test(req)
+	s.Require().NoError(err)
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+
+	var res model.SessionResponse
+	_ = json.NewDecoder(resp.Body).Decode(&res)
+	s.Require().NotNil(res.Session)
+	s.Require().NotNil(res.User)
+	s.False(res.User.EmailVerified)
 }
 
 func (s *AuthControllerSuite) Test_GetSession_MissingToken() {

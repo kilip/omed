@@ -107,6 +107,20 @@ func (_u *UserUpdate) SetNillableCurrency(v *string) *UserUpdate {
 	return _u
 }
 
+// SetEmailVerified sets the "email_verified" field.
+func (_u *UserUpdate) SetEmailVerified(v bool) *UserUpdate {
+	_u.mutation.SetEmailVerified(v)
+	return _u
+}
+
+// SetNillableEmailVerified sets the "email_verified" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableEmailVerified(v *bool) *UserUpdate {
+	if v != nil {
+		_u.SetEmailVerified(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *UserUpdate) SetUpdatedAt(v time.Time) *UserUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -280,6 +294,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(user.FieldCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EmailVerified(); ok {
+		_spec.SetField(user.FieldEmailVerified, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -474,6 +491,20 @@ func (_u *UserUpdateOne) SetCurrency(v string) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillableCurrency(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
+// SetEmailVerified sets the "email_verified" field.
+func (_u *UserUpdateOne) SetEmailVerified(v bool) *UserUpdateOne {
+	_u.mutation.SetEmailVerified(v)
+	return _u
+}
+
+// SetNillableEmailVerified sets the "email_verified" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableEmailVerified(v *bool) *UserUpdateOne {
+	if v != nil {
+		_u.SetEmailVerified(*v)
 	}
 	return _u
 }
@@ -681,6 +712,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(user.FieldCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EmailVerified(); ok {
+		_spec.SetField(user.FieldEmailVerified, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

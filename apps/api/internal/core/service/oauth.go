@@ -323,11 +323,12 @@ func (s *oauthService) resolveUser(ctx context.Context, provider string, info mo
 
 	locale, currency := NormalizeLocaleAndCurrency(info.Locale)
 	createdUser, err := s.users.Create(ctx, model.CreateUserRequest{
-		Name:     name,
-		Email:    info.Email,
-		Avatar:   info.Avatar,
-		Locale:   locale,
-		Currency: currency,
+		Name:          name,
+		Email:         info.Email,
+		Avatar:        info.Avatar,
+		Locale:        locale,
+		Currency:      currency,
+		EmailVerified: info.EmailVerified,
 	})
 	if err != nil {
 		// In case of race condition on email, try to fetch again
