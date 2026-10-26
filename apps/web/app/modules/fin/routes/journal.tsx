@@ -89,7 +89,13 @@ export default function JournalRoute({ loaderData }: Route.ComponentProps) {
     for (const entry of entries) {
       if (!entry.id) continue;
       const totalDebit = (entry.postings ?? []).reduce(
-        (sum, p) => (p.direction === "DEBIT" ? sum + (p.amount ?? 0) : sum),
+        (sum, p) =>
+          p.direction === "DEBIT"
+            ? sum +
+              (typeof p.amount === "string"
+                ? Number.parseFloat(p.amount) || 0
+                : (p.amount ?? 0))
+            : sum,
         0,
       );
       map.set(entry.id, totalDebit);

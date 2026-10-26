@@ -51,8 +51,8 @@ export function postingLinesToApi(
       return {
         accountId: line.accountId as number,
         direction: (isDebit ? "DEBIT" : "CREDIT") as "DEBIT" | "CREDIT",
-        amount: roundedAmount,
-        baseAmount,
+        amount: roundedAmount.toString(),
+        baseAmount: baseAmount.toString(),
         description: line.description || defaultDescription,
       };
     });
@@ -88,8 +88,16 @@ export function apiToPostingLines(
 
   return postings.map((p) => {
     const isDebit = p.direction === "DEBIT";
-    const amt = p.amount ?? 0;
-    const baseAmt = p.baseAmount ?? roundToCurrency(amt * rate, "IDR");
+    const amt =
+      typeof p.amount === "string"
+        ? Number.parseFloat(p.amount)
+        : (p.amount ?? 0);
+    const baseAmt =
+      p.baseAmount !== undefined
+        ? typeof p.baseAmount === "string"
+          ? Number.parseFloat(p.baseAmount)
+          : p.baseAmount
+        : roundToCurrency(amt * rate, "IDR");
 
     return {
       id: "id" in p ? p.id : undefined,

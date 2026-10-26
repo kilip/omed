@@ -144,7 +144,13 @@ export default function TransactionRoute({ loaderData }: Route.ComponentProps) {
       align: "right",
       render: (_, record) => {
         const totalDebit = (record.postings ?? []).reduce(
-          (sum, p) => (p.direction === "DEBIT" ? sum + (p.amount ?? 0) : sum),
+          (sum, p) =>
+            p.direction === "DEBIT"
+              ? sum +
+                (typeof p.amount === "string"
+                  ? Number.parseFloat(p.amount) || 0
+                  : (p.amount ?? 0))
+              : sum,
           0,
         );
         return (

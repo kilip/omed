@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { formatMoney } from "~/lib/format";
 
 export type MoneyCellProps = HTMLAttributes<HTMLDivElement> & {
-  amount?: number | null;
+  amount?: number | string | null;
   currency?: string;
   locale?: string;
 };

@@ -226,7 +226,7 @@ export default function EntryNewRoute({ loaderData }: Route.ComponentProps) {
               transactionDate: entryDate,
               description: values.description,
               currency,
-              exchangeRate,
+              exchangeRate: exchangeRate.toString(),
               entry: {
                 periodId: values.periodId as number,
                 entryDate,

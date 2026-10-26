@@ -181,7 +181,7 @@ export default function TransactionNewRoute({
             description: values.description,
             reference: values.reference,
             currency,
-            exchangeRate,
+            exchangeRate: exchangeRate.toString(),
             entry: inlineEntry,
           },
         }),

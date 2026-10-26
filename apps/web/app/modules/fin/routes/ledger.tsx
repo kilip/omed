@@ -157,11 +157,23 @@ export default function GeneralLedger({ loaderData }: Route.ComponentProps) {
   const totalItems = ledger?.total ?? 0;
 
   const totalDebit = postings.reduce(
-    (sum, r) => (r.direction === "DEBIT" ? sum + (r.amount ?? 0) : sum),
+    (sum, r) =>
+      r.direction === "DEBIT"
+        ? sum +
+          (typeof r.amount === "string"
+            ? Number.parseFloat(r.amount) || 0
+            : (r.amount ?? 0))
+        : sum,
     0,
   );
   const totalCredit = postings.reduce(
-    (sum, r) => (r.direction === "CREDIT" ? sum + (r.amount ?? 0) : sum),
+    (sum, r) =>
+      r.direction === "CREDIT"
+        ? sum +
+          (typeof r.amount === "string"
+            ? Number.parseFloat(r.amount) || 0
+            : (r.amount ?? 0))
+        : sum,
     0,
   );
 

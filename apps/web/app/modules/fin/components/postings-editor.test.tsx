@@ -24,15 +24,15 @@ describe("postings-editor helpers", () => {
         {
           accountId: 1,
           direction: "DEBIT",
-          amount: 150000,
-          baseAmount: 150000,
+          amount: "150000",
+          baseAmount: "150000",
           description: "Office supplies",
         },
         {
           accountId: 2,
           direction: "CREDIT",
-          amount: 150000,
-          baseAmount: 150000,
+          amount: "150000",
+          baseAmount: "150000",
           description: "Cash",
         },
       ]);
@@ -49,15 +49,15 @@ describe("postings-editor helpers", () => {
         {
           accountId: 10,
           direction: "DEBIT",
-          amount: 100,
-          baseAmount: 1600000,
+          amount: "100",
+          baseAmount: "1600000",
           description: undefined,
         },
         {
           accountId: 20,
           direction: "CREDIT",
-          amount: 100,
-          baseAmount: 1600000,
+          amount: "100",
+          baseAmount: "1600000",
           description: undefined,
         },
       ]);
@@ -116,6 +116,22 @@ describe("postings-editor helpers", () => {
           baseAmount: 250000,
         },
       ]);
+    });
+
+    it("converts API posting responses with string amounts to form debit/credit numbers", () => {
+      const apiPostings = [
+        {
+          id: 101,
+          accountId: 5,
+          direction: "DEBIT" as const,
+          amount: "250000",
+          baseAmount: "250000",
+          description: "Expense",
+        },
+      ];
+      const lines = apiToPostingLines(apiPostings);
+      expect(lines[0]?.debit).toBe(250000);
+      expect(lines[0]?.baseAmount).toBe(250000);
     });
 
     it("returns default two empty lines when input is empty", () => {

@@ -54,7 +54,7 @@ export default function TrialBalance({ loaderData }: Route.ComponentProps) {
   const balanced = tb?.isBalanced ?? false;
   const baseCurrency = tb?.baseCurrency ?? "IDR";
 
-  const money = (value: number) =>
+  const money = (value: number | string) =>
     formatMoney(value, baseCurrency, i18n.language);
 
   const data: Row[] = order.flatMap((type) => [
@@ -68,8 +68,15 @@ export default function TrialBalance({ loaderData }: Route.ComponentProps) {
       })),
   ]);
 
-  const amount = (value?: number) =>
-    value ? <span className="num">{money(value)}</span> : "";
+  const amount = (value?: number | string) =>
+    value &&
+    (typeof value === "string"
+      ? Number.parseFloat(value) !== 0
+      : value !== 0) ? (
+      <span className="num">{money(value)}</span>
+    ) : (
+      ""
+    );
 
   const handleDateChange = (date: dayjs.Dayjs | null) => {
     if (!date) return;

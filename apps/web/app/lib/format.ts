@@ -34,12 +34,18 @@ export function getCurrencyDecimals(currency = "IDR"): number {
   return 2;
 }
 
-export function formatNumber(value: number, lang: string): string {
-  return new Intl.NumberFormat(locale(lang)).format(value);
+const toNum = (v: number | string): number => {
+  if (typeof v === "number") return v;
+  const n = Number.parseFloat(v);
+  return Number.isNaN(n) ? 0 : n;
+};
+
+export function formatNumber(value: number | string, lang: string): string {
+  return new Intl.NumberFormat(locale(lang)).format(toNum(value));
 }
 
 /** Indonesian rupiah, no decimals. */
-export function formatIDR(value: number, lang: string): string {
+export function formatIDR(value: number | string, lang: string): string {
   return formatMoney(value, "IDR", lang);
 }
 
@@ -47,7 +53,7 @@ export function formatIDR(value: number, lang: string): string {
  * Currency-aware money formatter. Decimal places are driven by currency (e.g. IDR=0, USD=2, KWD=3).
  */
 export function formatMoney(
-  amount: number,
+  amount: number | string,
   currency = "IDR",
   lang: string = "id",
 ): string {
@@ -57,7 +63,7 @@ export function formatMoney(
     currency: currency.toUpperCase(),
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  }).format(amount);
+  }).format(toNum(amount));
 }
 
 /**
@@ -65,22 +71,28 @@ export function formatMoney(
  * Prevents floating-point rounding issues (e.g. 0.1 + 0.2 !== 0.3).
  */
 export function isBalanced(
-  amountA: number,
-  amountB: number,
+  amountA: number | string,
+  amountB: number | string,
   currency = "IDR",
 ): boolean {
+  const numA = toNum(amountA);
+  const numB = toNum(amountB);
   const decimals = getCurrencyDecimals(currency);
   const factor = 10 ** decimals;
-  return Math.round(amountA * factor) === Math.round(amountB * factor);
+  return Math.round(numA * factor) === Math.round(numB * factor);
 }
 
 /**
  * Calculates net balance difference rounded to currency decimals.
  */
-export function roundToCurrency(amount: number, currency = "IDR"): number {
+export function roundToCurrency(
+  amount: number | string,
+  currency = "IDR",
+): number {
+  const num = toNum(amount);
   const decimals = getCurrencyDecimals(currency);
   const factor = 10 ** decimals;
-  return Math.round(amount * factor) / factor;
+  return Math.round(num * factor) / factor;
 }
 
 export function formatDate(value: string | undefined, lang: string): string {

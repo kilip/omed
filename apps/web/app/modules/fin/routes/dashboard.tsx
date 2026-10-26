@@ -48,21 +48,27 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
   );
 
   const baseCurrency = summary?.baseCurrency || "IDR";
-  const money = (value: number) =>
+  const money = (value: number | string) =>
     formatMoney(value, baseCurrency, i18n.language);
 
   const totals = summary?.totals ?? {
-    assets: 0,
-    liabilities: 0,
-    equity: 0,
-    revenue: 0,
-    expense: 0,
-    netIncome: 0,
+    assets: "0",
+    liabilities: "0",
+    equity: "0",
+    revenue: "0",
+    expense: "0",
+    netIncome: "0",
   };
   const series: RevenuePoint[] = (summary?.monthly ?? []).map((m) => ({
     month: m.month ?? "",
-    revenue: m.revenue ?? 0,
-    expense: m.expense ?? 0,
+    revenue:
+      typeof m.revenue === "string"
+        ? Number.parseFloat(m.revenue) || 0
+        : (m.revenue ?? 0),
+    expense:
+      typeof m.expense === "string"
+        ? Number.parseFloat(m.expense) || 0
+        : (m.expense ?? 0),
   }));
 
   const countByType = (type: string) =>
@@ -93,7 +99,13 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
       align: "right",
       render: (_, record) => {
         const totalDebit = (record.postings ?? []).reduce(
-          (sum, p) => (p.direction === "DEBIT" ? sum + (p.amount ?? 0) : sum),
+          (sum, p) =>
+            p.direction === "DEBIT"
+              ? sum +
+                (typeof p.amount === "string"
+                  ? Number.parseFloat(p.amount) || 0
+                  : (p.amount ?? 0))
+              : sum,
           0,
         );
         return <span className="num">{money(totalDebit)}</span>;

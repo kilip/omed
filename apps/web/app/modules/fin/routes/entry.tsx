@@ -87,7 +87,10 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
   });
 
   const currency = transaction?.currency || "IDR";
-  const exchangeRate = transaction?.exchangeRate || 1;
+  const exchangeRate =
+    typeof transaction?.exchangeRate === "string"
+      ? Number.parseFloat(transaction.exchangeRate) || 1
+      : transaction?.exchangeRate || 1;
   const isMultiCurrency = currency.toUpperCase() !== "IDR";
 
   const period = periods.find((p) => p.id === entry.periodId);

@@ -164,10 +164,14 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
             if (!p.accountId || p.amount === undefined) continue;
             const acc = accounts?.find((a) => a.id === p.accountId);
             if (!acc?.id) continue;
+            const amt =
+              typeof p.amount === "string"
+                ? Number.parseFloat(p.amount) || 0
+                : (p.amount ?? 0);
             if (acc.type === "ASSET" && p.direction === "DEBIT") {
-              assets[acc.id] = p.amount;
+              assets[acc.id] = amt;
             } else if (acc.type === "LIABILITY" && p.direction === "CREDIT") {
-              liabilities[acc.id] = p.amount;
+              liabilities[acc.id] = amt;
             }
           }
           setAssetBalances(assets);
@@ -258,7 +262,7 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
           const acc = accounts?.find((a) => a.id === accId);
           postings.push({
             accountId: accId,
-            amount,
+            amount: amount.toString(),
             direction: "DEBIT",
             description: `Saldo Awal ${acc?.name ?? ""}`.trim(),
           });
@@ -272,7 +276,7 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
           const acc = accounts?.find((a) => a.id === accId);
           postings.push({
             accountId: accId,
-            amount,
+            amount: amount.toString(),
             direction: "CREDIT",
             description: `Saldo Awal ${acc?.name ?? ""}`.trim(),
           });
@@ -283,14 +287,14 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
       if (netEquity > 0) {
         postings.push({
           accountId: equityAccount.id,
-          amount: netEquity,
+          amount: netEquity.toString(),
           direction: "CREDIT",
           description: "Saldo Awal Modal Pemilik",
         });
       } else if (netEquity < 0) {
         postings.push({
           accountId: equityAccount.id,
-          amount: Math.abs(netEquity),
+          amount: Math.abs(netEquity).toString(),
           direction: "DEBIT",
           description: "Saldo Awal Modal Pemilik",
         });
@@ -309,7 +313,7 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
             transactionDate: periodStartDate,
             description: "Opening Balance / Saldo Awal",
             currency: "IDR",
-            exchangeRate: 1,
+            exchangeRate: "1",
             source: "MANUAL",
             entry: {
               periodId,
