@@ -46,7 +46,7 @@ const types: AccountType[] = [
   "EXPENSE",
 ];
 
-const defaultNormal = (type: AccountType): NormalBalance =>
+export const defaultNormal = (type: AccountType): NormalBalance =>
   type === "ASSET" || type === "EXPENSE" ? "DEBIT" : "CREDIT";
 
 export async function clientLoader() {
@@ -55,7 +55,7 @@ export async function clientLoader() {
   return { wid };
 }
 
-function buildTree(accounts: Account[]): Row[] {
+export function buildTree(accounts: Account[]): Row[] {
   const byId = new Map<number, Row>();
   for (const account of accounts) {
     if (account.id !== undefined) byId.set(account.id, { ...account });

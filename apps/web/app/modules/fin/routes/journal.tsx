@@ -27,6 +27,21 @@ type SearchFilters = NonNullable<
   paths["/workspaces/{wid}/fin/entries/search"]["post"]["requestBody"]
 >["content"]["application/json"];
 
+export function calculateEntryDebitTotal(
+  postings?: components["schemas"]["model.PostingResponse"][],
+): number {
+  return (postings ?? []).reduce(
+    (sum, p) =>
+      p.direction === "DEBIT"
+        ? sum +
+          (typeof p.amount === "string"
+            ? Number.parseFloat(p.amount) || 0
+            : (p.amount ?? 0))
+        : sum,
+    0,
+  );
+}
+
 export async function clientLoader() {
   const wid = await requireWorkspaceId();
   const queryClient = getQueryClient();
@@ -88,16 +103,7 @@ export default function JournalRoute({ loaderData }: Route.ComponentProps) {
     const map = new Map<number, number>();
     for (const entry of entries) {
       if (!entry.id) continue;
-      const totalDebit = (entry.postings ?? []).reduce(
-        (sum, p) =>
-          p.direction === "DEBIT"
-            ? sum +
-              (typeof p.amount === "string"
-                ? Number.parseFloat(p.amount) || 0
-                : (p.amount ?? 0))
-            : sum,
-        0,
-      );
+      const totalDebit = calculateEntryDebitTotal(entry.postings);
       map.set(entry.id, totalDebit);
     }
     return map;

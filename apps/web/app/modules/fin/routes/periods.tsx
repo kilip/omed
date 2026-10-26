@@ -53,6 +53,38 @@ type FormValues = {
   description?: string;
 };
 
+export function getFiscalYears(periods: Period[]): number[] {
+  const years = Array.from(
+    new Set(
+      periods
+        .map((p) => p.fiscalYear)
+        .filter((y): y is number => y !== undefined),
+    ),
+  );
+  return years.sort((a, b) => b - a);
+}
+
+export function filterPeriods(
+  periods: Period[],
+  statusFilter: "ALL" | "OPEN" | "CLOSED",
+  fiscalYearFilter: number | "ALL",
+  searchQuery: string,
+): Period[] {
+  return periods.filter((p) => {
+    if (statusFilter !== "ALL" && p.status !== statusFilter) return false;
+    if (fiscalYearFilter !== "ALL" && p.fiscalYear !== fiscalYearFilter)
+      return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = p.name?.toLowerCase().includes(q);
+      const matchDesc = p.description?.toLowerCase().includes(q);
+      const matchYear = String(p.fiscalYear).includes(q);
+      if (!matchName && !matchDesc && !matchYear) return false;
+    }
+    return true;
+  });
+}
+
 export default function Periods({ loaderData }: Route.ComponentProps) {
   const { wid } = loaderData;
   const { data: periods = [] } = useSuspenseQuery(periodsQueryOptions(wid));
@@ -68,32 +100,12 @@ export default function Periods({ loaderData }: Route.ComponentProps) {
   );
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fiscalYears = useMemo(() => {
-    const years = Array.from(
-      new Set(
-        periods
-          .map((p) => p.fiscalYear)
-          .filter((y): y is number => y !== undefined),
-      ),
-    );
-    return years.sort((a, b) => b - a);
-  }, [periods]);
+  const fiscalYears = useMemo(() => getFiscalYears(periods), [periods]);
 
-  const filteredPeriods = useMemo(() => {
-    return periods.filter((p) => {
-      if (statusFilter !== "ALL" && p.status !== statusFilter) return false;
-      if (fiscalYearFilter !== "ALL" && p.fiscalYear !== fiscalYearFilter)
-        return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchName = p.name?.toLowerCase().includes(q);
-        const matchDesc = p.description?.toLowerCase().includes(q);
-        const matchYear = String(p.fiscalYear).includes(q);
-        if (!matchName && !matchDesc && !matchYear) return false;
-      }
-      return true;
-    });
-  }, [periods, statusFilter, fiscalYearFilter, searchQuery]);
+  const filteredPeriods = useMemo(
+    () => filterPeriods(periods, statusFilter, fiscalYearFilter, searchQuery),
+    [periods, statusFilter, fiscalYearFilter, searchQuery],
+  );
 
   const savePeriod = async (values: FormValues) => {
     const payload = {
