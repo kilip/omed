@@ -73,6 +73,29 @@ describe("Shell clientLoader", () => {
     });
   });
 
+  it("handles empty workspaces without apiError when user has no workspace yet", async () => {
+    const mockUser = {
+      id: 1,
+      name: "Toni",
+      email: "toni@example.com",
+    };
+
+    vi.mocked(authClient.getSession).mockResolvedValueOnce({
+      data: { user: mockUser, session: { id: 1 } },
+      error: null,
+    });
+    vi.mocked(refreshWorkspaces).mockResolvedValueOnce([]);
+
+    const result = await clientLoader();
+    expect(result).toEqual({
+      user: mockUser,
+      workspaces: [],
+      activeId: undefined,
+      apiError: undefined,
+    });
+    expect(requireWorkspaceId).not.toHaveBeenCalled();
+  });
+
   it("catches errors and returns apiError when API fails", async () => {
     const mockUser = {
       id: 1,

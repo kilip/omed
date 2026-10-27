@@ -23,7 +23,13 @@ export async function clientLoader() {
   let apiError: string | undefined;
   try {
     workspaces = await refreshWorkspaces();
-    activeId = await requireWorkspaceId();
+    if (workspaces.length > 0) {
+      try {
+        activeId = await requireWorkspaceId();
+      } catch {
+        // Fall back gracefully if resolving active workspace fails
+      }
+    }
   } catch (error) {
     apiError = error instanceof Error ? error.message : String(error);
   }
