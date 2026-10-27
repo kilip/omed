@@ -24,7 +24,9 @@
     "format": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "e2e": "turbo run e2e"
+    "e2e": "turbo run e2e",
+    "db:diff": "turbo run db:diff",
+    "db:migrate": "turbo run db:migrate"
   },
   "version": "0.5.0"
 }

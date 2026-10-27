@@ -20,7 +20,7 @@ type Session struct {
 // Annotations returns additional schema annotations for the Session table.
 func (Session) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("core"),
 	}
 }
 

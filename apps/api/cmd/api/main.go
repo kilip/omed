@@ -18,6 +18,16 @@ func main() {
 
 	cfg := config.GetConfig()
 	logger := config.GetLogger()
+
+	if len(os.Args) > 1 && os.Args[1] == "migrate" {
+		if err := config.RunMigrations(ctx, cfg.DatabaseUrl); err != nil {
+			slog.Error("database migration failed", "err", err)
+			os.Exit(1)
+		}
+		slog.Info("database migrations applied successfully")
+		return
+	}
+
 	fiber := config.GetFiber(cfg, logger)
 	entcli := config.GetEntClient(cfg)
 

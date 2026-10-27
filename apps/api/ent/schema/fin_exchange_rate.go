@@ -21,7 +21,7 @@ type ExchangeRate struct {
 // Annotations returns additional schema annotations for the ExchangeRate table.
 func (ExchangeRate) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("fin"),
 	}
 }
 

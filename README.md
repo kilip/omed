@@ -77,7 +77,7 @@ omed/
 - [Bun](https://bun.sh) `1.4.2` and Node.js `>= 22`
 - [Go](https://go.dev) `1.27` (see `apps/api/go.mod`)
 - Docker & Docker Compose (Postgres and supporting services)
-- Go tools: [`air`](https://github.com/air-verse/air) and [`swag`](https://github.com/swaggo/swag) v2
+- **Go tools:** [`air`](https://github.com/air-verse/air), [`swag`](https://github.com/swaggo/swag) v2, and [`atlas`](https://atlasgo.io)
 
 > Easiest path: open the repo in the **devcontainer** (or GitHub Codespaces). All tools, services, and environment variables are prepared, and `bun install` runs automatically.
 
@@ -90,6 +90,7 @@ cd omed
 bun install            # also installs git hooks (husky)
 cd apps/api && go mod tidy && cd ../.. # sync Go dependencies
 
+bun run db:migrate     # apply versioned multi-schema Atlas migrations
 bun run dev            # run all apps (turbo)
 ```
 
@@ -109,6 +110,9 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 | Variable | Used by | Notes |
 | --- | --- | --- |
 | `OMED_DB_URL` | api | Postgres connection |
+| `OMED_DB_DEV_URL` | api | Clean dev Postgres database used by Atlas for diff/validation (`omed_dev`) |
+| `OMED_DB_MIGRATE_ON_START` | api | Apply pending versioned migrations from `apps/api/migrations` on API startup (defaults to `false`) |
+| `OMED_DB_AUTO_MIGRATE` | api | Run Ent `Schema.Create` automatically on startup (defaults to `false`) |
 | `OMED_TRUSTED_ORIGINS` | api | Comma-separated CORS origins |
 | `OMED_AUTH_SECRET` | api | Secret for session tokens and state signing |
 | `OMED_SESSION_COOKIE_NAME` | api | Session cookie name (defaults to `omed_session`) |
@@ -122,6 +126,20 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 | `VITE_PUBLIC_URL` | web | Public dashboard URL |
 | `VITE_API_URL` | web | Defaults to `http://localhost:8001` |
 | `VITE_CMS_MEDIA_*` | web | CMS media upload limits (`VITE_CMS_MEDIA_MAX_SIZE_MB`, `VITE_CMS_MEDIA_ALLOWED_TYPES`) |
+
+## Database Migrations (Ent + Atlas)
+
+PostgreSQL tables are organized into module-scoped schemas matching the backend modules: **`core`**, **`fin`**, and **`cms`**. Each entity under `apps/api/ent/schema/` declares its target schema via `entsql.Schema("<module>")`.
+
+Versioned SQL migrations live in `apps/api/migrations/` alongside `atlas.sum` and are configured via `apps/api/atlas.hcl`:
+
+```bash
+cd apps/api && go generate ./ent       # regenerate Ent after editing apps/api/ent/schema/*
+cd apps/api && go run ./cmd/migrate <name> # generate a new versioned migration in apps/api/migrations
+bun run db:migrate                     # apply pending migrations via Atlas CLI
+cd apps/api && atlas migrate status --env local   # inspect migration status
+cd apps/api && atlas migrate validate --env local # validate checksums & replay on omed_dev
+```
 
 ## OpenAPI & Types
 
@@ -144,6 +162,8 @@ bun run lint         # Biome check (lint + format)
 bun run format       # Biome auto-fix (check --write)
 bun run test         # tests via turbo (see note below)
 bun run e2e          # end-to-end tests
+bun run db:diff      # generate versioned migration from Ent schemas
+bun run db:migrate   # apply pending Atlas database migrations
 cd apps/api && go mod tidy     # sync Go dependencies
 ```
 
@@ -162,6 +182,15 @@ docker build -f apps/web/Dockerfile -t omed-web .
 ```
 
 The `build.yml` workflow pushes images to `ghcr.io/<owner>/omed/<app>` (`nightly`/`sha-*` tags for pushes to `main`, semver + `latest` for releases).
+
+### Running Migrations in Production
+
+The `omed-api` image embeds `apps/api/migrations` in `/api` and also includes `/atlas`, `/migrations`, and `/atlas.hcl`, supporting two deployment patterns:
+
+1. **Dedicated Migration Init-Container / Job (recommended for multi-replica deployments):**
+   Run the same `omed-api` image with `["/api", "migrate"]` (or `["/atlas", "migrate", "apply", "--config", "file:///atlas.hcl", "--env", "local"]`) before starting the API service.
+2. **Single-Container Auto-Migrate on Startup:**
+   Set `OMED_DB_MIGRATE_ON_START=true` on the `omed-api` container to automatically apply pending versioned migrations (with a PostgreSQL advisory lock) before listening on port `8001`.
 
 ## Contributing
 

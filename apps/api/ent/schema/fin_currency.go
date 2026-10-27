@@ -21,7 +21,7 @@ type Currency struct {
 // Annotations returns additional schema annotations for the Currency table.
 func (Currency) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("fin"),
 	}
 }
 

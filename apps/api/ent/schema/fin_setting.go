@@ -17,7 +17,7 @@ type FinSetting struct {
 // Annotations returns additional schema annotations for the FinSetting table.
 func (FinSetting) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("fin"),
 	}
 }
 

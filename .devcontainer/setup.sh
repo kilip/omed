@@ -31,5 +31,8 @@ curl -sS https://starship.rs/install.sh | sudo sh -s -- -y -v v1.26.0
 go install github.com/air-verse/air@v1.67.4
 go install github.com/swaggo/swag/v2/cmd/swag@latest
 
+# Atlas CLI for database migrations
+curl -sSf https://atlasgo.sh | sh -s -- --yes
+
 # Playwright: Chromium only (version follows the one installed by bun install)
 bunx playwright install --with-deps chromium

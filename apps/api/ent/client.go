@@ -4093,26 +4093,26 @@ type (
 var (
 	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
 	DefaultSchemaConfig = SchemaConfig{
-		Account:             tableSchemas[0],
+		Account:             tableSchemas[2],
 		CmsMedia:            tableSchemas[0],
 		CmsPage:             tableSchemas[0],
 		CmsPost:             tableSchemas[0],
-		Currency:            tableSchemas[0],
-		Entry:               tableSchemas[0],
-		ExchangeRate:        tableSchemas[0],
-		File:                tableSchemas[0],
-		FinSetting:          tableSchemas[0],
-		Period:              tableSchemas[0],
-		Posting:             tableSchemas[0],
-		Session:             tableSchemas[0],
-		Transaction:         tableSchemas[0],
-		User:                tableSchemas[0],
-		UserAccount:         tableSchemas[0],
-		Workspace:           tableSchemas[0],
-		WorkspaceInvitation: tableSchemas[0],
-		WorkspaceMember:     tableSchemas[0],
+		Currency:            tableSchemas[2],
+		Entry:               tableSchemas[2],
+		ExchangeRate:        tableSchemas[2],
+		File:                tableSchemas[1],
+		FinSetting:          tableSchemas[2],
+		Period:              tableSchemas[2],
+		Posting:             tableSchemas[2],
+		Session:             tableSchemas[1],
+		Transaction:         tableSchemas[2],
+		User:                tableSchemas[1],
+		UserAccount:         tableSchemas[1],
+		Workspace:           tableSchemas[1],
+		WorkspaceInvitation: tableSchemas[1],
+		WorkspaceMember:     tableSchemas[1],
 	}
-	tableSchemas = [...]string{"omed"}
+	tableSchemas = [...]string{"cms", "core", "fin"}
 )
 
 // SchemaConfig represents alternative schema names for all tables

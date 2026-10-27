@@ -4,6 +4,10 @@
   "scripts": {
     "dev": "air",
     "gen": "go generate ./ent",
-    "oa:gen": "swag init --parseInternal --v3.1"
+    "oa:gen": "swag init --parseInternal --v3.1",
+    "db:diff": "go run ./cmd/migrate",
+    "db:migrate": "atlas migrate apply --env local",
+    "db:status": "atlas migrate status --env local",
+    "db:validate": "atlas migrate validate --env local"
   }
 }

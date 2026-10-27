@@ -24,7 +24,7 @@ type Transaction struct {
 // Annotations returns additional schema annotations for the Transaction table.
 func (Transaction) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("fin"),
 	}
 }
 

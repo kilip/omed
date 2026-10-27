@@ -18,7 +18,7 @@ type Account struct {
 // Annotations returns additional schema annotations for the Account table.
 func (Account) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("fin"),
 	}
 }
 

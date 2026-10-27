@@ -18,7 +18,7 @@ type CmsMedia struct {
 // Annotations returns additional schema annotations for the CmsMedia table.
 func (CmsMedia) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("cms"),
 	}
 }
 

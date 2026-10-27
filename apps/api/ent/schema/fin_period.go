@@ -17,7 +17,7 @@ type Period struct {
 // Annotations returns additional schema annotations for the Period table.
 func (Period) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("fin"),
 	}
 }
 

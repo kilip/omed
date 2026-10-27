@@ -17,7 +17,7 @@ type WorkspaceInvitation struct {
 // Annotations returns additional schema annotations for the WorkspaceInvitation table.
 func (WorkspaceInvitation) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("core"),
 	}
 }
 

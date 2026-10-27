@@ -25,7 +25,7 @@ type Posting struct {
 // Annotations returns additional schema annotations for the Posting table.
 func (Posting) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("fin"),
 	}
 }
 

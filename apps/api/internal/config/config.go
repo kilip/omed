@@ -22,6 +22,12 @@ type Config struct {
 	TrustedOrigins []string `env:"OMED_TRUSTED_ORIGINS,separator=,default=http://localhost:3000"`
 	// DatabaseUrl database server to be use in omed
 	DatabaseUrl string `env:"OMED_DB_URL"`
+	// DatabaseDevUrl is the clean dev database URL used by Atlas migration diff/validation.
+	DatabaseDevUrl string `env:"OMED_DB_DEV_URL"`
+	// DatabaseMigrateOnStart applies pending versioned Atlas migrations from apps/api/migrations on startup when true. Defaults to false.
+	DatabaseMigrateOnStart bool `env:"OMED_DB_MIGRATE_ON_START,default=false"`
+	// DatabaseAutoMigrate runs Ent Schema.Create automatically on startup when true. Defaults to false.
+	DatabaseAutoMigrate bool `env:"OMED_DB_AUTO_MIGRATE,default=false"`
 	// AuthSecret is used to sign/verify tokens and OAuth state.
 	AuthSecret string `env:"OMED_AUTH_SECRET"`
 	// GoogleClientID is the OAuth2 client ID for Google authentication.

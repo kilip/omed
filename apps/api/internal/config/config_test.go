@@ -94,6 +94,8 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 	s.Equal(1*time.Minute, cfg.RateLimitSensitiveExpiration)
 	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
 	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
+	s.False(cfg.DatabaseMigrateOnStart)
+	s.False(cfg.DatabaseAutoMigrate)
 }
 
 func (s *ConfigSuite) Test_GetConfig_CustomValues() {
@@ -111,6 +113,9 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_RATE_LIMIT_SENSITIVE_EXPIRATION", "30s")
 	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "50")
 	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", ".png,.jpg")
+	s.T().Setenv("OMED_DB_DEV_URL", "postgres://omed:omed@localhost:5432/omed_dev?sslmode=disable")
+	s.T().Setenv("OMED_DB_MIGRATE_ON_START", "true")
+	s.T().Setenv("OMED_DB_AUTO_MIGRATE", "true")
 
 	cfg := config.GetConfig()
 	s.Equal(9001, cfg.Port)
@@ -127,6 +132,9 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.Equal(30*time.Second, cfg.RateLimitSensitiveExpiration)
 	s.Equal(int64(50), cfg.CMSMediaMaxSizeMB)
 	s.Equal([]string{".png", ".jpg"}, cfg.CMSMediaAllowedTypes)
+	s.Equal("postgres://omed:omed@localhost:5432/omed_dev?sslmode=disable", cfg.DatabaseDevUrl)
+	s.True(cfg.DatabaseMigrateOnStart)
+	s.True(cfg.DatabaseAutoMigrate)
 }
 
 func (s *ConfigSuite) Test_GetConfig_Fallbacks() {

@@ -19,7 +19,7 @@ type User struct {
 // Annotations returns additional schema annotations for the User table.
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("core"),
 	}
 }
 

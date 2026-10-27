@@ -56,6 +56,22 @@ jobs:
   check-generated:
     name: Check Generated Code
     runs-on: ubuntu-latest
+    env:
+      OMED_DB_URL: postgres://omed:omed@localhost:5432/omed?sslmode=disable
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: omed
+          POSTGRES_PASSWORD: omed
+          POSTGRES_DB: omed
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U omed -d omed"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -74,12 +90,20 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install swag
-        run: go install github.com/swaggo/swag/v2/cmd/swag@latest
+      - name: Install swag and atlas
+        run: |
+          go install github.com/swaggo/swag/v2/cmd/swag@latest
+          curl -sSf https://atlasgo.sh | sh -s -- --yes
 
       - name: Regenerate Ent
         working-directory: apps/api
         run: go generate ./ent
+
+      - name: Check database migrations and schema drift
+        working-directory: apps/api
+        run: |
+          go run ./cmd/migrate --check
+          atlas migrate validate --env local
 
       - name: Regenerate Swagger
         working-directory: apps/api
@@ -262,6 +286,12 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Install Atlas and apply database migrations
+        working-directory: apps/api
+        run: |
+          curl -sSf https://atlasgo.sh | sh -s -- --yes
+          atlas migrate apply --env local
 
       - name: Install Playwright Chromium
         working-directory: e2e

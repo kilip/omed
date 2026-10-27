@@ -13,17 +13,11 @@ import (
 )
 
 func GetEntClient(cfg Config) *ent.Client {
-	// Configure which table maps to which Postgres schema
-	schemas := ent.AlternateSchema(ent.SchemaConfig{
-		User:                "public",
-		Session:             "public",
-		UserAccount:         "public",
-		Workspace:           "public",
-		WorkspaceInvitation: "public",
-		WorkspaceMember:     "public",
-		File:                "public",
-		Account:             "public",
-	})
+	if cfg.DatabaseMigrateOnStart {
+		if err := RunMigrations(context.Background(), cfg.DatabaseUrl); err != nil {
+			log.Fatalf("failed to apply database migrations: %v", err)
+		}
+	}
 
 	db, err := sql.Open("pgx", cfg.DatabaseUrl)
 	if err != nil {
@@ -31,10 +25,18 @@ func GetEntClient(cfg Config) *ent.Client {
 	}
 
 	drv := entsql.OpenDB(dialect.Postgres, db)
-	client := ent.NewClient(ent.Driver(drv), schemas)
+	client := ent.NewClient(ent.Driver(drv))
 
-	if err := client.Schema.Create(context.Background()); err != nil {
-		log.Fatalf("failed to creating schema resources: %v", err)
+	if cfg.DatabaseAutoMigrate {
+		ctx := context.Background()
+		for _, s := range []string{"core", "fin", "cms"} {
+			if _, err := db.ExecContext(ctx, "CREATE SCHEMA IF NOT EXISTS "+s); err != nil {
+				log.Fatalf("failed creating schema %s: %v", s, err)
+			}
+		}
+		if err := client.Schema.Create(ctx); err != nil {
+			log.Fatalf("failed to creating schema resources: %v", err)
+		}
 	}
 
 	return client

@@ -23,7 +23,7 @@ type Entry struct {
 // Annotations returns additional schema annotations for the Entry table.
 func (Entry) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("fin"),
 	}
 }
 

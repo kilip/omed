@@ -18,7 +18,7 @@ type Workspace struct {
 // Annotations returns additional schema annotations for the Workspace table.
 func (Workspace) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("core"),
 	}
 }
 

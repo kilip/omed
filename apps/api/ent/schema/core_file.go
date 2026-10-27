@@ -17,7 +17,7 @@ type File struct {
 // Annotations returns additional schema annotations for the File table.
 func (File) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("core"),
 	}
 }
 

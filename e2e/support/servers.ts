@@ -33,6 +33,7 @@ const children: { service: Service; process: ChildProcess }[] = [];
 const sharedEnv = (): NodeJS.ProcessEnv => ({
   OMED_ENV: "test",
   OMED_DB_URL: config.dbUrl,
+  OMED_DB_MIGRATE_ON_START: "true",
   OMED_S3_DRIVER: config.s3Driver,
   OMED_S3_ENDPOINT: config.s3Endpoint,
   OMED_S3_REGION: config.s3Region,

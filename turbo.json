@@ -22,6 +22,12 @@
     },
     "oa:gen": {
       "cache": false
+    },
+    "db:diff": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
     }
   }
 }

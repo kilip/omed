@@ -18,7 +18,7 @@ type CmsPost struct {
 // Annotations returns additional schema annotations for the CmsPost table.
 func (CmsPost) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("cms"),
 	}
 }
 

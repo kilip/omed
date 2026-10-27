@@ -19,7 +19,7 @@ type WorkspaceMember struct {
 // Annotations returns additional schema annotations for the WorkspaceMember table.
 func (WorkspaceMember) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("core"),
 	}
 }
 

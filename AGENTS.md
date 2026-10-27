@@ -22,6 +22,8 @@ bun run lint         # Biome check (lint + format)
 bun run format       # Biome auto-fix
 bun run test         # tests via turbo
 bun run e2e          # end-to-end tests
+bun run db:diff      # generate versioned Atlas migration from Ent schemas
+bun run db:migrate   # apply pending Atlas migrations
 cd apps/api && go mod tidy     # sync Go dependencies
 cd apps/api && go test ./...   # Go unit + integration tests
 ```
@@ -94,6 +96,11 @@ Dependency direction is strictly `controller -> service -> repository`:
 ### API contract
 
 Controllers carry the Swaggo annotations. After changing annotations or response models, regenerate and commit `apps/api/docs/*` and `packages/openapi/src/api.ts` (see the README, section "OpenAPI & Types").
+
+### Database schemas & migrations
+
+- PostgreSQL uses multi-schema isolation per module: `core`, `fin`, `cms`. Every Ent schema in `apps/api/ent/schema/` must set `entsql.Schema("<module>")` matching its module prefix (`core_*.go`, `fin_*.go`, `cms_*.go`).
+- After modifying `apps/api/ent/schema/*`, run `cd apps/api && go generate ./ent` and generate a versioned migration in `apps/api/migrations/` using `cd apps/api && go run ./cmd/migrate <migration_name>` (or `bun run db:diff`), then commit `apps/api/ent/*` and `apps/api/migrations/*`.
 
 ## 4. TypeScript (React Router)
 

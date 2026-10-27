@@ -17,7 +17,7 @@ type CmsPage struct {
 // Annotations returns additional schema annotations for the CmsPage table.
 func (CmsPage) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Schema("omed"),
+		entsql.Schema("cms"),
 	}
 }
 
