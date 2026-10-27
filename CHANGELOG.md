@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.6.0](https://github.com/kilip/omed/compare/v0.5.0...v0.6.0) (2026-10-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* **api:** PostgreSQL tables now reside in module-scoped schemas (core, fin, cms) and runtime schema creation is disabled by default in favor of versioned Atlas migrations.
+* **api:** amount, balance, total, and exchange rate fields in API models are now decimal strings instead of float64
+
+### Features
+
+* **api:** ✨ add multi-schema atlas database migrations ([492d501](https://github.com/kilip/omed/commit/492d50123f174d22fe1bd7b7d712d05fe2f56522))
+* **api:** ✨ add quantity and unit price to postings ([7a99387](https://github.com/kilip/omed/commit/7a99387e98ddf0363069e687b6bc4411d07cbe83))
+* **api:** ✨ add rate limiting, security headers and health endpoints ([48fced5](https://github.com/kilip/omed/commit/48fced58ee6ca7035900eb26a391c70ca9abaa41))
+* **api:** ✨ represent money with shopspring decimal ([dae4824](https://github.com/kilip/omed/commit/dae482461bdfbf4426ba4d11ac2dbf214ef86f32))
+* **web:** ✨ add quantity and unit price to postings editor ([12662df](https://github.com/kilip/omed/commit/12662dfe61d3a9c93861de81e3341833017728c4))
+* **web:** ✨ handle decimal money strings ([a1a20fc](https://github.com/kilip/omed/commit/a1a20fcb27ca5994f6f201bc60501e505cff0eb9))
+
+
+### Bug Fixes
+
+* **api:** 🐛 fail closed when workspace context is missing ([6a18b72](https://github.com/kilip/omed/commit/6a18b726f14f3c17b6d994137f9e2e9dc50e5cfe))
+* **api:** 🐛 fix errcheck and staticcheck lint issues in tests ([9f94be6](https://github.com/kilip/omed/commit/9f94be6d0f2c62020024dda6119eead7fa45dcae))
+* **api:** 🐛 fix golangci-lint issues across api modules ([6816eee](https://github.com/kilip/omed/commit/6816eee23f6519db41753f93a3022b14560d4a11))
+* **api:** 🐛 fix unchecked resp.body.close errcheck issues ([c82087c](https://github.com/kilip/omed/commit/c82087cbf5146df127cde5eb127e9c112b41ac20))
+* **api:** 🐛 gate test route auth bypass behind the test flag ([0d92528](https://github.com/kilip/omed/commit/0d9252825494842cdea1472f0963a6c802f21445))
+* **api:** 🐛 make entry post and void atomic ([a537378](https://github.com/kilip/omed/commit/a5373780fe0d9ba7d08c392bc7dc3e20e81bc95b))
+* **api:** 🐛 make invitation accept atomic ([58cced2](https://github.com/kilip/omed/commit/58cced2c0e7ef8541d5b9dc157886f6820bf4121))
+* **api:** 🐛 order shutdown and make port configurable ([e34d3da](https://github.com/kilip/omed/commit/e34d3da0d5d5aeaa6b0e686f61036a08c1f9d8b1))
+* **api:** 🐛 return boot errors from run ([bff49ab](https://github.com/kilip/omed/commit/bff49ab3c5f96975803ff5fb5c5b123582ac69ff))
+* **api:** 🐛 size body limit from the largest upload limit ([c028b4e](https://github.com/kilip/omed/commit/c028b4e283984f4d4159664cb3e10f28f307cca6))
+* **api:** 🐛 sync ent tool checksums in go.sum ([6c0a79d](https://github.com/kilip/omed/commit/6c0a79d66f6f3f47be799431014c07eb5fab6b14))
+* **api:** 🐛 validate status and period when reversing entries ([a4c7e15](https://github.com/kilip/omed/commit/a4c7e157ed862aff2cf4fb3adcb917fc0b2735a3))
+* **auth:** 🐛 bind oauth state to browser with nonce cookie ([4339500](https://github.com/kilip/omed/commit/43395003f63ce865b43224fa1cfcedb980a49540))
+* **auth:** 🐛 encrypt oauth provider tokens at rest ([ef8ad77](https://github.com/kilip/omed/commit/ef8ad77fed5cc1e43d5bac2390bcc035508a37c6))
+* **auth:** 🐛 hash session tokens and stop returning them ([c18f0e6](https://github.com/kilip/omed/commit/c18f0e6f944cf88707cec06ba9345a10f7702845))
+* **auth:** 🐛 require verified email before account linking ([0845a04](https://github.com/kilip/omed/commit/0845a043e81bbd4623d16cec7ac96affb53b5d8c))
+* **auth:** 🐛 set secure flag on session cookie ([228e4a7](https://github.com/kilip/omed/commit/228e4a7288661b489e4be439ff901669a34a77bc))
+* **auth:** 🐛 stop hardcoding email verified flag ([d5aa18e](https://github.com/kilip/omed/commit/d5aa18e62478d2b40f01217be7cd52b80b9d1915))
+* **auth:** 🐛 validate auth secret and callback url ([bf1653d](https://github.com/kilip/omed/commit/bf1653d4b1f4328767859751d35d6e8755455802))
+* **web:** 🐛 do not treat missing workspace as api error in shell ([684e134](https://github.com/kilip/omed/commit/684e1345821373ad39dc5172756c38500187a74e))
+* **web:** 🐛 resolve antd deprecation warnings ([58d9520](https://github.com/kilip/omed/commit/58d9520c432c842131375248af4563ebebfebc99))
+* **web:** 🐛 show api errors in the shell ([a94c6cd](https://github.com/kilip/omed/commit/a94c6cdc73712a25a6dadec7c12956707d386d24))
+* **web:** 🐛 use design tokens in opening balance ([dbeb376](https://github.com/kilip/omed/commit/dbeb3767dde87936190e945b049e3a73298a50d7))
+
 ## [0.5.0](https://github.com/kilip/omed/compare/v0.4.0...v0.5.0) (2026-10-21)
 
 
