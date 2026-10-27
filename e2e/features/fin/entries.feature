@@ -17,10 +17,12 @@ Feature: Finance Journal Entries
     And I click the new journal entry button
     Then I see the create entry drawer
     When I enter entry description "Office Supplies Purchase"
-    And I add a debit line of 150000 for account "5100"
+    And I add a debit line of quantity 3 and unit price 50000 for account "5100"
     And I add a credit line of 150000 for account "1111"
     And I save the entry drawer
     Then I see entry "Office Supplies Purchase" in the journal list
+    When I click on entry "Office Supplies Purchase" in the list
+    Then I see the entry status is "Draft"
 
   Scenario: Reject unbalanced journal entry
     When I open "/fin/journal"

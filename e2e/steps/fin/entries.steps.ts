@@ -31,6 +31,23 @@ When(
 );
 
 When(
+  "I add a debit line of quantity {int} and unit price {int} for account {string}",
+  async function (
+    this: OmedWorld,
+    qty: number,
+    unitPrice: number,
+    account: string,
+  ) {
+    await this.pages.fin.entries.fillPostingLine(0, {
+      accountSearch: account,
+      quantity: qty,
+      unitPrice: unitPrice,
+      debit: qty * unitPrice,
+    });
+  },
+);
+
+When(
   "I add a credit line of {int} for account {string}",
   async function (this: OmedWorld, amount: number, account: string) {
     await this.pages.fin.entries.fillPostingLine(1, {

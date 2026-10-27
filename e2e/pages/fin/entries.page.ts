@@ -63,9 +63,17 @@ export class FinEntriesPage extends BasePage {
 
   async fillPostingLine(
     index: number,
-    opts: { accountSearch: string; debit?: number; credit?: number },
+    opts: {
+      accountSearch: string;
+      debit?: number;
+      credit?: number;
+      quantity?: number;
+      unitPrice?: number;
+    },
   ): Promise<void> {
-    const lines = this.page.locator(".grid.grid-cols-12.items-center");
+    const lines = this.page.locator(
+      '[data-testid="posting-line"], .grid.items-center',
+    );
     const line = lines.nth(index);
     await line.waitFor({ state: "visible" });
 
@@ -82,12 +90,22 @@ export class FinEntriesPage extends BasePage {
     await option.click();
     await option.waitFor({ state: "hidden" });
 
+    // Optional quantity & unit price
+    if (opts.quantity !== undefined) {
+      const qtyInput = line.locator('input[id$="_quantity"]');
+      await qtyInput.fill(String(opts.quantity));
+    }
+    if (opts.unitPrice !== undefined) {
+      const priceInput = line.locator('input[id$="_unitPrice"]');
+      await priceInput.fill(String(opts.unitPrice));
+    }
+
     // Debit or credit
     if (opts.debit !== undefined) {
-      const debitInput = line.locator("input.ant-input-number-input").first();
+      const debitInput = line.locator('input[id$="_debit"]');
       await debitInput.fill(String(opts.debit));
     } else if (opts.credit !== undefined) {
-      const creditInput = line.locator("input.ant-input-number-input").nth(1);
+      const creditInput = line.locator('input[id$="_credit"]');
       await creditInput.fill(String(opts.credit));
     }
   }
