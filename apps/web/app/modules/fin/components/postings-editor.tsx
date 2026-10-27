@@ -13,6 +13,8 @@ export type PostingLineValue = {
   accountId?: number;
   debit?: number;
   credit?: number;
+  quantity?: number;
+  unitPrice?: number;
   description?: string;
   baseAmount?: number;
 };
@@ -53,6 +55,9 @@ export function postingLinesToApi(
         direction: (isDebit ? "DEBIT" : "CREDIT") as "DEBIT" | "CREDIT",
         amount: roundedAmount.toString(),
         baseAmount: baseAmount.toString(),
+        quantity: line.quantity != null ? line.quantity.toString() : undefined,
+        unitPrice:
+          line.unitPrice != null ? line.unitPrice.toString() : undefined,
         description: line.description || defaultDescription,
       };
     });
@@ -73,12 +78,16 @@ export function apiToPostingLines(
         accountId: undefined,
         debit: undefined,
         credit: undefined,
+        quantity: undefined,
+        unitPrice: undefined,
         description: "",
       },
       {
         accountId: undefined,
         debit: undefined,
         credit: undefined,
+        quantity: undefined,
+        unitPrice: undefined,
         description: "",
       },
     ];
@@ -98,12 +107,26 @@ export function apiToPostingLines(
           ? Number.parseFloat(p.baseAmount)
           : p.baseAmount
         : roundToCurrency(amt * rate, "IDR");
+    const qty =
+      p.quantity !== undefined && p.quantity !== null
+        ? typeof p.quantity === "string"
+          ? Number.parseFloat(p.quantity)
+          : p.quantity
+        : undefined;
+    const price =
+      p.unitPrice !== undefined && p.unitPrice !== null
+        ? typeof p.unitPrice === "string"
+          ? Number.parseFloat(p.unitPrice)
+          : p.unitPrice
+        : undefined;
 
     return {
       id: "id" in p ? p.id : undefined,
       accountId: p.accountId,
       debit: isDebit ? amt : undefined,
       credit: !isDebit ? amt : undefined,
+      quantity: Number.isNaN(qty) ? undefined : qty,
+      unitPrice: Number.isNaN(price) ? undefined : price,
       description: p.description ?? "",
       baseAmount: baseAmt,
     };
@@ -171,164 +194,236 @@ export function PostingsEditor({
   const summary = calculatePostingsSummary(lines, currency, exchangeRate);
   const isMultiCurrency = currency.toUpperCase() !== "IDR";
 
+  const gridColsClass = isMultiCurrency
+    ? "grid-cols-[minmax(180px,2fr)_minmax(140px,1.5fr)_75px_105px_110px_110px_110px_36px]"
+    : "grid-cols-[minmax(180px,2fr)_minmax(140px,1.5fr)_75px_105px_110px_110px_36px]";
+
+  const handleQtyOrPriceChange = (
+    fieldIndex: number,
+    newQty?: number | null,
+    newPrice?: number | null,
+  ) => {
+    if (!form) return;
+    const line = lines[fieldIndex];
+    const q = newQty !== undefined ? (newQty ?? 0) : (line?.quantity ?? 0);
+    const p = newPrice !== undefined ? (newPrice ?? 0) : (line?.unitPrice ?? 0);
+
+    if (q > 0 && p >= 0) {
+      const total = roundToCurrency(q * p, currency);
+      if ((line?.credit ?? 0) > 0 && !(line?.debit ?? 0)) {
+        form.setFieldValue([name, fieldIndex, "credit"], total);
+        form.setFieldValue([name, fieldIndex, "debit"], undefined);
+      } else {
+        form.setFieldValue([name, fieldIndex, "debit"], total);
+        form.setFieldValue([name, fieldIndex, "credit"], undefined);
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <Form.List name={name}>
         {(fields, { add, remove }) => (
-          <div className="flex flex-col gap-2">
-            <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-muted-foreground px-1">
-              <div className="col-span-4">
-                {t("fin.journal.account", "Account")}
-              </div>
-              <div className="col-span-2 text-right">
-                {t("fin.journal.debit", "Debit")}
-              </div>
-              <div className="col-span-2 text-right">
-                {t("fin.journal.credit", "Credit")}
-              </div>
-              {isMultiCurrency && (
-                <div className="col-span-2 text-right">Base (IDR)</div>
-              )}
-              <div className={isMultiCurrency ? "col-span-1" : "col-span-3"}>
-                {t("fin.journal.label", "Description")}
-              </div>
-              <div className="col-span-1 text-center" />
-            </div>
-
-            {fields.map((field) => {
-              const currentLine = lines[field.name];
-              const debit = currentLine?.debit ?? 0;
-              const credit = currentLine?.credit ?? 0;
-              const activeAmount = debit > 0 ? debit : credit;
-              const calcBase =
-                activeAmount > 0
-                  ? roundToCurrency(
-                      activeAmount * (exchangeRate > 0 ? exchangeRate : 1),
-                      "IDR",
-                    )
-                  : 0;
-
-              return (
-                <div
-                  key={field.key}
-                  className="grid grid-cols-12 gap-2 items-center bg-card p-1.5 rounded border border-border"
-                >
-                  <div className="col-span-4">
-                    <Form.Item
-                      name={[field.name, "accountId"]}
-                      className="m-0"
-                      rules={[
-                        {
-                          required: true,
-                          message: t("common.required", "Required"),
-                        },
-                      ]}
-                    >
-                      <AccountSelect
-                        accounts={accounts}
-                        disabled={disabled}
-                        placeholder={t("fin.journal.account", "Select account")}
-                      />
-                    </Form.Item>
-                  </div>
-
-                  <div className="col-span-2">
-                    <Form.Item name={[field.name, "debit"]} className="m-0">
-                      <InputNumber
-                        min={0}
-                        controls={false}
-                        disabled={disabled || credit > 0}
-                        placeholder="0"
-                        className="w-full text-right font-mono"
-                        onChange={() => {
-                          if (form && (lines[field.name]?.credit ?? 0) > 0) {
-                            form.setFieldValue(
-                              [name, field.name, "credit"],
-                              undefined,
-                            );
-                          }
-                        }}
-                      />
-                    </Form.Item>
-                  </div>
-
-                  <div className="col-span-2">
-                    <Form.Item name={[field.name, "credit"]} className="m-0">
-                      <InputNumber
-                        min={0}
-                        controls={false}
-                        disabled={disabled || debit > 0}
-                        placeholder="0"
-                        className="w-full text-right font-mono"
-                        onChange={() => {
-                          if (form && (lines[field.name]?.debit ?? 0) > 0) {
-                            form.setFieldValue(
-                              [name, field.name, "debit"],
-                              undefined,
-                            );
-                          }
-                        }}
-                      />
-                    </Form.Item>
-                  </div>
-
-                  {isMultiCurrency && (
-                    <div className="col-span-2 text-right font-mono text-sm text-muted-foreground px-2">
-                      {calcBase > 0
-                        ? formatMoney(calcBase, "IDR", i18n.language)
-                        : "-"}
-                    </div>
-                  )}
-
-                  <div
-                    className={isMultiCurrency ? "col-span-1" : "col-span-3"}
-                  >
-                    <Form.Item
-                      name={[field.name, "description"]}
-                      className="m-0"
-                    >
-                      <Input
-                        disabled={disabled}
-                        placeholder={t("fin.journal.label", "Description")}
-                      />
-                    </Form.Item>
-                  </div>
-
-                  <div className="col-span-1 text-center">
-                    {!disabled && (
-                      <Button
-                        type="text"
-                        danger
-                        icon={<MinusCircleOutlined />}
-                        disabled={fields.length <= 2}
-                        onClick={() => remove(field.name)}
-                        aria-label={t("common.delete", "Delete line")}
-                      />
-                    )}
-                  </div>
+          <div className="overflow-x-auto pb-2">
+            <div className="min-w-[760px] flex flex-col gap-2">
+              <div
+                className={`grid ${gridColsClass} gap-2 text-xs font-semibold text-muted-foreground px-1`}
+              >
+                <div>{t("fin.journal.account", "Account")}</div>
+                <div>{t("fin.journal.label", "Description")}</div>
+                <div className="text-right">
+                  {t("fin.journal.quantity", "Qty")}
                 </div>
-              );
-            })}
-
-            {!disabled && (
-              <div className="mt-2">
-                <Button
-                  type="dashed"
-                  icon={<PlusOutlined />}
-                  onClick={() =>
-                    add({
-                      accountId: undefined,
-                      debit: undefined,
-                      credit: undefined,
-                      description: "",
-                    })
-                  }
-                  block
-                >
-                  {t("fin.journal.addLine", "Add line")}
-                </Button>
+                <div className="text-right">
+                  {t("fin.journal.unitPrice", "Unit price")}
+                </div>
+                <div className="text-right">
+                  {t("fin.journal.debit", "Debit")}
+                </div>
+                <div className="text-right">
+                  {t("fin.journal.credit", "Credit")}
+                </div>
+                {isMultiCurrency && (
+                  <div className="text-right">Base (IDR)</div>
+                )}
+                <div className="text-center" />
               </div>
-            )}
+
+              {fields.map((field) => {
+                const currentLine = lines[field.name];
+                const debit = currentLine?.debit ?? 0;
+                const credit = currentLine?.credit ?? 0;
+                const activeAmount = debit > 0 ? debit : credit;
+                const calcBase =
+                  activeAmount > 0
+                    ? roundToCurrency(
+                        activeAmount * (exchangeRate > 0 ? exchangeRate : 1),
+                        "IDR",
+                      )
+                    : 0;
+
+                return (
+                  <div
+                    key={field.key}
+                    data-testid="posting-line"
+                    className={`grid ${gridColsClass} gap-2 items-center bg-card p-1.5 rounded border border-border`}
+                  >
+                    <div>
+                      <Form.Item
+                        name={[field.name, "accountId"]}
+                        className="m-0"
+                        rules={[
+                          {
+                            required: true,
+                            message: t("common.required", "Required"),
+                          },
+                        ]}
+                      >
+                        <AccountSelect
+                          accounts={accounts}
+                          disabled={disabled}
+                          placeholder={t(
+                            "fin.journal.account",
+                            "Select account",
+                          )}
+                        />
+                      </Form.Item>
+                    </div>
+
+                    <div>
+                      <Form.Item
+                        name={[field.name, "description"]}
+                        className="m-0"
+                      >
+                        <Input
+                          disabled={disabled}
+                          placeholder={t("fin.journal.label", "Description")}
+                        />
+                      </Form.Item>
+                    </div>
+
+                    <div>
+                      <Form.Item
+                        name={[field.name, "quantity"]}
+                        className="m-0"
+                      >
+                        <InputNumber
+                          min={0.0001}
+                          controls={false}
+                          disabled={disabled}
+                          placeholder={t("fin.journal.quantity", "Qty")}
+                          className="w-full text-right font-mono"
+                          onChange={(val) =>
+                            handleQtyOrPriceChange(field.name, val, undefined)
+                          }
+                        />
+                      </Form.Item>
+                    </div>
+
+                    <div>
+                      <Form.Item
+                        name={[field.name, "unitPrice"]}
+                        className="m-0"
+                      >
+                        <InputNumber
+                          min={0}
+                          controls={false}
+                          disabled={disabled}
+                          placeholder={t("fin.journal.unitPrice", "Unit price")}
+                          className="w-full text-right font-mono"
+                          onChange={(val) =>
+                            handleQtyOrPriceChange(field.name, undefined, val)
+                          }
+                        />
+                      </Form.Item>
+                    </div>
+
+                    <div>
+                      <Form.Item name={[field.name, "debit"]} className="m-0">
+                        <InputNumber
+                          min={0}
+                          controls={false}
+                          disabled={disabled || credit > 0}
+                          placeholder="0"
+                          className="w-full text-right font-mono"
+                          onChange={() => {
+                            if (form && (lines[field.name]?.credit ?? 0) > 0) {
+                              form.setFieldValue(
+                                [name, field.name, "credit"],
+                                undefined,
+                              );
+                            }
+                          }}
+                        />
+                      </Form.Item>
+                    </div>
+
+                    <div>
+                      <Form.Item name={[field.name, "credit"]} className="m-0">
+                        <InputNumber
+                          min={0}
+                          controls={false}
+                          disabled={disabled || debit > 0}
+                          placeholder="0"
+                          className="w-full text-right font-mono"
+                          onChange={() => {
+                            if (form && (lines[field.name]?.debit ?? 0) > 0) {
+                              form.setFieldValue(
+                                [name, field.name, "debit"],
+                                undefined,
+                              );
+                            }
+                          }}
+                        />
+                      </Form.Item>
+                    </div>
+
+                    {isMultiCurrency && (
+                      <div className="text-right font-mono text-sm text-muted-foreground px-2">
+                        {calcBase > 0
+                          ? formatMoney(calcBase, "IDR", i18n.language)
+                          : "-"}
+                      </div>
+                    )}
+
+                    <div className="text-center">
+                      {!disabled && (
+                        <Button
+                          type="text"
+                          danger
+                          icon={<MinusCircleOutlined />}
+                          disabled={fields.length <= 2}
+                          onClick={() => remove(field.name)}
+                          aria-label={t("common.delete", "Delete line")}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {!disabled && (
+                <div className="mt-2">
+                  <Button
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                    onClick={() =>
+                      add({
+                        accountId: undefined,
+                        debit: undefined,
+                        credit: undefined,
+                        quantity: undefined,
+                        unitPrice: undefined,
+                        description: "",
+                      })
+                    }
+                    block
+                  >
+                    {t("fin.journal.addLine", "Add line")}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </Form.List>

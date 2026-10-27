@@ -71,6 +71,8 @@ const mockEntryData = {
       direction: "DEBIT",
       amount: "15000000",
       baseAmount: "15000000",
+      quantity: "3",
+      unitPrice: "5000000",
       description: "Hardware asset",
     },
     {

@@ -332,6 +332,8 @@ export const id: Translation = {
       DRAFT: "Draf",
       VOID: "Dibatalkan",
       account: "Akun",
+      quantity: "Qty",
+      unitPrice: "Harga satuan",
       debit: "Debit",
       credit: "Kredit",
       label: "Keterangan",
@@ -462,6 +464,8 @@ export const id: Translation = {
       POSTING_CURRENCY_MISMATCH:
         "Mata uang pembukuan tidak sesuai dengan mata uang yang dibatasi pada akun.",
       POSTING_INVALID_AMOUNT: "Jumlah pembukuan harus lebih besar dari nol.",
+      POSTING_INVALID_QUANTITY: "Kuantitas harus lebih besar dari nol.",
+      POSTING_INVALID_UNIT_PRICE: "Harga satuan tidak boleh negatif.",
       PERIOD_NOT_FOUND: "Periode akuntansi tidak ditemukan.",
       PERIOD_CLOSED:
         "Periode akuntansi sudah ditutup dan tidak dapat menerima perubahan.",

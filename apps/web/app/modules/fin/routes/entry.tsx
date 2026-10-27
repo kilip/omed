@@ -358,6 +358,21 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
       render: (val) => val || "-",
     },
     {
+      title: t("fin.journal.quantity", "Qty"),
+      dataIndex: "quantity",
+      key: "quantity",
+      align: "right",
+      render: (val) => (val != null ? val : "-"),
+    },
+    {
+      title: t("fin.journal.unitPrice", "Unit price"),
+      dataIndex: "unitPrice",
+      key: "unitPrice",
+      align: "right",
+      render: (val) =>
+        val != null ? <MoneyCell amount={val} currency={currency} /> : "-",
+    },
+    {
       title: t("fin.journal.debit", "Debit"),
       key: "debit",
       align: "right",
@@ -535,17 +550,17 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
                 scroll={{ x: "max-content" }}
                 summary={() => (
                   <Table.Summary.Row>
-                    <Table.Summary.Cell index={0} colSpan={2}>
+                    <Table.Summary.Cell index={0} colSpan={4}>
                       <strong>{t("common.total", "Total")}</strong>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={2} align="right">
+                    <Table.Summary.Cell index={4} align="right">
                       <MoneyCell
                         amount={summary.totalDebit}
                         currency={currency}
                         className="font-bold"
                       />
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={3} align="right">
+                    <Table.Summary.Cell index={5} align="right">
                       <MoneyCell
                         amount={summary.totalCredit}
                         currency={currency}
@@ -553,7 +568,7 @@ export default function EntryRoute({ loaderData }: Route.ComponentProps) {
                       />
                     </Table.Summary.Cell>
                     {isMultiCurrency && (
-                      <Table.Summary.Cell index={4} align="right">
+                      <Table.Summary.Cell index={6} align="right">
                         <MoneyCell
                           amount={summary.totalBaseDebit}
                           currency="IDR"

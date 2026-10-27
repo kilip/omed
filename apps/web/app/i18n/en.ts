@@ -331,6 +331,8 @@ export const en = {
       DRAFT: "Draft",
       VOID: "Void",
       account: "Account",
+      quantity: "Qty",
+      unitPrice: "Unit price",
       debit: "Debit",
       credit: "Credit",
       label: "Description",
@@ -461,6 +463,8 @@ export const en = {
       POSTING_CURRENCY_MISMATCH:
         "Posting currency does not match the account's restricted currency.",
       POSTING_INVALID_AMOUNT: "Posting amount must be greater than zero.",
+      POSTING_INVALID_QUANTITY: "Quantity must be greater than zero.",
+      POSTING_INVALID_UNIT_PRICE: "Unit price cannot be negative.",
       PERIOD_NOT_FOUND: "Accounting period not found.",
       PERIOD_CLOSED:
         "The accounting period is closed and cannot accept modifications.",

@@ -14,6 +14,8 @@ describe("postings-editor helpers", () => {
           accountId: 1,
           debit: 150000,
           credit: undefined,
+          quantity: 3,
+          unitPrice: 50000,
           description: "Office supplies",
         },
         { accountId: 2, debit: undefined, credit: 150000, description: "Cash" },
@@ -26,6 +28,8 @@ describe("postings-editor helpers", () => {
           direction: "DEBIT",
           amount: "150000",
           baseAmount: "150000",
+          quantity: "3",
+          unitPrice: "50000",
           description: "Office supplies",
         },
         {
@@ -33,6 +37,8 @@ describe("postings-editor helpers", () => {
           direction: "CREDIT",
           amount: "150000",
           baseAmount: "150000",
+          quantity: undefined,
+          unitPrice: undefined,
           description: "Cash",
         },
       ]);
@@ -85,6 +91,8 @@ describe("postings-editor helpers", () => {
           direction: "DEBIT" as const,
           amount: 250000,
           baseAmount: 250000,
+          quantity: "5",
+          unitPrice: "50000",
           description: "Expense",
         },
         {
@@ -104,6 +112,8 @@ describe("postings-editor helpers", () => {
           accountId: 5,
           debit: 250000,
           credit: undefined,
+          quantity: 5,
+          unitPrice: 50000,
           description: "Expense",
           baseAmount: 250000,
         },
@@ -112,6 +122,8 @@ describe("postings-editor helpers", () => {
           accountId: 6,
           debit: undefined,
           credit: 250000,
+          quantity: undefined,
+          unitPrice: undefined,
           description: "Bank",
           baseAmount: 250000,
         },
@@ -138,6 +150,8 @@ describe("postings-editor helpers", () => {
       const lines = apiToPostingLines([]);
       expect(lines.length).toBe(2);
       expect(lines[0]?.accountId).toBeUndefined();
+      expect(lines[0]?.quantity).toBeUndefined();
+      expect(lines[0]?.unitPrice).toBeUndefined();
       expect(lines[1]?.accountId).toBeUndefined();
     });
   });
