@@ -385,7 +385,7 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
                 type="info"
                 showIcon
                 icon={<HistoryOutlined />}
-                message={t("fin.openingBalance.reentryNotice", {
+                title={t("fin.openingBalance.reentryNotice", {
                   number: existingEntryNumber,
                 })}
               />

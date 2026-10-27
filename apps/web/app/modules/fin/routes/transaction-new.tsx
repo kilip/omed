@@ -312,7 +312,7 @@ export default function TransactionNewRoute({
               <Alert
                 type="warning"
                 showIcon
-                message={t(
+                title={t(
                   "fin.transactions.rateNotFound",
                   "No exchange rate found for this date. Enter rate manually.",
                 )}

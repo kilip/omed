@@ -99,7 +99,7 @@ export default function Invite({ loaderData, params }: Route.ComponentProps) {
           ) : null}
 
           {!preview.isValid ? (
-            <Alert type="warning" showIcon message={t("invite.invalid")} />
+            <Alert type="warning" showIcon title={t("invite.invalid")} />
           ) : signedIn ? (
             <Button
               type="primary"

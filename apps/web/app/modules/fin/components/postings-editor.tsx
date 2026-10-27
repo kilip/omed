@@ -366,14 +366,14 @@ export function PostingsEditor({
             <Alert
               type="success"
               showIcon
-              message={t("fin.journal.balanced", "Balanced")}
+              title={t("fin.journal.balanced", "Balanced")}
               className="py-1 px-3 text-xs"
             />
           ) : (
             <Alert
               type="warning"
               showIcon
-              message={
+              title={
                 summary.validLineCount < 2
                   ? t(
                       "fin.journal.mustBalance",

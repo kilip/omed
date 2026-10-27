@@ -55,7 +55,7 @@ export function MediaPicker({
       title={t("cms.media.pickerTitle")}
       open={open}
       onCancel={onClose}
-      destroyOnClose
+      destroyOnHidden
       width={720}
       footer={[
         <Button key="cancel" onClick={onClose}>

@@ -117,7 +117,7 @@ export default function TransactionEditRoute({
           <Alert
             type="warning"
             showIcon
-            message={t(
+            title={t(
               "fin.transactions.hasPostedEntries",
               "Cannot edit transaction because one or more entries are posted.",
             )}

@@ -452,7 +452,7 @@ export default function EntryNewRoute({ loaderData }: Route.ComponentProps) {
               <Alert
                 type="warning"
                 showIcon
-                message={t(
+                title={t(
                   "fin.transactions.rateNotFound",
                   "No exchange rate found for this date. Enter rate manually.",
                 )}
