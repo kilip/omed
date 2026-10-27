@@ -3,7 +3,7 @@
   "initial-version": "0.1.0",
   "release-type": "node",
   "include-component-in-tag": false,
-  "bump-minor-pre-major": true,
+  "bump-minor-pre-major": false,
   "bump-patch-for-minor-pre-major": false,
   "pull-request-title-pattern": "chore(release): v${version}",
   "packages": {
