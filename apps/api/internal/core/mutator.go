@@ -66,7 +66,10 @@ func isWorkspaceScopedType(typ string) bool {
 		ent.TypePosting,
 		ent.TypeExchangeRate,
 		ent.TypeFile,
-		ent.TypeFinSetting:
+		ent.TypeFinSetting,
+		ent.TypeCmsPost,
+		ent.TypeCmsPage,
+		ent.TypeCmsMedia:
 		return true
 	default:
 		return false
@@ -137,14 +140,14 @@ func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error
 		q.WhereP(sql.FieldEQ(exchangerate.FieldWorkspaceID, wsID))
 	case ent.TypeFile:
 		q.WhereP(sql.FieldEQ(file.FieldWorkspaceID, wsID))
+	case ent.TypeFinSetting:
+		q.WhereP(sql.FieldEQ(finsetting.FieldWorkspaceID, wsID))
 	case ent.TypeCmsPost:
 		q.WhereP(sql.FieldEQ(cmspost.FieldWorkspaceID, wsID))
 	case ent.TypeCmsPage:
 		q.WhereP(sql.FieldEQ(cmspage.FieldWorkspaceID, wsID))
 	case ent.TypeCmsMedia:
 		q.WhereP(sql.FieldEQ(cmsmedia.FieldWorkspaceID, wsID))
-	case ent.TypeFinSetting:
-		q.WhereP(sql.FieldEQ(finsetting.FieldWorkspaceID, wsID))
 	}
 	return nil
 }

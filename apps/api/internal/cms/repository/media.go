@@ -52,8 +52,10 @@ func (r MediaRepository) GetByID(c context.Context, id int64) (domain.Media, err
 }
 
 // GetPublicByID retrieves a media item by ID and workspace, only if is_public and not deleted.
-// This method ignores the workspace interceptor by explicitly filtering workspace_id.
 func (r MediaRepository) GetPublicByID(c context.Context, workspaceID, id int64) (domain.Media, error) {
+	if base.WorkspaceIDFromContext(c) <= 0 && workspaceID > 0 {
+		c = base.WithWorkspaceID(c, workspaceID)
+	}
 	var dom domain.Media
 
 	m, err := r.cli.CmsMedia.Query().

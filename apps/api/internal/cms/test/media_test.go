@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/cms/domain"
 	"github.com/kilip/omed/api/internal/cms/model"
 	"github.com/kilip/omed/api/testutil"
@@ -193,12 +194,13 @@ func (s *MediaSuite) Test_Delete_Conflict_WhenInUse() {
 
 	// Create post referencing media as cover_media_id
 	client := testutil.GetEntCli()
+	wsCtx := base.WithWorkspaceID(s.Context, ws.ID)
 	post, err := client.CmsPost.Create().
 		SetWorkspaceID(ws.ID).
 		SetTitle("Post Using Media").
 		SetSlug("post-using-media").
 		SetCoverMediaID(media.ID).
-		Save(s.Context)
+		Save(wsCtx)
 	s.Require().NoError(err)
 
 	// Delete must fail with 409 Conflict
@@ -206,7 +208,7 @@ func (s *MediaSuite) Test_Delete_Conflict_WhenInUse() {
 	s.AssertStatus(fiber.StatusConflict)
 
 	// Soft-delete the referencing post
-	err = client.CmsPost.DeleteOneID(post.ID).Exec(s.Context)
+	err = client.CmsPost.DeleteOneID(post.ID).Exec(wsCtx)
 	s.Require().NoError(err)
 
 	// Delete media must now succeed

@@ -30,7 +30,7 @@ func VisiblePredicate(now time.Time) predicate.CmsPost {
 	return cmspost.And(
 		cmspost.DeletedAtIsNil(),
 		cmspost.StatusEQ(domain.StatusPublished),
-		cmspost.PublishAtLTE(now),
+		cmspost.PublishAtLTE(now.UTC()),
 	)
 }
 
@@ -93,7 +93,7 @@ func (r PostRepository) Create(c context.Context, req model.CreatePostRecord, no
 		builder.SetCoverMediaID(*req.CoverMediaID)
 	}
 	if req.PublishAt != nil {
-		builder.SetPublishAt(*req.PublishAt)
+		builder.SetPublishAt(req.PublishAt.UTC())
 	}
 
 	created, err := builder.Save(c)
@@ -146,7 +146,7 @@ func (r PostRepository) Update(c context.Context, id int64, req model.UpdatePost
 	if req.ClearPublishAt {
 		builder.ClearPublishAt()
 	} else if req.PublishAt != nil {
-		builder.SetPublishAt(*req.PublishAt)
+		builder.SetPublishAt(req.PublishAt.UTC())
 	}
 
 	if err := builder.Exec(c); err != nil {
@@ -209,12 +209,12 @@ func (r PostRepository) Search(c context.Context, req model.SearchPostRequest, n
 		case domain.EffectiveStatusScheduled:
 			q = q.Where(
 				cmspost.StatusEQ(domain.StatusPublished),
-				cmspost.PublishAtGT(now),
+				cmspost.PublishAtGT(now.UTC()),
 			)
 		case domain.EffectiveStatusPublished:
 			q = q.Where(
 				cmspost.StatusEQ(domain.StatusPublished),
-				cmspost.PublishAtLTE(now),
+				cmspost.PublishAtLTE(now.UTC()),
 			)
 		}
 	}
@@ -259,6 +259,9 @@ func (r PostRepository) Search(c context.Context, req model.SearchPostRequest, n
 
 // PublicList retrieves publicly visible posts for a workspace with composite cursor pagination.
 func (r PostRepository) PublicList(c context.Context, workspaceID int64, cursor *string, limit int, now time.Time) ([]domain.Post, string, error) {
+	if base.WorkspaceIDFromContext(c) <= 0 && workspaceID > 0 {
+		c = base.WithWorkspaceID(c, workspaceID)
+	}
 	if limit <= 0 {
 		limit = 20
 	} else if limit > 100 {
@@ -320,6 +323,9 @@ func (r PostRepository) PublicList(c context.Context, workspaceID int64, cursor 
 
 // PublicGetBySlug retrieves a publicly visible post by slug for a workspace.
 func (r PostRepository) PublicGetBySlug(c context.Context, workspaceID int64, slug string, now time.Time) (domain.Post, error) {
+	if base.WorkspaceIDFromContext(c) <= 0 && workspaceID > 0 {
+		c = base.WithWorkspaceID(c, workspaceID)
+	}
 	var dom domain.Post
 
 	p, err := r.cli.CmsPost.Query().
@@ -349,7 +355,7 @@ func (r PostRepository) PublicGetBySlug(c context.Context, workspaceID int64, sl
 
 // FormatPublicCursor encodes publishAt and id into composite cursor string "<publish_at unix micros>_<id>".
 func FormatPublicCursor(publishAt time.Time, id int64) string {
-	return fmt.Sprintf("%d_%d", publishAt.UnixMicro(), id)
+	return fmt.Sprintf("%d_%d", publishAt.UTC().UnixMicro(), id)
 }
 
 // ParsePublicCursor decodes composite cursor string "<publish_at unix micros>_<id>".
@@ -366,7 +372,7 @@ func ParsePublicCursor(cursor string) (time.Time, int64, error) {
 	if err != nil {
 		return time.Time{}, 0, base.ErrInvalidCursor
 	}
-	return time.UnixMicro(micros), id, nil
+	return time.UnixMicro(micros).UTC(), id, nil
 }
 
 func toPostDomain(p *ent.CmsPost, now time.Time) domain.Post {

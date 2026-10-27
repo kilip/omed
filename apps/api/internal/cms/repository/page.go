@@ -28,7 +28,7 @@ func VisiblePagePredicate(now time.Time) predicate.CmsPage {
 	return cmspage.And(
 		cmspage.DeletedAtIsNil(),
 		cmspage.StatusEQ(cmspage.Status(domain.StatusPublished)),
-		cmspage.PublishAtLTE(now),
+		cmspage.PublishAtLTE(now.UTC()),
 	)
 }
 
@@ -80,7 +80,7 @@ func (r PageRepository) Create(c context.Context, req model.CreatePageRecord, no
 		builder.SetWorkspaceID(req.WorkspaceID)
 	}
 	if req.PublishAt != nil {
-		builder.SetPublishAt(*req.PublishAt)
+		builder.SetPublishAt(req.PublishAt.UTC())
 	}
 
 	created, err := builder.Save(c)
@@ -125,7 +125,7 @@ func (r PageRepository) Update(c context.Context, id int64, req model.UpdatePage
 	if req.ClearPublishAt {
 		builder.ClearPublishAt()
 	} else if req.PublishAt != nil {
-		builder.SetPublishAt(*req.PublishAt)
+		builder.SetPublishAt(req.PublishAt.UTC())
 	}
 
 	if err := builder.Exec(c); err != nil {
@@ -188,12 +188,12 @@ func (r PageRepository) Search(c context.Context, req model.SearchPageRequest, n
 		case domain.EffectiveStatusScheduled:
 			q = q.Where(
 				cmspage.StatusEQ(cmspage.Status(domain.StatusPublished)),
-				cmspage.PublishAtGT(now),
+				cmspage.PublishAtGT(now.UTC()),
 			)
 		case domain.EffectiveStatusPublished:
 			q = q.Where(
 				cmspage.StatusEQ(cmspage.Status(domain.StatusPublished)),
-				cmspage.PublishAtLTE(now),
+				cmspage.PublishAtLTE(now.UTC()),
 			)
 		}
 	}
@@ -233,6 +233,9 @@ func (r PageRepository) Search(c context.Context, req model.SearchPageRequest, n
 
 // PublicList retrieves publicly visible pages for a workspace with composite cursor pagination.
 func (r PageRepository) PublicList(c context.Context, workspaceID int64, cursor *string, limit int, now time.Time) ([]domain.Page, string, error) {
+	if base.WorkspaceIDFromContext(c) <= 0 && workspaceID > 0 {
+		c = base.WithWorkspaceID(c, workspaceID)
+	}
 	if limit <= 0 {
 		limit = 20
 	} else if limit > 100 {
@@ -289,6 +292,9 @@ func (r PageRepository) PublicList(c context.Context, workspaceID int64, cursor 
 
 // PublicGetBySlug retrieves a publicly visible page by slug for a workspace.
 func (r PageRepository) PublicGetBySlug(c context.Context, workspaceID int64, slug string, now time.Time) (domain.Page, error) {
+	if base.WorkspaceIDFromContext(c) <= 0 && workspaceID > 0 {
+		c = base.WithWorkspaceID(c, workspaceID)
+	}
 	var dom domain.Page
 
 	p, err := r.cli.CmsPage.Query().

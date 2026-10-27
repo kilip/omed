@@ -137,15 +137,6 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.True(cfg.DatabaseAutoMigrate)
 }
 
-func (s *ConfigSuite) Test_GetConfig_Fallbacks() {
-	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "0")
-	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", "")
-
-	cfg := config.GetConfig()
-	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
-	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
-}
-
 func (s *ConfigSuite) Test_GetConfig_Port_Fallback() {
 	s.T().Setenv("OMED_API_PORT", "0")
 	cfg := config.GetConfig()
@@ -217,6 +208,15 @@ func (s *ConfigSuite) Test_GetConfig_NonProduction_AllowsShortSecret() {
 			s.Equal("short", cfg.AuthSecret)
 		})
 	}
+}
+
+func (s *ConfigSuite) Test_GetConfig_Fallbacks() {
+	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "0")
+	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", "")
+
+	cfg := config.GetConfig()
+	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
+	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
 }
 
 func TestConfigSuite(t *testing.T) {

@@ -77,6 +77,12 @@ func setupTestApp(sessions *mockSessionService, cookieName string, isTestRoutesE
 	app.Post("/invitations/xyz/accept", func(c fiber.Ctx) error {
 		return c.SendString("accept ok")
 	})
+	app.All("/test/status", func(c fiber.Ctx) error {
+		return c.SendString("test ok")
+	})
+	app.All("/test", func(c fiber.Ctx) error {
+		return c.SendString("test root ok")
+	})
 	app.Get("/public/x", func(c fiber.Ctx) error {
 		return c.SendString("public get ok")
 	})
@@ -85,12 +91,6 @@ func setupTestApp(sessions *mockSessionService, cookieName string, isTestRoutesE
 	})
 	app.Post("/public/x", func(c fiber.Ctx) error {
 		return c.SendString("public post ok")
-	})
-	app.All("/test/status", func(c fiber.Ctx) error {
-		return c.SendString("test ok")
-	})
-	app.All("/test", func(c fiber.Ctx) error {
-		return c.SendString("test root ok")
 	})
 	app.All("/api/protected", func(c fiber.Ctx) error {
 		if u, ok := c.Locals(base.USER_CONTEXT_KEY).(base.UserContext); ok {

@@ -11,6 +11,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/cms/domain"
 	"github.com/kilip/omed/api/internal/cms/model"
 	"github.com/kilip/omed/api/internal/platform/httpx"
@@ -24,6 +25,11 @@ type PublicContentSuite struct {
 
 func TestPublicContentSuite(t *testing.T) {
 	suite.Run(t, new(PublicContentSuite))
+}
+
+func (s *PublicContentSuite) SetupTest() {
+	s.ApiTestSuite.SetupTest()
+	s.Context = base.WithSkipWorkspaceFilter(s.Context)
 }
 
 func (s *PublicContentSuite) ensureWorkspace(name string, ownerID int64) *ent.Workspace {
