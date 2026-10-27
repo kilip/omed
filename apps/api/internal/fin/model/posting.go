@@ -12,25 +12,29 @@ type CreatePostingRequest struct {
 	Direction   string           `json:"direction" validate:"required,oneof=DEBIT CREDIT" example:"DEBIT"`
 	Amount      decimal.Decimal  `json:"amount" swaggertype:"string" example:"100000.00"`
 	BaseAmount  *decimal.Decimal `json:"baseAmount,omitempty" swaggertype:"string" example:"100000.00"`
+	Quantity    *decimal.Decimal `json:"quantity,omitempty" swaggertype:"string" example:"4"`
+	UnitPrice   *decimal.Decimal `json:"unitPrice,omitempty" swaggertype:"string" example:"22000.00"`
 	Description string           `json:"description,omitempty"`
 }
 
 // PostingResponse represents posting line metadata returned by API endpoints.
 type PostingResponse struct {
-	ID                 int64           `json:"id"`
-	WorkspaceID        int64           `json:"workspaceId"`
-	EntryID            int64           `json:"entryId"`
-	AccountID          int64           `json:"accountId"`
-	Direction          string          `json:"direction" example:"DEBIT"`
-	Amount             decimal.Decimal `json:"amount" swaggertype:"string" example:"100000.00"`
-	BaseAmount         decimal.Decimal `json:"baseAmount" swaggertype:"string" example:"100000.00"`
-	Position           int             `json:"position" example:"0"`
-	Description        string          `json:"description,omitempty"`
-	RunningBalance     decimal.Decimal `json:"runningBalance,omitempty" swaggertype:"string" example:"100000.00"`
-	RunningBaseBalance decimal.Decimal `json:"runningBaseBalance,omitempty" swaggertype:"string" example:"100000.00"`
-	Balance            decimal.Decimal `json:"balance,omitempty" swaggertype:"string" example:"100000.00"`
-	BaseBalance        decimal.Decimal `json:"baseBalance,omitempty" swaggertype:"string" example:"100000.00"`
-	AuditMeta          base.AuditMeta  `json:"auditMeta"`
+	ID                 int64            `json:"id"`
+	WorkspaceID        int64            `json:"workspaceId"`
+	EntryID            int64            `json:"entryId"`
+	AccountID          int64            `json:"accountId"`
+	Direction          string           `json:"direction" example:"DEBIT"`
+	Amount             decimal.Decimal  `json:"amount" swaggertype:"string" example:"100000.00"`
+	BaseAmount         decimal.Decimal  `json:"baseAmount" swaggertype:"string" example:"100000.00"`
+	Quantity           *decimal.Decimal `json:"quantity,omitempty" swaggertype:"string" example:"4"`
+	UnitPrice          *decimal.Decimal `json:"unitPrice,omitempty" swaggertype:"string" example:"22000.00"`
+	Position           int              `json:"position" example:"0"`
+	Description        string           `json:"description,omitempty"`
+	RunningBalance     decimal.Decimal  `json:"runningBalance,omitempty" swaggertype:"string" example:"100000.00"`
+	RunningBaseBalance decimal.Decimal  `json:"runningBaseBalance,omitempty" swaggertype:"string" example:"100000.00"`
+	Balance            decimal.Decimal  `json:"balance,omitempty" swaggertype:"string" example:"100000.00"`
+	BaseBalance        decimal.Decimal  `json:"baseBalance,omitempty" swaggertype:"string" example:"100000.00"`
+	AuditMeta          base.AuditMeta   `json:"auditMeta"`
 }
 
 // LedgerEntryResponse is an alias for PostingResponse representing a ledger line.

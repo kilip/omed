@@ -700,6 +700,8 @@ var (
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"DEBIT", "CREDIT"}},
 		{Name: "amount", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "numeric(20,4)", "sqlite3": "numeric(20,4)"}},
 		{Name: "base_amount", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "numeric(20,4)", "sqlite3": "numeric(20,4)"}},
+		{Name: "quantity", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(20,4)", "sqlite3": "numeric(20,4)"}},
+		{Name: "unit_price", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(20,4)", "sqlite3": "numeric(20,4)"}},
 		{Name: "position", Type: field.TypeInt, Default: 0},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "entry_id", Type: field.TypeInt64},
@@ -716,31 +718,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "postings_entries_postings",
-				Columns:    []*schema.Column{PostingsColumns[8]},
+				Columns:    []*schema.Column{PostingsColumns[10]},
 				RefColumns: []*schema.Column{EntriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "postings_workspaces_workspace",
-				Columns:    []*schema.Column{PostingsColumns[9]},
+				Columns:    []*schema.Column{PostingsColumns[11]},
 				RefColumns: []*schema.Column{WorkspacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "postings_users_creator",
-				Columns:    []*schema.Column{PostingsColumns[10]},
+				Columns:    []*schema.Column{PostingsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "postings_users_updater",
-				Columns:    []*schema.Column{PostingsColumns[11]},
+				Columns:    []*schema.Column{PostingsColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "postings_accounts_account",
-				Columns:    []*schema.Column{PostingsColumns[12]},
+				Columns:    []*schema.Column{PostingsColumns[14]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -749,22 +751,22 @@ var (
 			{
 				Name:    "posting_entry_id_position",
 				Unique:  true,
-				Columns: []*schema.Column{PostingsColumns[8], PostingsColumns[6]},
+				Columns: []*schema.Column{PostingsColumns[10], PostingsColumns[8]},
 			},
 			{
 				Name:    "posting_workspace_id_entry_id",
 				Unique:  false,
-				Columns: []*schema.Column{PostingsColumns[9], PostingsColumns[8]},
+				Columns: []*schema.Column{PostingsColumns[11], PostingsColumns[10]},
 			},
 			{
 				Name:    "posting_workspace_id_account_id",
 				Unique:  false,
-				Columns: []*schema.Column{PostingsColumns[9], PostingsColumns[12]},
+				Columns: []*schema.Column{PostingsColumns[11], PostingsColumns[14]},
 			},
 			{
 				Name:    "posting_workspace_id_account_id_direction",
 				Unique:  false,
-				Columns: []*schema.Column{PostingsColumns[9], PostingsColumns[12], PostingsColumns[3]},
+				Columns: []*schema.Column{PostingsColumns[11], PostingsColumns[14], PostingsColumns[3]},
 			},
 		},
 	}

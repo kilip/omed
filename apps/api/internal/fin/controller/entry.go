@@ -306,6 +306,8 @@ func toPostingResponse(p domain.Posting) model.PostingResponse {
 		Direction:          p.Direction,
 		Amount:             p.Amount,
 		BaseAmount:         p.BaseAmount,
+		Quantity:           p.Quantity,
+		UnitPrice:          p.UnitPrice,
 		Position:           p.Position,
 		Description:        p.Description,
 		RunningBalance:     p.RunningBalance,

@@ -35,6 +35,10 @@ const (
 	FieldAmount = "amount"
 	// FieldBaseAmount holds the string denoting the base_amount field in the database.
 	FieldBaseAmount = "base_amount"
+	// FieldQuantity holds the string denoting the quantity field in the database.
+	FieldQuantity = "quantity"
+	// FieldUnitPrice holds the string denoting the unit_price field in the database.
+	FieldUnitPrice = "unit_price"
 	// FieldPosition holds the string denoting the position field in the database.
 	FieldPosition = "position"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -101,6 +105,8 @@ var Columns = []string{
 	FieldDirection,
 	FieldAmount,
 	FieldBaseAmount,
+	FieldQuantity,
+	FieldUnitPrice,
 	FieldPosition,
 	FieldDescription,
 }
@@ -207,6 +213,16 @@ func ByAmount(opts ...sql.OrderTermOption) OrderOption {
 // ByBaseAmount orders the results by the base_amount field.
 func ByBaseAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBaseAmount, opts...).ToFunc()
+}
+
+// ByQuantity orders the results by the quantity field.
+func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
+}
+
+// ByUnitPrice orders the results by the unit_price field.
+func ByUnitPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnitPrice, opts...).ToFunc()
 }
 
 // ByPosition orders the results by the position field.

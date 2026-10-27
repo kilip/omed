@@ -317,6 +317,8 @@ func (s EntryService) Post(c context.Context, id int64, postedBy int64) (domain.
 			Direction:   p.Direction,
 			Amount:      p.Amount,
 			BaseAmount:  &baseAmt,
+			Quantity:    p.Quantity,
+			UnitPrice:   p.UnitPrice,
 			Description: p.Description,
 		}
 	}
@@ -508,6 +510,15 @@ func validateEntry(
 
 	for i := range validatedPostings {
 		p := &validatedPostings[i]
+		if p.Quantity != nil && !p.Quantity.IsPositive() {
+			return nil, domain.ErrPostingInvalidQuantity
+		}
+		if p.UnitPrice != nil && p.UnitPrice.IsNegative() {
+			return nil, domain.ErrPostingInvalidUnitPrice
+		}
+		if p.Amount.IsZero() && p.Quantity != nil && p.UnitPrice != nil && p.Quantity.IsPositive() && p.UnitPrice.IsPositive() {
+			p.Amount = p.Quantity.Mul(*p.UnitPrice)
+		}
 		if p.Amount.IsNegative() {
 			return nil, domain.ErrPostingInvalidAmount
 		}

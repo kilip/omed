@@ -25,9 +25,11 @@ type Posting struct {
 	EntryID            int64           `json:"entryId"`
 	AccountID          int64           `json:"accountId"`
 	Direction          string          `json:"direction"`
-	Amount             decimal.Decimal `json:"amount"`
-	BaseAmount         decimal.Decimal `json:"baseAmount"`
-	Position           int             `json:"position"`
+	Amount             decimal.Decimal  `json:"amount"`
+	BaseAmount         decimal.Decimal  `json:"baseAmount"`
+	Quantity           *decimal.Decimal `json:"quantity,omitempty"`
+	UnitPrice          *decimal.Decimal `json:"unitPrice,omitempty"`
+	Position           int              `json:"position"`
 	Description        string          `json:"description,omitempty"`
 	RunningBalance     decimal.Decimal `json:"runningBalance,omitempty"`
 	RunningBaseBalance decimal.Decimal `json:"runningBaseBalance,omitempty"`

@@ -122,6 +122,46 @@ func (_u *PostingUpdate) SetNillableBaseAmount(v *decimal.Decimal) *PostingUpdat
 	return _u
 }
 
+// SetQuantity sets the "quantity" field.
+func (_u *PostingUpdate) SetQuantity(v decimal.Decimal) *PostingUpdate {
+	_u.mutation.SetQuantity(v)
+	return _u
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (_u *PostingUpdate) SetNillableQuantity(v *decimal.Decimal) *PostingUpdate {
+	if v != nil {
+		_u.SetQuantity(*v)
+	}
+	return _u
+}
+
+// ClearQuantity clears the value of the "quantity" field.
+func (_u *PostingUpdate) ClearQuantity() *PostingUpdate {
+	_u.mutation.ClearQuantity()
+	return _u
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (_u *PostingUpdate) SetUnitPrice(v decimal.Decimal) *PostingUpdate {
+	_u.mutation.SetUnitPrice(v)
+	return _u
+}
+
+// SetNillableUnitPrice sets the "unit_price" field if the given value is not nil.
+func (_u *PostingUpdate) SetNillableUnitPrice(v *decimal.Decimal) *PostingUpdate {
+	if v != nil {
+		_u.SetUnitPrice(*v)
+	}
+	return _u
+}
+
+// ClearUnitPrice clears the value of the "unit_price" field.
+func (_u *PostingUpdate) ClearUnitPrice() *PostingUpdate {
+	_u.mutation.ClearUnitPrice()
+	return _u
+}
+
 // SetPosition sets the "position" field.
 func (_u *PostingUpdate) SetPosition(v int) *PostingUpdate {
 	_u.mutation.ResetPosition()
@@ -302,6 +342,18 @@ func (_u *PostingUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.BaseAmount(); ok {
 		_spec.SetField(posting.FieldBaseAmount, field.TypeOther, value)
+	}
+	if value, ok := _u.mutation.Quantity(); ok {
+		_spec.SetField(posting.FieldQuantity, field.TypeOther, value)
+	}
+	if _u.mutation.QuantityCleared() {
+		_spec.ClearField(posting.FieldQuantity, field.TypeOther)
+	}
+	if value, ok := _u.mutation.UnitPrice(); ok {
+		_spec.SetField(posting.FieldUnitPrice, field.TypeOther, value)
+	}
+	if _u.mutation.UnitPriceCleared() {
+		_spec.ClearField(posting.FieldUnitPrice, field.TypeOther)
 	}
 	if value, ok := _u.mutation.Position(); ok {
 		_spec.SetField(posting.FieldPosition, field.TypeInt, value)
@@ -520,6 +572,46 @@ func (_u *PostingUpdateOne) SetNillableBaseAmount(v *decimal.Decimal) *PostingUp
 	return _u
 }
 
+// SetQuantity sets the "quantity" field.
+func (_u *PostingUpdateOne) SetQuantity(v decimal.Decimal) *PostingUpdateOne {
+	_u.mutation.SetQuantity(v)
+	return _u
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (_u *PostingUpdateOne) SetNillableQuantity(v *decimal.Decimal) *PostingUpdateOne {
+	if v != nil {
+		_u.SetQuantity(*v)
+	}
+	return _u
+}
+
+// ClearQuantity clears the value of the "quantity" field.
+func (_u *PostingUpdateOne) ClearQuantity() *PostingUpdateOne {
+	_u.mutation.ClearQuantity()
+	return _u
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (_u *PostingUpdateOne) SetUnitPrice(v decimal.Decimal) *PostingUpdateOne {
+	_u.mutation.SetUnitPrice(v)
+	return _u
+}
+
+// SetNillableUnitPrice sets the "unit_price" field if the given value is not nil.
+func (_u *PostingUpdateOne) SetNillableUnitPrice(v *decimal.Decimal) *PostingUpdateOne {
+	if v != nil {
+		_u.SetUnitPrice(*v)
+	}
+	return _u
+}
+
+// ClearUnitPrice clears the value of the "unit_price" field.
+func (_u *PostingUpdateOne) ClearUnitPrice() *PostingUpdateOne {
+	_u.mutation.ClearUnitPrice()
+	return _u
+}
+
 // SetPosition sets the "position" field.
 func (_u *PostingUpdateOne) SetPosition(v int) *PostingUpdateOne {
 	_u.mutation.ResetPosition()
@@ -730,6 +822,18 @@ func (_u *PostingUpdateOne) sqlSave(ctx context.Context) (_node *Posting, err er
 	}
 	if value, ok := _u.mutation.BaseAmount(); ok {
 		_spec.SetField(posting.FieldBaseAmount, field.TypeOther, value)
+	}
+	if value, ok := _u.mutation.Quantity(); ok {
+		_spec.SetField(posting.FieldQuantity, field.TypeOther, value)
+	}
+	if _u.mutation.QuantityCleared() {
+		_spec.ClearField(posting.FieldQuantity, field.TypeOther)
+	}
+	if value, ok := _u.mutation.UnitPrice(); ok {
+		_spec.SetField(posting.FieldUnitPrice, field.TypeOther, value)
+	}
+	if _u.mutation.UnitPriceCleared() {
+		_spec.ClearField(posting.FieldUnitPrice, field.TypeOther)
 	}
 	if value, ok := _u.mutation.Position(); ok {
 		_spec.SetField(posting.FieldPosition, field.TypeInt, value)

@@ -355,7 +355,7 @@ func init() {
 	// posting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	posting.UpdateDefaultUpdatedAt = postingDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// postingDescPosition is the schema descriptor for position field.
-	postingDescPosition := postingFields[6].Descriptor()
+	postingDescPosition := postingFields[8].Descriptor()
 	// posting.DefaultPosition holds the default value on creation for the position field.
 	posting.DefaultPosition = postingDescPosition.Default.(int)
 	// posting.PositionValidator is a validator for the "position" field. It is called by the builders before save.

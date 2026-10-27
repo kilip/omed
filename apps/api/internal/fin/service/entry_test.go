@@ -274,6 +274,43 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 	})
 	s.ErrorIs(err, domain.ErrPostingCurrencyMismatch)
 
+	// 4a. Quantity validation (must be positive)
+	zeroQty := decimal.Zero
+	negQty := decimal.NewFromInt(-2)
+	validPrice := decimal.NewFromInt(50)
+	_, err = s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100), Quantity: &zeroQty, UnitPrice: &validPrice},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
+		},
+	})
+	s.ErrorIs(err, domain.ErrPostingInvalidQuantity)
+
+	_, err = s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100), Quantity: &negQty, UnitPrice: &validPrice},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
+		},
+	})
+	s.ErrorIs(err, domain.ErrPostingInvalidQuantity)
+
+	// 4b. Unit price validation (cannot be negative)
+	posQty := decimal.NewFromInt(2)
+	negPrice := decimal.NewFromInt(-10)
+	_, err = s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(100), Quantity: &posQty, UnitPrice: &negPrice},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100)},
+		},
+	})
+	s.ErrorIs(err, domain.ErrPostingInvalidUnitPrice)
+
 	// 5. Not balanced in transaction currency
 	_, err = s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
 		PeriodID:  s.periodID,
@@ -311,6 +348,29 @@ func (s *EntryServiceSuite) Test_Create_Validations() {
 	s.Equal("JE-2026-000001", entry.Number)
 	s.Equal(domain.EntryStatusDraft, entry.Status)
 	s.Require().Len(entry.Postings, 2)
+}
+
+func (s *EntryServiceSuite) Test_Create_QuantityAndUnitPrice() {
+	ctx := s.ctx()
+	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+
+	calcQty := decimal.NewFromInt(4)
+	calcPrice := decimal.NewFromInt(25000)
+	calcEntry, err := s.svc.Create(ctx, s.transactionID, model.CreateEntryRequest{
+		PeriodID:  s.periodID,
+		EntryDate: eDate,
+		Postings: []model.CreatePostingRequest{
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: decimal.Zero, Quantity: &calcQty, UnitPrice: &calcPrice},
+			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(100000)},
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().Len(calcEntry.Postings, 2)
+	s.True(calcEntry.Postings[0].Amount.Equal(dec(100000)))
+	s.Require().NotNil(calcEntry.Postings[0].Quantity)
+	s.True(calcEntry.Postings[0].Quantity.Equal(calcQty))
+	s.Require().NotNil(calcEntry.Postings[0].UnitPrice)
+	s.True(calcEntry.Postings[0].UnitPrice.Equal(calcPrice))
 }
 
 func (s *EntryServiceSuite) Test_ValidationOrder() {

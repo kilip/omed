@@ -1121,6 +1121,14 @@ const docTemplate = `{
                         ],
                         "example": "DEBIT",
                         "type": "string"
+                    },
+                    "quantity": {
+                        "example": "4",
+                        "type": "string"
+                    },
+                    "unitPrice": {
+                        "example": "22000.00",
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -1784,12 +1792,20 @@ const docTemplate = `{
                         "example": 0,
                         "type": "integer"
                     },
+                    "quantity": {
+                        "example": "4",
+                        "type": "string"
+                    },
                     "runningBalance": {
                         "example": "100000.00",
                         "type": "string"
                     },
                     "runningBaseBalance": {
                         "example": "100000.00",
+                        "type": "string"
+                    },
+                    "unitPrice": {
+                        "example": "22000.00",
                         "type": "string"
                     },
                     "workspaceId": {

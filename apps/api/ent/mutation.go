@@ -13293,6 +13293,8 @@ type PostingMutation struct {
 	direction        *posting.Direction
 	amount           *decimal.Decimal
 	base_amount      *decimal.Decimal
+	quantity         *decimal.Decimal
+	unit_price       *decimal.Decimal
 	position         *int
 	addposition      *int
 	description      *string
@@ -13776,6 +13778,104 @@ func (m *PostingMutation) ResetBaseAmount() {
 	m.base_amount = nil
 }
 
+// SetQuantity sets the "quantity" field.
+func (m *PostingMutation) SetQuantity(d decimal.Decimal) {
+	m.quantity = &d
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *PostingMutation) Quantity() (r decimal.Decimal, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the Posting entity.
+// If the Posting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostingMutation) OldQuantity(ctx context.Context) (v *decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// ClearQuantity clears the value of the "quantity" field.
+func (m *PostingMutation) ClearQuantity() {
+	m.quantity = nil
+	m.clearedFields[posting.FieldQuantity] = struct{}{}
+}
+
+// QuantityCleared returns if the "quantity" field was cleared in this mutation.
+func (m *PostingMutation) QuantityCleared() bool {
+	_, ok := m.clearedFields[posting.FieldQuantity]
+	return ok
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *PostingMutation) ResetQuantity() {
+	m.quantity = nil
+	delete(m.clearedFields, posting.FieldQuantity)
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (m *PostingMutation) SetUnitPrice(d decimal.Decimal) {
+	m.unit_price = &d
+}
+
+// UnitPrice returns the value of the "unit_price" field in the mutation.
+func (m *PostingMutation) UnitPrice() (r decimal.Decimal, exists bool) {
+	v := m.unit_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnitPrice returns the old "unit_price" field's value of the Posting entity.
+// If the Posting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostingMutation) OldUnitPrice(ctx context.Context) (v *decimal.Decimal, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnitPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnitPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnitPrice: %w", err)
+	}
+	return oldValue.UnitPrice, nil
+}
+
+// ClearUnitPrice clears the value of the "unit_price" field.
+func (m *PostingMutation) ClearUnitPrice() {
+	m.unit_price = nil
+	m.clearedFields[posting.FieldUnitPrice] = struct{}{}
+}
+
+// UnitPriceCleared returns if the "unit_price" field was cleared in this mutation.
+func (m *PostingMutation) UnitPriceCleared() bool {
+	_, ok := m.clearedFields[posting.FieldUnitPrice]
+	return ok
+}
+
+// ResetUnitPrice resets all changes to the "unit_price" field.
+func (m *PostingMutation) ResetUnitPrice() {
+	m.unit_price = nil
+	delete(m.clearedFields, posting.FieldUnitPrice)
+}
+
 // SetPosition sets the "position" field.
 func (m *PostingMutation) SetPosition(i int) {
 	m.position = &i
@@ -14076,7 +14176,7 @@ func (m *PostingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostingMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m.workspace != nil {
 		fields = append(fields, posting.FieldWorkspaceID)
 	}
@@ -14106,6 +14206,12 @@ func (m *PostingMutation) Fields() []string {
 	}
 	if m.base_amount != nil {
 		fields = append(fields, posting.FieldBaseAmount)
+	}
+	if m.quantity != nil {
+		fields = append(fields, posting.FieldQuantity)
+	}
+	if m.unit_price != nil {
+		fields = append(fields, posting.FieldUnitPrice)
 	}
 	if m.position != nil {
 		fields = append(fields, posting.FieldPosition)
@@ -14141,6 +14247,10 @@ func (m *PostingMutation) Field(name string) (ent.Value, bool) {
 		return m.Amount()
 	case posting.FieldBaseAmount:
 		return m.BaseAmount()
+	case posting.FieldQuantity:
+		return m.Quantity()
+	case posting.FieldUnitPrice:
+		return m.UnitPrice()
 	case posting.FieldPosition:
 		return m.Position()
 	case posting.FieldDescription:
@@ -14174,6 +14284,10 @@ func (m *PostingMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldAmount(ctx)
 	case posting.FieldBaseAmount:
 		return m.OldBaseAmount(ctx)
+	case posting.FieldQuantity:
+		return m.OldQuantity(ctx)
+	case posting.FieldUnitPrice:
+		return m.OldUnitPrice(ctx)
 	case posting.FieldPosition:
 		return m.OldPosition(ctx)
 	case posting.FieldDescription:
@@ -14257,6 +14371,20 @@ func (m *PostingMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBaseAmount(v)
 		return nil
+	case posting.FieldQuantity:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	case posting.FieldUnitPrice:
+		v, ok := value.(decimal.Decimal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnitPrice(v)
+		return nil
 	case posting.FieldPosition:
 		v, ok := value.(int)
 		if !ok {
@@ -14316,6 +14444,12 @@ func (m *PostingMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *PostingMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(posting.FieldQuantity) {
+		fields = append(fields, posting.FieldQuantity)
+	}
+	if m.FieldCleared(posting.FieldUnitPrice) {
+		fields = append(fields, posting.FieldUnitPrice)
+	}
 	if m.FieldCleared(posting.FieldDescription) {
 		fields = append(fields, posting.FieldDescription)
 	}
@@ -14333,6 +14467,12 @@ func (m *PostingMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *PostingMutation) ClearField(name string) error {
 	switch name {
+	case posting.FieldQuantity:
+		m.ClearQuantity()
+		return nil
+	case posting.FieldUnitPrice:
+		m.ClearUnitPrice()
+		return nil
 	case posting.FieldDescription:
 		m.ClearDescription()
 		return nil
@@ -14373,6 +14513,12 @@ func (m *PostingMutation) ResetField(name string) error {
 		return nil
 	case posting.FieldBaseAmount:
 		m.ResetBaseAmount()
+		return nil
+	case posting.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	case posting.FieldUnitPrice:
+		m.ResetUnitPrice()
 		return nil
 	case posting.FieldPosition:
 		m.ResetPosition()

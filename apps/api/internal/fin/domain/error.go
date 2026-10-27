@@ -85,6 +85,10 @@ var (
 	ErrPostingCurrencyMismatch = errors.New("POSTING_CURRENCY_MISMATCH")
 	// ErrPostingInvalidAmount indicates the posting amount is non-positive or invalid.
 	ErrPostingInvalidAmount = errors.New("POSTING_INVALID_AMOUNT")
+	// ErrPostingInvalidQuantity indicates the posting quantity is non-positive.
+	ErrPostingInvalidQuantity = errors.New("POSTING_INVALID_QUANTITY")
+	// ErrPostingInvalidUnitPrice indicates the posting unit price is negative.
+	ErrPostingInvalidUnitPrice = errors.New("POSTING_INVALID_UNIT_PRICE")
 
 	// ErrPeriodHasDraftEntries indicates a period cannot be closed while it still has draft entries.
 	ErrPeriodHasDraftEntries = errors.New("PERIOD_HAS_DRAFT_ENTRIES")
@@ -157,6 +161,8 @@ func init() {
 	base.AddToErrorMap(ErrPostingAccountInactive, fiber.StatusUnprocessableEntity, "account is inactive")
 	base.AddToErrorMap(ErrPostingCurrencyMismatch, fiber.StatusUnprocessableEntity, "posting currency does not match account currency")
 	base.AddToErrorMap(ErrPostingInvalidAmount, fiber.StatusUnprocessableEntity, "posting amount must be positive")
+	base.AddToErrorMap(ErrPostingInvalidQuantity, fiber.StatusUnprocessableEntity, "posting quantity must be positive")
+	base.AddToErrorMap(ErrPostingInvalidUnitPrice, fiber.StatusUnprocessableEntity, "posting unit price cannot be negative")
 
 	base.AddToErrorMap(ErrPeriodHasDraftEntries, fiber.StatusConflict, "period has draft entries")
 	base.AddToErrorMap(ErrPeriodAlreadyRevalued, fiber.StatusConflict, "period has already been revalued")

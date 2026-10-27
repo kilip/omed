@@ -155,6 +155,8 @@ func (r EntryRepository) Create(c context.Context, txID int64, req model.CreateE
 					SetDirection(posting.Direction(pReq.Direction)).
 					SetAmount(pReq.Amount).
 					SetBaseAmount(baseAmt).
+					SetNillableQuantity(pReq.Quantity).
+					SetNillableUnitPrice(pReq.UnitPrice).
 					SetPosition(pos)
 
 				pDesc := pReq.Description
@@ -242,6 +244,8 @@ func (r EntryRepository) Update(c context.Context, id int64, req model.UpdateEnt
 				SetDirection(posting.Direction(pReq.Direction)).
 				SetAmount(pReq.Amount).
 				SetBaseAmount(baseAmt).
+				SetNillableQuantity(pReq.Quantity).
+				SetNillableUnitPrice(pReq.UnitPrice).
 				SetPosition(pos)
 
 			pDesc := pReq.Description
@@ -424,6 +428,8 @@ func (r EntryRepository) Post(c context.Context, id int64, postedBy int64, balan
 						SetDirection(posting.Direction(pReq.Direction)).
 						SetAmount(pReq.Amount).
 						SetBaseAmount(baseAmt).
+						SetNillableQuantity(pReq.Quantity).
+						SetNillableUnitPrice(pReq.UnitPrice).
 						SetPosition(pos)
 
 					pDesc := pReq.Description
@@ -580,6 +586,8 @@ func (r EntryRepository) Reverse(c context.Context, id int64, postedBy int64, en
 					SetDirection(newDirection).
 					SetAmount(p.Amount).
 					SetBaseAmount(p.BaseAmount).
+					SetNillableQuantity(p.Quantity).
+					SetNillableUnitPrice(p.UnitPrice).
 					SetPosition(pos)
 
 				if p.Description != "" {
@@ -736,6 +744,8 @@ func (r EntryRepository) Void(c context.Context, id int64, postedBy ...int64) (d
 						SetDirection(newDirection).
 						SetAmount(p.Amount).
 						SetBaseAmount(p.BaseAmount).
+						SetNillableQuantity(p.Quantity).
+						SetNillableUnitPrice(p.UnitPrice).
 						SetPosition(pos)
 
 					pDesc := p.Description
@@ -919,6 +929,8 @@ func toPostingDomain(p *ent.Posting) domain.Posting {
 		Direction:   string(p.Direction),
 		Amount:      p.Amount,
 		BaseAmount:  p.BaseAmount,
+		Quantity:    p.Quantity,
+		UnitPrice:   p.UnitPrice,
 		Position:    p.Position,
 		Description: p.Description,
 		AuditMeta: base.AuditMeta{
@@ -1139,6 +1151,8 @@ func (r EntryRepository) CreateSystemPostedEntry(
 					SetDirection(posting.Direction(pReq.Direction)).
 					SetAmount(pReq.Amount).
 					SetBaseAmount(baseAmt).
+					SetNillableQuantity(pReq.Quantity).
+					SetNillableUnitPrice(pReq.UnitPrice).
 					SetPosition(pos)
 
 				pDesc := pReq.Description

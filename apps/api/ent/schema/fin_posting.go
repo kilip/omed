@@ -52,6 +52,14 @@ func (Posting) Fields() []ent.Field {
 			dialect.Postgres: "numeric(20,4)",
 			dialect.SQLite:   "numeric(20,4)",
 		}),
+		field.Other("quantity", decimal.Decimal{}).Optional().Nillable().SchemaType(map[string]string{
+			dialect.Postgres: "numeric(20,4)",
+			dialect.SQLite:   "numeric(20,4)",
+		}),
+		field.Other("unit_price", decimal.Decimal{}).Optional().Nillable().SchemaType(map[string]string{
+			dialect.Postgres: "numeric(20,4)",
+			dialect.SQLite:   "numeric(20,4)",
+		}),
 		field.Int("position").NonNegative().Default(0),
 		field.String("description").Optional(),
 	}

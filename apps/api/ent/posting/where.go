@@ -102,6 +102,16 @@ func BaseAmount(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldEQ(FieldBaseAmount, v))
 }
 
+// Quantity applies equality check predicate on the "quantity" field. It's identical to QuantityEQ.
+func Quantity(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldEQ(FieldQuantity, v))
+}
+
+// UnitPrice applies equality check predicate on the "unit_price" field. It's identical to UnitPriceEQ.
+func UnitPrice(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldEQ(FieldUnitPrice, v))
+}
+
 // Position applies equality check predicate on the "position" field. It's identical to PositionEQ.
 func Position(v int) predicate.Posting {
 	return predicate.Posting(sql.FieldEQ(FieldPosition, v))
@@ -390,6 +400,106 @@ func BaseAmountLT(v decimal.Decimal) predicate.Posting {
 // BaseAmountLTE applies the LTE predicate on the "base_amount" field.
 func BaseAmountLTE(v decimal.Decimal) predicate.Posting {
 	return predicate.Posting(sql.FieldLTE(FieldBaseAmount, v))
+}
+
+// QuantityEQ applies the EQ predicate on the "quantity" field.
+func QuantityEQ(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldEQ(FieldQuantity, v))
+}
+
+// QuantityNEQ applies the NEQ predicate on the "quantity" field.
+func QuantityNEQ(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldNEQ(FieldQuantity, v))
+}
+
+// QuantityIn applies the In predicate on the "quantity" field.
+func QuantityIn(vs ...decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldIn(FieldQuantity, vs...))
+}
+
+// QuantityNotIn applies the NotIn predicate on the "quantity" field.
+func QuantityNotIn(vs ...decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldNotIn(FieldQuantity, vs...))
+}
+
+// QuantityGT applies the GT predicate on the "quantity" field.
+func QuantityGT(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldGT(FieldQuantity, v))
+}
+
+// QuantityGTE applies the GTE predicate on the "quantity" field.
+func QuantityGTE(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldGTE(FieldQuantity, v))
+}
+
+// QuantityLT applies the LT predicate on the "quantity" field.
+func QuantityLT(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldLT(FieldQuantity, v))
+}
+
+// QuantityLTE applies the LTE predicate on the "quantity" field.
+func QuantityLTE(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldLTE(FieldQuantity, v))
+}
+
+// QuantityIsNil applies the IsNil predicate on the "quantity" field.
+func QuantityIsNil() predicate.Posting {
+	return predicate.Posting(sql.FieldIsNull(FieldQuantity))
+}
+
+// QuantityNotNil applies the NotNil predicate on the "quantity" field.
+func QuantityNotNil() predicate.Posting {
+	return predicate.Posting(sql.FieldNotNull(FieldQuantity))
+}
+
+// UnitPriceEQ applies the EQ predicate on the "unit_price" field.
+func UnitPriceEQ(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldEQ(FieldUnitPrice, v))
+}
+
+// UnitPriceNEQ applies the NEQ predicate on the "unit_price" field.
+func UnitPriceNEQ(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldNEQ(FieldUnitPrice, v))
+}
+
+// UnitPriceIn applies the In predicate on the "unit_price" field.
+func UnitPriceIn(vs ...decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldIn(FieldUnitPrice, vs...))
+}
+
+// UnitPriceNotIn applies the NotIn predicate on the "unit_price" field.
+func UnitPriceNotIn(vs ...decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldNotIn(FieldUnitPrice, vs...))
+}
+
+// UnitPriceGT applies the GT predicate on the "unit_price" field.
+func UnitPriceGT(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldGT(FieldUnitPrice, v))
+}
+
+// UnitPriceGTE applies the GTE predicate on the "unit_price" field.
+func UnitPriceGTE(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldGTE(FieldUnitPrice, v))
+}
+
+// UnitPriceLT applies the LT predicate on the "unit_price" field.
+func UnitPriceLT(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldLT(FieldUnitPrice, v))
+}
+
+// UnitPriceLTE applies the LTE predicate on the "unit_price" field.
+func UnitPriceLTE(v decimal.Decimal) predicate.Posting {
+	return predicate.Posting(sql.FieldLTE(FieldUnitPrice, v))
+}
+
+// UnitPriceIsNil applies the IsNil predicate on the "unit_price" field.
+func UnitPriceIsNil() predicate.Posting {
+	return predicate.Posting(sql.FieldIsNull(FieldUnitPrice))
+}
+
+// UnitPriceNotNil applies the NotNil predicate on the "unit_price" field.
+func UnitPriceNotNil() predicate.Posting {
+	return predicate.Posting(sql.FieldNotNull(FieldUnitPrice))
 }
 
 // PositionEQ applies the EQ predicate on the "position" field.

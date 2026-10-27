@@ -150,13 +150,15 @@ func (s *EntryRepoSuite) ctx() context.Context {
 func (s *EntryRepoSuite) Test_CreateAndGetByID() {
 	ctx := s.ctx()
 	eDate := model.Date(time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+	qty := decimal.NewFromInt(4)
+	unitPrice := decimal.NewFromInt(62500)
 
 	e, err := s.repo.Create(ctx, s.transactionID, model.CreateEntryRequest{
 		PeriodID:    s.periodID,
 		EntryDate:   eDate,
 		Description: "Entry description",
 		Postings: []model.CreatePostingRequest{
-			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(250000), Description: "Debit"},
+			{AccountID: s.accountID1, Direction: "DEBIT", Amount: dec(250000), Quantity: &qty, UnitPrice: &unitPrice, Description: "Debit"},
 			{AccountID: s.accountID2, Direction: "CREDIT", Amount: dec(250000), Description: "Credit"},
 		},
 	})
@@ -166,12 +168,24 @@ func (s *EntryRepoSuite) Test_CreateAndGetByID() {
 	s.Equal(s.transactionID, e.TransactionID)
 	s.Equal(s.periodID, e.PeriodID)
 	s.Require().Len(e.Postings, 2)
+	s.Require().NotNil(e.Postings[0].Quantity)
+	s.True(e.Postings[0].Quantity.Equal(qty))
+	s.Require().NotNil(e.Postings[0].UnitPrice)
+	s.True(e.Postings[0].UnitPrice.Equal(unitPrice))
+	s.Nil(e.Postings[1].Quantity)
+	s.Nil(e.Postings[1].UnitPrice)
 
 	fetched, err := s.repo.GetByID(ctx, e.ID)
 	s.Require().NoError(err)
 	s.Equal(e.ID, fetched.ID)
 	s.Equal("JE-2026-000001", fetched.Number)
-	s.Len(fetched.Postings, 2)
+	s.Require().Len(fetched.Postings, 2)
+	s.Require().NotNil(fetched.Postings[0].Quantity)
+	s.True(fetched.Postings[0].Quantity.Equal(qty))
+	s.Require().NotNil(fetched.Postings[0].UnitPrice)
+	s.True(fetched.Postings[0].UnitPrice.Equal(unitPrice))
+	s.Nil(fetched.Postings[1].Quantity)
+	s.Nil(fetched.Postings[1].UnitPrice)
 }
 
 func (s *EntryRepoSuite) Test_Update_DraftOnly() {

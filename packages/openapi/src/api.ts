@@ -8710,6 +8710,10 @@ export interface components {
        * @enum {string}
        */
       direction: "DEBIT" | "CREDIT";
+      /** @example 4 */
+      quantity?: string;
+      /** @example 22000.00 */
+      unitPrice?: string;
     };
     "model.CreateTransactionRequest": {
       /** @example IDR */
@@ -8952,10 +8956,14 @@ export interface components {
       id?: number;
       /** @example 0 */
       position?: number;
+      /** @example 4 */
+      quantity?: string;
       /** @example 100000.00 */
       runningBalance?: string;
       /** @example 100000.00 */
       runningBaseBalance?: string;
+      /** @example 22000.00 */
+      unitPrice?: string;
       workspaceId?: number;
     };
     "model.PublicCoverImage": {

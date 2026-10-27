@@ -98,13 +98,15 @@ func (s *EntryApiSuite) Test_Create_DraftEntry_Successfully() {
 	tDate := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
 	txID := s.ensureTransaction(ws.ID, "Service revenue", "INV-001", tDate)
 
+	qty := decimal.NewFromInt(15)
+	price := decimal.NewFromInt(100000)
 	s.Request(fmt.Sprintf("/workspaces/%d/fin/entries", ws.ID), fiber.MethodPost, model.CreateEntryRequest{
 		TransactionID: txID,
 		PeriodID:      pID,
 		EntryDate:     model.Date(tDate),
 		Description:   "Consulting fees",
 		Postings: []model.CreatePostingRequest{
-			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(1500000)},
+			{AccountID: acc1, Direction: domain.PostingDirectionDebit, Amount: dec(1500000), Quantity: &qty, UnitPrice: &price},
 			{AccountID: acc2, Direction: domain.PostingDirectionCredit, Amount: dec(1500000)},
 		},
 	})
@@ -114,6 +116,12 @@ func (s *EntryApiSuite) Test_Create_DraftEntry_Successfully() {
 	s.Equal("Consulting fees", res.Data.Description)
 	s.Equal(domain.EntryStatusDraft, res.Data.Status)
 	s.Require().Len(res.Data.Postings, 2)
+	s.Require().NotNil(res.Data.Postings[0].Quantity)
+	s.True(res.Data.Postings[0].Quantity.Equal(qty))
+	s.Require().NotNil(res.Data.Postings[0].UnitPrice)
+	s.True(res.Data.Postings[0].UnitPrice.Equal(price))
+	s.Nil(res.Data.Postings[1].Quantity)
+	s.Nil(res.Data.Postings[1].UnitPrice)
 }
 
 func (s *EntryApiSuite) Test_GetByID_Successfully() {

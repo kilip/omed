@@ -103,6 +103,34 @@ func (_c *PostingCreate) SetBaseAmount(v decimal.Decimal) *PostingCreate {
 	return _c
 }
 
+// SetQuantity sets the "quantity" field.
+func (_c *PostingCreate) SetQuantity(v decimal.Decimal) *PostingCreate {
+	_c.mutation.SetQuantity(v)
+	return _c
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (_c *PostingCreate) SetNillableQuantity(v *decimal.Decimal) *PostingCreate {
+	if v != nil {
+		_c.SetQuantity(*v)
+	}
+	return _c
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (_c *PostingCreate) SetUnitPrice(v decimal.Decimal) *PostingCreate {
+	_c.mutation.SetUnitPrice(v)
+	return _c
+}
+
+// SetNillableUnitPrice sets the "unit_price" field if the given value is not nil.
+func (_c *PostingCreate) SetNillableUnitPrice(v *decimal.Decimal) *PostingCreate {
+	if v != nil {
+		_c.SetUnitPrice(*v)
+	}
+	return _c
+}
+
 // SetPosition sets the "position" field.
 func (_c *PostingCreate) SetPosition(v int) *PostingCreate {
 	_c.mutation.SetPosition(v)
@@ -336,6 +364,14 @@ func (_c *PostingCreate) createSpec() (*Posting, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.BaseAmount(); ok {
 		_spec.SetField(posting.FieldBaseAmount, field.TypeOther, value)
 		_node.BaseAmount = value
+	}
+	if value, ok := _c.mutation.Quantity(); ok {
+		_spec.SetField(posting.FieldQuantity, field.TypeOther, value)
+		_node.Quantity = &value
+	}
+	if value, ok := _c.mutation.UnitPrice(); ok {
+		_spec.SetField(posting.FieldUnitPrice, field.TypeOther, value)
+		_node.UnitPrice = &value
 	}
 	if value, ok := _c.mutation.Position(); ok {
 		_spec.SetField(posting.FieldPosition, field.TypeInt, value)
@@ -571,6 +607,42 @@ func (u *PostingUpsert) UpdateBaseAmount() *PostingUpsert {
 	return u
 }
 
+// SetQuantity sets the "quantity" field.
+func (u *PostingUpsert) SetQuantity(v decimal.Decimal) *PostingUpsert {
+	u.Set(posting.FieldQuantity, v)
+	return u
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *PostingUpsert) UpdateQuantity() *PostingUpsert {
+	u.SetExcluded(posting.FieldQuantity)
+	return u
+}
+
+// ClearQuantity clears the value of the "quantity" field.
+func (u *PostingUpsert) ClearQuantity() *PostingUpsert {
+	u.SetNull(posting.FieldQuantity)
+	return u
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *PostingUpsert) SetUnitPrice(v decimal.Decimal) *PostingUpsert {
+	u.Set(posting.FieldUnitPrice, v)
+	return u
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *PostingUpsert) UpdateUnitPrice() *PostingUpsert {
+	u.SetExcluded(posting.FieldUnitPrice)
+	return u
+}
+
+// ClearUnitPrice clears the value of the "unit_price" field.
+func (u *PostingUpsert) ClearUnitPrice() *PostingUpsert {
+	u.SetNull(posting.FieldUnitPrice)
+	return u
+}
+
 // SetPosition sets the "position" field.
 func (u *PostingUpsert) SetPosition(v int) *PostingUpsert {
 	u.Set(posting.FieldPosition, v)
@@ -759,6 +831,48 @@ func (u *PostingUpsertOne) SetBaseAmount(v decimal.Decimal) *PostingUpsertOne {
 func (u *PostingUpsertOne) UpdateBaseAmount() *PostingUpsertOne {
 	return u.Update(func(s *PostingUpsert) {
 		s.UpdateBaseAmount()
+	})
+}
+
+// SetQuantity sets the "quantity" field.
+func (u *PostingUpsertOne) SetQuantity(v decimal.Decimal) *PostingUpsertOne {
+	return u.Update(func(s *PostingUpsert) {
+		s.SetQuantity(v)
+	})
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *PostingUpsertOne) UpdateQuantity() *PostingUpsertOne {
+	return u.Update(func(s *PostingUpsert) {
+		s.UpdateQuantity()
+	})
+}
+
+// ClearQuantity clears the value of the "quantity" field.
+func (u *PostingUpsertOne) ClearQuantity() *PostingUpsertOne {
+	return u.Update(func(s *PostingUpsert) {
+		s.ClearQuantity()
+	})
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *PostingUpsertOne) SetUnitPrice(v decimal.Decimal) *PostingUpsertOne {
+	return u.Update(func(s *PostingUpsert) {
+		s.SetUnitPrice(v)
+	})
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *PostingUpsertOne) UpdateUnitPrice() *PostingUpsertOne {
+	return u.Update(func(s *PostingUpsert) {
+		s.UpdateUnitPrice()
+	})
+}
+
+// ClearUnitPrice clears the value of the "unit_price" field.
+func (u *PostingUpsertOne) ClearUnitPrice() *PostingUpsertOne {
+	return u.Update(func(s *PostingUpsert) {
+		s.ClearUnitPrice()
 	})
 }
 
@@ -1122,6 +1236,48 @@ func (u *PostingUpsertBulk) SetBaseAmount(v decimal.Decimal) *PostingUpsertBulk 
 func (u *PostingUpsertBulk) UpdateBaseAmount() *PostingUpsertBulk {
 	return u.Update(func(s *PostingUpsert) {
 		s.UpdateBaseAmount()
+	})
+}
+
+// SetQuantity sets the "quantity" field.
+func (u *PostingUpsertBulk) SetQuantity(v decimal.Decimal) *PostingUpsertBulk {
+	return u.Update(func(s *PostingUpsert) {
+		s.SetQuantity(v)
+	})
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *PostingUpsertBulk) UpdateQuantity() *PostingUpsertBulk {
+	return u.Update(func(s *PostingUpsert) {
+		s.UpdateQuantity()
+	})
+}
+
+// ClearQuantity clears the value of the "quantity" field.
+func (u *PostingUpsertBulk) ClearQuantity() *PostingUpsertBulk {
+	return u.Update(func(s *PostingUpsert) {
+		s.ClearQuantity()
+	})
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *PostingUpsertBulk) SetUnitPrice(v decimal.Decimal) *PostingUpsertBulk {
+	return u.Update(func(s *PostingUpsert) {
+		s.SetUnitPrice(v)
+	})
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *PostingUpsertBulk) UpdateUnitPrice() *PostingUpsertBulk {
+	return u.Update(func(s *PostingUpsert) {
+		s.UpdateUnitPrice()
+	})
+}
+
+// ClearUnitPrice clears the value of the "unit_price" field.
+func (u *PostingUpsertBulk) ClearUnitPrice() *PostingUpsertBulk {
+	return u.Update(func(s *PostingUpsert) {
+		s.ClearUnitPrice()
 	})
 }
 

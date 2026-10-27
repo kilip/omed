@@ -42,6 +42,10 @@ type Posting struct {
 	Amount decimal.Decimal `json:"amount,omitempty"`
 	// BaseAmount holds the value of the "base_amount" field.
 	BaseAmount decimal.Decimal `json:"base_amount,omitempty"`
+	// Quantity holds the value of the "quantity" field.
+	Quantity *decimal.Decimal `json:"quantity,omitempty"`
+	// UnitPrice holds the value of the "unit_price" field.
+	UnitPrice *decimal.Decimal `json:"unit_price,omitempty"`
 	// Position holds the value of the "position" field.
 	Position int `json:"position,omitempty"`
 	// Description holds the value of the "description" field.
@@ -129,6 +133,8 @@ func (*Posting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case posting.FieldQuantity, posting.FieldUnitPrice:
+			values[i] = &sql.NullScanner{S: new(decimal.Decimal)}
 		case posting.FieldAmount, posting.FieldBaseAmount:
 			values[i] = new(decimal.Decimal)
 		case posting.FieldID, posting.FieldWorkspaceID, posting.FieldCreatedBy, posting.FieldUpdatedBy, posting.FieldEntryID, posting.FieldAccountID, posting.FieldPosition:
@@ -217,6 +223,20 @@ func (_m *Posting) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field base_amount", values[i])
 			} else if value != nil {
 				_m.BaseAmount = *value
+			}
+		case posting.FieldQuantity:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field quantity", values[i])
+			} else if value.Valid {
+				_m.Quantity = new(decimal.Decimal)
+				*_m.Quantity = *value.S.(*decimal.Decimal)
+			}
+		case posting.FieldUnitPrice:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field unit_price", values[i])
+			} else if value.Valid {
+				_m.UnitPrice = new(decimal.Decimal)
+				*_m.UnitPrice = *value.S.(*decimal.Decimal)
 			}
 		case posting.FieldPosition:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -320,6 +340,16 @@ func (_m *Posting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("base_amount=")
 	builder.WriteString(fmt.Sprintf("%v", _m.BaseAmount))
+	builder.WriteString(", ")
+	if v := _m.Quantity; v != nil {
+		builder.WriteString("quantity=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.UnitPrice; v != nil {
+		builder.WriteString("unit_price=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("position=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Position))

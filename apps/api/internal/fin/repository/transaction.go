@@ -149,6 +149,8 @@ func (r TransactionRepository) Create(c context.Context, req model.CreateTransac
 						SetDirection(posting.Direction(pReq.Direction)).
 						SetAmount(pReq.Amount).
 						SetBaseAmount(baseAmt).
+						SetNillableQuantity(pReq.Quantity).
+						SetNillableUnitPrice(pReq.UnitPrice).
 						SetPosition(pos)
 
 					pDesc := pReq.Description
