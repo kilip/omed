@@ -28,6 +28,7 @@ export class OmedWorld extends World {
   publishedPostTitle?: string;
   draftPostTitle?: string;
   scheduledPostTitle?: string;
+  consoleLogs: string[] = [];
 
   get client() {
     return testClient;
@@ -42,6 +43,7 @@ export class OmedWorld extends World {
     this.context = context;
     this.page = page;
     this.pages = createPages(page);
+    this.consoleLogs = [];
   }
 
   /** Absolute dashboard URL for a path such as `/login`. */

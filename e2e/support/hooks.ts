@@ -71,11 +71,26 @@ Before(async function (this: OmedWorld) {
     viewport: { width: 1280, height: 800 },
   });
   const page = await context.newPage();
-  page.on("console", (msg) =>
-    console.log(`[browser console ${msg.type()}]: ${msg.text()}`),
-  );
-  page.on("pageerror", (err) => console.error(`[browser pageerror]: ${err}`));
   this.init(context, page);
+  page.on("console", (msg) => {
+    const type = msg.type();
+    const text = msg.text();
+    this.consoleLogs.push(`[${type}] ${text}`);
+    if (type === "debug" || type === "info") return;
+    if (text.includes("[vite]") || text.includes("React DevTools")) return;
+    if (
+      text.startsWith(
+        "Failed to load resource: the server responded with a status of 4",
+      )
+    ) {
+      return;
+    }
+    console.log(`[browser console ${type}]: ${text}`);
+  });
+  page.on("pageerror", (err) => {
+    this.consoleLogs.push(`[pageerror] ${err}`);
+    console.error(`[browser pageerror]: ${err}`);
+  });
 });
 
 /** Signs in through testClient: real user, real session, cookies for dashboard. */
@@ -90,6 +105,9 @@ After(async function (this: OmedWorld, scenario) {
   if (scenario.result?.status === Status.FAILED) {
     const png = await this.page.screenshot({ fullPage: true });
     this.attach(png, "image/png");
+    if (this.consoleLogs.length > 0) {
+      this.attach(this.consoleLogs.join("\n"), "text/plain");
+    }
   }
   try {
     const coverage = await this.page.evaluate(() => {
