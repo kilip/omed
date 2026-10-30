@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0](https://github.com/kilip/omed/compare/v0.6.0...v0.7.0) (2026-10-30)
+
+
+### Features
+
+* **deploy:** ✨ add chart icon ([c531479](https://github.com/kilip/omed/commit/c531479c1fc53fb43048c93be8a9209e9fca8890))
+* **deploy:** ✨ add helm chart for api and web ([9f156a4](https://github.com/kilip/omed/commit/9f156a423b58b56b7b495d05249a2f7af807e4ae))
+* **web:** ✨ load runtime config from config.js ([a4bea57](https://github.com/kilip/omed/commit/a4bea57b52dd3abd6c2eaabb2aa5f7ab12d59804))
+
 ## [0.6.0](https://github.com/kilip/omed/compare/v0.5.0...v0.6.0) (2026-10-27)
 
 

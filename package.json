@@ -28,5 +28,5 @@
     "db:diff": "turbo run db:diff",
     "db:migrate": "turbo run db:migrate"
   },
-  "version": "0.6.0"
+  "version": "0.7.0"
 }
