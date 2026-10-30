@@ -23,7 +23,15 @@ From the OCI registry on GHCR:
 ```bash
 kubectl create secret generic omed-secrets \
   --from-literal=OMED_DB_URL='postgres://user:pass@db:5432/omed?sslmode=require' \
-  --from-literal=OMED_AUTH_SECRET="$(openssl rand -hex 32)"
+  --from-literal=OMED_AUTH_SECRET="$(openssl rand -hex 32)" \
+  --from-literal=OMED_S3_ACCESS_KEY='s3-access-key' \
+  --from-literal=OMED_S3_SECRET_KEY='s3-secret-key' \
+  --from-literal=OMED_MAILER_USER='smtp-user' \
+  --from-literal=OMED_MAILER_PASSWORD='smtp-password' \
+  --from-literal=OMED_GOOGLE_ID='google-client-id' \
+  --from-literal=OMED_GOOGLE_SECRET='google-client-secret' \
+  --from-literal=OMED_GITHUB_ID='github-client-id' \
+  --from-literal=OMED_GITHUB_SECRET='github-client-secret'
 
 helm install omed oci://ghcr.io/kilip/charts/omed \
   --set secrets.existingSecret=omed-secrets \
@@ -49,6 +57,14 @@ With chart-managed secrets (prefer a values file over `--set` so secrets stay ou
 secrets:
   dbUrl: postgres://user:pass@db:5432/omed?sslmode=require
   authSecret: <at least 32 random characters>
+  s3AccessKey: s3-access-key
+  s3SecretKey: s3-secret-key
+  mailerUser: smtp-user
+  mailerPassword: smtp-password
+  googleClientId: google-client-id
+  googleClientSecret: google-client-secret
+  githubClientId: github-client-id
+  githubClientSecret: github-client-secret
 ingress:
   className: nginx
   web: { host: app.example.com }
@@ -66,14 +82,73 @@ helm install omed deploy/helm/omed -f my-values.yaml
 
 Both containers load the Secret with `envFrom`, so its keys are the env var names:
 
-| Key | Required | Purpose |
-| --- | --- | --- |
-| `OMED_DB_URL` | yes | PostgreSQL connection string |
-| `OMED_AUTH_SECRET` | yes | Session signing secret, at least 32 bytes in production |
-| `OMED_GOOGLE_ID`, `OMED_GOOGLE_SECRET` | no | Google OAuth |
-| `OMED_GITHUB_ID`, `OMED_GITHUB_SECRET` | no | GitHub OAuth |
-| `OMED_MAILER_USER`, `OMED_MAILER_PASSWORD` | no | SMTP credentials |
-| `OMED_S3_ACCESS_KEY`, `OMED_S3_SECRET_KEY` | no | S3 credentials |
+| Env Var Key | Values Key (`secrets.*`) | Required | Purpose |
+| --- | --- | --- | --- |
+| `OMED_DB_URL` | `dbUrl` | yes | PostgreSQL connection string |
+| `OMED_AUTH_SECRET` | `authSecret` | yes | Session signing secret, at least 32 bytes in production |
+| `OMED_S3_ACCESS_KEY` | `s3AccessKey` | no | S3 access key ID |
+| `OMED_S3_SECRET_KEY` | `s3SecretKey` | no | S3 secret access key |
+| `OMED_MAILER_USER` | `mailerUser` | no | SMTP username |
+| `OMED_MAILER_PASSWORD` | `mailerPassword` | no | SMTP password |
+| `OMED_GOOGLE_ID` | `googleClientId` | no | Google OAuth client ID |
+| `OMED_GOOGLE_SECRET` | `googleClientSecret` | no | Google OAuth client secret |
+| `OMED_GITHUB_ID` | `githubClientId` | no | GitHub OAuth client ID |
+| `OMED_GITHUB_SECRET` | `githubClientSecret` | no | GitHub OAuth client secret |
+
+### Example: Gmail SMTP Setup
+
+To configure email delivery via Gmail SMTP:
+
+> [!NOTE]
+> Gmail requires a 16-character **App Password** (not your standard Google account password). Enable 2-Step Verification on your Google Account and generate an App Password under **Security > 2-Step Verification > App passwords**.
+
+1. Configure SMTP in `my-values.yaml`:
+
+   ```yaml
+   api:
+     config:
+       mailer:
+         driver: smtp
+         host: smtp.gmail.com
+         port: 587
+         fromAddress: your-email@gmail.com
+         fromName: "Omed"
+         insecureTLS: false
+   ```
+
+2. Add credentials to your secret:
+
+   - **External secret (`secrets.existingSecret`):**
+     ```bash
+     kubectl create secret generic omed-secrets \
+       --from-literal=OMED_MAILER_USER='your-email@gmail.com' \
+       --from-literal=OMED_MAILER_PASSWORD='xxxx xxxx xxxx xxxx' \
+       # ... other secrets (OMED_DB_URL, OMED_AUTH_SECRET, etc.)
+     ```
+   - **Chart-managed secret:**
+     ```yaml
+     secrets:
+       mailerUser: "your-email@gmail.com"
+       mailerPassword: "xxxx xxxx xxxx xxxx"
+     ```
+
+### Secret Management Options
+
+1. **External Secret (`secrets.existingSecret`):**
+   Recommended for GitOps / production. Create the Kubernetes Secret beforehand using `kubectl` or an operator (e.g. External Secrets Operator, Sealed Secrets):
+
+   ```bash
+   kubectl create secret generic omed-secrets \
+     --from-literal=OMED_DB_URL='postgres://omed:pass@paradedb-rw.storage.svc:5432/omed?sslmode=disable' \
+     --from-literal=OMED_AUTH_SECRET="$(openssl rand -hex 32)" \
+     --from-literal=OMED_S3_ACCESS_KEY='minioadmin' \
+     --from-literal=OMED_S3_SECRET_KEY='minioadmin'
+   ```
+
+   Then set `secrets.existingSecret: omed-secrets` in your values. When `existingSecret` is configured, chart-managed secret values are ignored.
+
+2. **Chart-managed Secret:**
+   Define the values under `secrets.*` in your values file. The chart creates a hook Secret (`pre-install,pre-upgrade`, weight `-10`) so the migration Job can read it before the application pods start.
 
 > **Note:** The chart-managed Secret is a Helm hook (`pre-install,pre-upgrade`, weight `-10`) so the migration Job can read it. Helm does **not** delete hook resources on `helm uninstall`. Delete it manually: `kubectl delete secret <release>-omed`. With `secrets.existingSecret` this does not apply.
 
