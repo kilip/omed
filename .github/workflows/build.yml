@@ -91,3 +91,63 @@ jobs:
         run: |
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           helm push .cr-release-packages/omed-*.tgz "oci://ghcr.io/${OWNER}/charts"
+
+  deploy-nightly:
+    name: Update homelab omed-nightly
+    needs: build
+    if: github.event_name != 'release' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.ASPRI_CLIENT_ID }}
+          private-key: ${{ secrets.ASPRI_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: homelab
+
+      - name: Checkout homelab repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/homelab
+          token: ${{ steps.app-token.outputs.token }}
+          path: homelab
+
+      - name: Update omed-nightly image tag
+        env:
+          SIGNING_KEY: ${{ secrets.ASPRI_SIGN_KEY }}
+          SIGN_NAME: ${{ vars.SIGN_NAME }}
+          SIGN_EMAIL: ${{ vars.SIGN_EMAIL }}
+        run: |
+          cd homelab
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          NEW_TAG="sha-${SHORT_SHA}"
+
+          echo "Updating omed-nightly image tag to ${NEW_TAG}..."
+          yq -i ".spec.values.api.image.tag = \"${NEW_TAG}\"" k8s/apps/omed-nightly/app/helmrelease.yaml
+          yq -i ".spec.values.web.image.tag = \"${NEW_TAG}\"" k8s/apps/omed-nightly/app/helmrelease.yaml
+
+          if git diff --quiet k8s/apps/omed-nightly/app/helmrelease.yaml; then
+            echo "No changes in image tag."
+            exit 0
+          fi
+
+          if [[ -n "${SIGNING_KEY:-}" ]]; then
+            mkdir -p ~/.ssh
+            printf '%s\n' "$SIGNING_KEY" > ~/.ssh/signing_key
+            chmod 600 ~/.ssh/signing_key
+            git config --global gpg.format ssh
+            git config --global user.signingkey ~/.ssh/signing_key
+            git config --global commit.gpgsign true
+          fi
+
+          AUTHOR_NAME="${SIGN_NAME:-github-actions[bot]}"
+          AUTHOR_EMAIL="${SIGN_EMAIL:-github-actions[bot]@users.noreply.github.com}"
+          git config user.name "$AUTHOR_NAME"
+          git config user.email "$AUTHOR_EMAIL"
+
+          git add k8s/apps/omed-nightly/app/helmrelease.yaml
+          git commit -m "chore: 🔧 update omed-nightly image tag to ${NEW_TAG}"
+          git push origin main
+
