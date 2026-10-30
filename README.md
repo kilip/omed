@@ -181,7 +181,15 @@ docker build -f apps/api/Dockerfile -t omed-api .
 docker build -f apps/web/Dockerfile -t omed-web .
 ```
 
-The `build.yml` workflow pushes images to `ghcr.io/<owner>/omed/<app>` (`nightly`/`sha-*` tags for pushes to `main`, semver + `latest` for releases).
+The `build.yml` workflow pushes images to `ghcr.io/<owner>/omed-<app>` (for example `ghcr.io/kilip/omed-api`), with `nightly`/`sha-*` tags for pushes to `main` and semver + `latest` for releases.
+
+### Web runtime config
+
+`VITE_*` values are baked in at build time. The `omed-web` image can override them at container start through `OMED_WEB_*` env vars (`OMED_WEB_API_URL`, `OMED_WEB_PUBLIC_URL`, `OMED_WEB_ATTACHMENT_MAX_SIZE_MB`, `OMED_WEB_ATTACHMENT_ALLOWED_TYPES`, `OMED_WEB_CMS_MEDIA_MAX_SIZE_MB`, `OMED_WEB_CMS_MEDIA_ALLOWED_TYPES`). `apps/web/docker-entrypoint.sh` renders them into `/config.js`, which the app reads before falling back to the build-time values:
+
+```bash
+docker run -p 3000:3000 -e OMED_WEB_API_URL=https://api.example.com omed-web
+```
 
 ### Running Migrations in Production
 
@@ -191,6 +199,19 @@ The `omed-api` image embeds `apps/api/migrations` in `/api` and also includes `/
    Run the same `omed-api` image with `["/api", "migrate"]` (or `["/atlas", "migrate", "apply", "--config", "file:///atlas.hcl", "--env", "local"]`) before starting the API service.
 2. **Single-Container Auto-Migrate on Startup:**
    Set `OMED_DB_MIGRATE_ON_START=true` on the `omed-api` container to automatically apply pending versioned migrations (with a PostgreSQL advisory lock) before listening on port `8001`.
+
+## Kubernetes (Helm)
+
+The Helm chart in [`deploy/helm/omed`](./deploy/helm/omed) deploys `api` and `web`, runs migrations as a pre-install/pre-upgrade hook Job, and exposes both through an Ingress. PostgreSQL, S3, and SMTP are external.
+
+```bash
+helm install omed deploy/helm/omed \
+  --set secrets.existingSecret=omed-secrets \
+  --set ingress.web.host=app.example.com \
+  --set ingress.api.host=api.example.com
+```
+
+See the [chart README](./deploy/helm/omed/README.md) for secrets, values, and URL derivation.
 
 ## Contributing
 

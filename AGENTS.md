@@ -154,3 +154,17 @@ e2e/
 - Put a step in `steps/common/` only when more than one module uses it.
 - Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the API test endpoints (`support/test-client.ts`), and removes the user afterwards.
 
+
+## 6. Deployment (`deploy/helm`)
+
+The Helm chart lives in `deploy/helm/omed` and deploys `api` and `web`. Postgres, S3, and SMTP are external. See [`deploy/helm/omed/README.md`](./deploy/helm/omed/README.md).
+
+- When you add or change an `OMED_*` env var in `apps/api/internal/config/config.go`, update the chart too:
+  - non-secret vars go in `values.yaml`, `values.schema.json`, and the `omed.api.env` helper in `templates/_helpers.tpl`;
+  - secret vars go in `templates/secret.yaml` and the Secrets table in the chart README.
+- The web app reads runtime config from `window.__OMED_CONFIG__` (`/config.js`). When you add a `VITE_*` var that must change per environment, also add it to:
+  - `RuntimeConfig` in `apps/web/app/lib/env.ts`;
+  - `apps/web/docker-entrypoint.sh` (as `OMED_WEB_*`);
+  - `web.config` in the chart.
+- Do not hand-edit `version`/`appVersion` in `Chart.yaml`. release-please bumps them (`x-release-please-version` markers).
+- After chart changes, run `helm lint deploy/helm/omed --strict -f deploy/helm/omed/ci/full-values.yaml` and `helm template omed deploy/helm/omed -f deploy/helm/omed/ci/full-values.yaml | kubeconform -strict -summary`. Use the `deploy` commit scope.
