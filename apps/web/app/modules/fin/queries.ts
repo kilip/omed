@@ -223,14 +223,20 @@ export const financialSummaryQueryOptions = (wid: number, months = 6) =>
   });
 
 /** Recent journal entries query options. */
-export const recentEntriesQueryOptions = (wid: number, limit = 5) =>
+export const recentEntriesQueryOptions = (
+  wid: number,
+  limit = 5,
+  status?: "DRAFT" | "POSTED" | "VOID",
+) =>
   queryOptions({
-    queryKey: [...entryKeys.all(wid), "recent", limit] as const,
+    queryKey: status
+      ? ([...entryKeys.all(wid), "recent", limit, status] as const)
+      : ([...entryKeys.all(wid), "recent", limit] as const),
     queryFn: () =>
       unwrapList(
         api.POST("/workspaces/{wid}/fin/entries/search", {
           params: { path: { wid } },
-          body: { limit },
+          body: { limit, ...(status ? { status } : {}) },
         }),
       ),
   });

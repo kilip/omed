@@ -10,6 +10,7 @@ import {
   DashboardOutlined,
   DollarOutlined,
   FileTextOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { defineModule } from "~/lib/modules";
 
@@ -86,6 +87,12 @@ export default defineModule({
           icon: AccountBookOutlined,
         },
       ],
+    },
+    {
+      key: "settings",
+      path: "settings",
+      labelKey: "fin.menu.settings",
+      icon: SettingOutlined,
     },
   ],
 });

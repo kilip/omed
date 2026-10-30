@@ -52,6 +52,7 @@ describe("FinLauncher component", () => {
       "/fin/journal",
       "/fin/ledger",
       "/fin/trial-balance",
+      "/fin/settings",
     ];
 
     for (const link of expectedLinks) {
@@ -68,6 +69,7 @@ describe("FinLauncher component", () => {
     expect(html).toContain("fin.menu.journal");
     expect(html).toContain("fin.menu.ledger");
     expect(html).toContain("fin.menu.trialBalance");
+    expect(html).toContain("fin.menu.settings");
   });
 });
 
@@ -75,7 +77,17 @@ describe("fin module configuration", () => {
   it("defines expected top-level menu and accounting sub-menu", () => {
     expect(finModule.id).toBe("fin");
     const menuKeys = finModule.menu.map((m) => m.key);
-    expect(menuKeys).toEqual(["overview", "income", "expense", "accounting"]);
+    expect(menuKeys).toEqual([
+      "overview",
+      "income",
+      "expense",
+      "accounting",
+      "settings",
+    ]);
+
+    const settings = finModule.menu.find((m) => m.key === "settings");
+    expect(settings?.path).toBe("settings");
+    expect(settings?.labelKey).toBe("fin.menu.settings");
 
     const overview = finModule.menu.find((m) => m.key === "overview");
     expect(overview?.path).toBe("overview");

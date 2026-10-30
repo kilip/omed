@@ -8,6 +8,7 @@ import {
   DashboardOutlined,
   DollarOutlined,
   FileTextOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { createElement } from "react";
 import { useTranslation } from "react-i18next";
@@ -75,6 +76,12 @@ export const finLauncherItems = [
     to: "/fin/trial-balance",
     labelKey: "fin.menu.trialBalance",
     icon: AccountBookOutlined,
+  },
+  {
+    key: "settings",
+    to: "/fin/settings",
+    labelKey: "fin.menu.settings",
+    icon: SettingOutlined,
   },
 ];
 

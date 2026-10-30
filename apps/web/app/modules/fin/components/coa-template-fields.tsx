@@ -246,7 +246,9 @@ export function CoaTemplateFields({
                     {t("fin.onboarding.templateFreelancer")}
                   </Title>
                   <Tag color="orange">
-                    {previewData?.accounts?.length ?? 50} Akun
+                    {t("fin.onboarding.accountsCount", {
+                      count: previewData?.accounts?.length ?? 50,
+                    })}
                   </Tag>
                 </div>
                 <Paragraph type="secondary" style={{ marginBottom: 8 }}>

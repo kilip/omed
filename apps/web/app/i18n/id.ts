@@ -187,6 +187,7 @@ export const id: Translation = {
       journal: "Jurnal umum",
       ledger: "Buku besar",
       trialBalance: "Neraca saldo",
+      settings: "Pengaturan",
     },
     types: {
       ASSET: "Aset",
@@ -198,6 +199,8 @@ export const id: Translation = {
     normal: { DEBIT: "Debit", CREDIT: "Kredit" },
     accounts: {
       code: "Kode",
+      name: "Nama akun",
+      type: "Tipe",
       normalBalance: "Saldo normal",
       postable: "Bisa dijurnal",
       deleteConfirm: "Hapus akun ini?",
@@ -299,10 +302,39 @@ export const id: Translation = {
       preview: "Pratinjau Bagan Akun",
       previewSearchPlaceholder: "Cari nama atau kode akun...",
       filterAll: "Semua",
+      accountsCount: "{{count}} akun",
       next: "Lanjut",
       back: "Kembali",
       finish: "Selesaikan Setup",
       success: "Setup keuangan berhasil dikonfigurasi!",
+    },
+    settings: {
+      title: "Pengaturan Keuangan",
+      subtitle:
+        "Konfigurasi mata uang dasar, format desimal, periode akuntansi, dan bagan akun.",
+      currencyFormatTitle: "Mata Uang & Format Angka",
+      currencyFormatDesc:
+        "Mata uang dasar untuk pencatatan keuangan dan format angka.",
+      currencyLockedTooltip:
+        "Mata uang dasar tidak dapat diubah setelah ada entri yang diposting.",
+      fiscalPeriodsTitle: "Periode Akuntansi",
+      fiscalPeriodsDesc: "Kelola periode akuntansi dan tahun fiskal.",
+      newPeriod: "Periode Baru",
+      allPeriodsLink: "Lihat semua periode",
+      coaFxTitle: "Bagan Akun & Pemetaan Kurs",
+      coaFxDesc:
+        "Terapkan template bagan akun atau atur akun laba/rugi selisih kurs.",
+      seedTemplateButton: "Terapkan Template",
+      seedTemplateSuccess: "Bagan akun berhasil dibuat",
+      fxAccountsTitle: "Akun Selisih Kurs & Pembulatan",
+      realizedGainAccount: "Akun Laba Selisih Kurs Terealisasi",
+      realizedLossAccount: "Akun Rugi Selisih Kurs Terealisasi",
+      unrealizedGainAccount: "Akun Laba Selisih Kurs Belum Terealisasi",
+      unrealizedLossAccount: "Akun Rugi Selisih Kurs Belum Terealisasi",
+      roundingAccount: "Akun Selisih Pembulatan",
+      saveChanges: "Simpan Perubahan",
+      saveSuccess: "Pengaturan berhasil disimpan",
+      createPeriodSuccess: "Periode akuntansi berhasil dibuat",
     },
     openingBalance: {
       title: "Saldo Awal",

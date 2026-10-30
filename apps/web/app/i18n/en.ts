@@ -184,6 +184,7 @@ export const en = {
       journal: "Journal entries",
       ledger: "General ledger",
       trialBalance: "Trial balance",
+      settings: "Settings",
     },
     types: {
       ASSET: "Asset",
@@ -195,6 +196,8 @@ export const en = {
     normal: { DEBIT: "Debit", CREDIT: "Credit" },
     accounts: {
       code: "Code",
+      name: "Account name",
+      type: "Type",
       normalBalance: "Normal balance",
       postable: "Postable",
       deleteConfirm: "Delete this account?",
@@ -298,10 +301,39 @@ export const en = {
       preview: "Chart of Accounts Preview",
       previewSearchPlaceholder: "Search account code or name...",
       filterAll: "All",
+      accountsCount: "{{count}} accounts",
       next: "Next",
       back: "Back",
       finish: "Complete Setup",
       success: "Finance workspace configured successfully!",
+    },
+    settings: {
+      title: "Finance Settings",
+      subtitle:
+        "Configure base currency, decimal formatting, fiscal periods, and chart of accounts.",
+      currencyFormatTitle: "Currency & Number Format",
+      currencyFormatDesc:
+        "Base currency for financial records and number formatting style.",
+      currencyLockedTooltip:
+        "Base currency cannot be changed once posted entries exist.",
+      fiscalPeriodsTitle: "Fiscal Periods",
+      fiscalPeriodsDesc: "Manage accounting periods and fiscal calendar.",
+      newPeriod: "New Period",
+      allPeriodsLink: "View all periods",
+      coaFxTitle: "Chart of Accounts & FX Mappings",
+      coaFxDesc:
+        "Setup chart of accounts template or configure foreign exchange gain/loss accounts.",
+      seedTemplateButton: "Apply Template",
+      seedTemplateSuccess: "Chart of accounts seeded successfully",
+      fxAccountsTitle: "Foreign Exchange & Rounding Accounts",
+      realizedGainAccount: "Realized FX Gain Account",
+      realizedLossAccount: "Realized FX Loss Account",
+      unrealizedGainAccount: "Unrealized FX Gain Account",
+      unrealizedLossAccount: "Unrealized FX Loss Account",
+      roundingAccount: "Rounding Difference Account",
+      saveChanges: "Save Changes",
+      saveSuccess: "Settings saved successfully",
+      createPeriodSuccess: "Fiscal period created successfully",
     },
     openingBalance: {
       title: "Opening Balance",
