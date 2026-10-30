@@ -43,7 +43,8 @@ omed/
 - The dashboard is split into modules (`core`, `fin`, `cms`), each under `apps/web/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
   - **Finance (`fin`) module routes & capabilities:**
     - `/fin`: Finance dashboard with financial overview and status metrics.
-    - `/fin/setup`: Template-based initial Chart of Accounts setup (`POST /workspaces/{wid}/fin/accounts/seed`).
+    - `/fin/onboarding`: 2-step financial onboarding wizard configuring currency, fiscal period, and CoA template.
+    - `/fin/settings`: Finance workspace settings for currency format, fiscal periods, and FX accounts.
     - `/fin/accounts`: Tree-table Chart of Accounts with account type, balance classification, active state, and ledger navigation.
     - `/fin/transactions`: Business transactions list with search and filtering by reference/source/date, and drawer for creating transactions with optional inline entries.
     - `/fin/transactions/:id`: Transaction detail screen with editable header (for draft entries), list of associated journal entries, and entry creation modal.

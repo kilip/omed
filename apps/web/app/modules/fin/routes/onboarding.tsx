@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { redirect, useNavigate } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
-import { ApiError, api, unwrapOne } from "~/lib/api";
+import { api, unwrapOne } from "~/lib/api";
 import { setActiveDecimalStyle } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { requireWorkspaceId } from "~/lib/workspace";
@@ -38,6 +38,10 @@ export async function clientLoader() {
     return redirect("/fin");
   }
   return { wid };
+}
+
+export function shouldRevalidate() {
+  return false;
 }
 
 export interface OnboardingProps {
@@ -95,8 +99,9 @@ export default function Onboarding({ loaderData }: OnboardingProps) {
             body: { baseCurrency },
           }),
         );
-      } catch (err) {
-        if (!(err instanceof ApiError && err.status === 409)) {
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status;
+        if (status !== 409) {
           throw err;
         }
       }
@@ -110,8 +115,9 @@ export default function Onboarding({ loaderData }: OnboardingProps) {
               body: { template, lang },
             }),
           );
-        } catch (err) {
-          if (!(err instanceof ApiError && err.status === 409)) {
+        } catch (err: unknown) {
+          const status = (err as { status?: number })?.status;
+          if (status !== 409) {
             throw err;
           }
         }
@@ -131,19 +137,16 @@ export default function Onboarding({ loaderData }: OnboardingProps) {
             },
           }),
         );
-      } catch (err) {
-        if (
-          !(
-            err instanceof ApiError &&
-            (err.code === "PERIOD_OVERLAP" || err.status === 409)
-          )
-        ) {
+      } catch (err: unknown) {
+        const status = (err as { status?: number; code?: string })?.status;
+        const code = (err as { status?: number; code?: string })?.code;
+        if (status !== 409 && code !== "PERIOD_OVERLAP") {
           throw err;
         }
       }
 
-      // 4. Update settings
-      await unwrapOne(
+      // 4. Update settings (decimalStyle & onboarding)
+      const updatedSettings = await unwrapOne(
         api.PUT("/workspaces/{wid}/fin/settings", {
           params: { path: { wid } },
           body: { decimalStyle, onboarding: true },
@@ -152,6 +155,7 @@ export default function Onboarding({ loaderData }: OnboardingProps) {
 
       // 5. Update local state & invalidations
       setActiveDecimalStyle(decimalStyle);
+      queryClient.setQueryData(settingKeys.all(wid), updatedSettings);
       await queryClient.invalidateQueries({ queryKey: settingKeys.all(wid) });
       await queryClient.invalidateQueries({ queryKey: accountKeys.all(wid) });
       await queryClient.invalidateQueries({ queryKey: periodKeys.all(wid) });

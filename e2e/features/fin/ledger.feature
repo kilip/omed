@@ -7,11 +7,9 @@ Feature: Finance General Ledger
 
   Background:
     Given I have a personal workspace
-    When I open "/fin/overview"
-    When I click the setup chart of accounts banner button
-    Then I am on "/fin/setup"
+    When I open "/fin/onboarding"
     When I click the apply template button
-    Then I am on "/fin/accounts"
+    Then I am on "/fin"
 
   Scenario: Post a journal entry and view it in General Ledger
     When I open "/fin/journal"

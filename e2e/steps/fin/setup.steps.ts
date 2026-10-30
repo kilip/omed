@@ -19,6 +19,24 @@ When("I click the apply template button", async function (this: OmedWorld) {
   await this.pages.fin.setup.clickApplyTemplate();
 });
 
+When(
+  "I select decimal style {string}",
+  async function (this: OmedWorld, style: string) {
+    if (style !== "dot" && style !== "comma") {
+      throw new Error(`Invalid decimal style: ${style}`);
+    }
+    await this.pages.fin.setup.selectDecimalStyle(style);
+  },
+);
+
+When("I click the wizard next button", async function (this: OmedWorld) {
+  await this.pages.fin.setup.clickNext();
+});
+
+When("I click the wizard complete button", async function (this: OmedWorld) {
+  await this.pages.fin.setup.clickFinish();
+});
+
 Then("I see the accounts empty state", async function (this: OmedWorld) {
   await this.pages.fin.accounts.expectEmptyStateVisible();
 });

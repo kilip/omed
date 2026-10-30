@@ -6,11 +6,9 @@ Feature: Finance Journal Entries
 
   Background:
     Given I have a personal workspace
-    When I open "/fin/overview"
-    When I click the setup chart of accounts banner button
-    Then I am on "/fin/setup"
+    When I open "/fin/onboarding"
     When I click the apply template button
-    Then I am on "/fin/accounts"
+    Then I am on "/fin"
 
   Scenario: Create a balanced draft journal entry with new transaction
     When I open "/fin/journal"

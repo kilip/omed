@@ -6,18 +6,18 @@ Feature: Finance Accounting Periods
 
   Scenario: Initial period created after setup and visible in periods table
     Given I have a personal workspace
-    When I open "/fin/setup"
+    When I open "/fin/onboarding"
     Then I see the setup initial period form
     When I click the apply template button
-    Then I am on "/fin/accounts"
+    Then I am on "/fin"
     When I open "/fin/periods"
     Then I see period "FY 2026" with status "Open" in the periods table
 
   Scenario: Create, close, reopen, and delete an accounting period
     Given I have a personal workspace
-    When I open "/fin/setup"
+    When I open "/fin/onboarding"
     When I click the apply template button
-    Then I am on "/fin/accounts"
+    Then I am on "/fin"
     When I open "/fin/periods"
     When I click the new period button
     And I fill the period form with name "FY 2027" and fiscal year 2027

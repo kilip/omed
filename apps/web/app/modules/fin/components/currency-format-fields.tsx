@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, Col, Radio, Row, Typography } from "antd";
+import { Card, Col, Radio, Row, Tooltip, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { formatMoney } from "~/lib/format";
 import { currenciesQueryOptions } from "../queries";
@@ -46,14 +46,24 @@ export function CurrencyFormatFields({
           </Paragraph>
         </div>
         <div className="max-w-md">
-          <CurrencySelect
-            currencies={currencies}
-            value={baseCurrency}
-            onChange={onBaseCurrencyChange}
-            disabled={baseCurrencyDisabled}
-            loading={isLoading}
-            className="w-full"
-          />
+          <Tooltip
+            title={
+              baseCurrencyDisabled
+                ? t("fin.settings.currencyLockedTooltip")
+                : undefined
+            }
+          >
+            <div>
+              <CurrencySelect
+                currencies={currencies}
+                value={baseCurrency}
+                onChange={onBaseCurrencyChange}
+                disabled={baseCurrencyDisabled}
+                loading={isLoading}
+                className="w-full"
+              />
+            </div>
+          </Tooltip>
         </div>
       </div>
 

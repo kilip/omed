@@ -12,18 +12,18 @@ When("I reload the page", async function (this: OmedWorld) {
 
 Then("I am on {string}", async function (this: OmedWorld, path: string) {
   // Auth redirects happen client side, so wait for the final URL.
-  await this.page.waitForURL(
-    (url) =>
-      url.pathname === path ||
-      url.pathname.startsWith(path.endsWith("/") ? path : `${path}/`),
-    {
-      timeout: 15_000,
-    },
-  );
+  const isMatch = (urlPath: string) => {
+    if (urlPath === path || urlPath === `${path}/`) return true;
+    if (path === "/" || path === "/fin") return false;
+    return urlPath.startsWith(path.endsWith("/") ? path : `${path}/`);
+  };
+
+  await this.page.waitForURL((url) => isMatch(url.pathname), {
+    timeout: 15_000,
+  });
   const pathname = new URL(this.page.url()).pathname;
   assert.ok(
-    pathname === path ||
-      pathname.startsWith(path.endsWith("/") ? path : `${path}/`),
-    `Expected URL pathname to be or start with "${path}", got "${pathname}"`,
+    isMatch(pathname),
+    `Expected URL pathname to match "${path}", got "${pathname}"`,
   );
 });

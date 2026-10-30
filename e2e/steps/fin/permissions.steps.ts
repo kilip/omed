@@ -39,6 +39,16 @@ Given(
     );
     const period = await testClient.ensureOpenPeriod(ws.id, ownerSession.token);
 
+    // Mark workspace as onboarded so permission test user is not redirected to onboarding
+    await testClient.authenticatedRequest(
+      ownerSession.token,
+      `/workspaces/${ws.id}/fin/settings`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ onboarding: true, decimalStyle: "dot" }),
+      },
+    );
+
     // Get accounts to find valid postable debit & credit accounts
     const accountsRes = await testClient.authenticatedRequest<{
       data?: Array<{ id?: number; code?: string; isPostable?: boolean }>;

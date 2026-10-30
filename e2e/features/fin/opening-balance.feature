@@ -7,11 +7,9 @@ Feature: Opening Balance Setup and Management
   @opening-balance
   Scenario: Setup chart of accounts and input opening balance
     Given I have a personal workspace
-    When I open "/fin/overview"
-    When I click the setup chart of accounts banner button
-    Then I am on "/fin/setup"
+    When I open "/fin/onboarding"
     When I click the apply template button
-    Then I am on "/fin/accounts"
+    Then I am on "/fin"
     When I open "/fin/opening-balance"
     Then I am on "/fin/opening-balance"
     When I input opening balance for account "1121" with amount "10000000"
