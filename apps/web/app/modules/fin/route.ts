@@ -6,7 +6,12 @@ import {
 } from "@react-router/dev/routes";
 
 export default prefix("fin", [
-  index("modules/fin/routes/dashboard.tsx"),
+  index("modules/fin/routes/launcher.tsx"),
+  route("overview", "modules/fin/routes/dashboard.tsx"),
+  route("income", "modules/fin/routes/income.tsx"),
+  route("income/new", "modules/fin/routes/income-new.tsx"),
+  route("expense", "modules/fin/routes/expense.tsx"),
+  route("expense/new", "modules/fin/routes/expense-new.tsx"),
   route("accounts", "modules/fin/routes/accounts.tsx"),
   route("periods", "modules/fin/routes/periods.tsx"),
   route("opening-balance", "modules/fin/routes/opening-balance.tsx"),

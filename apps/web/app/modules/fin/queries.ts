@@ -14,6 +14,10 @@ type SearchPeriodFilters = NonNullable<
   paths["/workspaces/{wid}/fin/periods/search"]["post"]["requestBody"]
 >["content"]["application/json"];
 
+export type CashFlowFilters = NonNullable<
+  paths["/workspaces/{wid}/fin/income/search"]["post"]["requestBody"]
+>["content"]["application/json"];
+
 export const accountKeys = {
   all: (wid: number) => ["fin", "workspaces", wid, "accounts"] as const,
 };
@@ -42,6 +46,18 @@ export const transactionKeys = {
     [...transactionKeys.all(wid), "infinite", filters] as const,
   detail: (wid: number, id: number) =>
     [...transactionKeys.all(wid), "detail", id] as const,
+};
+
+export const incomeKeys = {
+  all: (wid: number) => ["fin", "workspaces", wid, "income"] as const,
+  infinite: (wid: number, filters?: CashFlowFilters) =>
+    [...incomeKeys.all(wid), "infinite", filters] as const,
+};
+
+export const expenseKeys = {
+  all: (wid: number) => ["fin", "workspaces", wid, "expense"] as const,
+  infinite: (wid: number, filters?: CashFlowFilters) =>
+    [...expenseKeys.all(wid), "infinite", filters] as const,
 };
 
 export const ledgerKeys = {
@@ -237,6 +253,52 @@ export const transactionsInfiniteQueryOptions = (
     queryFn: ({ pageParam }) =>
       unwrapPage(
         api.POST("/workspaces/{wid}/fin/transactions/search", {
+          params: { path: { wid } },
+          body: {
+            ...filters,
+            cursor: pageParam || undefined,
+            limit,
+          },
+        }),
+      ),
+    initialPageParam: "",
+    getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+  });
+
+/** Infinite query options for income cash flows. */
+export const incomesInfiniteQueryOptions = (
+  wid: number,
+  filters?: CashFlowFilters,
+  limit = 20,
+) =>
+  infiniteQueryOptions({
+    queryKey: incomeKeys.infinite(wid, filters),
+    queryFn: ({ pageParam }) =>
+      unwrapPage(
+        api.POST("/workspaces/{wid}/fin/income/search", {
+          params: { path: { wid } },
+          body: {
+            ...filters,
+            cursor: pageParam || undefined,
+            limit,
+          },
+        }),
+      ),
+    initialPageParam: "",
+    getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+  });
+
+/** Infinite query options for expense cash flows. */
+export const expensesInfiniteQueryOptions = (
+  wid: number,
+  filters?: CashFlowFilters,
+  limit = 20,
+) =>
+  infiniteQueryOptions({
+    queryKey: expenseKeys.infinite(wid, filters),
+    queryFn: ({ pageParam }) =>
+      unwrapPage(
+        api.POST("/workspaces/{wid}/fin/expense/search", {
           params: { path: { wid } },
           body: {
             ...filters,

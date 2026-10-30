@@ -1,5 +1,7 @@
 import {
   AccountBookOutlined,
+  ArrowDownOutlined,
+  ArrowUpOutlined,
   AuditOutlined,
   BankOutlined,
   BookOutlined,
@@ -19,10 +21,22 @@ export default defineModule({
   order: 30,
   menu: [
     {
-      key: "dashboard",
-      path: "",
-      labelKey: "fin.menu.dashboard",
+      key: "overview",
+      path: "overview",
+      labelKey: "fin.menu.overview",
       icon: DashboardOutlined,
+    },
+    {
+      key: "income",
+      path: "income",
+      labelKey: "fin.menu.income",
+      icon: ArrowDownOutlined,
+    },
+    {
+      key: "expense",
+      path: "expense",
+      labelKey: "fin.menu.expense",
+      icon: ArrowUpOutlined,
     },
     {
       key: "accounting",

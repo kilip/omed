@@ -119,7 +119,7 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
   ];
 
   return (
-    <Page title={t("fin.menu.dashboard")}>
+    <Page title={t("fin.menu.overview")}>
       {accounts.length === 0 && (
         <div
           className="surface flex flex-wrap items-center justify-between gap-4 p-4"
