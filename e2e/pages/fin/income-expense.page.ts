@@ -58,9 +58,7 @@ export class FinIncomeExpensePage extends BasePage {
   }
 
   async selectOption(selectId: string, query: string): Promise<void> {
-    const select = this.page.locator(
-      `.ant-select:has(#${selectId}) .ant-select-selector`,
-    );
+    const select = this.page.locator(`.ant-select:has(#${selectId})`);
     await select.waitFor({ state: "visible" });
     await select.click();
     await this.page.keyboard.type(query);
@@ -72,7 +70,7 @@ export class FinIncomeExpensePage extends BasePage {
       .first();
     await option.waitFor({ state: "visible" });
     await option.click();
-    await this.page.waitForTimeout(100);
+    await option.waitFor({ state: "hidden" });
   }
 
   async selectPaymentAccount(accountQuery: string): Promise<void> {
