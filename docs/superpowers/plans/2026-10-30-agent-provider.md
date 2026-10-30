@@ -134,11 +134,11 @@ e2e/{features/agent/,steps/agent/,pages/agent/}
   func isBlockedIP(ip netip.Addr) bool                      // loopback, private, link-local, unspecified, multicast, 169.254.0.0/16, fc00::/7; unmaps ::ffff:a.b.c.d
   ```
 
-- [ ] **Step 1: Write failing tests.** `TestValidateBaseURL` table, all with `allowPrivate=false` unless noted: `https://api.openai.com/v1` ok; `http://api.example.com` blocked (scheme); `https://user:pw@host/` blocked (userinfo); `ftp://x` blocked; `http://127.0.0.1:11434` ok only with `allowPrivate=true`; plus the Review Focus 5 inputs (`http://2130706433/`, `http://[::ffff:127.0.0.1]/`, `http://localhost./`) blocked when `allowPrivate=false`. `TestGuardBlocksDialToLoopback` (httptest server on 127.0.0.1, client from `newHTTPClient(false)` errors with `ErrBlockedURL`; with `true` succeeds). `TestGuardBlocksHostnameResolvingToPrivate` (use a custom resolver seam, hostname maps to 10.0.0.5, expect blocked). `TestRedirectsAreNotFollowed` (server returns 302; client returns the 302 response without following; status 302 maps to `ErrUnavailable` via `MapHTTPError`).
-- [ ] **Step 2: Run** `go test ./internal/platform/llmx/ -run 'Guard|Validate|Redirect'` Expected: FAIL.
-- [ ] **Step 3: Implement** `guard.go`. Use `net.Dialer{Control: ...}` checking the connecting IP so DNS rebinding cannot bypass; expose a package-private resolver variable for the test; `CheckRedirect` returns `http.ErrUseLastResponse`.
-- [ ] **Step 4: Run** `go test ./internal/platform/llmx/...` Expected: PASS.
-- [ ] **Step 5: Commit** `feat(api): ✨ add llmx url guard`
+- [x] **Step 1: Write failing tests.** `TestValidateBaseURL` table, all with `allowPrivate=false` unless noted: `https://api.openai.com/v1` ok; `http://api.example.com` blocked (scheme); `https://user:pw@host/` blocked (userinfo); `ftp://x` blocked; `http://127.0.0.1:11434` ok only with `allowPrivate=true`; plus the Review Focus 5 inputs (`http://2130706433/`, `http://[::ffff:127.0.0.1]/`, `http://localhost./`) blocked when `allowPrivate=false`. `TestGuardBlocksDialToLoopback` (httptest server on 127.0.0.1, client from `newHTTPClient(false)` errors with `ErrBlockedURL`; with `true` succeeds). `TestGuardBlocksHostnameResolvingToPrivate` (use a custom resolver seam, hostname maps to 10.0.0.5, expect blocked). `TestRedirectsAreNotFollowed` (server returns 302; client returns the 302 response without following; status 302 maps to `ErrUnavailable` via `MapHTTPError`).
+- [x] **Step 2: Run** `go test ./internal/platform/llmx/ -run 'Guard|Validate|Redirect'` Expected: FAIL.
+- [x] **Step 3: Implement** `guard.go`. Use `net.Dialer{Control: ...}` checking the connecting IP so DNS rebinding cannot bypass; expose a package-private resolver variable for the test; `CheckRedirect` returns `http.ErrUseLastResponse`.
+- [x] **Step 4: Run** `go test ./internal/platform/llmx/...` Expected: PASS.
+- [x] **Step 5: Commit** `feat(api): ✨ add llmx url guard`
 
 ### Tasks 4-6: drivers (`openai`, `anthropic`, `gemini`)
 
