@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "definitions": {
+    "image": {
+      "type": "object",
+      "required": ["repository"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string" },
+        "pullPolicy": { "enum": ["Always", "IfNotPresent", "Never"] }
+      }
+    },
+    "hpa": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "minReplicas": { "type": "integer", "minimum": 1 },
+        "maxReplicas": { "type": "integer", "minimum": 1 },
+        "targetCPUUtilizationPercentage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    },
+    "pdb": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "minAvailable": { "type": ["integer", "string"] }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": { "enum": ["ClusterIP", "NodePort", "LoadBalancer"] },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    },
+    "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+    "sizeMB": { "type": "integer", "minimum": 1 },
+    "host": { "type": "string", "minLength": 1 }
+  },
+  "properties": {
+    "global": {
+      "type": "object",
+      "properties": {
+        "imageRegistry": { "type": "string" },
+        "imagePullSecrets": { "type": "array" }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "properties": {
+        "existingSecret": { "type": "string" },
+        "dbUrl": { "type": "string" },
+        "authSecret": { "type": "string" },
+        "googleClientId": { "type": "string" },
+        "googleClientSecret": { "type": "string" },
+        "githubClientId": { "type": "string" },
+        "githubClientSecret": { "type": "string" },
+        "mailerUser": { "type": "string" },
+        "mailerPassword": { "type": "string" },
+        "s3AccessKey": { "type": "string" },
+        "s3SecretKey": { "type": "string" }
+      }
+    },
+    "api": {
+      "type": "object",
+      "properties": {
+        "image": { "$ref": "#/definitions/image" },
+        "replicaCount": { "type": "integer", "minimum": 0 },
+        "port": { "$ref": "#/definitions/port" },
+        "apiUrl": { "type": "string" },
+        "webUrl": { "type": "string" },
+        "trustedOrigins": { "type": "array", "items": { "type": "string" } },
+        "config": {
+          "type": "object",
+          "properties": {
+            "env": { "enum": ["production", "development", "test"] },
+            "sessionCookieName": { "type": "string", "minLength": 1 },
+            "mailer": {
+              "type": "object",
+              "properties": {
+                "driver": { "type": "string" },
+                "host": { "type": "string" },
+                "port": { "$ref": "#/definitions/port" },
+                "fromAddress": { "type": "string" },
+                "fromName": { "type": "string" },
+                "insecureTLS": { "type": "boolean" }
+              }
+            },
+            "s3": {
+              "type": "object",
+              "properties": {
+                "driver": { "type": "string" },
+                "endpoint": { "type": "string" },
+                "region": { "type": "string" },
+                "forcePathStyle": { "type": "boolean" },
+                "bucketPrefix": { "type": "string" }
+              }
+            },
+            "attachment": {
+              "type": "object",
+              "properties": {
+                "maxSizeMB": { "$ref": "#/definitions/sizeMB" },
+                "allowedTypes": { "type": "string" }
+              }
+            },
+            "cmsMedia": {
+              "type": "object",
+              "properties": {
+                "maxSizeMB": { "$ref": "#/definitions/sizeMB" },
+                "allowedTypes": { "type": "string" }
+              }
+            },
+            "rateLimit": {
+              "type": "object",
+              "properties": { "enabled": { "type": "boolean" } }
+            }
+          }
+        },
+        "extraEnv": { "type": "array" },
+        "service": { "$ref": "#/definitions/service" },
+        "hpa": { "$ref": "#/definitions/hpa" },
+        "pdb": { "$ref": "#/definitions/pdb" }
+      }
+    },
+    "web": {
+      "type": "object",
+      "properties": {
+        "image": { "$ref": "#/definitions/image" },
+        "replicaCount": { "type": "integer", "minimum": 0 },
+        "port": { "$ref": "#/definitions/port" },
+        "config": {
+          "type": "object",
+          "properties": {
+            "apiUrl": { "type": "string" },
+            "publicUrl": { "type": "string" },
+            "attachmentMaxSizeMB": { "$ref": "#/definitions/sizeMB" },
+            "attachmentAllowedTypes": { "type": "string" },
+            "cmsMediaMaxSizeMB": { "$ref": "#/definitions/sizeMB" },
+            "cmsMediaAllowedTypes": { "type": "string" }
+          }
+        },
+        "extraEnv": { "type": "array" },
+        "service": { "$ref": "#/definitions/service" },
+        "hpa": { "$ref": "#/definitions/hpa" },
+        "pdb": { "$ref": "#/definitions/pdb" }
+      }
+    },
+    "migrations": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "backoffLimit": { "type": "integer", "minimum": 0 },
+        "activeDeadlineSeconds": { "type": "integer", "minimum": 1 },
+        "ttlSecondsAfterFinished": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "className": { "type": "string" },
+        "annotations": { "type": "object" },
+        "web": {
+          "type": "object",
+          "required": ["host"],
+          "properties": { "host": { "$ref": "#/definitions/host" } }
+        },
+        "api": {
+          "type": "object",
+          "required": ["host"],
+          "properties": { "host": { "$ref": "#/definitions/host" } }
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["hosts"],
+            "properties": {
+              "secretName": { "type": "string" },
+              "hosts": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "ingressNamespaceSelector": { "type": "object" }
+      }
+    }
+  }
+}

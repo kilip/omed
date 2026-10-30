@@ -1,0 +1,197 @@
+# Default values for the omed chart.
+# Postgres, S3-compatible storage, and SMTP are external and not deployed here.
+
+global:
+  # -- Registry prepended to every image repository.
+  imageRegistry: ghcr.io
+  # -- Pull secrets for private registries, e.g. [{ name: ghcr }].
+  imagePullSecrets: []
+
+# -- Override the chart name used in resource names.
+nameOverride: ""
+# -- Override the full resource name prefix.
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Create a ServiceAccount for the release.
+  create: true
+  # -- Name of the ServiceAccount. Defaults to the full name when create is true.
+  name: ""
+  annotations: {}
+  # -- Mount the ServiceAccount token. The apps do not call the Kubernetes API.
+  automountToken: false
+
+secrets:
+  # -- Name of an existing Secret holding the OMED_* secret keys (see README).
+  # When set, the chart does not create a Secret and the values below are ignored.
+  existingSecret: ""
+  # -- OMED_DB_URL. Required when existingSecret is empty.
+  dbUrl: ""
+  # -- OMED_AUTH_SECRET. Required when existingSecret is empty, at least 32 chars.
+  authSecret: ""
+  # -- OMED_GOOGLE_ID
+  googleClientId: ""
+  # -- OMED_GOOGLE_SECRET
+  googleClientSecret: ""
+  # -- OMED_GITHUB_ID
+  githubClientId: ""
+  # -- OMED_GITHUB_SECRET
+  githubClientSecret: ""
+  # -- OMED_MAILER_USER
+  mailerUser: ""
+  # -- OMED_MAILER_PASSWORD
+  mailerPassword: ""
+  # -- OMED_S3_ACCESS_KEY
+  s3AccessKey: ""
+  # -- OMED_S3_SECRET_KEY
+  s3SecretKey: ""
+
+api:
+  image:
+    repository: kilip/omed-api
+    # -- Defaults to the chart appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  port: 8001
+  # -- Public API URL (OMED_API_URL). Defaults to the ingress api host.
+  apiUrl: ""
+  # -- Public web URL (OMED_WEB_URL). Defaults to the ingress web host.
+  webUrl: ""
+  # -- OMED_TRUSTED_ORIGINS. Defaults to [webUrl, apiUrl].
+  trustedOrigins: []
+  # -- Non-secret OMED_* settings, rendered into a ConfigMap.
+  config:
+    env: production
+    sessionCookieName: omed_session
+    mailer:
+      driver: smtp
+      host: ""
+      port: 587
+      fromAddress: no-reply@omed.local
+      fromName: Omed
+      insecureTLS: false
+    s3:
+      driver: s3
+      endpoint: ""
+      region: us-east-1
+      forcePathStyle: true
+      bucketPrefix: omed-ws-
+    attachment:
+      maxSizeMB: 10
+      allowedTypes: .pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx
+    cmsMedia:
+      maxSizeMB: 25
+      allowedTypes: .png,.jpg,.jpeg,.webp,.gif,.pdf
+    rateLimit:
+      enabled: true
+  # -- Extra env vars for the api container (and migration Job).
+  extraEnv: []
+  service:
+    type: ClusterIP
+    port: 8001
+  resources: {}
+  hpa:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    # The distroless "nonroot" user has uid/gid 65532.
+    runAsUser: 65532
+    runAsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+web:
+  image:
+    repository: kilip/omed-web
+    # -- Defaults to the chart appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  port: 3000
+  # -- Runtime config rendered into /config.js (OMED_WEB_* env vars).
+  config:
+    # -- API URL used by the browser. Defaults to the public API URL.
+    apiUrl: ""
+    # -- Public web URL. Defaults to the ingress web host.
+    publicUrl: ""
+    attachmentMaxSizeMB: 10
+    attachmentAllowedTypes: .pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx
+    cmsMediaMaxSizeMB: 25
+    cmsMediaAllowedTypes: .png,.jpg,.jpeg,.webp,.gif,.pdf
+  extraEnv: []
+  service:
+    type: ClusterIP
+    port: 3000
+  resources: {}
+  hpa:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    # The oven/bun image user "bun" has uid/gid 1000.
+    runAsUser: 1000
+    runAsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+migrations:
+  # -- Run `/api migrate` as a pre-install/pre-upgrade hook Job.
+  enabled: true
+  backoffLimit: 1
+  activeDeadlineSeconds: 600
+  # -- Seconds before a finished Job is garbage-collected.
+  ttlSecondsAfterFinished: 3600
+  resources: {}
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  web:
+    host: app.example.com
+  api:
+    host: api.example.com
+  # -- TLS entries, e.g. [{ secretName: omed-tls, hosts: [app.example.com, api.example.com] }].
+  # Hosts listed here get https:// in derived URLs.
+  tls: []
+
+networkPolicy:
+  enabled: false
+  # -- Namespace selector for the ingress controller allowed to reach the pods.
+  ingressNamespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: ingress-nginx

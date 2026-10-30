@@ -1,0 +1,17 @@
+{{- range $component := list "api" "web" }}
+{{- $v := index $.Values $component }}
+{{- if $v.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "omed.fullname" $ }}-{{ $component }}
+  labels:
+    {{- include "omed.labels" (dict "ctx" $ "component" $component) | nindent 4 }}
+spec:
+  minAvailable: {{ $v.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "omed.selectorLabels" (dict "ctx" $ "component" $component) | nindent 6 }}
+{{- end }}
+{{- end }}

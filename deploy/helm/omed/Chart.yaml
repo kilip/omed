@@ -1,0 +1,14 @@
+apiVersion: v2
+name: omed
+description: Omed dashboard (API + web) for Kubernetes
+type: application
+# version and appVersion are bumped by release-please. Do not edit by hand.
+version: 0.6.0 # x-release-please-version
+appVersion: "0.6.0" # x-release-please-version
+home: https://github.com/kilip/omed
+sources:
+  - https://github.com/kilip/omed
+keywords:
+  - omed
+maintainers:
+  - name: Anthonius

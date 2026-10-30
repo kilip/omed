@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "omed.fullname" . }}-web
+  labels:
+    {{- include "omed.labels" (dict "ctx" $ "component" "web") | nindent 4 }}
+spec:
+  {{- if not .Values.web.hpa.enabled }}
+  replicas: {{ .Values.web.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "omed.selectorLabels" (dict "ctx" $ "component" "web") | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.web.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "omed.labels" (dict "ctx" $ "component" "web") | nindent 8 }}
+        {{- with .Values.web.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "omed.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountToken }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.web.podSecurityContext | nindent 8 }}
+      containers:
+        - name: web
+          image: {{ include "omed.image" (dict "ctx" $ "image" .Values.web.image) }}
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.web.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.web.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: {{ .Values.web.port | quote }}
+            - name: OMED_WEB_API_URL
+              value: {{ default (include "omed.apiUrl" .) .Values.web.config.apiUrl | quote }}
+            - name: OMED_WEB_PUBLIC_URL
+              value: {{ default (include "omed.webUrl" .) .Values.web.config.publicUrl | quote }}
+            - name: OMED_WEB_ATTACHMENT_MAX_SIZE_MB
+              value: {{ .Values.web.config.attachmentMaxSizeMB | quote }}
+            - name: OMED_WEB_ATTACHMENT_ALLOWED_TYPES
+              value: {{ .Values.web.config.attachmentAllowedTypes | quote }}
+            - name: OMED_WEB_CMS_MEDIA_MAX_SIZE_MB
+              value: {{ .Values.web.config.cmsMediaMaxSizeMB | quote }}
+            - name: OMED_WEB_CMS_MEDIA_ALLOWED_TYPES
+              value: {{ .Values.web.config.cmsMediaAllowedTypes | quote }}
+            {{- with .Values.web.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+          {{- with .Values.web.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            # docker-entrypoint.sh renders /tmp/omed/config.js here.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.web.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.web.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.web.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

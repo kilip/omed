@@ -1,0 +1,20 @@
+Omed {{ .Chart.AppVersion }} deployed as release "{{ .Release.Name }}".
+
+Web: {{ include "omed.webUrl" . }}
+API: {{ include "omed.apiUrl" . }}
+
+{{- if .Values.migrations.enabled }}
+
+Database migrations ran in the pre-install/pre-upgrade Job "{{ include "omed.fullname" . }}-migrate".
+{{- else }}
+
+Migrations are disabled. Run them yourself before using the API:
+  kubectl -n {{ .Release.Namespace }} run omed-migrate --rm -it --restart=Never \
+    --image={{ include "omed.image" (dict "ctx" $ "image" .Values.api.image) }} -- migrate
+{{- end }}
+
+{{- if not .Values.secrets.existingSecret }}
+
+NOTE: The Secret "{{ include "omed.secretName" . }}" is a Helm hook and is NOT
+deleted by `helm uninstall`. Remove it manually if needed.
+{{- end }}

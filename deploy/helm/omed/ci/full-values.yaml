@@ -1,0 +1,54 @@
+# Every optional feature enabled. Used by CI lint and kubeconform.
+global:
+  imagePullSecrets:
+    - name: ghcr
+
+secrets:
+  dbUrl: postgres://omed:omed@postgres:5432/omed?sslmode=disable
+  authSecret: ci-only-auth-secret-0123456789abcdef
+  googleClientId: google-id
+  googleClientSecret: google-secret
+  mailerUser: mailer
+  mailerPassword: mailer-password
+  s3AccessKey: access
+  s3SecretKey: secret
+
+api:
+  config:
+    mailer:
+      host: smtp.example.com
+    s3:
+      endpoint: https://s3.example.com
+  extraEnv:
+    - name: OMED_READ_TIMEOUT
+      value: 15s
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  hpa:
+    enabled: true
+  pdb:
+    enabled: true
+
+web:
+  extraEnv:
+    - name: NODE_OPTIONS
+      value: --max-old-space-size=256
+  hpa:
+    enabled: true
+  pdb:
+    enabled: true
+
+ingress:
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  tls:
+    - secretName: omed-tls
+      hosts:
+        - app.example.com
+        - api.example.com
+
+networkPolicy:
+  enabled: true

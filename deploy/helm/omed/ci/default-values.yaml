@@ -1,0 +1,3 @@
+# Minimal install using an existing Secret.
+secrets:
+  existingSecret: omed-secrets
