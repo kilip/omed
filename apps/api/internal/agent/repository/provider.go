@@ -107,6 +107,8 @@ func (r *providerRepository) List(ctx context.Context) ([]*ent.AgentProvider, er
 
 	return r.cli.AgentProvider.Query().
 		Where(agentprovider.WorkspaceIDEQ(wsID)).
+		WithCreator().
+		WithUpdater().
 		Order(ent.Desc(agentprovider.FieldIsDefault), ent.Asc(agentprovider.FieldName)).
 		All(ctx)
 }
@@ -119,6 +121,8 @@ func (r *providerRepository) Get(ctx context.Context, id int64) (*ent.AgentProvi
 
 	p, err := r.cli.AgentProvider.Query().
 		Where(agentprovider.IDEQ(id), agentprovider.WorkspaceIDEQ(wsID)).
+		WithCreator().
+		WithUpdater().
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -137,6 +141,8 @@ func (r *providerRepository) GetDefault(ctx context.Context) (*ent.AgentProvider
 
 	p, err := r.cli.AgentProvider.Query().
 		Where(agentprovider.WorkspaceIDEQ(wsID), agentprovider.IsDefaultEQ(true)).
+		WithCreator().
+		WithUpdater().
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {

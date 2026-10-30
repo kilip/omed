@@ -49,6 +49,14 @@ func init() {
 		_ = os.Setenv("OMED_RATE_LIMIT_ENABLED", "false")
 	}
 
+	if os.Getenv("OMED_SECRET_KEY") == "" {
+		_ = os.Setenv("OMED_SECRET_KEY", "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
+	}
+
+	if os.Getenv("OMED_LLM_ALLOW_PRIVATE_URLS") == "" {
+		_ = os.Setenv("OMED_LLM_ALLOW_PRIVATE_URLS", "true")
+	}
+
 	cfg = config.GetConfig()
 
 	_, b, _, _ := runtime.Caller(0)

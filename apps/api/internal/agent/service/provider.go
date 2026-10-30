@@ -111,6 +111,16 @@ func toDomain(p *ent.AgentProvider) domain.Provider {
 	if p == nil {
 		return domain.Provider{}
 	}
+	meta := base.AuditMeta{
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
+	}
+	if p.Edges.Creator != nil {
+		meta.CreatedBy = base.ByUser{Name: p.Edges.Creator.Name, Avatar: p.Edges.Creator.Avatar}
+	}
+	if p.Edges.Updater != nil {
+		meta.UpdatedBy = base.ByUser{Name: p.Edges.Updater.Name, Avatar: p.Edges.Updater.Avatar}
+	}
 	return domain.Provider{
 		ID:           p.ID,
 		WorkspaceID:  p.WorkspaceID,
@@ -122,6 +132,7 @@ func toDomain(p *ent.AgentProvider) domain.Provider {
 		HasKey:       p.APIKeyEnc != "",
 		IsDefault:    p.IsDefault,
 		Capabilities: p.Capabilities,
+		AuditMeta:    meta,
 		CreatedAt:    p.CreatedAt,
 		UpdatedAt:    p.UpdatedAt,
 	}

@@ -3,6 +3,7 @@ package domain
 import (
 	"time"
 
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/platform/llmx"
 )
 
@@ -18,6 +19,7 @@ type Provider struct {
 	HasKey       bool               `json:"hasKey"`
 	IsDefault    bool               `json:"isDefault"`
 	Capabilities *llmx.Capabilities `json:"capabilities"`
+	AuditMeta    base.AuditMeta     `json:"auditMeta"`
 	CreatedAt    time.Time          `json:"createdAt"`
 	UpdatedAt    time.Time          `json:"updatedAt"`
 }

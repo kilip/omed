@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/agent"
 	"github.com/kilip/omed/api/internal/cms"
 	"github.com/kilip/omed/api/internal/core"
 	"github.com/kilip/omed/api/internal/core/service"
@@ -20,6 +21,7 @@ import (
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"github.com/kilip/omed/api/internal/platform/mailx"
 	"github.com/kilip/omed/api/internal/platform/s3x"
+	"github.com/kilip/omed/api/internal/platform/secretx"
 	"github.com/kilip/omed/api/internal/testctl"
 	"golang.org/x/sync/errgroup"
 )
@@ -125,12 +127,27 @@ func New(state State) Omed {
 	})
 	cmsMod.SetAuthorizer(az)
 
+	cipher, err := secretx.New(state.Config.SecretKey)
+	if err != nil {
+		log.Fatalf("failed to initialize secret cipher: %v", err)
+	}
+
+	agentMod := agent.New(agent.Config{
+		FiberApp:         state.FiberApp,
+		Logger:           state.Logger,
+		EntCli:           state.EntCli,
+		Cipher:           cipher,
+		AllowPrivateURLs: state.Config.LLMAllowPrivateURLs,
+	})
+	agentMod.SetAuthorizer(az)
+
 	return Omed{
 		state: state,
 		modules: []Module{
 			coreMod,
 			finMod,
 			cmsMod,
+			agentMod,
 		},
 		sessionService: coreMod.SessionService,
 	}
