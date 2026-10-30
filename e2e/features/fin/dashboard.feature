@@ -6,11 +6,17 @@ Feature: Finance Dashboard
 
   Background:
     Given I have a personal workspace
-    When I open "/fin"
+    When I open "/fin/overview"
     When I click the setup chart of accounts banner button
     Then I am on "/fin/setup"
     When I click the apply template button
     Then I am on "/fin/accounts"
+
+  Scenario: Navigate to financial features from the launcher
+    When I open "/fin"
+    Then I see the finance launcher
+    When I click the launcher tile "Overview"
+    Then I am on "/fin/overview"
 
   Scenario: View finance dashboard with real posted data
     When I open "/fin/journal"
@@ -24,7 +30,7 @@ Feature: Finance Dashboard
     When I click on entry "Dashboard Revenue Entry" in the list
     When I click the post entry button
     Then I see the entry status is "Posted"
-    When I open "/fin"
+    When I open "/fin/overview"
     Then I see financial statistic "Total assets" with amount "5,000,000"
     And I see financial statistic "Net income" with amount "5,000,000"
     And I see recent journal entry "Dashboard Revenue Entry" in dashboard

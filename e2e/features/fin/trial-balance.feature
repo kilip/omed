@@ -6,7 +6,7 @@ Feature: Finance Trial Balance
 
   Background:
     Given I have a personal workspace
-    When I open "/fin"
+    When I open "/fin/overview"
     When I click the setup chart of accounts banner button
     Then I am on "/fin/setup"
     When I click the apply template button

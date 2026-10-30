@@ -3,7 +3,27 @@ import type { Locator } from "playwright";
 import { BasePage } from "../base.page";
 
 export class FinDashboardPage extends BasePage {
-  readonly path = "/fin";
+  readonly path = "/fin/overview";
+
+  get launcherTitle(): Locator {
+    return this.page.getByRole("heading", {
+      name: /^(Finance Apps|Aplikasi Keuangan|Finance|Keuangan)$/i,
+    });
+  }
+
+  launcherTile(name: string): Locator {
+    return this.page.locator(".app-tile").filter({ hasText: name });
+  }
+
+  async expectLauncherVisible(): Promise<void> {
+    await this.launcherTitle.waitFor({ state: "visible" });
+  }
+
+  async clickLauncherTile(name: string): Promise<void> {
+    const tile = this.launcherTile(name);
+    await tile.first().waitFor({ state: "visible" });
+    await tile.first().click();
+  }
 
   get setupBanner(): Locator {
     return this.page.locator(".surface", {

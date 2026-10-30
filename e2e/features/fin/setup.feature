@@ -6,7 +6,7 @@ Feature: Finance Chart of Accounts Setup
 
   Scenario: Seed freelancer template from dashboard banner
     Given I have a personal workspace
-    When I open "/fin"
+    When I open "/fin/overview"
     Then I see the setup chart of accounts banner
     When I click the setup chart of accounts banner button
     Then I am on "/fin/setup"
@@ -28,7 +28,7 @@ Feature: Finance Chart of Accounts Setup
 
   Scenario: Prevent re-seeding when accounts already exist
     Given I have a personal workspace
-    When I open "/fin"
+    When I open "/fin/overview"
     When I click the setup chart of accounts banner button
     Then I am on "/fin/setup"
     When I click the apply template button

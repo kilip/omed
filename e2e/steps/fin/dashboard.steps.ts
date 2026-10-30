@@ -1,5 +1,16 @@
-import { Then } from "@cucumber/cucumber";
+import { Then, When } from "@cucumber/cucumber";
 import type { OmedWorld } from "../../support/world";
+
+Then("I see the finance launcher", async function (this: OmedWorld) {
+  await this.pages.fin.dashboard.expectLauncherVisible();
+});
+
+When(
+  "I click the launcher tile {string}",
+  async function (this: OmedWorld, name: string) {
+    await this.pages.fin.dashboard.clickLauncherTile(name);
+  },
+);
 
 Then(
   "I see financial statistic {string} with amount {string}",
