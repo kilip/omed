@@ -48,6 +48,28 @@ func UserFromContext(ctx context.Context) UserContext {
 	return ctx.Value(USER_CONTEXT_KEY).(UserContext)
 }
 
+// UserIDFromContext retrieves the authenticated user ID from context.Context or fiber.Ctx locals.
+func UserIDFromContext(ctx context.Context) int64 {
+	if ctx == nil {
+		return 0
+	}
+	if fctx, ok := ctx.(contextLocalGetter); ok {
+		if u, ok := fctx.Locals(USER_CONTEXT_KEY).(UserContext); ok {
+			return u.ID
+		}
+		if u, ok := fctx.Locals(string(USER_CONTEXT_KEY)).(UserContext); ok {
+			return u.ID
+		}
+	}
+	if u, ok := ctx.Value(USER_CONTEXT_KEY).(UserContext); ok {
+		return u.ID
+	}
+	if u, ok := ctx.Value(string(USER_CONTEXT_KEY)).(UserContext); ok {
+		return u.ID
+	}
+	return 0
+}
+
 // WORKSPACE_CONTEXT_KEY is the context key used to store and retrieve the active workspace ID.
 const WORKSPACE_CONTEXT_KEY ContextKey = "workspace_id"
 

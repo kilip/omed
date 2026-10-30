@@ -122,6 +122,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_CashFlowItemResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.CashFlowItemResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_CurrencyResponse": {
                 "properties": {
                     "data": {
@@ -420,6 +437,19 @@ const docTemplate = `{
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.AccountTemplatePreviewResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_CashFlowItemResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.CashFlowItemResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -862,6 +892,104 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.CashFlowAccountSummaryResponse": {
+                "properties": {
+                    "code": {
+                        "example": "1101",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "example": "Cash",
+                        "type": "string"
+                    },
+                    "type": {
+                        "example": "ASSET",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.CashFlowItemResponse": {
+                "properties": {
+                    "amount": {
+                        "example": "100000.00",
+                        "type": "string"
+                    },
+                    "attachments": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.FileResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "baseAmount": {
+                        "example": "100000.00",
+                        "type": "string"
+                    },
+                    "categoryAccount": {
+                        "$ref": "#/components/schemas/model.CashFlowAccountSummaryResponse"
+                    },
+                    "currency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "description": {
+                        "example": "Office supplies",
+                        "type": "string"
+                    },
+                    "entryId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "entryNumber": {
+                        "example": "JRN-2026-000001",
+                        "type": "string"
+                    },
+                    "entryStatus": {
+                        "example": "POSTED",
+                        "type": "string"
+                    },
+                    "exchangeRate": {
+                        "example": "1.00000000",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "number": {
+                        "example": "TRX-2026-000001",
+                        "type": "string"
+                    },
+                    "paymentAccount": {
+                        "$ref": "#/components/schemas/model.CashFlowAccountSummaryResponse"
+                    },
+                    "reference": {
+                        "example": "INV-001",
+                        "type": "string"
+                    },
+                    "transactionDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "type": {
+                        "example": "EXPENSE",
+                        "type": "string"
+                    },
+                    "workspaceId": {
+                        "example": 1,
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.CreateAccountRequest": {
                 "properties": {
                     "code": {
@@ -1000,6 +1128,106 @@ const docTemplate = `{
                     "effectiveDate",
                     "fromCurrency",
                     "toCurrency"
+                ],
+                "type": "object"
+            },
+            "model.CreateExpenseRequest": {
+                "properties": {
+                    "amount": {
+                        "example": "100000.00",
+                        "type": "string"
+                    },
+                    "attachmentFileIds": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "currency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "description": {
+                        "example": "Office supplies",
+                        "type": "string"
+                    },
+                    "exchangeRate": {
+                        "example": "1.00000000",
+                        "type": "string"
+                    },
+                    "expenseAccountId": {
+                        "example": 5,
+                        "type": "integer"
+                    },
+                    "paymentAccountId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "reference": {
+                        "example": "INV-001",
+                        "type": "string"
+                    },
+                    "transactionDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "expenseAccountId",
+                    "paymentAccountId",
+                    "transactionDate"
+                ],
+                "type": "object"
+            },
+            "model.CreateIncomeRequest": {
+                "properties": {
+                    "amount": {
+                        "example": "100000.00",
+                        "type": "string"
+                    },
+                    "attachmentFileIds": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "currency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "description": {
+                        "example": "Consulting revenue",
+                        "type": "string"
+                    },
+                    "exchangeRate": {
+                        "example": "1.00000000",
+                        "type": "string"
+                    },
+                    "paymentAccountId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "reference": {
+                        "example": "INV-002",
+                        "type": "string"
+                    },
+                    "revenueAccountId": {
+                        "example": 4,
+                        "type": "integer"
+                    },
+                    "transactionDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "paymentAccountId",
+                    "revenueAccountId",
+                    "transactionDate"
                 ],
                 "type": "object"
             },
@@ -1959,6 +2187,40 @@ const docTemplate = `{
                 "type": "object"
             },
             "model.SearchAccountRequest": {
+                "type": "object"
+            },
+            "model.SearchCashFlowRequest": {
+                "properties": {
+                    "categoryAccountId": {
+                        "example": 5,
+                        "type": "integer"
+                    },
+                    "cursor": {
+                        "type": "string"
+                    },
+                    "dateFrom": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "dateTo": {
+                        "example": "2026-01-31",
+                        "type": "string"
+                    },
+                    "limit": {
+                        "example": 20,
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "paymentAccountId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "query": {
+                        "example": "Office",
+                        "type": "string"
+                    }
+                },
                 "type": "object"
             },
             "model.SearchEntryRequest": {
@@ -9256,6 +9518,446 @@ const docTemplate = `{
                 "summary": "Update exchange rate",
                 "tags": [
                     "Finance Exchange Rates"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/expense": {
+            "post": {
+                "description": "Create a new posted expense cash flow with payment and expense category accounts",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreateExpenseRequest",
+                                "summary": "request",
+                                "description": "Expense creation payload"
+                            }
+                        }
+                    },
+                    "description": "Expense creation payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_CashFlowItemResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create expense",
+                "tags": [
+                    "Finance Expenses"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/expense/search": {
+            "post": {
+                "description": "Search expense cash flows in the workspace with filters",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SearchCashFlowRequest",
+                                "summary": "request",
+                                "description": "Search criteria"
+                            }
+                        }
+                    },
+                    "description": "Search criteria",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_CashFlowItemResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Search expenses",
+                "tags": [
+                    "Finance Expenses"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/income": {
+            "post": {
+                "description": "Create a new posted income cash flow with payment and revenue category accounts",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreateIncomeRequest",
+                                "summary": "request",
+                                "description": "Income creation payload"
+                            }
+                        }
+                    },
+                    "description": "Income creation payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_CashFlowItemResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create income",
+                "tags": [
+                    "Finance Incomes"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/income/search": {
+            "post": {
+                "description": "Search income cash flows in the workspace with filters",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SearchCashFlowRequest",
+                                "summary": "request",
+                                "description": "Search criteria"
+                            }
+                        }
+                    },
+                    "description": "Search criteria",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_CashFlowItemResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Search incomes",
+                "tags": [
+                    "Finance Incomes"
                 ]
             }
         },

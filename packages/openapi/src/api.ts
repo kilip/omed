@@ -5719,6 +5719,410 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/fin/expense": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create expense
+     * @description Create a new posted expense cash flow with payment and expense category accounts
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Expense creation payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.CreateExpenseRequest"];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_CashFlowItemResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/fin/expense/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Search expenses
+     * @description Search expense cash flows in the workspace with filters
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Search criteria */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SearchCashFlowRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-array_model_CashFlowItemResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/fin/income": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create income
+     * @description Create a new posted income cash flow with payment and revenue category accounts
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Income creation payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.CreateIncomeRequest"];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_CashFlowItemResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/fin/income/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Search incomes
+     * @description Search income cash flows in the workspace with filters
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Search criteria */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SearchCashFlowRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-array_model_CashFlowItemResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/fin/periods": {
     parameters: {
       query?: never;
@@ -8328,6 +8732,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-array_model_CashFlowItemResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.CashFlowItemResponse"][];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-array_model_CurrencyResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.CurrencyResponse"][];
@@ -8439,6 +8849,12 @@ export interface components {
     "httpx.WebResponse-model_AccountTemplatePreviewResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.AccountTemplatePreviewResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-model_CashFlowItemResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.CashFlowItemResponse"];
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
@@ -8627,6 +9043,50 @@ export interface components {
       lang?: string;
       template?: string;
     };
+    "model.CashFlowAccountSummaryResponse": {
+      /** @example 1101 */
+      code?: string;
+      /** @example 1 */
+      id?: number;
+      /** @example Cash */
+      name?: string;
+      /** @example ASSET */
+      type?: string;
+    };
+    "model.CashFlowItemResponse": {
+      /** @example 100000.00 */
+      amount?: string;
+      attachments?: components["schemas"]["model.FileResponse"][];
+      auditMeta?: components["schemas"]["base.AuditMeta"];
+      /** @example 100000.00 */
+      baseAmount?: string;
+      categoryAccount?: components["schemas"]["model.CashFlowAccountSummaryResponse"];
+      /** @example IDR */
+      currency?: string;
+      /** @example Office supplies */
+      description?: string;
+      /** @example 1 */
+      entryId?: number;
+      /** @example JRN-2026-000001 */
+      entryNumber?: string;
+      /** @example POSTED */
+      entryStatus?: string;
+      /** @example 1.00000000 */
+      exchangeRate?: string;
+      /** @example 1 */
+      id?: number;
+      /** @example TRX-2026-000001 */
+      number?: string;
+      paymentAccount?: components["schemas"]["model.CashFlowAccountSummaryResponse"];
+      /** @example INV-001 */
+      reference?: string;
+      /** @example 2026-01-01 */
+      transactionDate?: string;
+      /** @example EXPENSE */
+      type?: string;
+      /** @example 1 */
+      workspaceId?: number;
+    };
     "model.CreateAccountRequest": {
       code: string;
       currency?: string;
@@ -8669,6 +9129,44 @@ export interface components {
       source?: "MANUAL" | "IMPORT";
       /** @example IDR */
       toCurrency: string;
+    };
+    "model.CreateExpenseRequest": {
+      /** @example 100000.00 */
+      amount: string;
+      attachmentFileIds?: number[];
+      /** @example IDR */
+      currency?: string;
+      /** @example Office supplies */
+      description?: string;
+      /** @example 1.00000000 */
+      exchangeRate?: string;
+      /** @example 5 */
+      expenseAccountId: number;
+      /** @example 1 */
+      paymentAccountId: number;
+      /** @example INV-001 */
+      reference?: string;
+      /** @example 2026-01-01 */
+      transactionDate: string;
+    };
+    "model.CreateIncomeRequest": {
+      /** @example 100000.00 */
+      amount: string;
+      attachmentFileIds?: number[];
+      /** @example IDR */
+      currency?: string;
+      /** @example Consulting revenue */
+      description?: string;
+      /** @example 1.00000000 */
+      exchangeRate?: string;
+      /** @example 1 */
+      paymentAccountId: number;
+      /** @example INV-002 */
+      reference?: string;
+      /** @example 4 */
+      revenueAccountId: number;
+      /** @example 2026-01-01 */
+      transactionDate: string;
     };
     "model.CreateInvitationRequest": {
       email?: string;
@@ -9020,6 +9518,21 @@ export interface components {
       publishAt: string;
     };
     "model.SearchAccountRequest": Record<string, never>;
+    "model.SearchCashFlowRequest": {
+      /** @example 5 */
+      categoryAccountId?: number;
+      cursor?: string;
+      /** @example 2026-01-01 */
+      dateFrom?: string;
+      /** @example 2026-01-31 */
+      dateTo?: string;
+      /** @example 20 */
+      limit?: number;
+      /** @example 1 */
+      paymentAccountId?: number;
+      /** @example Office */
+      query?: string;
+    };
     "model.SearchEntryRequest": {
       accountId?: number;
       cursor?: string;

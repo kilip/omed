@@ -25,10 +25,11 @@ type TransactionRepository interface {
 	Search(c context.Context, req model.SearchTransactionRequest) ([]domain.Transaction, string, error)
 }
 
-// FileServiceContract defines the file operations required by TransactionService from the core module.
+// FileServiceContract defines the file operations required by TransactionService and CashFlowService from the core module.
 type FileServiceContract interface {
 	Upload(c context.Context, req coremodel.UploadFileRequest) (coredomain.File, error)
 	GetByID(c context.Context, id int64) (coredomain.File, error)
+	Update(c context.Context, id int64, req coremodel.UpdateFileRequest) (coredomain.File, error)
 	Search(c context.Context, req coremodel.SearchFileRequest) ([]coredomain.File, string, error)
 	Delete(c context.Context, id int64) error
 }
