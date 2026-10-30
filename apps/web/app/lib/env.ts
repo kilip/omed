@@ -48,22 +48,76 @@ export const DEFAULT_CMS_MEDIA_ALLOWED_TYPES = [
   ".pdf",
 ];
 
-const apiUrl = read(import.meta.env.VITE_API_URL, "http://localhost:8001");
+/**
+ * Runtime configuration injected by `/config.js` (generated from `OMED_WEB_*`
+ * env vars at container start). Values are untrusted and parsed by the
+ * `read*` helpers; missing values fall back to build-time `VITE_*` env.
+ */
+export type RuntimeConfig = Partial<
+  Record<
+    | "apiUrl"
+    | "publicUrl"
+    | "attachmentMaxSizeMB"
+    | "attachmentAllowedTypes"
+    | "cmsMediaMaxSizeMB"
+    | "cmsMediaAllowedTypes",
+    unknown
+  >
+>;
+
+declare global {
+  interface Window {
+    __OMED_CONFIG__?: RuntimeConfig;
+  }
+}
+
+const readRuntimeConfig = (): RuntimeConfig => {
+  if (typeof window === "undefined") {
+    return {};
+  }
+  const config = window.__OMED_CONFIG__;
+  return typeof config === "object" && config !== null ? config : {};
+};
+
+const runtime = readRuntimeConfig();
+
+const pick = (runtimeValue: unknown, buildValue: unknown): unknown =>
+  runtimeValue === undefined || runtimeValue === "" ? buildValue : runtimeValue;
+
+const apiUrl = read(
+  pick(runtime.apiUrl, import.meta.env.VITE_API_URL),
+  "http://localhost:8001",
+);
 
 export const env = {
   apiUrl,
-  publicUrl: read(import.meta.env.VITE_PUBLIC_URL, "http://localhost:3000"),
+  publicUrl: read(
+    pick(runtime.publicUrl, import.meta.env.VITE_PUBLIC_URL),
+    "http://localhost:3000",
+  ),
   attachmentMaxSizeMB: readNumber(
-    import.meta.env.VITE_ATTACHMENT_MAX_SIZE_MB,
+    pick(
+      runtime.attachmentMaxSizeMB,
+      import.meta.env.VITE_ATTACHMENT_MAX_SIZE_MB,
+    ),
     10,
   ),
   attachmentAllowedTypes: readList(
-    import.meta.env.VITE_ATTACHMENT_ALLOWED_TYPES,
+    pick(
+      runtime.attachmentAllowedTypes,
+      import.meta.env.VITE_ATTACHMENT_ALLOWED_TYPES,
+    ),
     DEFAULT_ATTACHMENT_ALLOWED_TYPES,
   ),
-  cmsMediaMaxSizeMB: readNumber(import.meta.env.VITE_CMS_MEDIA_MAX_SIZE_MB, 10),
+  cmsMediaMaxSizeMB: readNumber(
+    pick(runtime.cmsMediaMaxSizeMB, import.meta.env.VITE_CMS_MEDIA_MAX_SIZE_MB),
+    10,
+  ),
   cmsMediaAllowedTypes: readList(
-    import.meta.env.VITE_CMS_MEDIA_ALLOWED_TYPES,
+    pick(
+      runtime.cmsMediaAllowedTypes,
+      import.meta.env.VITE_CMS_MEDIA_ALLOWED_TYPES,
+    ),
     DEFAULT_CMS_MEDIA_ALLOWED_TYPES,
   ),
 };

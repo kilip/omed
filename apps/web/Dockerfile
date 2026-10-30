@@ -49,9 +49,15 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=prod-deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=builder /app/apps/web/build ./apps/web/build
 
+# Runtime config: /config.js is rendered into /tmp at start, so the root
+# filesystem can stay read-only.
+COPY --chmod=0755 apps/web/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN ln -sf /tmp/omed/config.js ./apps/web/build/client/config.js
+
 WORKDIR /app/apps/web
 
 USER bun:bun
 EXPOSE 3000
 
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["bun", "run", "start"]

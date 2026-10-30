@@ -35,6 +35,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static, build-time theme init script */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Runtime config (window.__OMED_CONFIG__); must load before the app bundle */}
+        <script src="/config.js" />
         <Meta />
         <Links />
       </head>
