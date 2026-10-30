@@ -1,6 +1,8 @@
 # omed specific
 devcontainer-lock.json
 notes
+kubeconfig
+.superpowers
 
 # Dependencies
 node_modules/
