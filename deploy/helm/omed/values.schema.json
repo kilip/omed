@@ -56,6 +56,7 @@
         "existingSecret": { "type": "string" },
         "dbUrl": { "type": "string" },
         "authSecret": { "type": "string" },
+        "secretKey": { "type": "string" },
         "googleClientId": { "type": "string" },
         "googleClientSecret": { "type": "string" },
         "githubClientId": { "type": "string" },
@@ -118,7 +119,8 @@
             "rateLimit": {
               "type": "object",
               "properties": { "enabled": { "type": "boolean" } }
-            }
+            },
+            "llmAllowPrivateURLs": { "type": "boolean" }
           }
         },
         "extraEnv": { "type": "array" },

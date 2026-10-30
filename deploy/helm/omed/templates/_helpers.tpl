@@ -185,6 +185,8 @@ Non-secret env vars shared by the api Deployment and the migration Job.
   value: {{ $c.cmsMedia.allowedTypes | quote }}
 - name: OMED_RATE_LIMIT_ENABLED
   value: {{ $c.rateLimit.enabled | quote }}
+- name: OMED_LLM_ALLOW_PRIVATE_URLS
+  value: {{ $c.llmAllowPrivateURLs | quote }}
 {{- with .Values.api.extraEnv }}
 {{ toYaml . }}
 {{- end }}

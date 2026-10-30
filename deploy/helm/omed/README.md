@@ -86,6 +86,7 @@ Both containers load the Secret with `envFrom`, so its keys are the env var name
 | --- | --- | --- | --- |
 | `OMED_DB_URL` | `dbUrl` | yes | PostgreSQL connection string |
 | `OMED_AUTH_SECRET` | `authSecret` | yes | Session signing secret, at least 32 bytes in production |
+| `OMED_SECRET_KEY` | `secretKey` | no | Base64-encoded 32-byte master key for encrypting provider credentials (losing this key makes stored provider keys unrecoverable) |
 | `OMED_S3_ACCESS_KEY` | `s3AccessKey` | no | S3 access key ID |
 | `OMED_S3_SECRET_KEY` | `s3SecretKey` | no | S3 secret access key |
 | `OMED_MAILER_USER` | `mailerUser` | no | SMTP username |

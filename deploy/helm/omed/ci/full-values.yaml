@@ -12,6 +12,7 @@ secrets:
   mailerPassword: mailer-password
   s3AccessKey: access
   s3SecretKey: secret
+  secretKey: YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=
 
 api:
   config:
@@ -19,6 +20,7 @@ api:
       host: smtp.example.com
     s3:
       endpoint: https://s3.example.com
+    llmAllowPrivateURLs: true
   extraEnv:
     - name: OMED_READ_TIMEOUT
       value: 15s
