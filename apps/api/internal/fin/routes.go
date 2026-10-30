@@ -70,6 +70,8 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 
 	settingCtl := controller.NewSettingController(mod.SettingService)
 	settings := r.Group("/workspaces/:wid/fin/settings")
+	settings.Get("/", az.Require(domain.ObjAccount, "read"), settingCtl.GetSettings)
+	settings.Put("/", az.Require(domain.ObjAccount, "update"), settingCtl.UpdateSettings)
 	settings.Put("/base-currency", az.Require(domain.ObjCurrency, "update"), currencyCtl.UpdateBaseCurrency)
 	settings.Get("/fx-accounts", az.Require(domain.ObjAccount, "read"), settingCtl.GetFXAccounts)
 	settings.Put("/fx-accounts", az.Require(domain.ObjAccount, "update"), settingCtl.UpdateFXAccounts)

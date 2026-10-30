@@ -51,7 +51,11 @@ func New(cfg Config) *FinModule {
 	accountSvc := service.NewAccountService(accountRepo)
 
 	settingRepo := repository.NewSettingRepository(cfg.EntCli)
-	settingSvc := service.NewSettingService(settingRepo, accountRepo)
+	settingSvc := service.NewSettingService(
+		settingRepo,
+		accountRepo,
+		service.WithSettingCurrencyRepository(currencyRepo),
+	)
 
 	periodRepo := repository.NewPeriodRepository(cfg.EntCli)
 	periodSvc := service.NewPeriodService(

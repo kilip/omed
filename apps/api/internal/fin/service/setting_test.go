@@ -33,7 +33,8 @@ func (s *SettingServiceSuite) SetupSuite() {
 	core.InitEntCli(s.client)
 	settingRepo := repository.NewSettingRepository(s.client)
 	s.accountRepo = repository.NewAccountRepository(s.client)
-	s.svc = service.NewSettingService(settingRepo, s.accountRepo)
+	currencyRepo := repository.NewCurrencyRepository(s.client)
+	s.svc = service.NewSettingService(settingRepo, s.accountRepo, service.WithSettingCurrencyRepository(currencyRepo))
 }
 
 func (s *SettingServiceSuite) TearDownSuite() {
@@ -175,4 +176,78 @@ func (s *SettingServiceSuite) Test_UpdateFXAccounts_ValidationAndSuccess() {
 	s.Equal(&gainAcc.ID, getResp.FXGainAccountID)
 	s.Equal(&lossAcc.ID, getResp.FXLossAccountID)
 	s.Equal(&roundAcc.ID, getResp.FXRoundingAccountID)
+}
+
+func (s *SettingServiceSuite) Test_GetSettings_Default() {
+	ctx := s.ctx()
+	resp, err := s.svc.GetSettings(ctx, s.workspaceID)
+	s.Require().NoError(err)
+	s.False(resp.Onboarding)
+	s.Equal("comma", resp.DecimalStyle)
+	s.Equal("IDR", resp.BaseCurrency)
+	s.Nil(resp.FXGainAccountID)
+	s.Nil(resp.FXLossAccountID)
+	s.Nil(resp.FXRoundingAccountID)
+}
+
+func (s *SettingServiceSuite) Test_UpdateSettings_PreservesFXAccounts() {
+	ctx := s.ctx()
+
+	// 1. Initial update: set DecimalStyle: "dot", Onboarding: true
+	onboarding := true
+	updateResp, err := s.svc.UpdateSettings(ctx, s.workspaceID, model.UpdateFinSettingRequest{
+		Onboarding:   &onboarding,
+		DecimalStyle: "dot",
+	})
+	s.Require().NoError(err)
+	s.True(updateResp.Onboarding)
+	s.Equal("dot", updateResp.DecimalStyle)
+	s.Equal("IDR", updateResp.BaseCurrency)
+
+	// 2. Create valid accounts and update FX accounts
+	gainAcc, err := s.client.Account.Create().
+		SetCode("7211").
+		SetName("Realized FX Gain").
+		SetType("REVENUE").
+		SetNormalBalance("CREDIT").
+		SetIsActive(true).
+		SetIsPostable(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	lossAcc, err := s.client.Account.Create().
+		SetCode("7311").
+		SetName("Realized FX Loss").
+		SetType("EXPENSE").
+		SetNormalBalance("DEBIT").
+		SetIsActive(true).
+		SetIsPostable(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	fxResp, err := s.svc.UpdateFXAccounts(ctx, s.workspaceID, model.UpdateFXAccountsRequest{
+		FXGainAccountID: &gainAcc.ID,
+		FXLossAccountID: &lossAcc.ID,
+	})
+	s.Require().NoError(err)
+	s.Equal(&gainAcc.ID, fxResp.FXGainAccountID)
+	s.Equal(&lossAcc.ID, fxResp.FXLossAccountID)
+
+	// Verify settings still preserve onboarding == true and decimalStyle == "dot"
+	getResp, err := s.svc.GetSettings(ctx, s.workspaceID)
+	s.Require().NoError(err)
+	s.True(getResp.Onboarding)
+	s.Equal("dot", getResp.DecimalStyle)
+	s.Equal(&gainAcc.ID, getResp.FXGainAccountID)
+	s.Equal(&lossAcc.ID, getResp.FXLossAccountID)
+
+	// 3. Update DecimalStyle to "comma" via UpdateSettings (leaving Onboarding nil to preserve)
+	updateResp2, err := s.svc.UpdateSettings(ctx, s.workspaceID, model.UpdateFinSettingRequest{
+		DecimalStyle: "comma",
+	})
+	s.Require().NoError(err)
+	s.True(updateResp2.Onboarding)                    // preserved!
+	s.Equal("comma", updateResp2.DecimalStyle)        // updated!
+	s.Equal(&gainAcc.ID, updateResp2.FXGainAccountID) // preserved!
+	s.Equal(&lossAcc.ID, updateResp2.FXLossAccountID) // preserved!
 }

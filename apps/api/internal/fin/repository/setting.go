@@ -27,7 +27,11 @@ func (r SettingRepository) Get(c context.Context, workspaceID int64) (domain.Fin
 		Only(c)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return domain.FinSetting{WorkspaceID: workspaceID}, domain.ErrFinSettingNotFound
+			return domain.FinSetting{
+				WorkspaceID:  workspaceID,
+				Onboarding:   false,
+				DecimalStyle: domain.DecimalStyleComma,
+			}, domain.ErrFinSettingNotFound
 		}
 		return domain.FinSetting{}, err
 	}
@@ -46,7 +50,14 @@ func (r SettingRepository) Save(c context.Context, setting domain.FinSetting) (d
 		}
 
 		if existing != nil {
-			builder := tx.FinSetting.UpdateOne(existing)
+			builder := tx.FinSetting.UpdateOne(existing).
+				SetOnboarding(setting.Onboarding)
+			if setting.DecimalStyle != "" {
+				builder.SetDecimalStyle(finsetting.DecimalStyle(setting.DecimalStyle))
+			} else {
+				builder.SetDecimalStyle(finsetting.DecimalStyleComma)
+			}
+
 			if setting.FXGainAccountID != nil {
 				builder.SetFxGainAccountID(*setting.FXGainAccountID)
 			} else {
@@ -82,7 +93,14 @@ func (r SettingRepository) Save(c context.Context, setting domain.FinSetting) (d
 		}
 
 		builder := tx.FinSetting.Create().
-			SetWorkspaceID(setting.WorkspaceID)
+			SetWorkspaceID(setting.WorkspaceID).
+			SetOnboarding(setting.Onboarding)
+		if setting.DecimalStyle != "" {
+			builder.SetDecimalStyle(finsetting.DecimalStyle(setting.DecimalStyle))
+		} else {
+			builder.SetDecimalStyle(finsetting.DecimalStyleComma)
+		}
+
 		if setting.FXGainAccountID != nil {
 			builder.SetFxGainAccountID(*setting.FXGainAccountID)
 		}
@@ -113,6 +131,8 @@ func toFinSettingDomain(s *ent.FinSetting) domain.FinSetting {
 	return domain.FinSetting{
 		ID:                        s.ID,
 		WorkspaceID:               s.WorkspaceID,
+		Onboarding:                s.Onboarding,
+		DecimalStyle:              string(s.DecimalStyle),
 		FXGainAccountID:           s.FxGainAccountID,
 		FXLossAccountID:           s.FxLossAccountID,
 		FXUnrealizedGainAccountID: s.FxUnrealizedGainAccountID,

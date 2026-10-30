@@ -6960,6 +6960,142 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/fin/settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get finance settings
+     * @description Retrieve workspace financial settings including onboarding status and decimal style
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_FinSettingResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    /**
+     * Update finance settings
+     * @description Update workspace financial settings such as onboarding status and decimal formatting style
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Finance settings payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.UpdateFinSettingRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_FinSettingResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/fin/settings/base-currency": {
     parameters: {
       query?: never;
@@ -8894,6 +9030,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_FinSettingResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.FinSettingResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_FinancialSummaryResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.FinancialSummaryResponse"];
@@ -9322,6 +9464,23 @@ export interface components {
       updatedBy?: components["schemas"]["base.ByUser"];
       workspaceId?: number;
     };
+    "model.FinSettingResponse": {
+      /** @example IDR */
+      baseCurrency?: string;
+      /** @example comma */
+      decimalStyle?: string;
+      /** @example 7210 */
+      fxGainAccountId?: number;
+      /** @example 7310 */
+      fxLossAccountId?: number;
+      /** @example 7400 */
+      fxRoundingAccountId?: number;
+      /** @example 7220 */
+      fxUnrealizedGainAccountId?: number;
+      /** @example 7320 */
+      fxUnrealizedLossAccountId?: number;
+      onboarding?: boolean;
+    };
     "model.FinancialSummaryResponse": {
       /** @example IDR */
       baseCurrency?: string;
@@ -9745,6 +9904,14 @@ export interface components {
       entityId?: number;
       entityType?: string;
       name: string;
+    };
+    "model.UpdateFinSettingRequest": {
+      /**
+       * @example comma
+       * @enum {string}
+       */
+      decimalStyle: "dot" | "comma";
+      onboarding?: boolean;
     };
     "model.UpdateMediaRequest": {
       altText?: string;

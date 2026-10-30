@@ -89,6 +89,51 @@ func (s *SettingApiSuite) Test_FXAccounts_GetAndPut() {
 	s.Equal(&roundID, getRes2.Data.FXRoundingAccountID)
 }
 
+func (s *SettingApiSuite) Test_Settings_GetAndPut() {
+	ws := s.ensureWorkspace("Finance Settings Test WS", s.User.ID)
+
+	// 1. Initially unconfigured returns 200 with default settings
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/settings", ws.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	var getRes httpx.WebResponse[model.FinSettingResponse]
+	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&getRes))
+	s.False(getRes.Data.Onboarding)
+	s.Equal("comma", getRes.Data.DecimalStyle)
+	s.Equal("IDR", getRes.Data.BaseCurrency)
+
+	// 2. PUT with invalid decimalStyle returns 422
+	onboarding := true
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/settings", ws.ID), fiber.MethodPut, model.UpdateFinSettingRequest{
+		Onboarding:   &onboarding,
+		DecimalStyle: "invalid",
+	})
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	// 3. PUT with valid decimalStyle updates settings
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/settings", ws.ID), fiber.MethodPut, model.UpdateFinSettingRequest{
+		Onboarding:   &onboarding,
+		DecimalStyle: "dot",
+	})
+	s.OK()
+
+	var putRes httpx.WebResponse[model.FinSettingResponse]
+	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&putRes))
+	s.True(putRes.Data.Onboarding)
+	s.Equal("dot", putRes.Data.DecimalStyle)
+	s.Equal("IDR", putRes.Data.BaseCurrency)
+
+	// 4. GET returns the updated settings
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/settings", ws.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	var getRes2 httpx.WebResponse[model.FinSettingResponse]
+	s.Require().NoError(json.NewDecoder(s.HttpResponse.Body).Decode(&getRes2))
+	s.True(getRes2.Data.Onboarding)
+	s.Equal("dot", getRes2.Data.DecimalStyle)
+	s.Equal("IDR", getRes2.Data.BaseCurrency)
+}
+
 func TestSettingApiSuite(t *testing.T) {
 	suite.Run(t, new(SettingApiSuite))
 }

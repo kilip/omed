@@ -537,6 +537,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_FinSettingResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.FinSettingResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_FinancialSummaryResponse": {
                 "properties": {
                     "data": {
@@ -1644,6 +1657,42 @@ const docTemplate = `{
                     },
                     "workspaceId": {
                         "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.FinSettingResponse": {
+                "properties": {
+                    "baseCurrency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "decimalStyle": {
+                        "example": "comma",
+                        "type": "string"
+                    },
+                    "fxGainAccountId": {
+                        "example": 7210,
+                        "type": "integer"
+                    },
+                    "fxLossAccountId": {
+                        "example": 7310,
+                        "type": "integer"
+                    },
+                    "fxRoundingAccountId": {
+                        "example": 7400,
+                        "type": "integer"
+                    },
+                    "fxUnrealizedGainAccountId": {
+                        "example": 7220,
+                        "type": "integer"
+                    },
+                    "fxUnrealizedLossAccountId": {
+                        "example": 7320,
+                        "type": "integer"
+                    },
+                    "onboarding": {
+                        "type": "boolean"
                     }
                 },
                 "type": "object"
@@ -2839,6 +2888,25 @@ const docTemplate = `{
                 },
                 "required": [
                     "name"
+                ],
+                "type": "object"
+            },
+            "model.UpdateFinSettingRequest": {
+                "properties": {
+                    "decimalStyle": {
+                        "enum": [
+                            "dot",
+                            "comma"
+                        ],
+                        "example": "comma",
+                        "type": "string"
+                    },
+                    "onboarding": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "decimalStyle"
                 ],
                 "type": "object"
             },
@@ -10898,6 +10966,161 @@ const docTemplate = `{
                 "summary": "Generate trial balance report",
                 "tags": [
                     "Finance Reports"
+                ]
+            }
+        },
+        "/workspaces/{wid}/fin/settings": {
+            "get": {
+                "description": "Retrieve workspace financial settings including onboarding status and decimal style",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FinSettingResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get finance settings",
+                "tags": [
+                    "Finance Settings"
+                ]
+            },
+            "put": {
+                "description": "Update workspace financial settings such as onboarding status and decimal formatting style",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateFinSettingRequest",
+                                "summary": "request",
+                                "description": "Finance settings payload"
+                            }
+                        }
+                    },
+                    "description": "Finance settings payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FinSettingResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update finance settings",
+                "tags": [
+                    "Finance Settings"
                 ]
             }
         },

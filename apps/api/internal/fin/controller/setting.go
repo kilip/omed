@@ -11,6 +11,8 @@ import (
 
 // SettingServiceContract defines the operations required by SettingController.
 type SettingServiceContract interface {
+	GetSettings(c context.Context, workspaceID int64) (model.FinSettingResponse, error)
+	UpdateSettings(c context.Context, workspaceID int64, req model.UpdateFinSettingRequest) (model.FinSettingResponse, error)
 	GetFXAccounts(c context.Context, workspaceID int64) (model.FXAccountsSettingResponse, error)
 	UpdateFXAccounts(c context.Context, workspaceID int64, req model.UpdateFXAccountsRequest) (model.FXAccountsSettingResponse, error)
 }
@@ -23,6 +25,63 @@ type SettingController struct {
 // NewSettingController constructs a new SettingController backed by SettingServiceContract.
 func NewSettingController(settings SettingServiceContract) SettingController {
 	return SettingController{settings: settings}
+}
+
+// GetSettings retrieves workspace-level financial configuration.
+//
+//	@Summary		Get finance settings
+//	@Description	Retrieve workspace financial settings including onboarding status and decimal style
+//	@Tags			Finance Settings
+//	@Produce		json
+//	@Param			wid	path		int	true	"Workspace ID"
+//	@Success		200	{object}	httpx.WebResponse[model.FinSettingResponse]
+//	@Failure		400	{object}	httpx.ErrorResponse
+//	@Failure		403	{object}	httpx.ErrorResponse
+//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/settings [get]
+func (ctl SettingController) GetSettings(c fiber.Ctx) error {
+	wid, err := httpx.GetParamID[int64](c, "wid")
+	if err != nil {
+		return err
+	}
+	res, err := ctl.settings.GetSettings(c, wid)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, res)
+}
+
+// UpdateSettings updates workspace-level financial configuration.
+//
+//	@Summary		Update finance settings
+//	@Description	Update workspace financial settings such as onboarding status and decimal formatting style
+//	@Tags			Finance Settings
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int								true	"Workspace ID"
+//	@Param			request	body		model.UpdateFinSettingRequest	true	"Finance settings payload"
+//	@Success		200		{object}	httpx.WebResponse[model.FinSettingResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/settings [put]
+func (ctl SettingController) UpdateSettings(c fiber.Ctx) error {
+	wid, err := httpx.GetParamID[int64](c, "wid")
+	if err != nil {
+		return err
+	}
+	var req model.UpdateFinSettingRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	res, err := ctl.settings.UpdateSettings(c, wid, req)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, res)
 }
 
 // GetFXAccounts retrieves the FX account mappings for the workspace.
