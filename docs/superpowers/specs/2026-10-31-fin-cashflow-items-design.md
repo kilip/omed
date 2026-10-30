@@ -202,6 +202,7 @@ The fields `revenueAccountId`, `expenseAccountId`, and `amount` are removed.
 - New `Update(ctx, id, params)` and public `GetByID(ctx, flowType, id)`. `getByID` already exists and becomes exported through the contract.
 - `Search` replaces `StatusEQ(POSTED)` with `StatusIn(requested or {DRAFT, POSTED})`. The payment and category posting predicates keep working with multiple items.
 - `toCashFlowDomain` builds `Items` from the item-side postings (ordered by `position`), takes `paymentAccount` and totals from the payment posting, and keeps the type detection.
+- Item postings created before this change have no `quantity` or `unit_price`; they are read back as quantity `1` and unit price equal to the posting amount.
 - `CashFlowItem` (domain) drops `CategoryAccount` and adds `Items []CashFlowLine`.
 
 ### 5.5 Frontend (`apps/web`)
