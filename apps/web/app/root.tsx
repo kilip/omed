@@ -5,6 +5,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigation,
 } from "react-router";
 
 import type { Route } from "./+types/root";
@@ -58,8 +59,12 @@ export function HydrateFallback() {
 }
 
 export default function App() {
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
+
   return (
     <Providers>
+      {isLoading && <Spin fullscreen size="large" />}
       <Outlet />
     </Providers>
   );
