@@ -252,6 +252,58 @@ export const id: Translation = {
       periodDates: "Rentang tanggal",
       periodDescription: "Keterangan (opsional)",
     },
+    onboarding: {
+      title: "Setup Keuangan",
+      subtitle:
+        "Atur mata uang dasar, periode akuntansi, dan bagan akun untuk memulai.",
+      step1Title: "Umum & Periode Buku",
+      step1Desc: "Mata uang, format angka, dan periode awal",
+      step2Title: "Bagan Akun (CoA)",
+      step2Desc: "Template atau bagan akun kosong",
+      baseCurrency: "Mata Uang Dasar",
+      baseCurrencyDesc:
+        "Mata uang utama untuk pembukuan, laporan keuangan, dan pelaporan.",
+      decimalStyle: "Format Angka & Desimal",
+      decimalStyleDesc:
+        "Menentukan gaya pemisah ribuan dan desimal di seluruh modul keuangan.",
+      dotTitle: "Desimal titik (1,234,567.89)",
+      dotDesc: "Format standar: titik untuk desimal, koma untuk ribuan.",
+      commaTitle: "Desimal koma (1.234.567,89)",
+      commaDesc:
+        "Format Indonesia/Eropa: koma untuk desimal, titik untuk ribuan.",
+      fiscalPeriodTitle: "Periode Akuntansi Awal",
+      fiscalPeriodDesc:
+        "Tentukan periode fiskal pertama untuk pencatatan transaksi. Anda dapat menambah atau mengelola periode lain nanti.",
+      fiscalYear: "Tahun buku",
+      periodName: "Nama periode",
+      periodNamePlaceholder: "mis. FY 2026",
+      periodDates: "Rentang tanggal",
+      periodDescription: "Keterangan (opsional)",
+      coaTitle: "Bagan Akun",
+      coaDesc:
+        "Pilih template bagan akun standar atau mulai dengan bagan akun kosong.",
+      modeTemplate: "Gunakan Template Standar",
+      modeTemplateDesc:
+        "Bagan akun siap pakai yang dirancang untuk UMKM dan pekerja lepas.",
+      modeBlank: "Mulai dari Nol (Kosong)",
+      modeBlankDesc:
+        "Mulai dengan bagan akun kosong. Anda dapat menambahkan akun secara manual nanti.",
+      templateFreelancer: "Freelancer Indonesia",
+      templateFreelancerDesc:
+        "Dirancang untuk pekerja lepas & solopreneur di Indonesia. Mencakup Bank (BCA, Mandiri, BNI), E-Wallet (GoPay, OVO, DANA), PayLater, Pengeluaran Pribadi, Escrow, Prive, Biaya SaaS/Software, dan Pajak PP 55 PPh Final.",
+      language: "Bahasa akun",
+      languages: {
+        id: "Bahasa Indonesia",
+        en: "English",
+      },
+      preview: "Pratinjau Bagan Akun",
+      previewSearchPlaceholder: "Cari nama atau kode akun...",
+      filterAll: "Semua",
+      next: "Lanjut",
+      back: "Kembali",
+      finish: "Selesaikan Setup",
+      success: "Setup keuangan berhasil dikonfigurasi!",
+    },
     openingBalance: {
       title: "Saldo Awal",
       subtitle:

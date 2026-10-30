@@ -251,6 +251,58 @@ export const en = {
       periodDates: "Date range",
       periodDescription: "Description (optional)",
     },
+    onboarding: {
+      title: "Finance Setup",
+      subtitle:
+        "Configure your base currency, accounting period, and chart of accounts to get started.",
+      step1Title: "General & Fiscal Period",
+      step1Desc: "Currency, number format, and initial period",
+      step2Title: "Chart of Accounts",
+      step2Desc: "Template or blank CoA",
+      baseCurrency: "Base Currency",
+      baseCurrencyDesc:
+        "The primary currency for accounting, financial statements, and reporting.",
+      decimalStyle: "Number & Decimal Format",
+      decimalStyleDesc:
+        "Controls the decimal and thousand separator style used across all finance numbers.",
+      dotTitle: "Dot decimal (1,234,567.89)",
+      dotDesc: "Standard format: dot for decimals, comma for thousands.",
+      commaTitle: "Comma decimal (1.234.567,89)",
+      commaDesc:
+        "Indonesian/European format: comma for decimals, dot for thousands.",
+      fiscalPeriodTitle: "Initial Fiscal Period",
+      fiscalPeriodDesc:
+        "Define the first fiscal period for recording transactions. You can manage more periods later.",
+      fiscalYear: "Fiscal year",
+      periodName: "Period name",
+      periodNamePlaceholder: "e.g. FY 2026",
+      periodDates: "Date range",
+      periodDescription: "Description (optional)",
+      coaTitle: "Chart of Accounts",
+      coaDesc:
+        "Select a pre-configured template or start with a blank chart of accounts.",
+      modeTemplate: "Standard Template",
+      modeTemplateDesc:
+        "Pre-configured chart of accounts tailored for small business and freelancers.",
+      modeBlank: "Start from Scratch",
+      modeBlankDesc:
+        "Start with an empty chart of accounts. You can create accounts manually later.",
+      templateFreelancer: "Indonesian Freelancer",
+      templateFreelancerDesc:
+        "Tailored for Indonesian freelancers and solopreneurs. Includes Bank (BCA, Mandiri, BNI), E-Wallets (GoPay, OVO, DANA), PayLater, Personal Expenses, Escrow, Owner's Drawings, SaaS, and Final Tax.",
+      language: "Account language",
+      languages: {
+        id: "Bahasa Indonesia",
+        en: "English",
+      },
+      preview: "Chart of Accounts Preview",
+      previewSearchPlaceholder: "Search account code or name...",
+      filterAll: "All",
+      next: "Next",
+      back: "Back",
+      finish: "Complete Setup",
+      success: "Finance workspace configured successfully!",
+    },
     openingBalance: {
       title: "Opening Balance",
       subtitle:

@@ -147,7 +147,7 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
           </div>
-          <Link to="/fin/setup">
+          <Link to="/fin/onboarding">
             <Button type="primary">{t("fin.dashboard.setupAction")}</Button>
           </Link>
         </div>

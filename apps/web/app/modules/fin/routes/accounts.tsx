@@ -287,7 +287,7 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
       actions={
         <div className="flex items-center gap-2">
           {accounts.length === 0 && (
-            <Link to="/fin/setup">
+            <Link to="/fin/onboarding">
               <Button icon={<RocketOutlined />}>
                 {t("fin.accounts.setupTemplate")}
               </Button>
@@ -333,7 +333,7 @@ export default function Accounts({ loaderData }: Route.ComponentProps) {
                   </div>
                 }
               >
-                <Link to="/fin/setup">
+                <Link to="/fin/onboarding">
                   <Button type="primary" icon={<RocketOutlined />}>
                     {t("fin.accounts.setupTemplate")}
                   </Button>

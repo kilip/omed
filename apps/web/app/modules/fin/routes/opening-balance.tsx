@@ -50,7 +50,7 @@ export async function clientLoader() {
     }),
   );
   if (accounts.length === 0) {
-    return redirect("/fin/setup");
+    return redirect("/fin/onboarding");
   }
   return { wid };
 }
