@@ -47,7 +47,7 @@ chore(deps): 🔧 bump biome
 Rules:
 
 - The emoji goes right after the colon, so the `type(scope):` prefix stays parseable by tooling.
-- The scope is required. Allowed scopes (see `commitlint.config.ts`): `auth`, `web`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `docs`.
+- The scope is required. Allowed scopes (see `commitlint.config.ts`): `auth`, `web`, `api`, `e2e`, `deps`, `ci`, `release`, `tools`, `deploy`, `docs`.
 - Subject: imperative mood, lowercase (after the emoji), no trailing period, max ~72 chars including the emoji.
 - Body (when needed): explain *why*, not *what*; wrap at ~72 chars.
 - Breaking changes: add `!` after type/scope and a `BREAKING CHANGE:` footer. Breaking changes keep the same emoji for their type.

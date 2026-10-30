@@ -16,6 +16,7 @@ const config = {
         "ci",
         "release",
         "tools",
+        "deploy",
         "docs",
       ],
     ],
