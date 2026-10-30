@@ -73,7 +73,7 @@ e2e/{features/agent/,steps/agent/,pages/agent/}
 - [x] **Step 2: Run** `cd apps/api && go test ./internal/platform/secretx/...` Expected: FAIL (package missing).
 - [x] **Step 3: Implement** the interface above in `cipher.go` with `crypto/aes` + `cipher.NewGCM`; AAD passed as `[]byte(aad)`.
 - [x] **Step 4: Run** the same command. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(api): ✨ add secretx cipher`
+- [x] **Step 5: Commit** `feat(api): ✨ add secretx cipher`
 
 ### Task 2: `llmx` types, errors, factory, memory driver
 
@@ -113,11 +113,11 @@ e2e/{features/agent/,steps/agent/,pages/agent/}
   ```
 - `New` builds the guarded HTTP client (Task 3) when `cfg.HTTPClient` is nil; until Task 3 lands it uses a stub `newHTTPClient(allowPrivate bool) *http.Client` in `guard.go` that returns `http.DefaultClient`; Task 3 replaces the stub.
 
-- [ ] **Step 1: Write failing tests:** `TestMapHTTPError` table: 401/403 → `ErrAuth`, 404 → `ErrModelNotFound`, 429 → `ErrRateLimit`, 400/422 → `ErrBadRequest`, 500/502/503 → `ErrUnavailable`; `TestMapHTTPErrorRedactsSecret` (body contains `sk-secret`, `err.Error()` does not); `TestMemoryReplaysInOrder` and `TestMemoryRecordsRequests`; `TestMemoryStreamEmitsTextThenDone`; `TestMergeCapabilities` (nil override keeps base; override replaces all four); `TestNewUnsupportedKind`.
-- [ ] **Step 2: Run** `go test ./internal/platform/llmx/...` Expected: FAIL.
-- [ ] **Step 3: Implement** the files above. `New` returns `ErrUnsupportedKind` for unknown kinds until Tasks 4-6 register drivers (use an internal `map[Kind]func(Config) (Adapter, error)` that each driver file fills in `init()`).
-- [ ] **Step 4: Run** same command. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(api): ✨ add llmx adapter contract and memory driver`
+- [x] **Step 1: Write failing tests:** `TestMapHTTPError` table: 401/403 → `ErrAuth`, 404 → `ErrModelNotFound`, 429 → `ErrRateLimit`, 400/422 → `ErrBadRequest`, 500/502/503 → `ErrUnavailable`; `TestMapHTTPErrorRedactsSecret` (body contains `sk-secret`, `err.Error()` does not); `TestMemoryReplaysInOrder` and `TestMemoryRecordsRequests`; `TestMemoryStreamEmitsTextThenDone`; `TestMergeCapabilities` (nil override keeps base; override replaces all four); `TestNewUnsupportedKind`.
+- [x] **Step 2: Run** `go test ./internal/platform/llmx/...` Expected: FAIL.
+- [x] **Step 3: Implement** the files above. `New` returns `ErrUnsupportedKind` for unknown kinds until Tasks 4-6 register drivers (use an internal `map[Kind]func(Config) (Adapter, error)` that each driver file fills in `init()`).
+- [x] **Step 4: Run** same command. Expected: PASS.
+- [x] **Step 5: Commit** `feat(api): ✨ add llmx adapter contract and memory driver`
 
 ### Task 3: `llmx` SSRF guard
 
