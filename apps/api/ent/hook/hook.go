@@ -21,6 +21,18 @@ func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
 }
 
+// The AgentProviderFunc type is an adapter to allow the use of ordinary
+// function as AgentProvider mutator.
+type AgentProviderFunc func(context.Context, *ent.AgentProviderMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentProviderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AgentProviderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AgentProviderMutation", m)
+}
+
 // The CmsMediaFunc type is an adapter to allow the use of ordinary
 // function as CmsMedia mutator.
 type CmsMediaFunc func(context.Context, *ent.CmsMediaMutation) (ent.Value, error)

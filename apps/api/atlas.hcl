@@ -16,7 +16,7 @@ locals {
 env "local" {
   url     = local.resolved_db_url
   dev     = local.resolved_dev_url
-  schemas = ["core", "fin", "cms"]
+  schemas = ["core", "fin", "cms", "agent"]
   exclude = ["public", "public.*"]
   migration {
     dir = "file://migrations"

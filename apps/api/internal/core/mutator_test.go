@@ -7,6 +7,7 @@ import (
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/agentprovider"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
@@ -35,6 +36,7 @@ func (s *MutatorSuite) TearDownSuite() {
 
 func (s *MutatorSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
+	_, _ = s.client.AgentProvider.Delete().Exec(ctx)
 	_, _ = s.client.CmsPost.Delete().Exec(ctx)
 	_, _ = s.client.CmsPage.Delete().Exec(ctx)
 	_, _ = s.client.CmsMedia.Delete().Exec(ctx)
@@ -437,3 +439,76 @@ func (s *MutatorSuite) Test_AuditMutator_PanicsWithoutUserAndWithoutSkip() {
 			Save(ctx)
 	})
 }
+
+func (s *MutatorSuite) TestAgentProviderIsWorkspaceFiltered() {
+	wsA, err := s.client.Workspace.Create().SetName("WS A").SetOwnerID(s.user.ID).Save(s.ctx)
+	s.Require().NoError(err)
+	wsB, err := s.client.Workspace.Create().SetName("WS B").SetOwnerID(s.user.ID).Save(s.ctx)
+	s.Require().NoError(err)
+
+	ctxA := base.WithWorkspaceID(s.ctx, wsA.ID)
+	ctxB := base.WithWorkspaceID(s.ctx, wsB.ID)
+
+	_, err = s.client.AgentProvider.Create().
+		SetName("Provider A").
+		SetKind(agentprovider.KindOpenaiCompat).
+		SetModel("gpt-4o").
+		SetAPIKeyEnc("v1.enc").
+		SetKeyHint("1234").
+		Save(ctxA)
+	s.Require().NoError(err)
+
+	_, err = s.client.AgentProvider.Create().
+		SetName("Provider B").
+		SetKind(agentprovider.KindOpenaiCompat).
+		SetModel("gpt-4o").
+		SetAPIKeyEnc("v1.enc").
+		SetKeyHint("1234").
+		Save(ctxB)
+	s.Require().NoError(err)
+
+	// Query with ctxA -> should only see WS A's provider
+	providersA, err := s.client.AgentProvider.Query().All(ctxA)
+	s.Require().NoError(err)
+	s.Require().Len(providersA, 1)
+	s.Equal("Provider A", providersA[0].Name)
+
+	// Query with ctxB -> should only see WS B's provider
+	providersB, err := s.client.AgentProvider.Query().All(ctxB)
+	s.Require().NoError(err)
+	s.Require().Len(providersB, 1)
+	s.Equal("Provider B", providersB[0].Name)
+
+	// Query without workspace in context -> should fail closed with ErrWorkspaceRequired
+	_, err = s.client.AgentProvider.Query().All(s.ctx)
+	s.Require().ErrorIs(err, base.ErrWorkspaceRequired)
+}
+
+func (s *MutatorSuite) TestAgentProviderCreateGetsWorkspaceID() {
+	ws, err := s.client.Workspace.Create().SetName("Tenant Provider WS").SetOwnerID(s.user.ID).Save(s.ctx)
+	s.Require().NoError(err)
+
+	ctxWithWS := base.WithWorkspaceID(s.ctx, ws.ID)
+
+	// Creating under ctxWithWS without calling SetWorkspaceID auto-injects workspace ID
+	prov, err := s.client.AgentProvider.Create().
+		SetName("Provider Auto").
+		SetKind(agentprovider.KindOpenaiCompat).
+		SetModel("gpt-4o").
+		SetAPIKeyEnc("v1.enc").
+		SetKeyHint("1234").
+		Save(ctxWithWS)
+	s.Require().NoError(err)
+	s.Equal(ws.ID, prov.WorkspaceID)
+
+	// Creating without workspace in context fails with ErrWorkspaceRequired
+	_, err = s.client.AgentProvider.Create().
+		SetName("Provider No WS").
+		SetKind(agentprovider.KindOpenaiCompat).
+		SetModel("gpt-4o").
+		SetAPIKeyEnc("v1.enc").
+		SetKeyHint("1234").
+		Save(s.ctx)
+	s.Require().ErrorIs(err, base.ErrWorkspaceRequired)
+}
+

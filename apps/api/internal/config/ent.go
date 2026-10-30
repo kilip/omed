@@ -29,7 +29,7 @@ func GetEntClient(cfg Config) *ent.Client {
 
 	if cfg.DatabaseAutoMigrate {
 		ctx := context.Background()
-		for _, s := range []string{"core", "fin", "cms"} {
+		for _, s := range []string{"core", "fin", "cms", "agent"} {
 			if _, err := db.ExecContext(ctx, "CREATE SCHEMA IF NOT EXISTS "+s); err != nil {
 				log.Fatalf("failed creating schema %s: %v", s, err)
 			}

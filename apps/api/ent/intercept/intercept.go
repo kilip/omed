@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/agentprovider"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
@@ -110,6 +111,33 @@ func (f TraverseAccount) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.AccountQuery", q)
+}
+
+// The AgentProviderFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AgentProviderFunc func(context.Context, *ent.AgentProviderQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f AgentProviderFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.AgentProviderQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.AgentProviderQuery", q)
+}
+
+// The TraverseAgentProvider type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAgentProvider func(context.Context, *ent.AgentProviderQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAgentProvider) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAgentProvider) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AgentProviderQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.AgentProviderQuery", q)
 }
 
 // The CmsMediaFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -576,6 +604,8 @@ func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
 	case *ent.AccountQuery:
 		return &query[*ent.AccountQuery, predicate.Account, account.OrderOption]{typ: ent.TypeAccount, tq: q}, nil
+	case *ent.AgentProviderQuery:
+		return &query[*ent.AgentProviderQuery, predicate.AgentProvider, agentprovider.OrderOption]{typ: ent.TypeAgentProvider, tq: q}, nil
 	case *ent.CmsMediaQuery:
 		return &query[*ent.CmsMediaQuery, predicate.CmsMedia, cmsmedia.OrderOption]{typ: ent.TypeCmsMedia, tq: q}, nil
 	case *ent.CmsPageQuery:

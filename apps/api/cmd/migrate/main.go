@@ -61,11 +61,11 @@ func main() {
 	}
 	defer func() { _ = devDB.Close() }()
 
-	if err := cleanSchemas(ctx, devDB, []string{"core", "fin", "cms"}); err != nil {
+	if err := cleanSchemas(ctx, devDB, []string{"core", "fin", "cms", "agent"}); err != nil {
 		log.Fatalf("migrate: failed cleaning dev schemas before replay: %v", err)
 	}
 	defer func() {
-		_ = cleanSchemas(ctx, devDB, []string{"core", "fin", "cms"})
+		_ = cleanSchemas(ctx, devDB, []string{"core", "fin", "cms", "agent"})
 	}()
 
 	atDriver, err := postgres.Open(devDB)

@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/agentprovider"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
@@ -69,7 +70,8 @@ func isWorkspaceScopedType(typ string) bool {
 		ent.TypeFinSetting,
 		ent.TypeCmsPost,
 		ent.TypeCmsPage,
-		ent.TypeCmsMedia:
+		ent.TypeCmsMedia,
+		ent.TypeAgentProvider:
 		return true
 	default:
 		return false
@@ -148,6 +150,8 @@ func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error
 		q.WhereP(sql.FieldEQ(cmspage.FieldWorkspaceID, wsID))
 	case ent.TypeCmsMedia:
 		q.WhereP(sql.FieldEQ(cmsmedia.FieldWorkspaceID, wsID))
+	case ent.TypeAgentProvider:
+		q.WhereP(sql.FieldEQ(agentprovider.FieldWorkspaceID, wsID))
 	}
 	return nil
 }

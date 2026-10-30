@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
+	// AgentProvider is the client for interacting with the AgentProvider builders.
+	AgentProvider *AgentProviderClient
 	// CmsMedia is the client for interacting with the CmsMedia builders.
 	CmsMedia *CmsMediaClient
 	// CmsPage is the client for interacting with the CmsPage builders.
@@ -180,6 +182,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
+	tx.AgentProvider = NewAgentProviderClient(tx.config)
 	tx.CmsMedia = NewCmsMediaClient(tx.config)
 	tx.CmsPage = NewCmsPageClient(tx.config)
 	tx.CmsPost = NewCmsPostClient(tx.config)

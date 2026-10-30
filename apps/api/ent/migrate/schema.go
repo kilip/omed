@@ -92,6 +92,64 @@ var (
 			},
 		},
 	}
+	// AgentProvidersColumns holds the columns for the "agent_providers" table.
+	AgentProvidersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"openai_compat", "anthropic", "gemini"}},
+		{Name: "base_url", Type: field.TypeString, Nullable: true},
+		{Name: "model", Type: field.TypeString},
+		{Name: "api_key_enc", Type: field.TypeString},
+		{Name: "key_hint", Type: field.TypeString, Default: ""},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "capabilities", Type: field.TypeJSON, Nullable: true},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+	}
+	// AgentProvidersTable holds the schema information for the "agent_providers" table.
+	AgentProvidersTable = &schema.Table{
+		Name:       "agent_providers",
+		Columns:    AgentProvidersColumns,
+		PrimaryKey: []*schema.Column{AgentProvidersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "agent_providers_workspaces_workspace",
+				Columns:    []*schema.Column{AgentProvidersColumns[11]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_providers_users_creator",
+				Columns:    []*schema.Column{AgentProvidersColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_providers_users_updater",
+				Columns:    []*schema.Column{AgentProvidersColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentprovider_workspace_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{AgentProvidersColumns[11], AgentProvidersColumns[3]},
+			},
+			{
+				Name:    "agentprovider_workspace_id",
+				Unique:  true,
+				Columns: []*schema.Column{AgentProvidersColumns[11]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_default",
+				},
+			},
+		},
+	}
 	// CmsMediaColumns holds the columns for the "cms_media" table.
 	CmsMediaColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1104,6 +1162,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
+		AgentProvidersTable,
 		CmsMediaTable,
 		CmsPagesTable,
 		CmsPostsTable,
@@ -1130,6 +1189,9 @@ func init() {
 	AccountsTable.ForeignKeys[2].RefTable = UsersTable
 	AccountsTable.ForeignKeys[3].RefTable = UsersTable
 	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
+	AgentProvidersTable.ForeignKeys[0].RefTable = WorkspacesTable
+	AgentProvidersTable.ForeignKeys[1].RefTable = UsersTable
+	AgentProvidersTable.ForeignKeys[2].RefTable = UsersTable
 	CmsMediaTable.ForeignKeys[0].RefTable = WorkspacesTable
 	CmsMediaTable.ForeignKeys[1].RefTable = UsersTable
 	CmsMediaTable.ForeignKeys[2].RefTable = UsersTable

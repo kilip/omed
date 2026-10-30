@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/agentprovider"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
@@ -80,6 +81,41 @@ func init() {
 	accountDescIsPostable := accountFields[9].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
+	agentproviderMixin := schema.AgentProvider{}.Mixin()
+	agentproviderMixinFields1 := agentproviderMixin[1].Fields()
+	_ = agentproviderMixinFields1
+	agentproviderFields := schema.AgentProvider{}.Fields()
+	_ = agentproviderFields
+	// agentproviderDescCreatedAt is the schema descriptor for created_at field.
+	agentproviderDescCreatedAt := agentproviderMixinFields1[2].Descriptor()
+	// agentprovider.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentprovider.DefaultCreatedAt = agentproviderDescCreatedAt.Default.(func() time.Time)
+	// agentproviderDescUpdatedAt is the schema descriptor for updated_at field.
+	agentproviderDescUpdatedAt := agentproviderMixinFields1[3].Descriptor()
+	// agentprovider.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentprovider.DefaultUpdatedAt = agentproviderDescUpdatedAt.Default.(func() time.Time)
+	// agentprovider.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentprovider.UpdateDefaultUpdatedAt = agentproviderDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// agentproviderDescName is the schema descriptor for name field.
+	agentproviderDescName := agentproviderFields[1].Descriptor()
+	// agentprovider.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	agentprovider.NameValidator = agentproviderDescName.Validators[0].(func(string) error)
+	// agentproviderDescModel is the schema descriptor for model field.
+	agentproviderDescModel := agentproviderFields[4].Descriptor()
+	// agentprovider.ModelValidator is a validator for the "model" field. It is called by the builders before save.
+	agentprovider.ModelValidator = agentproviderDescModel.Validators[0].(func(string) error)
+	// agentproviderDescAPIKeyEnc is the schema descriptor for api_key_enc field.
+	agentproviderDescAPIKeyEnc := agentproviderFields[5].Descriptor()
+	// agentprovider.APIKeyEncValidator is a validator for the "api_key_enc" field. It is called by the builders before save.
+	agentprovider.APIKeyEncValidator = agentproviderDescAPIKeyEnc.Validators[0].(func(string) error)
+	// agentproviderDescKeyHint is the schema descriptor for key_hint field.
+	agentproviderDescKeyHint := agentproviderFields[6].Descriptor()
+	// agentprovider.DefaultKeyHint holds the default value on creation for the key_hint field.
+	agentprovider.DefaultKeyHint = agentproviderDescKeyHint.Default.(string)
+	// agentproviderDescIsDefault is the schema descriptor for is_default field.
+	agentproviderDescIsDefault := agentproviderFields[7].Descriptor()
+	// agentprovider.DefaultIsDefault holds the default value on creation for the is_default field.
+	agentprovider.DefaultIsDefault = agentproviderDescIsDefault.Default.(bool)
 	cmsmediaMixin := schema.CmsMedia{}.Mixin()
 	cmsmediaMixinFields1 := cmsmediaMixin[1].Fields()
 	_ = cmsmediaMixinFields1
