@@ -7,30 +7,30 @@ import (
 
 // CreateProviderRequest defines payload to create a new provider.
 type CreateProviderRequest struct {
-	Name         string             `json:"name"`
-	Kind         string             `json:"kind"`
+	Name         string             `json:"name" validate:"required,min=1,max=100"`
+	Kind         string             `json:"kind" validate:"required,oneof=openai_compat anthropic gemini"`
 	BaseURL      string             `json:"baseUrl"`
-	Model        string             `json:"model"`
-	APIKey       string             `json:"apiKey"`
+	Model        string             `json:"model" validate:"required,min=1,max=200"`
+	APIKey       string             `json:"apiKey" validate:"required"`
 	Capabilities *llmx.Capabilities `json:"capabilities,omitempty"`
 	IsDefault    bool               `json:"isDefault"`
 }
 
 // UpdateProviderRequest defines payload to update an existing provider.
 type UpdateProviderRequest struct {
-	Name         *string            `json:"name,omitempty"`
+	Name         *string            `json:"name,omitempty" validate:"omitempty,min=1,max=100"`
 	BaseURL      *string            `json:"baseUrl,omitempty"`
-	Model        *string            `json:"model,omitempty"`
-	APIKey       *string            `json:"apiKey,omitempty"`
+	Model        *string            `json:"model,omitempty" validate:"omitempty,min=1,max=200"`
+	APIKey       *string            `json:"apiKey,omitempty" validate:"omitempty"`
 	Capabilities *llmx.Capabilities `json:"capabilities,omitempty"`
 }
 
 // TestProviderRequest defines payload to test provider configuration.
 type TestProviderRequest struct {
-	Kind         string             `json:"kind"`
+	Kind         string             `json:"kind" validate:"required,oneof=openai_compat anthropic gemini"`
 	BaseURL      string             `json:"baseUrl"`
-	Model        string             `json:"model"`
-	APIKey       string             `json:"apiKey"`
+	Model        string             `json:"model" validate:"required,min=1,max=200"`
+	APIKey       string             `json:"apiKey" validate:"required"`
 	Capabilities *llmx.Capabilities `json:"capabilities,omitempty"`
 }
 

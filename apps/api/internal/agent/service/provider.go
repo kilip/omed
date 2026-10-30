@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/agent/domain"
 	"github.com/kilip/omed/api/internal/agent/model"
@@ -99,6 +100,13 @@ func NewProviderService(repo repository.ProviderRepository, cipher *secretx.Ciph
 	return s
 }
 
+func keyHint(k string) string {
+	if len(k) <= 4 {
+		return k
+	}
+	return k[len(k)-4:]
+}
+
 func toDomain(p *ent.AgentProvider) domain.Provider {
 	if p == nil {
 		return domain.Provider{}
@@ -142,17 +150,17 @@ func (s *providerService) Get(ctx context.Context, id int64) (domain.Provider, e
 func (s *providerService) Create(ctx context.Context, req model.CreateProviderRequest) (domain.Provider, error) {
 	name := strings.TrimSpace(req.Name)
 	if len(name) < 1 || len(name) > 100 {
-		return domain.Provider{}, base.NewUnprocessableEntityError("name must be between 1 and 100 characters")
+		return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "name must be between 1 and 100 characters")
 	}
 
 	modelName := strings.TrimSpace(req.Model)
 	if len(modelName) < 1 || len(modelName) > 200 {
-		return domain.Provider{}, base.NewUnprocessableEntityError("model must be between 1 and 200 characters")
+		return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "model must be between 1 and 200 characters")
 	}
 
 	kind := llmx.Kind(req.Kind)
 	if kind != llmx.KindOpenAICompat && kind != llmx.KindAnthropic && kind != llmx.KindGemini {
-		return domain.Provider{}, base.NewUnprocessableEntityError("invalid provider kind")
+		return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "invalid provider kind")
 	}
 
 	if s.cipher == nil || !s.cipher.Enabled() {
@@ -169,7 +177,7 @@ func (s *providerService) Create(ctx context.Context, req model.CreateProviderRe
 		return domain.Provider{}, domain.ErrInvalidBaseURL
 	}
 	if baseURL != "" {
-		if err := llmx.ValidateBaseURL(ctx, baseURL, s.allowPrivate); err != nil {
+		if err := llmx.ValidateBaseURL(baseURL, s.allowPrivate); err != nil {
 			return domain.Provider{}, fmt.Errorf("%w: %w", domain.ErrInvalidBaseURL, err)
 		}
 	}
@@ -179,7 +187,7 @@ func (s *providerService) Create(ctx context.Context, req model.CreateProviderRe
 	if err != nil {
 		return domain.Provider{}, err
 	}
-	hint := secretx.KeyHint(apiKey)
+	hint := keyHint(apiKey)
 
 	isDefault := req.IsDefault
 	if !isDefault {
@@ -221,7 +229,7 @@ func (s *providerService) Update(ctx context.Context, id int64, req model.Update
 	if req.Name != nil {
 		trimmed := strings.TrimSpace(*req.Name)
 		if len(trimmed) < 1 || len(trimmed) > 100 {
-			return domain.Provider{}, base.NewUnprocessableEntityError("name must be between 1 and 100 characters")
+			return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "name must be between 1 and 100 characters")
 		}
 		u.Name = &trimmed
 	}
@@ -229,7 +237,7 @@ func (s *providerService) Update(ctx context.Context, id int64, req model.Update
 	if req.Model != nil {
 		trimmed := strings.TrimSpace(*req.Model)
 		if len(trimmed) < 1 || len(trimmed) > 200 {
-			return domain.Provider{}, base.NewUnprocessableEntityError("model must be between 1 and 200 characters")
+			return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "model must be between 1 and 200 characters")
 		}
 		u.Model = &trimmed
 	}
@@ -240,7 +248,7 @@ func (s *providerService) Update(ctx context.Context, id int64, req model.Update
 			return domain.Provider{}, domain.ErrInvalidBaseURL
 		}
 		if trimmed != "" {
-			if err := llmx.ValidateBaseURL(ctx, trimmed, s.allowPrivate); err != nil {
+			if err := llmx.ValidateBaseURL(trimmed, s.allowPrivate); err != nil {
 				return domain.Provider{}, fmt.Errorf("%w: %w", domain.ErrInvalidBaseURL, err)
 			}
 		}
@@ -256,7 +264,7 @@ func (s *providerService) Update(ctx context.Context, id int64, req model.Update
 		if err != nil {
 			return domain.Provider{}, err
 		}
-		hint := secretx.KeyHint(apiKey)
+		hint := keyHint(apiKey)
 		u.APIKeyEnc = &enc
 		u.KeyHint = &hint
 	}
@@ -301,12 +309,14 @@ func (s *providerService) ResolveAdapter(ctx context.Context, providerID *int64)
 		return nil, fmt.Errorf("%w: %w", domain.ErrProviderKeyUnreadable, err)
 	}
 
+	caps := llmx.MergeCapabilities(llmx.DefaultCapabilities(llmx.Kind(row.Kind)), row.Capabilities)
+
 	return s.adapterFactory(llmx.Config{
 		Kind:             llmx.Kind(row.Kind),
 		BaseURL:          row.BaseURL,
 		APIKey:           apiKey,
 		Model:            row.Model,
-		Capabilities:     row.Capabilities,
+		Capabilities:     &caps,
 		AllowPrivateURLs: s.allowPrivate,
 	})
 }
@@ -353,7 +363,7 @@ func (s *providerService) TestConfig(ctx context.Context, req model.TestProvider
 
 	baseURL := strings.TrimSpace(req.BaseURL)
 	if baseURL != "" {
-		if err := llmx.ValidateBaseURL(ctx, baseURL, s.allowPrivate); err != nil {
+		if err := llmx.ValidateBaseURL(baseURL, s.allowPrivate); err != nil {
 			return model.TestResult{OK: false, Code: mapTestErrorCode(err)}, nil
 		}
 	}
@@ -379,7 +389,7 @@ func (s *providerService) runTest(ctx context.Context, adapter llmx.Adapter) (mo
 
 	start := s.now()
 	_, err := adapter.Chat(testCtx, llmx.Request{
-		Messages:  []llmx.Message{{Role: llmx.RoleUser, Content: "ping"}},
+		Messages:  []llmx.Message{{Role: llmx.RoleUser, Parts: []llmx.Part{{Text: "ping"}}}},
 		MaxTokens: 1,
 	})
 	latencyMs := s.now().Sub(start).Milliseconds()
