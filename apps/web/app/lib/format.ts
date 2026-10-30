@@ -1,6 +1,24 @@
 export type Lang = "en" | "id";
+export type DecimalStyle = "dot" | "comma";
+
+let activeDecimalStyle: DecimalStyle | null = null;
+
+export function setActiveDecimalStyle(style: DecimalStyle | null): void {
+  activeDecimalStyle = style;
+}
+
+export function getActiveDecimalStyle(): DecimalStyle | null {
+  return activeDecimalStyle;
+}
 
 const locale = (lang: string) => (lang === "id" ? "id-ID" : "en-US");
+
+const numberLocale = (lang: string, decimalStyle?: DecimalStyle | null) => {
+  const style = decimalStyle ?? activeDecimalStyle;
+  if (style === "dot") return "en-US";
+  if (style === "comma") return "id-ID";
+  return locale(lang);
+};
 
 /**
  * Standard currency decimals mapping following ISO 4217.
@@ -40,13 +58,23 @@ const toNum = (v: number | string): number => {
   return Number.isNaN(n) ? 0 : n;
 };
 
-export function formatNumber(value: number | string, lang: string): string {
-  return new Intl.NumberFormat(locale(lang)).format(toNum(value));
+export function formatNumber(
+  value: number | string,
+  lang: string,
+  decimalStyle?: DecimalStyle | null,
+): string {
+  return new Intl.NumberFormat(numberLocale(lang, decimalStyle)).format(
+    toNum(value),
+  );
 }
 
 /** Indonesian rupiah, no decimals. */
-export function formatIDR(value: number | string, lang: string): string {
-  return formatMoney(value, "IDR", lang);
+export function formatIDR(
+  value: number | string,
+  lang: string,
+  decimalStyle?: DecimalStyle | null,
+): string {
+  return formatMoney(value, "IDR", lang, decimalStyle);
 }
 
 /**
@@ -56,9 +84,10 @@ export function formatMoney(
   amount: number | string,
   currency = "IDR",
   lang: string = "id",
+  decimalStyle?: DecimalStyle | null,
 ): string {
   const decimals = getCurrencyDecimals(currency);
-  return new Intl.NumberFormat(locale(lang), {
+  return new Intl.NumberFormat(numberLocale(lang, decimalStyle), {
     style: "currency",
     currency: currency.toUpperCase(),
     minimumFractionDigits: decimals,

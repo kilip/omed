@@ -1,10 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   formatIDR,
   formatMoney,
+  formatNumber,
+  getActiveDecimalStyle,
   getCurrencyDecimals,
   isBalanced,
   roundToCurrency,
+  setActiveDecimalStyle,
 } from "./format";
 
 describe("formatMoney", () => {
@@ -61,5 +64,46 @@ describe("balance helpers", () => {
     expect(roundToCurrency(10.556, "USD")).toBe(10.56);
     expect(roundToCurrency(10.556, "IDR")).toBe(11);
     expect(roundToCurrency(10.5556, "KWD")).toBe(10.556);
+  });
+});
+
+describe("decimalStyle formatting", () => {
+  beforeEach(() => {
+    setActiveDecimalStyle(null);
+  });
+
+  it("formats formatMoney with explicit dot decimalStyle", () => {
+    const formatted = formatMoney(1234567.89, "USD", "id", "dot");
+    expect(formatted.replace(/\s/g, " ")).toContain("$1,234,567.89");
+  });
+
+  it("formats formatMoney with explicit comma decimalStyle", () => {
+    const formatted = formatMoney(1234567.89, "USD", "en", "comma");
+    expect(formatted.replace(/\s/g, " ")).toContain("1.234.567,89");
+  });
+
+  it("uses activeDecimalStyle when dot is active", () => {
+    setActiveDecimalStyle("dot");
+    expect(getActiveDecimalStyle()).toBe("dot");
+    const formatted = formatMoney(1500000, "IDR", "id");
+    expect(formatted.replace(/\s/g, " ")).toContain("1,500,000");
+  });
+
+  it("uses activeDecimalStyle when comma is active", () => {
+    setActiveDecimalStyle("comma");
+    expect(getActiveDecimalStyle()).toBe("comma");
+    const formatted = formatMoney(1234.5, "USD", "en");
+    expect(formatted.replace(/\s/g, " ")).toContain("1.234,50");
+  });
+
+  it("formats formatNumber with explicit and active decimalStyle", () => {
+    expect(formatNumber(1234567.89, "id", "dot")).toBe("1,234,567.89");
+    expect(formatNumber(1234567.89, "en", "comma")).toBe("1.234.567,89");
+
+    setActiveDecimalStyle("dot");
+    expect(formatNumber(1234567.89, "id")).toBe("1,234,567.89");
+
+    setActiveDecimalStyle(null);
+    expect(getActiveDecimalStyle()).toBeNull();
   });
 });

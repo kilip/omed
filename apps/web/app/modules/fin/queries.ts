@@ -32,6 +32,10 @@ export const currencyKeys = {
   all: (wid: number) => ["fin", "workspaces", wid, "currencies"] as const,
 };
 
+export const settingKeys = {
+  all: (wid: number) => ["fin", "workspaces", wid, "settings"] as const,
+};
+
 export const entryKeys = {
   all: (wid: number) => ["fin", "workspaces", wid, "entries"] as const,
   infinite: (wid: number, filters?: SearchEntryFilters) =>
@@ -129,6 +133,18 @@ export const currenciesQueryOptions = (wid: number) =>
     queryFn: () =>
       unwrapList(
         api.GET("/workspaces/{wid}/fin/currencies", {
+          params: { path: { wid } },
+        }),
+      ),
+  });
+
+/** Finance settings for a workspace. */
+export const finSettingsQueryOptions = (wid: number) =>
+  queryOptions({
+    queryKey: settingKeys.all(wid),
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/fin/settings", {
           params: { path: { wid } },
         }),
       ),

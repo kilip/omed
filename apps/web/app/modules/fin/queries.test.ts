@@ -4,8 +4,10 @@ import { api } from "~/lib/api";
 import {
   expenseKeys,
   expensesInfiniteQueryOptions,
+  finSettingsQueryOptions,
   incomeKeys,
   incomesInfiniteQueryOptions,
+  settingKeys,
 } from "./queries";
 
 vi.mock("~/lib/api", async (importOriginal) => {
@@ -158,6 +160,46 @@ describe("fin cash flow queries", () => {
       expect(result).toEqual({
         items: [{ id: 202, amount: "150000" }],
         cursor: "cur-next",
+      });
+    });
+  });
+
+  describe("finSettingsQueryOptions", () => {
+    it("generates correct settingKeys", () => {
+      expect(settingKeys.all(wid)).toEqual([
+        "fin",
+        "workspaces",
+        wid,
+        "settings",
+      ]);
+    });
+
+    it("configures queryKey and fetches settings via GET", async () => {
+      const options = finSettingsQueryOptions(wid);
+      expect(options.queryKey).toEqual(["fin", "workspaces", wid, "settings"]);
+
+      const mockResponse = {
+        data: {
+          data: {
+            baseCurrency: "USD",
+            decimalStyle: "dot",
+            onboarding: true,
+          },
+        },
+        response: new Response(),
+      };
+      vi.mocked(api.GET).mockResolvedValueOnce(mockResponse as never);
+
+      const result = await (
+        options as { queryFn: () => Promise<unknown> }
+      ).queryFn();
+      expect(api.GET).toHaveBeenCalledWith("/workspaces/{wid}/fin/settings", {
+        params: { path: { wid } },
+      });
+      expect(result).toEqual({
+        baseCurrency: "USD",
+        decimalStyle: "dot",
+        onboarding: true,
       });
     });
   });
