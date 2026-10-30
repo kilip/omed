@@ -9,7 +9,10 @@
   "packages": {
     ".": {
       "package-name": "omed",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        { "type": "generic", "path": "deploy/helm/omed/Chart.yaml" }
+      ]
     }
   },
   "changelog-sections": [
