@@ -190,6 +190,8 @@ func (s *SeederSuite) Test_Seed_SuccessAndHierarchy() {
 	s.Equal(accByCode["7320"].ID, *setting.FxUnrealizedLossAccountID)
 	s.Require().NotNil(setting.FxRoundingAccountID)
 	s.Equal(accByCode["7400"].ID, *setting.FxRoundingAccountID)
+	s.True(setting.Onboarding)
+	s.Equal(finsetting.DecimalStyleComma, setting.DecimalStyle)
 
 	// Seeding a second time must fail with ErrAccountWorkspaceNotEmpty
 	_, err = seed.Seed(ctx, s.client, s.workspaceID, "freelancer", "id")

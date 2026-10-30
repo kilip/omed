@@ -579,6 +579,8 @@ var (
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "onboarding", Type: field.TypeBool, Default: false},
+		{Name: "decimal_style", Type: field.TypeEnum, Enums: []string{"dot", "comma"}, Default: "comma"},
 		{Name: "fx_gain_account_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "fx_loss_account_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "fx_unrealized_gain_account_id", Type: field.TypeInt64, Nullable: true},
@@ -596,19 +598,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "fin_settings_workspaces_workspace",
-				Columns:    []*schema.Column{FinSettingsColumns[8]},
+				Columns:    []*schema.Column{FinSettingsColumns[10]},
 				RefColumns: []*schema.Column{WorkspacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "fin_settings_users_creator",
-				Columns:    []*schema.Column{FinSettingsColumns[9]},
+				Columns:    []*schema.Column{FinSettingsColumns[11]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "fin_settings_users_updater",
-				Columns:    []*schema.Column{FinSettingsColumns[10]},
+				Columns:    []*schema.Column{FinSettingsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -617,7 +619,7 @@ var (
 			{
 				Name:    "finsetting_workspace_id",
 				Unique:  true,
-				Columns: []*schema.Column{FinSettingsColumns[8]},
+				Columns: []*schema.Column{FinSettingsColumns[10]},
 			},
 		},
 	}

@@ -109,7 +109,7 @@ func Seed(ctx context.Context, client *ent.Client, workspaceID int64, template, 
 			codeToID[item.Code] = created.ID
 		}
 
-		// Automatically link/configure default FX accounts if present in template
+		// Configure workspace financial settings and automatically link FX accounts if present
 		var fxGainID, fxLossID, fxUnrealizedGainID, fxUnrealizedLossID, fxRoundingID *int64
 		if id, ok := codeToID["7210"]; ok {
 			fxGainID = &id
@@ -127,55 +127,55 @@ func Seed(ctx context.Context, client *ent.Client, workspaceID int64, template, 
 			fxRoundingID = &id
 		}
 
-		if fxGainID != nil || fxLossID != nil || fxUnrealizedGainID != nil || fxUnrealizedLossID != nil || fxRoundingID != nil {
-			existingSetting, err := tx.FinSetting.Query().
-				Where(finsetting.WorkspaceIDEQ(workspaceID)).
-				First(ctx)
-			if err != nil && !ent.IsNotFound(err) {
-				return fmt.Errorf("querying workspace fin setting: %w", err)
-			}
+		existingSetting, err := tx.FinSetting.Query().
+			Where(finsetting.WorkspaceIDEQ(workspaceID)).
+			First(ctx)
+		if err != nil && !ent.IsNotFound(err) {
+			return fmt.Errorf("querying workspace fin setting: %w", err)
+		}
 
-			if existingSetting != nil {
-				updateBuilder := tx.FinSetting.UpdateOne(existingSetting)
-				if fxGainID != nil {
-					updateBuilder.SetFxGainAccountID(*fxGainID)
-				}
-				if fxLossID != nil {
-					updateBuilder.SetFxLossAccountID(*fxLossID)
-				}
-				if fxUnrealizedGainID != nil {
-					updateBuilder.SetFxUnrealizedGainAccountID(*fxUnrealizedGainID)
-				}
-				if fxUnrealizedLossID != nil {
-					updateBuilder.SetFxUnrealizedLossAccountID(*fxUnrealizedLossID)
-				}
-				if fxRoundingID != nil {
-					updateBuilder.SetFxRoundingAccountID(*fxRoundingID)
-				}
-				if _, err := updateBuilder.Save(ctx); err != nil {
-					return fmt.Errorf("updating workspace fin setting: %w", err)
-				}
-			} else {
-				createBuilder := tx.FinSetting.Create().
-					SetWorkspaceID(workspaceID)
-				if fxGainID != nil {
-					createBuilder.SetFxGainAccountID(*fxGainID)
-				}
-				if fxLossID != nil {
-					createBuilder.SetFxLossAccountID(*fxLossID)
-				}
-				if fxUnrealizedGainID != nil {
-					createBuilder.SetFxUnrealizedGainAccountID(*fxUnrealizedGainID)
-				}
-				if fxUnrealizedLossID != nil {
-					createBuilder.SetFxUnrealizedLossAccountID(*fxUnrealizedLossID)
-				}
-				if fxRoundingID != nil {
-					createBuilder.SetFxRoundingAccountID(*fxRoundingID)
-				}
-				if _, err := createBuilder.Save(ctx); err != nil {
-					return fmt.Errorf("creating workspace fin setting: %w", err)
-				}
+		if existingSetting != nil {
+			updateBuilder := tx.FinSetting.UpdateOne(existingSetting).
+				SetOnboarding(true)
+			if fxGainID != nil {
+				updateBuilder.SetFxGainAccountID(*fxGainID)
+			}
+			if fxLossID != nil {
+				updateBuilder.SetFxLossAccountID(*fxLossID)
+			}
+			if fxUnrealizedGainID != nil {
+				updateBuilder.SetFxUnrealizedGainAccountID(*fxUnrealizedGainID)
+			}
+			if fxUnrealizedLossID != nil {
+				updateBuilder.SetFxUnrealizedLossAccountID(*fxUnrealizedLossID)
+			}
+			if fxRoundingID != nil {
+				updateBuilder.SetFxRoundingAccountID(*fxRoundingID)
+			}
+			if _, err := updateBuilder.Save(ctx); err != nil {
+				return fmt.Errorf("updating workspace fin setting: %w", err)
+			}
+		} else {
+			createBuilder := tx.FinSetting.Create().
+				SetWorkspaceID(workspaceID).
+				SetOnboarding(true)
+			if fxGainID != nil {
+				createBuilder.SetFxGainAccountID(*fxGainID)
+			}
+			if fxLossID != nil {
+				createBuilder.SetFxLossAccountID(*fxLossID)
+			}
+			if fxUnrealizedGainID != nil {
+				createBuilder.SetFxUnrealizedGainAccountID(*fxUnrealizedGainID)
+			}
+			if fxUnrealizedLossID != nil {
+				createBuilder.SetFxUnrealizedLossAccountID(*fxUnrealizedLossID)
+			}
+			if fxRoundingID != nil {
+				createBuilder.SetFxRoundingAccountID(*fxRoundingID)
+			}
+			if _, err := createBuilder.Save(ctx); err != nil {
+				return fmt.Errorf("creating workspace fin setting: %w", err)
 			}
 		}
 

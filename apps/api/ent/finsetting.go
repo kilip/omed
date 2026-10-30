@@ -29,6 +29,10 @@ type FinSetting struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Onboarding holds the value of the "onboarding" field.
+	Onboarding bool `json:"onboarding,omitempty"`
+	// DecimalStyle holds the value of the "decimal_style" field.
+	DecimalStyle finsetting.DecimalStyle `json:"decimal_style,omitempty"`
 	// FxGainAccountID holds the value of the "fx_gain_account_id" field.
 	FxGainAccountID *int64 `json:"fx_gain_account_id,omitempty"`
 	// FxLossAccountID holds the value of the "fx_loss_account_id" field.
@@ -96,8 +100,12 @@ func (*FinSetting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case finsetting.FieldOnboarding:
+			values[i] = new(sql.NullBool)
 		case finsetting.FieldID, finsetting.FieldWorkspaceID, finsetting.FieldCreatedBy, finsetting.FieldUpdatedBy, finsetting.FieldFxGainAccountID, finsetting.FieldFxLossAccountID, finsetting.FieldFxUnrealizedGainAccountID, finsetting.FieldFxUnrealizedLossAccountID, finsetting.FieldFxRoundingAccountID:
 			values[i] = new(sql.NullInt64)
+		case finsetting.FieldDecimalStyle:
+			values[i] = new(sql.NullString)
 		case finsetting.FieldCreatedAt, finsetting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
@@ -150,6 +158,18 @@ func (_m *FinSetting) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case finsetting.FieldOnboarding:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field onboarding", values[i])
+			} else if value.Valid {
+				_m.Onboarding = value.Bool
+			}
+		case finsetting.FieldDecimalStyle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field decimal_style", values[i])
+			} else if value.Valid {
+				_m.DecimalStyle = finsetting.DecimalStyle(value.String)
 			}
 		case finsetting.FieldFxGainAccountID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -251,6 +271,12 @@ func (_m *FinSetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("onboarding=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Onboarding))
+	builder.WriteString(", ")
+	builder.WriteString("decimal_style=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DecimalStyle))
 	builder.WriteString(", ")
 	if v := _m.FxGainAccountID; v != nil {
 		builder.WriteString("fx_gain_account_id=")

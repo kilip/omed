@@ -70,6 +70,34 @@ func (_c *FinSettingCreate) SetNillableUpdatedAt(v *time.Time) *FinSettingCreate
 	return _c
 }
 
+// SetOnboarding sets the "onboarding" field.
+func (_c *FinSettingCreate) SetOnboarding(v bool) *FinSettingCreate {
+	_c.mutation.SetOnboarding(v)
+	return _c
+}
+
+// SetNillableOnboarding sets the "onboarding" field if the given value is not nil.
+func (_c *FinSettingCreate) SetNillableOnboarding(v *bool) *FinSettingCreate {
+	if v != nil {
+		_c.SetOnboarding(*v)
+	}
+	return _c
+}
+
+// SetDecimalStyle sets the "decimal_style" field.
+func (_c *FinSettingCreate) SetDecimalStyle(v finsetting.DecimalStyle) *FinSettingCreate {
+	_c.mutation.SetDecimalStyle(v)
+	return _c
+}
+
+// SetNillableDecimalStyle sets the "decimal_style" field if the given value is not nil.
+func (_c *FinSettingCreate) SetNillableDecimalStyle(v *finsetting.DecimalStyle) *FinSettingCreate {
+	if v != nil {
+		_c.SetDecimalStyle(*v)
+	}
+	return _c
+}
+
 // SetFxGainAccountID sets the "fx_gain_account_id" field.
 func (_c *FinSettingCreate) SetFxGainAccountID(v int64) *FinSettingCreate {
 	_c.mutation.SetFxGainAccountID(v)
@@ -216,6 +244,14 @@ func (_c *FinSettingCreate) defaults() {
 		v := finsetting.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Onboarding(); !ok {
+		v := finsetting.DefaultOnboarding
+		_c.mutation.SetOnboarding(v)
+	}
+	if _, ok := _c.mutation.DecimalStyle(); !ok {
+		v := finsetting.DefaultDecimalStyle
+		_c.mutation.SetDecimalStyle(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -234,6 +270,17 @@ func (_c *FinSettingCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FinSetting.updated_at"`)}
+	}
+	if _, ok := _c.mutation.Onboarding(); !ok {
+		return &ValidationError{Name: "onboarding", err: errors.New(`ent: missing required field "FinSetting.onboarding"`)}
+	}
+	if _, ok := _c.mutation.DecimalStyle(); !ok {
+		return &ValidationError{Name: "decimal_style", err: errors.New(`ent: missing required field "FinSetting.decimal_style"`)}
+	}
+	if v, ok := _c.mutation.DecimalStyle(); ok {
+		if err := finsetting.DecimalStyleValidator(v); err != nil {
+			return &ValidationError{Name: "decimal_style", err: fmt.Errorf(`ent: validator failed for field "FinSetting.decimal_style": %w`, err)}
+		}
 	}
 	if len(_c.mutation.WorkspaceIDs()) == 0 {
 		return &ValidationError{Name: "workspace", err: errors.New(`ent: missing required edge "FinSetting.workspace"`)}
@@ -285,6 +332,14 @@ func (_c *FinSettingCreate) createSpec() (*FinSetting, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(finsetting.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.Onboarding(); ok {
+		_spec.SetField(finsetting.FieldOnboarding, field.TypeBool, value)
+		_node.Onboarding = value
+	}
+	if value, ok := _c.mutation.DecimalStyle(); ok {
+		_spec.SetField(finsetting.FieldDecimalStyle, field.TypeEnum, value)
+		_node.DecimalStyle = value
 	}
 	if value, ok := _c.mutation.FxGainAccountID(); ok {
 		_spec.SetField(finsetting.FieldFxGainAccountID, field.TypeInt64, value)
@@ -445,6 +500,30 @@ func (u *FinSettingUpsert) SetUpdatedAt(v time.Time) *FinSettingUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *FinSettingUpsert) UpdateUpdatedAt() *FinSettingUpsert {
 	u.SetExcluded(finsetting.FieldUpdatedAt)
+	return u
+}
+
+// SetOnboarding sets the "onboarding" field.
+func (u *FinSettingUpsert) SetOnboarding(v bool) *FinSettingUpsert {
+	u.Set(finsetting.FieldOnboarding, v)
+	return u
+}
+
+// UpdateOnboarding sets the "onboarding" field to the value that was provided on create.
+func (u *FinSettingUpsert) UpdateOnboarding() *FinSettingUpsert {
+	u.SetExcluded(finsetting.FieldOnboarding)
+	return u
+}
+
+// SetDecimalStyle sets the "decimal_style" field.
+func (u *FinSettingUpsert) SetDecimalStyle(v finsetting.DecimalStyle) *FinSettingUpsert {
+	u.Set(finsetting.FieldDecimalStyle, v)
+	return u
+}
+
+// UpdateDecimalStyle sets the "decimal_style" field to the value that was provided on create.
+func (u *FinSettingUpsert) UpdateDecimalStyle() *FinSettingUpsert {
+	u.SetExcluded(finsetting.FieldDecimalStyle)
 	return u
 }
 
@@ -661,6 +740,34 @@ func (u *FinSettingUpsertOne) SetUpdatedAt(v time.Time) *FinSettingUpsertOne {
 func (u *FinSettingUpsertOne) UpdateUpdatedAt() *FinSettingUpsertOne {
 	return u.Update(func(s *FinSettingUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOnboarding sets the "onboarding" field.
+func (u *FinSettingUpsertOne) SetOnboarding(v bool) *FinSettingUpsertOne {
+	return u.Update(func(s *FinSettingUpsert) {
+		s.SetOnboarding(v)
+	})
+}
+
+// UpdateOnboarding sets the "onboarding" field to the value that was provided on create.
+func (u *FinSettingUpsertOne) UpdateOnboarding() *FinSettingUpsertOne {
+	return u.Update(func(s *FinSettingUpsert) {
+		s.UpdateOnboarding()
+	})
+}
+
+// SetDecimalStyle sets the "decimal_style" field.
+func (u *FinSettingUpsertOne) SetDecimalStyle(v finsetting.DecimalStyle) *FinSettingUpsertOne {
+	return u.Update(func(s *FinSettingUpsert) {
+		s.SetDecimalStyle(v)
+	})
+}
+
+// UpdateDecimalStyle sets the "decimal_style" field to the value that was provided on create.
+func (u *FinSettingUpsertOne) UpdateDecimalStyle() *FinSettingUpsertOne {
+	return u.Update(func(s *FinSettingUpsert) {
+		s.UpdateDecimalStyle()
 	})
 }
 
@@ -1063,6 +1170,34 @@ func (u *FinSettingUpsertBulk) SetUpdatedAt(v time.Time) *FinSettingUpsertBulk {
 func (u *FinSettingUpsertBulk) UpdateUpdatedAt() *FinSettingUpsertBulk {
 	return u.Update(func(s *FinSettingUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOnboarding sets the "onboarding" field.
+func (u *FinSettingUpsertBulk) SetOnboarding(v bool) *FinSettingUpsertBulk {
+	return u.Update(func(s *FinSettingUpsert) {
+		s.SetOnboarding(v)
+	})
+}
+
+// UpdateOnboarding sets the "onboarding" field to the value that was provided on create.
+func (u *FinSettingUpsertBulk) UpdateOnboarding() *FinSettingUpsertBulk {
+	return u.Update(func(s *FinSettingUpsert) {
+		s.UpdateOnboarding()
+	})
+}
+
+// SetDecimalStyle sets the "decimal_style" field.
+func (u *FinSettingUpsertBulk) SetDecimalStyle(v finsetting.DecimalStyle) *FinSettingUpsertBulk {
+	return u.Update(func(s *FinSettingUpsert) {
+		s.SetDecimalStyle(v)
+	})
+}
+
+// UpdateDecimalStyle sets the "decimal_style" field to the value that was provided on create.
+func (u *FinSettingUpsertBulk) UpdateDecimalStyle() *FinSettingUpsertBulk {
+	return u.Update(func(s *FinSettingUpsert) {
+		s.UpdateDecimalStyle()
 	})
 }
 

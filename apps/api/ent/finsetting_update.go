@@ -64,6 +64,34 @@ func (_u *FinSettingUpdate) SetUpdatedAt(v time.Time) *FinSettingUpdate {
 	return _u
 }
 
+// SetOnboarding sets the "onboarding" field.
+func (_u *FinSettingUpdate) SetOnboarding(v bool) *FinSettingUpdate {
+	_u.mutation.SetOnboarding(v)
+	return _u
+}
+
+// SetNillableOnboarding sets the "onboarding" field if the given value is not nil.
+func (_u *FinSettingUpdate) SetNillableOnboarding(v *bool) *FinSettingUpdate {
+	if v != nil {
+		_u.SetOnboarding(*v)
+	}
+	return _u
+}
+
+// SetDecimalStyle sets the "decimal_style" field.
+func (_u *FinSettingUpdate) SetDecimalStyle(v finsetting.DecimalStyle) *FinSettingUpdate {
+	_u.mutation.SetDecimalStyle(v)
+	return _u
+}
+
+// SetNillableDecimalStyle sets the "decimal_style" field if the given value is not nil.
+func (_u *FinSettingUpdate) SetNillableDecimalStyle(v *finsetting.DecimalStyle) *FinSettingUpdate {
+	if v != nil {
+		_u.SetDecimalStyle(*v)
+	}
+	return _u
+}
+
 // SetFxGainAccountID sets the "fx_gain_account_id" field.
 func (_u *FinSettingUpdate) SetFxGainAccountID(v int64) *FinSettingUpdate {
 	_u.mutation.ResetFxGainAccountID()
@@ -276,6 +304,11 @@ func (_u *FinSettingUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *FinSettingUpdate) check() error {
+	if v, ok := _u.mutation.DecimalStyle(); ok {
+		if err := finsetting.DecimalStyleValidator(v); err != nil {
+			return &ValidationError{Name: "decimal_style", err: fmt.Errorf(`ent: validator failed for field "FinSetting.decimal_style": %w`, err)}
+		}
+	}
 	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinSetting.workspace"`)
 	}
@@ -302,6 +335,12 @@ func (_u *FinSettingUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(finsetting.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Onboarding(); ok {
+		_spec.SetField(finsetting.FieldOnboarding, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.DecimalStyle(); ok {
+		_spec.SetField(finsetting.FieldDecimalStyle, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.FxGainAccountID(); ok {
 		_spec.SetField(finsetting.FieldFxGainAccountID, field.TypeInt64, value)
@@ -463,6 +502,34 @@ func (_u *FinSettingUpdateOne) SetNillableUpdatedBy(v *int64) *FinSettingUpdateO
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinSettingUpdateOne) SetUpdatedAt(v time.Time) *FinSettingUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetOnboarding sets the "onboarding" field.
+func (_u *FinSettingUpdateOne) SetOnboarding(v bool) *FinSettingUpdateOne {
+	_u.mutation.SetOnboarding(v)
+	return _u
+}
+
+// SetNillableOnboarding sets the "onboarding" field if the given value is not nil.
+func (_u *FinSettingUpdateOne) SetNillableOnboarding(v *bool) *FinSettingUpdateOne {
+	if v != nil {
+		_u.SetOnboarding(*v)
+	}
+	return _u
+}
+
+// SetDecimalStyle sets the "decimal_style" field.
+func (_u *FinSettingUpdateOne) SetDecimalStyle(v finsetting.DecimalStyle) *FinSettingUpdateOne {
+	_u.mutation.SetDecimalStyle(v)
+	return _u
+}
+
+// SetNillableDecimalStyle sets the "decimal_style" field if the given value is not nil.
+func (_u *FinSettingUpdateOne) SetNillableDecimalStyle(v *finsetting.DecimalStyle) *FinSettingUpdateOne {
+	if v != nil {
+		_u.SetDecimalStyle(*v)
+	}
 	return _u
 }
 
@@ -691,6 +758,11 @@ func (_u *FinSettingUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *FinSettingUpdateOne) check() error {
+	if v, ok := _u.mutation.DecimalStyle(); ok {
+		if err := finsetting.DecimalStyleValidator(v); err != nil {
+			return &ValidationError{Name: "decimal_style", err: fmt.Errorf(`ent: validator failed for field "FinSetting.decimal_style": %w`, err)}
+		}
+	}
 	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinSetting.workspace"`)
 	}
@@ -734,6 +806,12 @@ func (_u *FinSettingUpdateOne) sqlSave(ctx context.Context) (_node *FinSetting, 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(finsetting.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Onboarding(); ok {
+		_spec.SetField(finsetting.FieldOnboarding, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.DecimalStyle(); ok {
+		_spec.SetField(finsetting.FieldDecimalStyle, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.FxGainAccountID(); ok {
 		_spec.SetField(finsetting.FieldFxGainAccountID, field.TypeInt64, value)

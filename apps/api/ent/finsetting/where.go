@@ -81,6 +81,11 @@ func UpdatedAt(v time.Time) predicate.FinSetting {
 	return predicate.FinSetting(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// Onboarding applies equality check predicate on the "onboarding" field. It's identical to OnboardingEQ.
+func Onboarding(v bool) predicate.FinSetting {
+	return predicate.FinSetting(sql.FieldEQ(FieldOnboarding, v))
+}
+
 // FxGainAccountID applies equality check predicate on the "fx_gain_account_id" field. It's identical to FxGainAccountIDEQ.
 func FxGainAccountID(v int64) predicate.FinSetting {
 	return predicate.FinSetting(sql.FieldEQ(FieldFxGainAccountID, v))
@@ -244,6 +249,36 @@ func UpdatedAtLT(v time.Time) predicate.FinSetting {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.FinSetting {
 	return predicate.FinSetting(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// OnboardingEQ applies the EQ predicate on the "onboarding" field.
+func OnboardingEQ(v bool) predicate.FinSetting {
+	return predicate.FinSetting(sql.FieldEQ(FieldOnboarding, v))
+}
+
+// OnboardingNEQ applies the NEQ predicate on the "onboarding" field.
+func OnboardingNEQ(v bool) predicate.FinSetting {
+	return predicate.FinSetting(sql.FieldNEQ(FieldOnboarding, v))
+}
+
+// DecimalStyleEQ applies the EQ predicate on the "decimal_style" field.
+func DecimalStyleEQ(v DecimalStyle) predicate.FinSetting {
+	return predicate.FinSetting(sql.FieldEQ(FieldDecimalStyle, v))
+}
+
+// DecimalStyleNEQ applies the NEQ predicate on the "decimal_style" field.
+func DecimalStyleNEQ(v DecimalStyle) predicate.FinSetting {
+	return predicate.FinSetting(sql.FieldNEQ(FieldDecimalStyle, v))
+}
+
+// DecimalStyleIn applies the In predicate on the "decimal_style" field.
+func DecimalStyleIn(vs ...DecimalStyle) predicate.FinSetting {
+	return predicate.FinSetting(sql.FieldIn(FieldDecimalStyle, vs...))
+}
+
+// DecimalStyleNotIn applies the NotIn predicate on the "decimal_style" field.
+func DecimalStyleNotIn(vs ...DecimalStyle) predicate.FinSetting {
+	return predicate.FinSetting(sql.FieldNotIn(FieldDecimalStyle, vs...))
 }
 
 // FxGainAccountIDEQ applies the EQ predicate on the "fx_gain_account_id" field.

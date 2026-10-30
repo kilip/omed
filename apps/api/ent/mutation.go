@@ -10722,6 +10722,8 @@ type FinSettingMutation struct {
 	id                               *int64
 	created_at                       *time.Time
 	updated_at                       *time.Time
+	onboarding                       *bool
+	decimal_style                    *finsetting.DecimalStyle
 	fx_gain_account_id               *int64
 	addfx_gain_account_id            *int64
 	fx_loss_account_id               *int64
@@ -11026,6 +11028,78 @@ func (m *FinSettingMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *FinSettingMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetOnboarding sets the "onboarding" field.
+func (m *FinSettingMutation) SetOnboarding(b bool) {
+	m.onboarding = &b
+}
+
+// Onboarding returns the value of the "onboarding" field in the mutation.
+func (m *FinSettingMutation) Onboarding() (r bool, exists bool) {
+	v := m.onboarding
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnboarding returns the old "onboarding" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldOnboarding(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnboarding is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnboarding requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnboarding: %w", err)
+	}
+	return oldValue.Onboarding, nil
+}
+
+// ResetOnboarding resets all changes to the "onboarding" field.
+func (m *FinSettingMutation) ResetOnboarding() {
+	m.onboarding = nil
+}
+
+// SetDecimalStyle sets the "decimal_style" field.
+func (m *FinSettingMutation) SetDecimalStyle(fs finsetting.DecimalStyle) {
+	m.decimal_style = &fs
+}
+
+// DecimalStyle returns the value of the "decimal_style" field in the mutation.
+func (m *FinSettingMutation) DecimalStyle() (r finsetting.DecimalStyle, exists bool) {
+	v := m.decimal_style
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDecimalStyle returns the old "decimal_style" field's value of the FinSetting entity.
+// If the FinSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinSettingMutation) OldDecimalStyle(ctx context.Context) (v finsetting.DecimalStyle, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDecimalStyle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDecimalStyle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDecimalStyle: %w", err)
+	}
+	return oldValue.DecimalStyle, nil
+}
+
+// ResetDecimalStyle resets all changes to the "decimal_style" field.
+func (m *FinSettingMutation) ResetDecimalStyle() {
+	m.decimal_style = nil
 }
 
 // SetFxGainAccountID sets the "fx_gain_account_id" field.
@@ -11519,7 +11593,7 @@ func (m *FinSettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinSettingMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.workspace != nil {
 		fields = append(fields, finsetting.FieldWorkspaceID)
 	}
@@ -11534,6 +11608,12 @@ func (m *FinSettingMutation) Fields() []string {
 	}
 	if m.updated_at != nil {
 		fields = append(fields, finsetting.FieldUpdatedAt)
+	}
+	if m.onboarding != nil {
+		fields = append(fields, finsetting.FieldOnboarding)
+	}
+	if m.decimal_style != nil {
+		fields = append(fields, finsetting.FieldDecimalStyle)
 	}
 	if m.fx_gain_account_id != nil {
 		fields = append(fields, finsetting.FieldFxGainAccountID)
@@ -11568,6 +11648,10 @@ func (m *FinSettingMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case finsetting.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case finsetting.FieldOnboarding:
+		return m.Onboarding()
+	case finsetting.FieldDecimalStyle:
+		return m.DecimalStyle()
 	case finsetting.FieldFxGainAccountID:
 		return m.FxGainAccountID()
 	case finsetting.FieldFxLossAccountID:
@@ -11597,6 +11681,10 @@ func (m *FinSettingMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldCreatedAt(ctx)
 	case finsetting.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case finsetting.FieldOnboarding:
+		return m.OldOnboarding(ctx)
+	case finsetting.FieldDecimalStyle:
+		return m.OldDecimalStyle(ctx)
 	case finsetting.FieldFxGainAccountID:
 		return m.OldFxGainAccountID(ctx)
 	case finsetting.FieldFxLossAccountID:
@@ -11650,6 +11738,20 @@ func (m *FinSettingMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case finsetting.FieldOnboarding:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnboarding(v)
+		return nil
+	case finsetting.FieldDecimalStyle:
+		v, ok := value.(finsetting.DecimalStyle)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDecimalStyle(v)
 		return nil
 	case finsetting.FieldFxGainAccountID:
 		v, ok := value.(int64)
@@ -11845,6 +11947,12 @@ func (m *FinSettingMutation) ResetField(name string) error {
 		return nil
 	case finsetting.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case finsetting.FieldOnboarding:
+		m.ResetOnboarding()
+		return nil
+	case finsetting.FieldDecimalStyle:
+		m.ResetDecimalStyle()
 		return nil
 	case finsetting.FieldFxGainAccountID:
 		m.ResetFxGainAccountID()

@@ -33,6 +33,8 @@ func (FinSetting) Mixin() []ent.Mixin {
 func (FinSetting) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id"),
+		field.Bool("onboarding").Default(false),
+		field.Enum("decimal_style").Values("dot", "comma").Default("comma"),
 		field.Int64("fx_gain_account_id").Optional().Nillable(),
 		field.Int64("fx_loss_account_id").Optional().Nillable(),
 		field.Int64("fx_unrealized_gain_account_id").Optional().Nillable(),

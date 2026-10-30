@@ -3,6 +3,7 @@
 package finsetting
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -24,6 +25,10 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldOnboarding holds the string denoting the onboarding field in the database.
+	FieldOnboarding = "onboarding"
+	// FieldDecimalStyle holds the string denoting the decimal_style field in the database.
+	FieldDecimalStyle = "decimal_style"
 	// FieldFxGainAccountID holds the string denoting the fx_gain_account_id field in the database.
 	FieldFxGainAccountID = "fx_gain_account_id"
 	// FieldFxLossAccountID holds the string denoting the fx_loss_account_id field in the database.
@@ -73,6 +78,8 @@ var Columns = []string{
 	FieldUpdatedBy,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldOnboarding,
+	FieldDecimalStyle,
 	FieldFxGainAccountID,
 	FieldFxLossAccountID,
 	FieldFxUnrealizedGainAccountID,
@@ -97,7 +104,35 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultOnboarding holds the default value on creation for the "onboarding" field.
+	DefaultOnboarding bool
 )
+
+// DecimalStyle defines the type for the "decimal_style" enum field.
+type DecimalStyle string
+
+// DecimalStyleComma is the default value of the DecimalStyle enum.
+const DefaultDecimalStyle = DecimalStyleComma
+
+// DecimalStyle values.
+const (
+	DecimalStyleDot   DecimalStyle = "dot"
+	DecimalStyleComma DecimalStyle = "comma"
+)
+
+func (ds DecimalStyle) String() string {
+	return string(ds)
+}
+
+// DecimalStyleValidator is a validator for the "decimal_style" field enum values. It is called by the builders before save.
+func DecimalStyleValidator(ds DecimalStyle) error {
+	switch ds {
+	case DecimalStyleDot, DecimalStyleComma:
+		return nil
+	default:
+		return fmt.Errorf("finsetting: invalid enum value for decimal_style field: %q", ds)
+	}
+}
 
 // OrderOption defines the ordering options for the FinSetting queries.
 type OrderOption func(*sql.Selector)
@@ -130,6 +165,16 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByOnboarding orders the results by the onboarding field.
+func ByOnboarding(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOnboarding, opts...).ToFunc()
+}
+
+// ByDecimalStyle orders the results by the decimal_style field.
+func ByDecimalStyle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDecimalStyle, opts...).ToFunc()
 }
 
 // ByFxGainAccountID orders the results by the fx_gain_account_id field.

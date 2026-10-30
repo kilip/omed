@@ -320,6 +320,10 @@ func init() {
 	finsetting.DefaultUpdatedAt = finsettingDescUpdatedAt.Default.(func() time.Time)
 	// finsetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	finsetting.UpdateDefaultUpdatedAt = finsettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// finsettingDescOnboarding is the schema descriptor for onboarding field.
+	finsettingDescOnboarding := finsettingFields[1].Descriptor()
+	// finsetting.DefaultOnboarding holds the default value on creation for the onboarding field.
+	finsetting.DefaultOnboarding = finsettingDescOnboarding.Default.(bool)
 	periodMixin := schema.Period{}.Mixin()
 	periodMixinFields1 := periodMixin[1].Fields()
 	_ = periodMixinFields1
