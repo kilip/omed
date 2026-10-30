@@ -205,7 +205,7 @@ The `omed-api` image embeds `apps/api/migrations` in `/api` and also includes `/
 The Helm chart in [`deploy/helm/omed`](./deploy/helm/omed) deploys `api` and `web`, runs migrations as a pre-install/pre-upgrade hook Job, and exposes both through an Ingress. PostgreSQL, S3, and SMTP are external.
 
 ```bash
-helm install omed deploy/helm/omed \
+helm install omed oci://ghcr.io/kilip/charts/omed \
   --set secrets.existingSecret=omed-secrets \
   --set ingress.web.host=app.example.com \
   --set ingress.api.host=api.example.com

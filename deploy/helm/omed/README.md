@@ -18,13 +18,23 @@ PostgreSQL, S3-compatible storage, and SMTP are **external**. The chart does not
 
 ## Install
 
-With a Secret you manage yourself (recommended, e.g. via External Secrets or Sealed Secrets):
+From the OCI registry on GHCR:
 
 ```bash
 kubectl create secret generic omed-secrets \
   --from-literal=OMED_DB_URL='postgres://user:pass@db:5432/omed?sslmode=require' \
   --from-literal=OMED_AUTH_SECRET="$(openssl rand -hex 32)"
 
+helm install omed oci://ghcr.io/kilip/charts/omed \
+  --set secrets.existingSecret=omed-secrets \
+  --set ingress.className=nginx \
+  --set ingress.web.host=app.example.com \
+  --set ingress.api.host=api.example.com
+```
+
+Or from local source checkout:
+
+```bash
 helm install omed deploy/helm/omed \
   --set secrets.existingSecret=omed-secrets \
   --set ingress.className=nginx \
