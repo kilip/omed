@@ -96,6 +96,7 @@ export const en = {
     core: { member: "Member", admin: "Admin" },
     fin: { viewer: "Viewer", accountant: "Accountant", admin: "Admin" },
     cms: { viewer: "Viewer", editor: "Editor", admin: "Admin" },
+    agent: { viewer: "Viewer", admin: "Admin" },
   },
   core: {
     label: "Workspaces",
@@ -758,6 +759,13 @@ export const en = {
       TITLE_REQUIRED: "Title is required.",
       PUBLISH_AT_REQUIRED: "Publish date is required.",
       INVALID_CURSOR: "Invalid pagination cursor.",
+    },
+  },
+  agent: {
+    label: "AI Agent",
+    description: "AI model providers and agent configuration",
+    menu: {
+      providers: "Providers",
     },
   },
 };

@@ -98,6 +98,7 @@ export const id: Translation = {
     core: { member: "Anggota", admin: "Admin" },
     fin: { viewer: "Peninjau", accountant: "Akuntan", admin: "Admin" },
     cms: { viewer: "Peninjau", editor: "Editor", admin: "Admin" },
+    agent: { viewer: "Pemeriksa", admin: "Admin" },
   },
   core: {
     label: "Workspace",
@@ -763,6 +764,13 @@ export const id: Translation = {
       TITLE_REQUIRED: "Judul wajib diisi.",
       PUBLISH_AT_REQUIRED: "Tanggal publikasi wajib diisi.",
       INVALID_CURSOR: "Kursor pagination tidak valid.",
+    },
+  },
+  agent: {
+    label: "AI Agent",
+    description: "Penyedia model AI dan konfigurasi agen",
+    menu: {
+      providers: "Penyedia",
     },
   },
 };
