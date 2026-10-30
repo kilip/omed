@@ -82,6 +82,10 @@ type Config struct {
 	CMSMediaMaxSizeMB int64 `env:"OMED_CMS_MEDIA_MAX_SIZE_MB,default=25"`
 	// CMSMediaAllowedTypes lists allowed file extensions for CMS media uploads.
 	CMSMediaAllowedTypes []string `env:"OMED_CMS_MEDIA_ALLOWED_TYPES,separator=,default=.png,.jpg,.jpeg,.webp,.gif,.pdf"`
+	// SecretKey is the base64-encoded 32-byte master key used for encrypting sensitive credentials.
+	SecretKey string `env:"OMED_SECRET_KEY"`
+	// LLMAllowPrivateURLs allows private/loopback network targets for LLM endpoints when true. Defaults to false.
+	LLMAllowPrivateURLs bool `env:"OMED_LLM_ALLOW_PRIVATE_URLS,default=false"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
 	// ReadTimeout is the maximum duration for reading the entire request. Defaults to 10s.

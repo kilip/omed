@@ -10,6 +10,7 @@ const config = {
         "auth",
         "web",
         "api",
+        "agent",
         "e2e",
         // infra / cross-cutting
         "deps",

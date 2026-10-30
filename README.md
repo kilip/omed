@@ -124,6 +124,8 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 | `OMED_API_URL` | api | Defaults to `http://localhost:8001` |
 | `OMED_S3_*` | api | S3/RustFS storage for attachments (`OMED_S3_ENDPOINT`, `OMED_S3_ACCESS_KEY`, `OMED_S3_SECRET_KEY`, `OMED_S3_REGION`, `OMED_S3_FORCE_PATH_STYLE`) |
 | `OMED_CMS_MEDIA_*` | api | CMS media upload limits (`OMED_CMS_MEDIA_MAX_SIZE_MB`, `OMED_CMS_MEDIA_ALLOWED_TYPES`) |
+| `OMED_SECRET_KEY` | api | Base64-encoded 32-byte master key for encrypting provider credentials |
+| `OMED_LLM_ALLOW_PRIVATE_URLS` | api | Allow private / loopback IP addresses for custom LLM endpoints (defaults to `false`) |
 | `VITE_PUBLIC_URL` | web | Public dashboard URL |
 | `VITE_API_URL` | web | Defaults to `http://localhost:8001` |
 | `VITE_CMS_MEDIA_*` | web | CMS media upload limits (`VITE_CMS_MEDIA_MAX_SIZE_MB`, `VITE_CMS_MEDIA_ALLOWED_TYPES`) |

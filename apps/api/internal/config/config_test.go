@@ -71,6 +71,22 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 		}
 	})
 
+	originalSecretKey, hadSecretKey := os.LookupEnv("OMED_SECRET_KEY")
+	s.Require().NoError(os.Unsetenv("OMED_SECRET_KEY"))
+	s.T().Cleanup(func() {
+		if hadSecretKey {
+			s.Require().NoError(os.Setenv("OMED_SECRET_KEY", originalSecretKey))
+		}
+	})
+
+	originalAllowPrivate, hadAllowPrivate := os.LookupEnv("OMED_LLM_ALLOW_PRIVATE_URLS")
+	s.Require().NoError(os.Unsetenv("OMED_LLM_ALLOW_PRIVATE_URLS"))
+	s.T().Cleanup(func() {
+		if hadAllowPrivate {
+			s.Require().NoError(os.Setenv("OMED_LLM_ALLOW_PRIVATE_URLS", originalAllowPrivate))
+		}
+	})
+
 	originalPort, hadPort := os.LookupEnv("OMED_API_PORT")
 	s.Require().NoError(os.Unsetenv("OMED_API_PORT"))
 	s.T().Cleanup(func() {
@@ -94,6 +110,8 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 	s.Equal(1*time.Minute, cfg.RateLimitSensitiveExpiration)
 	s.Equal(int64(25), cfg.CMSMediaMaxSizeMB)
 	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
+	s.Equal("", cfg.SecretKey)
+	s.False(cfg.LLMAllowPrivateURLs)
 	s.False(cfg.DatabaseMigrateOnStart)
 	s.False(cfg.DatabaseAutoMigrate)
 }
@@ -113,6 +131,8 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_RATE_LIMIT_SENSITIVE_EXPIRATION", "30s")
 	s.T().Setenv("OMED_CMS_MEDIA_MAX_SIZE_MB", "50")
 	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", ".png,.jpg")
+	s.T().Setenv("OMED_SECRET_KEY", "custom-secret-key")
+	s.T().Setenv("OMED_LLM_ALLOW_PRIVATE_URLS", "true")
 	s.T().Setenv("OMED_DB_DEV_URL", "postgres://omed:omed@localhost:5432/omed_dev?sslmode=disable")
 	s.T().Setenv("OMED_DB_MIGRATE_ON_START", "true")
 	s.T().Setenv("OMED_DB_AUTO_MIGRATE", "true")
@@ -132,6 +152,8 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.Equal(30*time.Second, cfg.RateLimitSensitiveExpiration)
 	s.Equal(int64(50), cfg.CMSMediaMaxSizeMB)
 	s.Equal([]string{".png", ".jpg"}, cfg.CMSMediaAllowedTypes)
+	s.Equal("custom-secret-key", cfg.SecretKey)
+	s.True(cfg.LLMAllowPrivateURLs)
 	s.Equal("postgres://omed:omed@localhost:5432/omed_dev?sslmode=disable", cfg.DatabaseDevUrl)
 	s.True(cfg.DatabaseMigrateOnStart)
 	s.True(cfg.DatabaseAutoMigrate)
@@ -208,6 +230,37 @@ func (s *ConfigSuite) Test_GetConfig_NonProduction_AllowsShortSecret() {
 			s.Equal("short", cfg.AuthSecret)
 		})
 	}
+}
+
+func (s *ConfigSuite) TestAgentConfigDefaults() {
+	originalSecretKey, hadSecretKey := os.LookupEnv("OMED_SECRET_KEY")
+	s.Require().NoError(os.Unsetenv("OMED_SECRET_KEY"))
+	s.T().Cleanup(func() {
+		if hadSecretKey {
+			s.Require().NoError(os.Setenv("OMED_SECRET_KEY", originalSecretKey))
+		}
+	})
+
+	originalAllowPrivate, hadAllowPrivate := os.LookupEnv("OMED_LLM_ALLOW_PRIVATE_URLS")
+	s.Require().NoError(os.Unsetenv("OMED_LLM_ALLOW_PRIVATE_URLS"))
+	s.T().Cleanup(func() {
+		if hadAllowPrivate {
+			s.Require().NoError(os.Setenv("OMED_LLM_ALLOW_PRIVATE_URLS", originalAllowPrivate))
+		}
+	})
+
+	cfg := config.GetConfig()
+	s.Equal("", cfg.SecretKey)
+	s.False(cfg.LLMAllowPrivateURLs)
+}
+
+func (s *ConfigSuite) TestAgentConfigEnvOverride() {
+	s.T().Setenv("OMED_SECRET_KEY", "custom-secret-key-for-agent-encryption")
+	s.T().Setenv("OMED_LLM_ALLOW_PRIVATE_URLS", "true")
+
+	cfg := config.GetConfig()
+	s.Equal("custom-secret-key-for-agent-encryption", cfg.SecretKey)
+	s.True(cfg.LLMAllowPrivateURLs)
 }
 
 func (s *ConfigSuite) Test_GetConfig_Fallbacks() {
