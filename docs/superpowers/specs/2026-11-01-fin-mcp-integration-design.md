@@ -19,7 +19,7 @@ The MCP effort is delivered as three ordered sub-projects. Each has its own spec
 
 | # | Sub-project | Output |
 | --- | --- | --- |
-| 1 | Spike: MCP SDK and Streamable HTTP transport on Fiber v3 | A written recommendation, throwaway code only |
+| 1 | Spike: Streamable HTTP transport of the chosen SDK (go-sdk) on Fiber v3 | A written recommendation, throwaway code only |
 | 2 | Foundation: `platform/mcpx` plus personal access tokens (PAT) in `core` | Transport, token auth, registry, permission wrapper |
 | 3 | **This spec:** `fin` tools | Read-only financial Q&A first, draft input from receipts later |
 
@@ -33,6 +33,7 @@ Decisions already taken by the owner and inherited by this spec:
 - The workspace is an explicit tool argument.
 - Tools start read-only. Writes are limited to drafts and never post automatically.
 - Tools are intent-oriented (built around user questions), not one-to-one wrappers of REST endpoints.
+- The MCP SDK is the official Go SDK, `github.com/modelcontextprotocol/go-sdk`. It is imported only from `platform/mcpx` (and from tests); modules never import it.
 
 ---
 
@@ -125,6 +126,7 @@ The final shape of `mcpx` is decided by the sub-project 2 spec. `fin` requires t
    - map errors with `httpx.MapError`;
    - enforce the response size cap (section 5.7).
 3. **Naming.** Tool names are prefixed with the module (`fin_`) so they align with permission objects.
+4. **Mapping onto go-sdk.** Registration wraps `mcp.AddTool[In, Out]` and sets `ToolAnnotations.ReadOnlyHint` from the read-only hint; the input schema is inferred from the Go struct tags (`json`, `jsonschema`), which also carry the argument descriptions read by the client model. Errors listed in section 5.6 are returned as a `CallToolResult` with `IsError` set, not as Go errors. The caller identity comes from the token verifier (`TokenInfo.UserID`, read from the request extra). The recommended transport options are `Stateless` and `JSONResponse`, so that no event stream has to pass through the Fiber adapter; sub-project 1 confirms this. Symbol names are taken from the SDK documentation and must be confirmed with `go doc` during implementation.
 
 ### 5.3 Tool: `fin_period_overview`
 
@@ -243,7 +245,7 @@ Delivered after the read-only batch and specified in detail in its own document.
 
 ## 9. Open Items to Verify Before Implementation
 
-1. **SDK and transport (sub-project 1):** which MCP Go SDK is used and whether its Streamable HTTP handler integrates with Fiber v3 without a heavy adapter. `go.mod` currently contains no MCP dependency.
+1. **Transport (sub-project 1):** the SDK is decided (`github.com/modelcontextprotocol/go-sdk`). Still to confirm is whether its Streamable HTTP handler, an `http.Handler`, integrates with Fiber v3 without a heavy adapter, and whether `Stateless` with `JSONResponse` is enough. `go.mod` currently contains no MCP dependency.
 2. **PAT scope (sub-project 2):** whether a PAT is valid only for `/mcp` or also for REST. The middleware in `core/middleware/auth.go` already accepts a Bearer token, so this must be decided deliberately.
 3. **`AccountService.Search`:** it accepts an empty `SearchAccountRequest` and returns a cursor. Confirm whether it returns the whole chart of accounts or a page, since account reference resolution depends on it.
 4. **`TrialBalanceAccountItem` fields:** confirm that code, name, type, debit, credit, and net are available for the output mapping in section 5.4.
