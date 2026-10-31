@@ -40,7 +40,7 @@ omed/
 - `apps/api` handles identity, sessions, and is the source of truth for users, workspaces, and memberships.
 - Authorization in `apps/api` is **workspace based**: every user gets a personal workspace, can create more, and can invite other users. Roles are assigned per workspace membership, and a user can only access or read workspace resources when they are a member or owner of that workspace.
 - Modules in `apps/api` register their roles & permissions in code via `authz.AddRole` in `init()` (e.g. `fin:accountant` -> `fin:invoice read`). Permissions are verified per-request using an in-memory Casbin enforcer based on resolved workspace membership.
-- The dashboard is split into modules (`core`, `fin`, `cms`), each under `apps/web/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
+- The dashboard is split into modules (`core`, `fin`, `cms`, `agent`), each under `apps/web/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
   - **Finance (`fin`) module routes & capabilities:**
     - `/fin`: Finance dashboard with financial overview and status metrics.
     - `/fin/onboarding`: 2-step financial onboarding wizard configuring currency, fiscal period, and CoA template.
@@ -60,6 +60,10 @@ omed/
     - `/cms/pages/new`: Create page with title, auto-slug, and markdown editor.
     - `/cms/pages/:id`: Page edit with PublishPanel and deletion.
     - `/cms/media`: Media library with drag-and-drop / upload, metadata editing (title, alt text, caption, public toggle), copy public URL, and in-use delete protection.
+  - **Agent (`agent`) module routes & capabilities:**
+    - `/agent/providers`: LLM provider list and configuration drawer supporting Anthropic, OpenAI, DeepSeek, Ollama, and custom OpenAI-compatible endpoints with AES-256-GCM credential encryption, default provider selection, and live connection testing.
+    - Roles: `agent:admin` (full management access) and `agent:viewer` (view providers and configurations).
+    - API summary: authenticated workspace-scoped CRUD and connection testing endpoints under `/workspaces/:wid/agent/providers*`.
   - **Admin and public API summary:**
     - Admin API: authenticated workspace-scoped CRUD and publishing endpoints under `/workspaces/:wid/cms/{posts,pages,media}`.
     - Public API: unauthenticated read-only endpoints under `/public/workspaces/:wid/cms/{posts,pages,media}`.
@@ -132,7 +136,7 @@ In the devcontainer all values below are set through `.devcontainer/compose.yaml
 
 ## Database Migrations (Ent + Atlas)
 
-PostgreSQL tables are organized into module-scoped schemas matching the backend modules: **`core`**, **`fin`**, and **`cms`**. Each entity under `apps/api/ent/schema/` declares its target schema via `entsql.Schema("<module>")`.
+PostgreSQL tables are organized into module-scoped schemas matching the backend modules: **`core`**, **`fin`**, **`cms`**, and **`agent`**. Each entity under `apps/api/ent/schema/` declares its target schema via `entsql.Schema("<module>")`.
 
 Versioned SQL migrations live in `apps/api/migrations/` alongside `atlas.sum` and are configured via `apps/api/atlas.hcl`:
 

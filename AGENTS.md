@@ -99,7 +99,7 @@ Controllers carry the Swaggo annotations. After changing annotations or response
 
 ### Database schemas & migrations
 
-- PostgreSQL uses multi-schema isolation per module: `core`, `fin`, `cms`. Every Ent schema in `apps/api/ent/schema/` must set `entsql.Schema("<module>")` matching its module prefix (`core_*.go`, `fin_*.go`, `cms_*.go`).
+- PostgreSQL uses multi-schema isolation per module: `core`, `fin`, `cms`, `agent`. Every Ent schema in `apps/api/ent/schema/` must set `entsql.Schema("<module>")` matching its module prefix (`core_*.go`, `fin_*.go`, `cms_*.go`, `agent_*.go`).
 - After modifying `apps/api/ent/schema/*`, run `cd apps/api && go generate ./ent` and generate a versioned migration in `apps/api/migrations/` using `cd apps/api && go run ./cmd/migrate <migration_name>` (or `bun run db:diff`), then commit `apps/api/ent/*` and `apps/api/migrations/*`.
 
 ## 4. TypeScript (React Router)
@@ -118,7 +118,7 @@ apps/web/app/modules/{module_name}/
 └── ...            # Other module-local code (components, utils, types)
 ```
 
-- Module names match the Go modules: `core`, `fin`, `cms`.
+- Module names match the Go modules: `core`, `fin`, `cms`, `agent`.
 - A module registers itself through its own files: `route.ts` for routes and `module.ts` for launcher metadata. There is no central registry file: adding a module means adding `app/modules/{module_name}/` with both files.
 - The launcher discovers modules with Vite's `import.meta.glob("./modules/*/module.ts")`. Do not import modules into a hand-maintained list.
 - API types come from `@omed/openapi` and are consumed through `openapi-fetch`. Do not hand-write types for API responses.
@@ -149,7 +149,7 @@ e2e/
 └── support/             # World, hooks, config, server runner, test client
 ```
 
-- Group names match the modules (`core`, `fin`, `cms`). `core` covers the shell itself (login, homepage, invitations) and workspace administration.
+- Group names match the modules (`core`, `fin`, `cms`, `agent`). `core` covers the shell itself (login, homepage, invitations) and workspace administration.
 - Use the Page Object Model: locators and `expect*` checks live in `pages/{module}/*.page.ts`; steps only call page objects through `this.pages.{module}`. Do not put selectors in steps.
 - Put a step in `steps/common/` only when more than one module uses it.
 - Tag a feature or scenario with `@authenticated` to start it signed in. Sign-in is social only, so the hook creates the user and session with the API test endpoints (`support/test-client.ts`), and removes the user afterwards.
