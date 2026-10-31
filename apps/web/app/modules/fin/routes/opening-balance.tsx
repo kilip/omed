@@ -13,7 +13,6 @@ import {
   Button,
   Card,
   Col,
-  InputNumber,
   Row,
   Select,
   Space,
@@ -27,6 +26,7 @@ import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { api, unwrapList, unwrapOne } from "~/lib/api";
 import { requireWorkspaceId } from "~/lib/workspace";
+import { MoneyInput } from "../components/money-input";
 import {
   accountKeys,
   accountsQueryOptions,
@@ -439,17 +439,17 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <InputNumber
+                      <MoneyInput
                         aria-label={`balance-${account.code}`}
-                        className="w-48"
+                        className="w-56 sm:w-64"
                         min={0}
                         placeholder="0"
-                        prefix="Rp"
+                        currency={account.currency}
                         value={assetBalances[account.id]}
                         onChange={(val) =>
                           setAssetBalances((prev) => ({
                             ...prev,
-                            [account.id]: val ?? 0,
+                            [account.id]: (val as number) ?? 0,
                           }))
                         }
                       />
@@ -493,17 +493,17 @@ export default function OpeningBalance({ loaderData }: Route.ComponentProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <InputNumber
+                      <MoneyInput
                         aria-label={`balance-${account.code}`}
-                        className="w-48"
+                        className="w-56 sm:w-64"
                         min={0}
                         placeholder="0"
-                        prefix="Rp"
+                        currency={account.currency}
                         value={liabilityBalances[account.id]}
                         onChange={(val) =>
                           setLiabilityBalances((prev) => ({
                             ...prev,
-                            [account.id]: val ?? 0,
+                            [account.id]: (val as number) ?? 0,
                           }))
                         }
                       />
