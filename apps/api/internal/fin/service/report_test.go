@@ -294,6 +294,165 @@ func (s *ReportServiceSuite) Test_Summary() {
 	s.True(foundCurrentMonth)
 }
 
+func (s *ReportServiceSuite) seedMonthlyEntries() (time.Time, time.Time, time.Time) {
+	ctx := s.ctx()
+	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	bankAcc, err := s.accountRepo.FindByCode(ctx, "1111")
+	s.Require().NoError(err)
+	revAcc, err := s.accountRepo.FindByCode(ctx, "4140")
+	s.Require().NoError(err)
+	expAcc, err := s.accountRepo.FindByCode(ctx, "5100")
+	s.Require().NoError(err)
+
+	now := time.Now()
+	m0 := now
+	m1 := now.AddDate(0, -1, 0)
+	m2 := now.AddDate(0, -2, 0)
+
+	entries := []struct {
+		date   time.Time
+		revAmt decimal.Decimal
+		expAmt decimal.Decimal
+		suffix string
+	}{
+		{date: m2, revAmt: dec(2000000), expAmt: dec(1000000), suffix: "M2"},
+		{date: m1, revAmt: dec(5000000), expAmt: dec(2000000), suffix: "M1"},
+		{date: m0, revAmt: dec(10000000), expAmt: dec(4000000), suffix: "M0"},
+	}
+
+	for _, e := range entries {
+		trx, err := s.client.Transaction.Create().
+			SetNumber("TRX-TEST-" + e.suffix).
+			SetTransactionDate(e.date).
+			SetDescription("Test Transaction " + e.suffix).
+			SetSource("MANUAL").
+			SetCurrency("IDR").
+			SetExchangeRate(dec(1)).
+			Save(ctx)
+		s.Require().NoError(err)
+
+		jeRev, err := s.client.Entry.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetTransactionID(trx.ID).
+			SetPeriodID(s.periodID).
+			SetNumber("JE-REV-" + e.suffix).
+			SetEntryDate(e.date).
+			SetStatus("POSTED").
+			Save(ctx)
+		s.Require().NoError(err)
+
+		_, err = s.client.Posting.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetEntryID(jeRev.ID).
+			SetAccountID(bankAcc.ID).
+			SetDirection("DEBIT").
+			SetAmount(e.revAmt).
+			SetBaseAmount(e.revAmt).
+			SetPosition(0).
+			Save(ctx)
+		s.Require().NoError(err)
+
+		_, err = s.client.Posting.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetEntryID(jeRev.ID).
+			SetAccountID(revAcc.ID).
+			SetDirection("CREDIT").
+			SetAmount(e.revAmt).
+			SetBaseAmount(e.revAmt).
+			SetPosition(1).
+			Save(ctx)
+		s.Require().NoError(err)
+
+		jeExp, err := s.client.Entry.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetTransactionID(trx.ID).
+			SetPeriodID(s.periodID).
+			SetNumber("JE-EXP-" + e.suffix).
+			SetEntryDate(e.date).
+			SetStatus("POSTED").
+			Save(ctx)
+		s.Require().NoError(err)
+
+		_, err = s.client.Posting.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetEntryID(jeExp.ID).
+			SetAccountID(expAcc.ID).
+			SetDirection("DEBIT").
+			SetAmount(e.expAmt).
+			SetBaseAmount(e.expAmt).
+			SetPosition(0).
+			Save(ctx)
+		s.Require().NoError(err)
+
+		_, err = s.client.Posting.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetEntryID(jeExp.ID).
+			SetAccountID(bankAcc.ID).
+			SetDirection("CREDIT").
+			SetAmount(e.expAmt).
+			SetBaseAmount(e.expAmt).
+			SetPosition(1).
+			Save(ctx)
+		s.Require().NoError(err)
+	}
+
+	return m2, m1, m0
+}
+
+func (s *ReportServiceSuite) Test_MonthlyRevenueExpense_EqualsSummaryMonthly() {
+	ctx := s.ctx()
+	m2, _, _ := s.seedMonthlyEntries()
+
+	summary, err := s.svc.Summary(ctx, 3)
+	s.Require().NoError(err)
+	s.Len(summary.Monthly, 3)
+
+	monthly, err := s.svc.MonthlyRevenueExpense(ctx, m2, 3)
+	s.Require().NoError(err)
+	s.Len(monthly, 3)
+
+	s.Equal(summary.Monthly, monthly)
+}
+
+func (s *ReportServiceSuite) Test_MonthlyRevenueExpense_EmptyMonthsAreZeroRows() {
+	ctx := s.ctx()
+	s.seedMonthlyEntries()
+
+	firstMonth := time.Date(2020, 1, 15, 10, 0, 0, 0, time.UTC)
+	monthly, err := s.svc.MonthlyRevenueExpense(ctx, firstMonth, 4)
+	s.Require().NoError(err)
+	s.Require().Len(monthly, 4)
+
+	expectedMonths := []string{"2020-01", "2020-02", "2020-03", "2020-04"}
+	for i, item := range monthly {
+		s.Equal(expectedMonths[i], item.Month)
+		s.True(item.Revenue.IsZero(), "revenue for %s should be zero", item.Month)
+		s.True(item.Expense.IsZero(), "expense for %s should be zero", item.Month)
+	}
+}
+
+func (s *ReportServiceSuite) Test_MonthlyRevenueExpense_RangeNotEndingToday() {
+	ctx := s.ctx()
+	m2, _, _ := s.seedMonthlyEntries()
+
+	m3 := m2.AddDate(0, -1, 0)
+	monthly, err := s.svc.MonthlyRevenueExpense(ctx, m3, 2)
+	s.Require().NoError(err)
+	s.Require().Len(monthly, 2)
+
+	m3Str := m3.Format("2006-01")
+	m2Str := m2.Format("2006-01")
+	s.Equal(m3Str, monthly[0].Month)
+	s.True(monthly[0].Revenue.IsZero())
+	s.True(monthly[0].Expense.IsZero())
+
+	s.Equal(m2Str, monthly[1].Month)
+	s.True(monthly[1].Revenue.Equal(dec(2000000)))
+	s.True(monthly[1].Expense.Equal(dec(1000000)))
+}
+
 func TestReportServiceSuite(t *testing.T) {
 	suite.Run(t, new(ReportServiceSuite))
 }

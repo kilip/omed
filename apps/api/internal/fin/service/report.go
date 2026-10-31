@@ -182,11 +182,6 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 		return model.FinancialSummaryResponse{}, err
 	}
 
-	accountMap := make(map[int64]domain.Account, len(accounts))
-	for _, acc := range accounts {
-		accountMap[acc.ID] = acc
-	}
-
 	now := time.Now()
 	balances, err := s.entryRepo.GetAccountBalancesAsOf(ctx, now)
 	if err != nil {
@@ -220,20 +215,53 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 	totals.Expense = money.Round(totals.Expense, int32(baseDecimals))
 	totals.NetIncome = money.Round(totals.Revenue.Sub(totals.Expense), int32(baseDecimals))
 
-	// Build list of months from (months-1) ago up to current month
-	monthList := make([]string, months)
 	year, month, _ := now.Date()
 	startMonthTime := time.Date(year, month, 1, 0, 0, 0, 0, now.Location()).AddDate(0, -(months - 1), 0)
+	monthlyItems, err := s.MonthlyRevenueExpense(ctx, startMonthTime, months)
+	if err != nil {
+		return model.FinancialSummaryResponse{}, err
+	}
+
+	return model.FinancialSummaryResponse{
+		BaseCurrency: baseCurrency,
+		Totals:       totals,
+		Monthly:      monthlyItems,
+	}, nil
+}
+
+// MonthlyRevenueExpense calculates monthly revenue and expense series starting from firstMonth for the given number of months.
+func (s ReportService) MonthlyRevenueExpense(ctx context.Context, firstMonth time.Time, months int) ([]model.MonthlyRevenueExpenseItem, error) {
+	if months <= 0 {
+		return []model.MonthlyRevenueExpenseItem{}, nil
+	}
+
+	_, baseDecimals := s.getBaseCurrencyAndDecimals(ctx)
+
+	// Fetch all accounts in workspace
+	accounts, _, err := s.accountRepo.Search(ctx, model.SearchAccountRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	accountMap := make(map[int64]domain.Account, len(accounts))
+	for _, acc := range accounts {
+		accountMap[acc.ID] = acc
+	}
+
+	// Build list of months starting from firstMonth
+	monthList := make([]string, months)
+	year, month, _ := firstMonth.Date()
+	startMonthTime := time.Date(year, month, 1, 0, 0, 0, 0, firstMonth.Location())
 	for i := 0; i < months; i++ {
 		m := startMonthTime.AddDate(0, i, 0)
 		monthList[i] = m.Format("2006-01")
 	}
 
 	startDate := startMonthTime
-	endOfMonth := time.Date(year, month+1, 0, 23, 59, 59, 999999999, now.Location())
+	endOfMonth := time.Date(year, month+time.Month(months), 0, 23, 59, 59, 999999999, firstMonth.Location())
 	flows, err := s.entryRepo.GetMonthlyAccountFlows(ctx, startDate, endOfMonth)
 	if err != nil {
-		return model.FinancialSummaryResponse{}, err
+		return nil, err
 	}
 
 	type monthlyAccSum struct {
@@ -272,9 +300,5 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 		})
 	}
 
-	return model.FinancialSummaryResponse{
-		BaseCurrency: baseCurrency,
-		Totals:       totals,
-		Monthly:      monthlyItems,
-	}, nil
+	return monthlyItems, nil
 }
