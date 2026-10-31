@@ -6,10 +6,10 @@ import (
 
 // PeriodOverviewRequest defines parameters for the period overview insight tool.
 type PeriodOverviewRequest struct {
-	WorkspaceID     int64  `json:"workspace_id" jsonschema:"description=Workspace ID to query"`
-	FromMonth       string `json:"from_month,omitempty" jsonschema:"description=Start month in YYYY-MM format (defaults to current month)"`
-	ToMonth         string `json:"to_month,omitempty" jsonschema:"description=End month in YYYY-MM format (defaults to current month)"`
-	ComparePrevious *bool  `json:"compare_previous,omitempty" jsonschema:"description=Whether to compare with the previous period of the same length (defaults to true)"`
+	WorkspaceID     int64  `json:"workspace_id" jsonschema:"Workspace ID to query"`
+	FromMonth       string `json:"from_month,omitempty" jsonschema:"Start month in YYYY-MM format (defaults to current month)"`
+	ToMonth         string `json:"to_month,omitempty" jsonschema:"End month in YYYY-MM format (defaults to current month)"`
+	ComparePrevious *bool  `json:"compare_previous,omitempty" jsonschema:"Whether to compare with the previous period of the same length (defaults to true)"`
 }
 
 // GetWorkspaceID returns the workspace ID for workspace scoping.
@@ -57,9 +57,9 @@ type PeriodOverviewResponse struct {
 
 // AccountBalanceRequest defines parameters for the account balance insight tool.
 type AccountBalanceRequest struct {
-	WorkspaceID int64  `json:"workspace_id" jsonschema:"description=Workspace ID,required"`
-	AsOfDate    string `json:"as_of_date,omitempty" jsonschema:"description=As-of date in YYYY-MM-DD format (defaults to current date),pattern=^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
-	Account     string `json:"account,omitempty" jsonschema:"description=Optional filter: code prefix (e.g. '11' matches '1100'..'1199') or case-insensitive substring of name"`
+	WorkspaceID int64  `json:"workspace_id" jsonschema:"Workspace ID"`
+	AsOfDate    string `json:"as_of_date,omitempty" jsonschema:"As-of date in YYYY-MM-DD format (defaults to current date)"`
+	Account     string `json:"account,omitempty" jsonschema:"Optional filter: code prefix (e.g. '11' matches '1100'..'1199') or case-insensitive substring of name"`
 }
 
 // GetWorkspaceID returns the workspace ID for authorization and scoping.
@@ -113,16 +113,16 @@ type AccountRef struct {
 
 // FindCashflowRequest defines parameters for the find cashflow insight tool.
 type FindCashflowRequest struct {
-	WorkspaceID     int64  `json:"workspace_id" jsonschema:"description=Workspace ID,required"`
-	Type            string `json:"type" jsonschema:"description=Document type: 'income' or 'expense',required,enum=income,enum=expense"`
-	DateFrom        string `json:"date_from,omitempty" jsonschema:"description=Start date in YYYY-MM-DD format (inclusive)"`
-	DateTo          string `json:"date_to,omitempty" jsonschema:"description=End date in YYYY-MM-DD format (inclusive)"`
-	Status          string `json:"status,omitempty" jsonschema:"description=Document status: 'draft' or 'posted'"`
-	Query           string `json:"query,omitempty" jsonschema:"description=Text search across description and reference"`
-	PaymentAccount  string `json:"payment_account,omitempty" jsonschema:"description=Account code or name substring for payment/cash account"`
-	CategoryAccount string `json:"category_account,omitempty" jsonschema:"description=Account code or name substring for category account"`
-	Cursor          string `json:"cursor,omitempty" jsonschema:"description=Opaque pagination cursor from previous response"`
-	Limit           int    `json:"limit,omitempty" jsonschema:"description=Maximum items to return (1-50, default 20)"`
+	WorkspaceID     int64  `json:"workspace_id" jsonschema:"Workspace ID"`
+	Type            string `json:"type" jsonschema:"Document type: 'income' or 'expense'"`
+	DateFrom        string `json:"date_from,omitempty" jsonschema:"Start date in YYYY-MM-DD format (inclusive)"`
+	DateTo          string `json:"date_to,omitempty" jsonschema:"End date in YYYY-MM-DD format (inclusive)"`
+	Status          string `json:"status,omitempty" jsonschema:"Document status: 'draft' or 'posted'"`
+	Query           string `json:"query,omitempty" jsonschema:"Text search across description and reference"`
+	PaymentAccount  string `json:"payment_account,omitempty" jsonschema:"Account code or name substring for payment/cash account"`
+	CategoryAccount string `json:"category_account,omitempty" jsonschema:"Account code or name substring for category account"`
+	Cursor          string `json:"cursor,omitempty" jsonschema:"Opaque pagination cursor from previous response"`
+	Limit           int    `json:"limit,omitempty" jsonschema:"Maximum items to return (1-50, default 20)"`
 }
 
 // GetWorkspaceID returns the workspace ID for authorization and scoping.

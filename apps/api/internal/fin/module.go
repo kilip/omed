@@ -7,10 +7,12 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/internal/fin/mcp"
 	"github.com/kilip/omed/api/internal/fin/repository"
 	"github.com/kilip/omed/api/internal/fin/seed"
 	"github.com/kilip/omed/api/internal/fin/service"
 	"github.com/kilip/omed/api/internal/platform/authz"
+	"github.com/kilip/omed/api/internal/platform/mcpx"
 )
 
 // Config encapsulates configuration and dependencies for FinModule.
@@ -36,6 +38,7 @@ type FinModule struct {
 	ReportService       service.ReportService
 	SettingService      service.SettingService
 	CashFlowService     service.CashFlowService
+	InsightService      service.InsightService
 }
 
 // New constructs a new FinModule instance.
@@ -91,6 +94,7 @@ func New(cfg Config) *FinModule {
 	entrySvc := service.NewEntryService(entryRepo, txRepo, periodRepo, accountRepo, rateRepo, currencyRepo, settingRepo)
 
 	reportSvc := service.NewReportService(entryRepo, accountRepo, currencyRepo)
+	insightSvc := service.NewInsightService(reportSvc, accountSvc, cashFlowSvc)
 
 	return &FinModule{
 		cfg:                 cfg,
@@ -103,6 +107,7 @@ func New(cfg Config) *FinModule {
 		ReportService:       reportSvc,
 		SettingService:      settingSvc,
 		CashFlowService:     cashFlowSvc,
+		InsightService:      insightSvc,
 	}
 }
 
@@ -113,6 +118,12 @@ func (m *FinModule) SetAuthorizer(az *authz.Authorizer) {
 
 // PreBoot executes early initialization tasks before Boot.
 func (m *FinModule) PreBoot() error {
+	return nil
+}
+
+// RegisterMCP registers the finance insight tools with the MCP registrar.
+func (m *FinModule) RegisterMCP(r *mcpx.Registrar) error {
+	mcp.RegisterTools(r, m.InsightService)
 	return nil
 }
 
