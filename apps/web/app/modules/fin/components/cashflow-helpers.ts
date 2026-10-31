@@ -117,3 +117,41 @@ export async function uploadWorkspaceFile(
 
   return res.id;
 }
+
+export interface CashflowItemValue {
+  accountId?: number;
+  description?: string;
+  quantity?: number;
+  unitPrice?: number;
+}
+
+export function computeLineAmount(
+  quantity?: number,
+  unitPrice?: number,
+  decimals?: number,
+): number {
+  const qty = quantity ?? 0;
+  const price = unitPrice ?? 0;
+  const raw = qty * price;
+  if (decimals !== undefined) {
+    const factor = 10 ** decimals;
+    return Math.round(raw * factor) / factor;
+  }
+  return raw;
+}
+
+export function computeTotal(
+  items: CashflowItemValue[],
+  decimals?: number,
+): number {
+  const sum = items.reduce(
+    (acc, item) =>
+      acc + computeLineAmount(item.quantity, item.unitPrice, decimals),
+    0,
+  );
+  if (decimals !== undefined) {
+    const factor = 10 ** decimals;
+    return Math.round(sum * factor) / factor;
+  }
+  return sum;
+}
