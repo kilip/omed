@@ -1,4 +1,5 @@
 export * from "./account-select";
+export * from "./cashflow-detail";
 export * from "./cashflow-form";
 export * from "./cashflow-helpers";
 export * from "./coa-template-fields";

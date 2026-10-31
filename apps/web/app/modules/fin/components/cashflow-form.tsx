@@ -161,7 +161,7 @@ export async function submitCashflowForm({
       api.PUT(
         `${basePath}/{id}` as never,
         {
-          params: { path: { wid, id: documentId } },
+          params: { path: { wid, id: documentId as number } },
           body: payload,
         } as never,
       ),
@@ -191,17 +191,22 @@ export async function submitCashflowForm({
 
 export interface CashflowFormProps {
   wid: number;
-  flow: CashflowFlow;
+  flow: "INCOME" | "EXPENSE";
   documentId?: number;
-  initialValues?: Partial<CashflowFormValues>;
+  transactionId?: number;
+  initialValues?:
+    | Partial<CashflowFormValues>
+    | components["schemas"]["model.CashFlowItemResponse"];
 }
 
 export function CashflowForm({
   wid,
   flow,
   documentId,
+  transactionId,
   initialValues,
 }: CashflowFormProps) {
+  const activeDocumentId = documentId ?? transactionId;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -258,12 +263,18 @@ export function CashflowForm({
 
   const itemLines = useMemo(() => {
     return effectiveItems.map((item, index) => {
-      const acc = accounts.find((a) => a.id === item?.accountId);
+      const accountId =
+        "accountId" in item
+          ? item.accountId
+          : "account" in item
+            ? item.account?.id
+            : undefined;
+      const acc = accounts.find((a) => a.id === accountId);
       const qty = Number(item?.quantity ?? 0);
       const unitPrice = Number(item?.unitPrice ?? 0);
       const total = qty * unitPrice;
       return {
-        id: `line-${index}-${item?.accountId ?? "none"}`,
+        id: `line-${index}-${accountId ?? "none"}`,
         account: acc,
         description: item?.description,
         qty,
@@ -285,7 +296,7 @@ export function CashflowForm({
         await submitCashflowForm({
           wid,
           flow,
-          documentId,
+          documentId: activeDocumentId,
           status,
           values,
           pendingFiles,

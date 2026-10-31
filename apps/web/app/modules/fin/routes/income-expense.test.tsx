@@ -249,6 +249,20 @@ const mockExpenses: CashFlowItem[] = [
       name: "Beban Sewa & Kantor",
       type: "EXPENSE",
     },
+    items: [
+      {
+        id: 1,
+        account: {
+          id: 61,
+          code: "5101",
+          name: "Beban Sewa & Kantor",
+          type: "EXPENSE",
+        },
+        quantity: "1",
+        unitPrice: "250000.00",
+        amount: "250000.00",
+      },
+    ],
     attachments: [
       { id: 901, name: "receipt.jpg", size: 1024, mimeType: "image/jpeg" },
     ],
@@ -272,6 +286,20 @@ const mockIncomes: CashFlowItem[] = [
       name: "Pendapatan Jasa",
       type: "REVENUE",
     },
+    items: [
+      {
+        id: 2,
+        account: {
+          id: 51,
+          code: "4101",
+          name: "Pendapatan Jasa",
+          type: "REVENUE",
+        },
+        quantity: "1",
+        unitPrice: "5000000.00",
+        amount: "5000000.00",
+      },
+    ],
     attachments: [],
   },
 ];
@@ -497,7 +525,7 @@ describe("Income and Expense Quick Entry", () => {
 
       // Verify row data rendered
       expect(html).toContain("TRX-2026-0001");
-      expect(html).toContain('href="/fin/transactions/101"');
+      expect(html).toContain('href="/fin/expense/101"');
       expect(html).toContain("Kas Tunai");
       expect(html).toContain("Beban Sewa &amp; Kantor");
       expect(html).toContain("Office supplies &amp; snacks");
@@ -518,7 +546,7 @@ describe("Income and Expense Quick Entry", () => {
 
       // Verify row data rendered
       expect(html).toContain("TRX-2026-0002");
-      expect(html).toContain('href="/fin/transactions/201"');
+      expect(html).toContain('href="/fin/income/201"');
       expect(html).toContain("Bank BCA");
       expect(html).toContain("Pendapatan Jasa");
       expect(html).toContain("Web development consulting");

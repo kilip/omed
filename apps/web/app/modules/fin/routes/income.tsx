@@ -22,7 +22,12 @@ import { formatDate } from "~/lib/format";
 import { getQueryClient } from "~/lib/query-client";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { permissionsQueryOptions } from "~/modules/core/queries";
-import { groupPaymentAccounts, MoneyCell } from "../components";
+import {
+  EntryStatusTag,
+  groupPaymentAccounts,
+  MoneyCell,
+  summarizeCategories,
+} from "../components";
 import { useFinPermissions } from "../hooks";
 import {
   accountsQueryOptions,
@@ -59,6 +64,9 @@ export default function IncomeRoute({ loaderData }: Route.ComponentProps) {
   const [categoryAccountFilter, setCategoryAccountFilter] = useState<
     number | undefined
   >();
+  const [statusFilter, setStatusFilter] = useState<
+    "DRAFT" | "POSTED" | undefined
+  >();
   const [dateRange, setDateRange] = useState<[string, string] | undefined>();
 
   const filters = useMemo<CashFlowFilters>(() => {
@@ -66,10 +74,17 @@ export default function IncomeRoute({ loaderData }: Route.ComponentProps) {
       query: queryText.trim() || undefined,
       paymentAccountId: paymentAccountFilter,
       categoryAccountId: categoryAccountFilter,
+      status: statusFilter,
       dateFrom: dateRange?.[0],
       dateTo: dateRange?.[1],
     };
-  }, [queryText, paymentAccountFilter, categoryAccountFilter, dateRange]);
+  }, [
+    queryText,
+    paymentAccountFilter,
+    categoryAccountFilter,
+    statusFilter,
+    dateRange,
+  ]);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery(incomesInfiniteQueryOptions(wid, filters));
@@ -125,8 +140,27 @@ export default function IncomeRoute({ loaderData }: Route.ComponentProps) {
         onRemove: () => setDateRange(undefined),
       });
     }
+    if (statusFilter) {
+      items.push({
+        key: `status-${statusFilter}`,
+        label: t("fin.cashflow.filterStatus", {
+          status:
+            statusFilter === "DRAFT"
+              ? t("fin.entry.status.draft", "Draft")
+              : t("fin.entry.status.posted", "Posted"),
+        }),
+        onRemove: () => setStatusFilter(undefined),
+      });
+    }
     return items;
-  }, [paymentAccountFilter, categoryAccountFilter, dateRange, accounts, t]);
+  }, [
+    paymentAccountFilter,
+    categoryAccountFilter,
+    statusFilter,
+    dateRange,
+    accounts,
+    t,
+  ]);
 
   const columns: TableProps<CashFlowItem>["columns"] = [
     {
@@ -141,13 +175,19 @@ export default function IncomeRoute({ loaderData }: Route.ComponentProps) {
       key: "number",
       render: (num, record) => (
         <Link
-          to={`/fin/transactions/${record.id}`}
+          to={`/fin/income/${record.id}`}
           onClick={(e) => e.stopPropagation()}
           className="font-semibold text-primary hover:underline"
         >
           {num || `#${record.id}`}
         </Link>
       ),
+    },
+    {
+      title: t("fin.cashflow.status", "Status"),
+      dataIndex: "entryStatus",
+      key: "entryStatus",
+      render: (status) => <EntryStatusTag status={status} />,
     },
     {
       title: t("fin.income.depositAccount", "Deposit Account"),
@@ -160,15 +200,14 @@ export default function IncomeRoute({ loaderData }: Route.ComponentProps) {
     },
     {
       title: t("fin.income.revenueCategory", "Revenue Category"),
-      dataIndex: "categoryAccount",
-      key: "categoryAccount",
+      dataIndex: "items",
+      key: "items",
       render: (_, record) => {
-        const rec = record as {
-          categoryAccount?: { code?: string; name?: string };
-        };
-        return rec.categoryAccount
-          ? `${rec.categoryAccount.code} - ${rec.categoryAccount.name}`
-          : "-";
+        const summary = summarizeCategories(record.items ?? []);
+        if (!summary.first) return "-";
+        return summary.more > 0
+          ? `${summary.first} (+${summary.more})`
+          : summary.first;
       },
     },
     {
@@ -254,6 +293,20 @@ export default function IncomeRoute({ loaderData }: Route.ComponentProps) {
           data-testid="cashflow-filter-bar"
         >
           <Select
+            placeholder={t("fin.cashflow.status", "Status")}
+            allowClear
+            className="min-w-[120px]"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "DRAFT", label: t("fin.entry.status.draft", "Draft") },
+              {
+                value: "POSTED",
+                label: t("fin.entry.status.posted", "Posted"),
+              },
+            ]}
+          />
+          <Select
             placeholder={t("fin.income.depositAccount", "Deposit Account")}
             allowClear
             showSearch
@@ -292,8 +345,8 @@ export default function IncomeRoute({ loaderData }: Route.ComponentProps) {
               pagination={false}
               scroll={{ x: "max-content" }}
               onRow={(record) => ({
-                onClick: () => navigate(`/fin/transactions/${record.id}`),
-                style: { cursor: "pointer" },
+                onClick: () => navigate(`/fin/income/${record.id}`),
+                className: "cursor-pointer hover:bg-muted/50",
               })}
             />
 

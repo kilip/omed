@@ -393,8 +393,6 @@ export const en = {
       filterYear: "Fiscal year",
       allStatuses: "All statuses",
       allYears: "All years",
-      createSuccess: "Accounting period created successfully",
-      updateSuccess: "Accounting period updated successfully",
       closeSuccess: "Accounting period closed successfully",
       reopenSuccess: "Accounting period reopened successfully",
       deleteSuccess: "Accounting period deleted successfully",

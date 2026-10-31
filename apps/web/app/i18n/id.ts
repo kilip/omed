@@ -394,8 +394,6 @@ export const id: Translation = {
       filterYear: "Tahun buku",
       allStatuses: "Semua status",
       allYears: "Semua tahun",
-      createSuccess: "Periode akuntansi berhasil dibuat",
-      updateSuccess: "Periode akuntansi berhasil diperbarui",
       closeSuccess: "Periode akuntansi berhasil ditutup",
       reopenSuccess: "Periode akuntansi berhasil dibuka kembali",
       deleteSuccess: "Periode akuntansi berhasil dihapus",
