@@ -52,6 +52,14 @@ omed/
     - `/fin/journal/:id`: Journal entry detail view with status workflow (post, reverse with date override, void) and individual postings linked to the ledger.
     - `/fin/ledger`: General Ledger view (`GET /workspaces/{wid}/fin/accounts/{id}/ledger`) with account selector, running balances, and direct deep-links to journal entries.
     - `/fin/trial-balance`: Financial trial balance reports and summaries.
+    - `/fin/income`: Income document list with status filtering (Draft, Posted) and search.
+    - `/fin/income/new`: Multi-item income document creation with immediate Posting or Draft saving.
+    - `/fin/income/:id`: Income document detail view with item breakdown, totals, and draft actions.
+    - `/fin/income/:id/edit`: Multi-item draft income document editor with draft update or posting.
+    - `/fin/expense`: Expense document list with status filtering (Draft, Posted) and search.
+    - `/fin/expense/new`: Multi-item expense document creation with immediate Posting or Draft saving.
+    - `/fin/expense/:id`: Expense document detail view with item breakdown, totals, and draft actions.
+    - `/fin/expense/:id/edit`: Multi-item draft expense document editor with draft update or posting.
   - **CMS (`cms`) module routes & capabilities:**
     - `/cms/posts`: Post list with search, status filters (Draft, Scheduled, Published), and actions.
     - `/cms/posts/new`: Create post with title, auto-slug, excerpt, markdown editor (write/preview), and cover media picker.
