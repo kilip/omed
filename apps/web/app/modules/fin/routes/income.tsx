@@ -162,10 +162,14 @@ export default function IncomeRoute({ loaderData }: Route.ComponentProps) {
       title: t("fin.income.revenueCategory", "Revenue Category"),
       dataIndex: "categoryAccount",
       key: "categoryAccount",
-      render: (_, record) =>
-        record.categoryAccount
-          ? `${record.categoryAccount.code} - ${record.categoryAccount.name}`
-          : "-",
+      render: (_, record) => {
+        const rec = record as {
+          categoryAccount?: { code?: string; name?: string };
+        };
+        return rec.categoryAccount
+          ? `${rec.categoryAccount.code} - ${rec.categoryAccount.name}`
+          : "-";
+      },
     },
     {
       title: t("fin.income.description", "Description"),

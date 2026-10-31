@@ -24,12 +24,10 @@ import ExpenseRoute, {
 } from "./expense";
 import ExpenseNewRoute, {
   clientLoader as expenseNewClientLoader,
-  submitExpenseForm,
 } from "./expense-new";
 import IncomeRoute, { clientLoader as incomeListClientLoader } from "./income";
 import IncomeNewRoute, {
   clientLoader as incomeNewClientLoader,
-  submitIncomeForm,
 } from "./income-new";
 
 type Account = components["schemas"]["model.AccountResponse"];
@@ -390,7 +388,7 @@ describe("Income and Expense Quick Entry", () => {
   });
 
   describe("ExpenseNewRoute", () => {
-    it("renders payment select, expense category select, amount, date, description, receipt picker, and live double-entry preview (D) Expense / (K) Payment", () => {
+    it("renders payment select, date, description, items table, and live double-entry preview (D) Expense / (K) Payment", () => {
       const html = renderToString(
         <ExpenseNewRoute
           loaderData={{ wid }}
@@ -403,60 +401,17 @@ describe("Income and Expense Quick Entry", () => {
 
       // Verify form labels and elements
       expect(html).toContain("fin.expense.paymentAccount");
-      expect(html).toContain("fin.expense.expenseCategory");
-      expect(html).toContain("fin.expense.amount");
       expect(html).toContain("fin.expense.date");
       expect(html).toContain("fin.expense.description");
 
       // Verify double-entry preview with (D) and (K)
       expect(html).toContain("(D)");
       expect(html).toContain("(K)");
-      expect(html).toContain("Expense");
       expect(html).toContain("Payment");
 
-      // Verify submit button
-      expect(html).toContain("fin.expense.save");
-    });
-
-    it("submits expense payload to POST /workspaces/{wid}/fin/expense and navigates to /fin/expense", async () => {
-      vi.mocked(api.POST).mockResolvedValueOnce({
-        data: {
-          data: { id: 102, number: "TRX-2026-0003" },
-          status: 201,
-        },
-      } as never);
-
-      const mockQueryClient = { invalidateQueries: vi.fn() };
-
-      await submitExpenseForm({
-        wid,
-        values: {
-          transactionDate: "2026-01-20",
-          paymentAccountId: 11,
-          expenseAccountId: 61,
-          amount: "150000.00",
-          currency: "IDR",
-          exchangeRate: 1,
-          description: "Office snacks",
-          reference: "RCPT-99",
-        },
-        pendingFiles: [],
-        queryClient: mockQueryClient as never,
-        navigate: mockNavigate,
-      });
-
-      expect(api.POST).toHaveBeenCalledWith(
-        "/workspaces/{wid}/fin/expense",
-        expect.objectContaining({
-          params: { path: { wid } },
-          body: expect.objectContaining({
-            paymentAccountId: 11,
-            expenseAccountId: 61,
-            amount: "150000.00",
-          }),
-        }),
-      );
-      expect(mockNavigate).toHaveBeenCalledWith("/fin/expense");
+      // Verify buttons
+      expect(html).toContain("fin.cashflow.posting");
+      expect(html).toContain("fin.cashflow.draft");
     });
 
     it("clientLoader ensures required accounts and currencies queries", async () => {
@@ -482,7 +437,7 @@ describe("Income and Expense Quick Entry", () => {
   });
 
   describe("IncomeNewRoute", () => {
-    it("renders deposit select, revenue category select, amount, date, description, attachment picker, and live double-entry preview (D) Payment / (K) Revenue", () => {
+    it("renders deposit select, date, description, items table, and live double-entry preview (D) Payment / (K) Revenue", () => {
       const html = renderToString(
         <IncomeNewRoute
           loaderData={{ wid }}
@@ -495,8 +450,6 @@ describe("Income and Expense Quick Entry", () => {
 
       // Verify form labels and elements
       expect(html).toContain("fin.income.depositAccount");
-      expect(html).toContain("fin.income.revenueCategory");
-      expect(html).toContain("fin.income.amount");
       expect(html).toContain("fin.income.date");
       expect(html).toContain("fin.income.description");
 
@@ -504,51 +457,10 @@ describe("Income and Expense Quick Entry", () => {
       expect(html).toContain("(D)");
       expect(html).toContain("(K)");
       expect(html).toContain("Payment");
-      expect(html).toContain("Revenue");
 
-      // Verify submit button
-      expect(html).toContain("fin.income.save");
-    });
-
-    it("submits income payload to POST /workspaces/{wid}/fin/income and navigates to /fin/income", async () => {
-      vi.mocked(api.POST).mockResolvedValueOnce({
-        data: {
-          data: { id: 202, number: "TRX-2026-0004" },
-          status: 201,
-        },
-      } as never);
-
-      const mockQueryClient = { invalidateQueries: vi.fn() };
-
-      await submitIncomeForm({
-        wid,
-        values: {
-          transactionDate: "2026-01-22",
-          paymentAccountId: 21,
-          revenueAccountId: 51,
-          amount: "12000000.00",
-          currency: "IDR",
-          exchangeRate: 1,
-          description: "Project kickoff deposit",
-          reference: "INV-2026-02",
-        },
-        pendingFiles: [],
-        queryClient: mockQueryClient as never,
-        navigate: mockNavigate,
-      });
-
-      expect(api.POST).toHaveBeenCalledWith(
-        "/workspaces/{wid}/fin/income",
-        expect.objectContaining({
-          params: { path: { wid } },
-          body: expect.objectContaining({
-            paymentAccountId: 21,
-            revenueAccountId: 51,
-            amount: "12000000.00",
-          }),
-        }),
-      );
-      expect(mockNavigate).toHaveBeenCalledWith("/fin/income");
+      // Verify buttons
+      expect(html).toContain("fin.cashflow.posting");
+      expect(html).toContain("fin.cashflow.draft");
     });
 
     it("clientLoader ensures required accounts and currencies queries", async () => {

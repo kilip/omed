@@ -56,12 +56,16 @@ export const incomeKeys = {
   all: (wid: number) => ["fin", "workspaces", wid, "income"] as const,
   infinite: (wid: number, filters?: CashFlowFilters) =>
     [...incomeKeys.all(wid), "infinite", filters] as const,
+  detail: (wid: number, id: number) =>
+    [...incomeKeys.all(wid), "detail", id] as const,
 };
 
 export const expenseKeys = {
   all: (wid: number) => ["fin", "workspaces", wid, "expense"] as const,
   infinite: (wid: number, filters?: CashFlowFilters) =>
     [...expenseKeys.all(wid), "infinite", filters] as const,
+  detail: (wid: number, id: number) =>
+    [...expenseKeys.all(wid), "detail", id] as const,
 };
 
 export const ledgerKeys = {
@@ -331,4 +335,28 @@ export const expensesInfiniteQueryOptions = (
       ),
     initialPageParam: "",
     getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+  });
+
+/** Single income cash flow document detail by ID. */
+export const incomeDetailQueryOptions = (wid: number, id: number) =>
+  queryOptions({
+    queryKey: incomeKeys.detail(wid, id),
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/fin/income/{id}", {
+          params: { path: { wid, id } },
+        }),
+      ),
+  });
+
+/** Single expense cash flow document detail by ID. */
+export const expenseDetailQueryOptions = (wid: number, id: number) =>
+  queryOptions({
+    queryKey: expenseKeys.detail(wid, id),
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/fin/expense/{id}", {
+          params: { path: { wid, id } },
+        }),
+      ),
   });
