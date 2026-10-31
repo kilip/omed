@@ -125,6 +125,7 @@ func TestCreateRejectsBlankOrOverlongName(t *testing.T) {
 		APIKey:  "sk-test-secret-1234",
 	})
 	require.Error(t, err)
+	assert.True(t, errors.Is(err, domain.ErrInvalidProviderName))
 
 	// Overlong name (> 100 characters)
 	_, err = svc.Create(ctx, model.CreateProviderRequest{
@@ -135,6 +136,29 @@ func TestCreateRejectsBlankOrOverlongName(t *testing.T) {
 		APIKey:  "sk-test-secret-1234",
 	})
 	require.Error(t, err)
+	assert.True(t, errors.Is(err, domain.ErrInvalidProviderName))
+
+	// Invalid model
+	_, err = svc.Create(ctx, model.CreateProviderRequest{
+		Name:    "Valid Name",
+		Kind:    string(llmx.KindOpenAICompat),
+		BaseURL: "https://api.openai.com/v1",
+		Model:   "   ",
+		APIKey:  "sk-test-secret-1234",
+	})
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, domain.ErrInvalidModel))
+
+	// Invalid provider kind
+	_, err = svc.Create(ctx, model.CreateProviderRequest{
+		Name:    "Valid Name",
+		Kind:    "unsupported-kind",
+		BaseURL: "https://api.openai.com/v1",
+		Model:   "gpt-4o",
+		APIKey:  "sk-test-secret-1234",
+	})
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, domain.ErrInvalidProviderKind))
 }
 
 func TestFirstProviderBecomesDefault(t *testing.T) {

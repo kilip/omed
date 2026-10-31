@@ -24,6 +24,12 @@ var (
 	ErrProviderKeyUnreadable = errors.New("PROVIDER_KEY_UNREADABLE")
 	// ErrTestRateLimited indicates provider connection test rate limit was exceeded.
 	ErrTestRateLimited = errors.New("TEST_RATE_LIMITED")
+	// ErrInvalidProviderName indicates the provider name is blank or exceeds allowed length.
+	ErrInvalidProviderName = errors.New("INVALID_PROVIDER_NAME")
+	// ErrInvalidModel indicates the model name is blank or exceeds allowed length.
+	ErrInvalidModel = errors.New("INVALID_MODEL")
+	// ErrInvalidProviderKind indicates the provider kind is not supported.
+	ErrInvalidProviderKind = errors.New("INVALID_PROVIDER_KIND")
 )
 
 func init() {
@@ -35,4 +41,7 @@ func init() {
 	base.AddToErrorMap(ErrProviderKeyRequired, fiber.StatusUnprocessableEntity, "api key is required for this provider")
 	base.AddToErrorMap(ErrProviderKeyUnreadable, fiber.StatusConflict, "failed to decrypt provider api key")
 	base.AddToErrorMap(ErrTestRateLimited, fiber.StatusTooManyRequests, "provider test rate limit exceeded")
+	base.AddToErrorMap(ErrInvalidProviderName, fiber.StatusUnprocessableEntity, "name must be between 1 and 100 characters")
+	base.AddToErrorMap(ErrInvalidModel, fiber.StatusUnprocessableEntity, "model must be between 1 and 200 characters")
+	base.AddToErrorMap(ErrInvalidProviderKind, fiber.StatusUnprocessableEntity, "invalid provider kind")
 }

@@ -98,7 +98,11 @@ export function buildUpdateProviderPayload(
     capabilities: values.capabilities,
   };
 
-  if (trimmedBaseUrl) {
+  if (existing) {
+    if (trimmedBaseUrl !== (existing.baseUrl ?? "")) {
+      payload.baseUrl = trimmedBaseUrl;
+    }
+  } else if (trimmedBaseUrl) {
     payload.baseUrl = trimmedBaseUrl;
   }
 

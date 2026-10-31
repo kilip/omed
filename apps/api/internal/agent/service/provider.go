@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/agent/domain"
 	"github.com/kilip/omed/api/internal/agent/model"
@@ -161,17 +160,17 @@ func (s *providerService) Get(ctx context.Context, id int64) (domain.Provider, e
 func (s *providerService) Create(ctx context.Context, req model.CreateProviderRequest) (domain.Provider, error) {
 	name := strings.TrimSpace(req.Name)
 	if len(name) < 1 || len(name) > 100 {
-		return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "name must be between 1 and 100 characters")
+		return domain.Provider{}, domain.ErrInvalidProviderName
 	}
 
 	modelName := strings.TrimSpace(req.Model)
 	if len(modelName) < 1 || len(modelName) > 200 {
-		return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "model must be between 1 and 200 characters")
+		return domain.Provider{}, domain.ErrInvalidModel
 	}
 
 	kind := llmx.Kind(req.Kind)
 	if kind != llmx.KindOpenAICompat && kind != llmx.KindAnthropic && kind != llmx.KindGemini {
-		return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "invalid provider kind")
+		return domain.Provider{}, domain.ErrInvalidProviderKind
 	}
 
 	if s.cipher == nil || !s.cipher.Enabled() {
@@ -240,7 +239,7 @@ func (s *providerService) Update(ctx context.Context, id int64, req model.Update
 	if req.Name != nil {
 		trimmed := strings.TrimSpace(*req.Name)
 		if len(trimmed) < 1 || len(trimmed) > 100 {
-			return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "name must be between 1 and 100 characters")
+			return domain.Provider{}, domain.ErrInvalidProviderName
 		}
 		u.Name = &trimmed
 	}
@@ -248,7 +247,7 @@ func (s *providerService) Update(ctx context.Context, id int64, req model.Update
 	if req.Model != nil {
 		trimmed := strings.TrimSpace(*req.Model)
 		if len(trimmed) < 1 || len(trimmed) > 200 {
-			return domain.Provider{}, fiber.NewError(fiber.StatusUnprocessableEntity, "model must be between 1 and 200 characters")
+			return domain.Provider{}, domain.ErrInvalidModel
 		}
 		u.Model = &trimmed
 	}

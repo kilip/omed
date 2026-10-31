@@ -127,6 +127,47 @@ describe("Provider form logic", () => {
     expect(mapped.code).toBe("PROVIDER_KEY_REQUIRED");
   });
 
+  it("clearing base URL transmits empty string when existing had base URL", () => {
+    const existing = {
+      id: 1,
+      name: "Anthropic Claude",
+      kind: "anthropic",
+      baseUrl: "https://custom.endpoint.local",
+      model: "claude-3-7-sonnet",
+      capabilities: {
+        toolCalling: true,
+        vision: true,
+        structuredOutput: true,
+        streaming: true,
+      },
+      hasKey: true,
+      keyHint: "1234",
+      isDefault: false,
+    };
+
+    const values = {
+      name: "Anthropic Claude",
+      kind: "anthropic" as const,
+      baseUrl: "",
+      model: "claude-3-7-sonnet",
+      apiKey: "sk-ant-new-key-123456",
+      capabilities: {
+        toolCalling: true,
+        vision: true,
+        structuredOutput: true,
+        streaming: true,
+      },
+    };
+
+    const { payload, inlineErrorCode } = buildUpdateProviderPayload(
+      values,
+      existing,
+    );
+    expect(inlineErrorCode).toBeUndefined();
+    expect(payload.baseUrl).toBe("");
+    expect(payload.apiKey).toBe("sk-ant-new-key-123456");
+  });
+
   it("503 shows the secret-key-missing message", () => {
     const error = {
       status: 503,
