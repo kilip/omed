@@ -517,6 +517,196 @@ func (s *InsightServiceSuite) Test_PeriodOverview_InvalidInput() {
 	}
 }
 
+func (s *InsightServiceSuite) Test_AccountBalance_CodePrefix() {
+	s.seedEntries()
+	svc := s.newService()
+	ctx := s.ctx()
+
+	res, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		Account:     "11",
+	})
+	s.Require().NoError(err)
+	s.NotEmpty(res.Accounts)
+
+	sumDebit := decimal.Zero
+	sumCredit := decimal.Zero
+	for _, acc := range res.Accounts {
+		s.True(len(acc.Code) >= 2 && acc.Code[:2] == "11", "expected code starting with 11, got %s", acc.Code)
+		sumDebit = sumDebit.Add(acc.Debit)
+		sumCredit = sumCredit.Add(acc.Credit)
+	}
+	s.True(res.Totals.Debit.Equal(sumDebit), "totals debit should match sum over matched accounts")
+	s.True(res.Totals.Credit.Equal(sumCredit), "totals credit should match sum over matched accounts")
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_DigitsOnlyNeverMatchesNames() {
+	ctx := s.ctx()
+	_, err := s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("5000").
+		SetName("Fund 11").
+		SetType("EXPENSE").
+		SetNormalBalance("DEBIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	svc := s.newService()
+	res, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		Account:     "11",
+	})
+	s.Require().NoError(err)
+	for _, acc := range res.Accounts {
+		s.NotEqual("5000", acc.Code, "digits-only filter must not match names containing the digits")
+	}
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_NameFragmentCaseInsensitive() {
+	ctx := s.ctx()
+	_, err := s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("1199").
+		SetName("Bank Kaltim").
+		SetType("ASSET").
+		SetNormalBalance("DEBIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	svc := s.newService()
+	res, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		Account:     "BANK",
+	})
+	s.Require().NoError(err)
+	found := false
+	for _, acc := range res.Accounts {
+		if acc.Code == "1199" && acc.Name == "Bank Kaltim" {
+			found = true
+			break
+		}
+	}
+	s.True(found, "expected to find Bank Kaltim for case-insensitive 'BANK' search")
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_EmptyFilterMeansAll() {
+	s.seedEntries()
+	svc := s.newService()
+	ctx := s.ctx()
+
+	resEmpty, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		Account:     "",
+	})
+	s.Require().NoError(err)
+	s.NotEmpty(resEmpty.Accounts)
+
+	resWhitespace, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		Account:     "   ",
+	})
+	s.Require().NoError(err)
+	s.Equal(len(resEmpty.Accounts), len(resWhitespace.Accounts))
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_MoreThan50_TruncatedWithTotalsOverAll() {
+	ctx := s.ctx()
+	svc := s.newService()
+
+	// Create 60 active accounts under 80xx
+	for i := 1; i <= 60; i++ {
+		code := fmt.Sprintf("80%02d", i)
+		_, err := s.client.Account.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetCode(code).
+			SetName(fmt.Sprintf("Account %s", code)).
+			SetType("EXPENSE").
+			SetNormalBalance("DEBIT").
+			SetCurrency("IDR").
+			SetIsActive(true).
+			Save(ctx)
+		s.Require().NoError(err)
+	}
+
+	res, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		Account:     "80",
+	})
+	s.Require().NoError(err)
+	s.Len(res.Accounts, 50)
+	s.True(res.Truncated)
+	s.Contains(res.Hint, "account")
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_NoAccounts_EmptyAndBalanced() {
+	ctx := s.ctx()
+	// Create an empty workspace with no accounts
+	wEmpty, err := s.client.Workspace.Create().
+		SetName("Empty WS").
+		SetOwnerID(s.userID).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	svc := s.newService()
+	res, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: wEmpty.ID,
+	})
+	s.Require().NoError(err)
+	s.Empty(res.Accounts)
+	s.True(res.IsBalanced)
+	s.NotEmpty(res.BaseCurrency)
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_IsBalancedIgnoresFilter() {
+	s.seedEntries()
+	svc := s.newService()
+	ctx := s.ctx()
+
+	res, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		Account:     "1111",
+	})
+	s.Require().NoError(err)
+	s.Require().Len(res.Accounts, 1)
+	s.False(res.Totals.Debit.Equal(res.Totals.Credit), "single account totals should not balance")
+	s.True(res.IsBalanced, "IsBalanced should reflect the whole ledger being balanced")
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_InvalidDate() {
+	svc := s.newService()
+	ctx := s.ctx()
+
+	_, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		AsOfDate:    "2026/05/15",
+	})
+	s.Require().Error(err)
+	s.True(errors.Is(err, domain.ErrInvalidArgument))
+	var argErr domain.ArgumentError
+	s.True(errors.As(err, &argErr))
+	s.Equal("as_of_date must use the format YYYY-MM-DD", argErr.ErrorDetail())
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_Shrink() {
+	res := model.AccountBalanceResponse{
+		Accounts: make([]model.AccountBalanceItem, 50),
+	}
+	s.True(res.Shrink())
+	s.Len(res.Accounts, 25)
+	s.True(res.Truncated)
+	s.Contains(res.Hint, "account")
+
+	// Shrink down to 0
+	res.Accounts = make([]model.AccountBalanceItem, 1)
+	s.True(res.Shrink())
+	s.Len(res.Accounts, 0)
+	s.False(res.Shrink(), "cannot shrink empty accounts")
+}
+
 func TestInsightServiceSuite(t *testing.T) {
 	suite.Run(t, new(InsightServiceSuite))
 }

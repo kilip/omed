@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/kilip/omed/api/internal/base"
@@ -158,4 +159,99 @@ func (s InsightService) PeriodOverview(c context.Context, req model.PeriodOvervi
 		Monthly:      monthly,
 		Previous:     previous,
 	}, nil
+}
+
+// AccountBalance returns accounts and their balances as of a specific date, with optional code prefix or name filter.
+func (s InsightService) AccountBalance(ctx context.Context, req model.AccountBalanceRequest) (model.AccountBalanceResponse, error) {
+	if base.WorkspaceIDFromContext(ctx) == 0 && req.WorkspaceID > 0 {
+		ctx = base.WithWorkspaceID(ctx, req.WorkspaceID)
+	}
+
+	asOfStr := strings.TrimSpace(req.AsOfDate)
+	if asOfStr == "" {
+		asOfStr = s.now().Format("2006-01-02")
+	}
+
+	asOfDate, err := time.Parse("2006-01-02", asOfStr)
+	if err != nil {
+		return model.AccountBalanceResponse{}, domain.ArgumentError{
+			Field:  "as_of_date",
+			Expect: "as_of_date must use the format YYYY-MM-DD",
+		}
+	}
+
+	tbRes, err := s.report.TrialBalance(ctx, model.TrialBalanceRequest{
+		AsOfDate: model.Date(asOfDate),
+	})
+	if err != nil {
+		return model.AccountBalanceResponse{}, err
+	}
+
+	filter := strings.TrimSpace(req.Account)
+	isDigits := len(filter) > 0 && isDigitsOnly(filter)
+	lowerFilter := strings.ToLower(filter)
+
+	var matched []model.AccountBalanceItem
+	totalDebit := decimal.Zero
+	totalCredit := decimal.Zero
+
+	for _, acc := range tbRes.Accounts {
+		if filter != "" {
+			if isDigits {
+				if !strings.HasPrefix(acc.AccountCode, filter) {
+					continue
+				}
+			} else {
+				if !strings.Contains(strings.ToLower(acc.AccountName), lowerFilter) {
+					continue
+				}
+			}
+		}
+
+		item := model.AccountBalanceItem{
+			Code:   acc.AccountCode,
+			Name:   acc.AccountName,
+			Type:   acc.Type,
+			Debit:  acc.Debit,
+			Credit: acc.Credit,
+			Net:    acc.NetBalance,
+		}
+		matched = append(matched, item)
+		totalDebit = totalDebit.Add(acc.Debit)
+		totalCredit = totalCredit.Add(acc.Credit)
+	}
+
+	res := model.AccountBalanceResponse{
+		AsOfDate:     asOfStr,
+		BaseCurrency: tbRes.BaseCurrency,
+		Totals: model.BalanceTotals{
+			Debit:  totalDebit,
+			Credit: totalCredit,
+		},
+		IsBalanced: tbRes.IsBalanced,
+	}
+
+	if len(matched) > 50 {
+		res.Accounts = matched[:50]
+		res.Truncated = true
+		res.Hint = "narrow your account filter"
+	} else if matched != nil {
+		res.Accounts = matched
+	} else {
+		res.Accounts = []model.AccountBalanceItem{}
+	}
+
+	return res, nil
+}
+
+func isDigitsOnly(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }

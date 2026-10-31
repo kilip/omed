@@ -67,8 +67,8 @@ Sub-project 2 mounts `/mcp` and authenticates PATs. This plan assumes it will: b
   - `func AddTool[In WorkspaceScoped, Out any](r *Registrar, spec ToolSpec, h func(ctx context.Context, in In) (Out, error))`
 - Tool errors are returned as `*mcp.CallToolResult{IsError: true}` with one text content holding `{"code":"...","message":"..."}`, never as a Go error, so the client can self-correct.
 
-- [ ] **Step 1: Add the dependency**: `cd apps/api && go get github.com/modelcontextprotocol/go-sdk@latest && go mod tidy`. Run `go doc github.com/modelcontextprotocol/go-sdk/mcp AddTool`, `... NewInMemoryTransports`, `... ToolAnnotations`, and `... CallToolRequest`, and fix any name in this task that differs.
-- [ ] **Step 2: Write failing tests** with a harness that builds an `authz.Authorizer` from `authz.NewWithRegistry` (test roles holding `fin:account read` and `fin:transaction read`), a stub `MembershipResolver`, a `UserID` stub, a `bytes.Buffer` logger, and an in-memory client session:
+- [x] **Step 1: Add the dependency**: `cd apps/api && go get github.com/modelcontextprotocol/go-sdk@latest && go mod tidy`. Run `go doc github.com/modelcontextprotocol/go-sdk/mcp AddTool`, `... NewInMemoryTransports`, `... ToolAnnotations`, and `... CallToolRequest`, and fix any name in this task that differs.
+- [x] **Step 2: Write failing tests** with a harness that builds an `authz.Authorizer` from `authz.NewWithRegistry` (test roles holding `fin:account read` and `fin:transaction read`), a stub `MembershipResolver`, a `UserID` stub, a `bytes.Buffer` logger, and an in-memory client session:
   - `Test_AddTool_PanicsWithoutPermissions`; `Test_AddTool_PanicsOnUnknownPermissionObject` (`fin:acount`); `Test_AddTool_PanicsWhenNameLacksModulePrefix` (`balance` with a `fin:account` permission). The known-object set comes from `cfg.Authorizer.Roles()`, ignoring wildcard objects.
   - `Test_Call_NonMember_ReturnsNotFoundToolError` (`IsError` true, code `NOT_FOUND`); `Test_Call_MissingOnePermission_ReturnsForbidden` (tool needs two, role holds one).
   - `Test_Call_WorkspaceIDMissing_ReturnsValidationMessage` (RF1): message is `workspace_id is required and must be a positive integer`, code `VALIDATION_FAILED`.
@@ -78,10 +78,10 @@ Sub-project 2 mounts `/mcp` and authenticates PATs. This plan assumes it will: b
   - `Test_Call_ErrorDetailer_AppendedToMessage`.
   - `Test_Call_OversizeResult_IsShrunkAndFlagged` (cap set to 512 bytes; output type implements `Shrinkable`) and `Test_Call_OversizeNotShrinkable_ReturnsResultTooLarge`.
   - `Test_ListTools_ReadOnlyHintAndRequiredWorkspaceID`: `annotations.readOnlyHint` is true and the input schema requires `workspace_id`.
-- [ ] **Step 3: Run** `cd apps/api && go test ./internal/platform/mcpx/ -v`. Expected: FAIL (package does not compile).
-- [ ] **Step 4: Implement** per the Interfaces block. `AddTool` validates the spec (panic messages name the tool), builds `&mcp.Tool{Name, Description, Annotations: &mcp.ToolAnnotations{ReadOnlyHint: spec.ReadOnly}}`, and registers a wrapped handler on `r.Server()` in this order: read `in.GetWorkspaceID()` (≤ 0 is a validation error) -> `cfg.UserID` -> `cfg.Resolver.ResolveMembership` -> `authz.ContextWithMembership` -> `cfg.Authorizer.Can` for every permission (`base.ErrForbidden`) -> handler -> size cap. Map errors with `httpx.MapError`; for code `UNKNOWN`, log with `slog` at error level and answer `internal error (ref: <uuid>)`. The size cap marshals the output and calls `Shrink()` until it fits or returns `false`.
-- [ ] **Step 5: Run** the command from Step 3. Expected: PASS.
-- [ ] **Step 6: Commit**
+- [x] **Step 3: Run** `cd apps/api && go test ./internal/platform/mcpx/ -v`. Expected: FAIL (package does not compile).
+- [x] **Step 4: Implement** per the Interfaces block. `AddTool` validates the spec (panic messages name the tool), builds `&mcp.Tool{Name, Description, Annotations: &mcp.ToolAnnotations{ReadOnlyHint: spec.ReadOnly}}`, and registers a wrapped handler on `r.Server()` in this order: read `in.GetWorkspaceID()` (≤ 0 is a validation error) -> `cfg.UserID` -> `cfg.Resolver.ResolveMembership` -> `authz.ContextWithMembership` -> `cfg.Authorizer.Can` for every permission (`base.ErrForbidden`) -> handler -> size cap. Map errors with `httpx.MapError`; for code `UNKNOWN`, log with `slog` at error level and answer `internal error (ref: <uuid>)`. The size cap marshals the output and calls `Shrink()` until it fits or returns `false`.
+- [x] **Step 5: Run** the command from Step 3. Expected: PASS.
+- [x] **Step 6: Commit**
 ```bash
 git add apps/api/go.mod apps/api/go.sum apps/api/internal/platform/mcpx
 git commit -m "feat(api): ✨ add mcp tool registrar on the go sdk"
@@ -96,14 +96,14 @@ git commit -m "feat(api): ✨ add mcp tool registrar on the go sdk"
 **Interfaces:**
 - Produces: `func (s ReportService) MonthlyRevenueExpense(ctx context.Context, firstMonth time.Time, months int) ([]model.MonthlyRevenueExpenseItem, error)`. `firstMonth` is any instant inside the first month; the result has exactly `months` ordered rows, zero rows for months without flows; no range clamp (callers validate). `Summary` keeps its 1 to 24 clamp and calls this method for `Monthly`.
 
-- [ ] **Step 1: Write failing tests** reusing the suite's seeded revenue and expense entries across three months:
+- [x] **Step 1: Write failing tests** reusing the suite's seeded revenue and expense entries across three months:
   - `Test_MonthlyRevenueExpense_EqualsSummaryMonthly`: for the same three months, every row equals `Summary(ctx, 3).Monthly`.
   - `Test_MonthlyRevenueExpense_EmptyMonthsAreZeroRows`: a range before any entry returns the requested number of rows with zero amounts.
   - `Test_MonthlyRevenueExpense_RangeNotEndingToday`: a range ending two months ago contains only entries from that range.
-- [ ] **Step 2: Run** `cd apps/api && go test ./internal/fin/service/ -run Report -v`. Expected: FAIL (`MonthlyRevenueExpense` undefined).
-- [ ] **Step 3: Implement** `MonthlyRevenueExpense` by moving the account map, `GetMonthlyAccountFlows` call, and per-month classification out of `Summary` unchanged, then make `Summary` call it with `startMonthTime` and `months`.
-- [ ] **Step 4: Run** the command from Step 2. Expected: PASS, including every pre-existing `Summary` test.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `cd apps/api && go test ./internal/fin/service/ -run Report -v`. Expected: FAIL (`MonthlyRevenueExpense` undefined).
+- [x] **Step 3: Implement** `MonthlyRevenueExpense` by moving the account map, `GetMonthlyAccountFlows` call, and per-month classification out of `Summary` unchanged, then make `Summary` call it with `startMonthTime` and `months`.
+- [x] **Step 4: Run** the command from Step 2. Expected: PASS, including every pre-existing `Summary` test.
+- [x] **Step 5: Commit**
 ```bash
 git add apps/api/internal/fin/service/report.go apps/api/internal/fin/service/report_test.go
 git commit -m "refactor(api): ♻️ extract monthly revenue and expense for reuse"
@@ -122,17 +122,17 @@ git commit -m "refactor(api): ♻️ extract monthly revenue and expense for reu
 - Produces (model, JSON names snake_case, `jsonschema` tags carry the argument descriptions the client model reads): `PeriodOverviewRequest{ WorkspaceID int64 "workspace_id"; FromMonth, ToMonth string "from_month,omitempty","to_month,omitempty"; ComparePrevious *bool "compare_previous,omitempty" }` with `GetWorkspaceID() int64`; `MonthTotals{ Month string; Revenue, Expense, Net decimal.Decimal }`; `TotalsDelta{ Revenue, Expense, Net decimal.Decimal }`; `PeriodComparison{ From, To string; Revenue, Expense, Net decimal.Decimal; Monthly []MonthTotals; Delta TotalsDelta }` (`Delta` is current minus previous); `PeriodOverviewResponse{ BaseCurrency, From, To string; Revenue, Expense, Net decimal.Decimal; Monthly []MonthTotals; Previous *PeriodComparison }` (`Previous` is nil when `compare_previous` is false).
 - Produces (service): `func NewInsightService(report ReportService, accounts AccountService, cashflow CashFlowService, opts ...InsightOption) InsightService`; `type InsightOption func(*InsightService)`; `func WithInsightClock(now func() time.Time) InsightOption`; `func (s InsightService) PeriodOverview(c context.Context, req model.PeriodOverviewRequest) (model.PeriodOverviewResponse, error)`.
 
-- [ ] **Step 1: Write failing tests** (seed like `ReportServiceSuite`; clock fixed at `2026-05-15`):
+- [x] **Step 1: Write failing tests** (seed like `ReportServiceSuite`; clock fixed at `2026-05-15`):
   - `Test_PeriodOverview_DefaultsToCurrentMonthWithPrevious`: no months given returns `from == to == "2026-05"` and a `Previous` of `2026-04`.
   - `Test_PeriodOverview_RangeEqualsSummaryMonthly` (acceptance 2): each `Monthly` row equals the `ReportService` figure for that month.
   - `Test_PeriodOverview_PreviousIsSameLengthEndingBeforeFrom`: `2026-03` to `2026-05` gives previous `2025-12` to `2026-02`, and `Delta` equals current minus previous.
   - `Test_PeriodOverview_CompareFalse_OmitsPrevious`.
   - `Test_PeriodOverview_EmptyMonthsStillListed`: a month with no entries appears with zero amounts that marshal to JSON strings.
   - `Test_PeriodOverview_InvalidInput`: table of `2026-13`, `2026/03`, `to` before `from`, and a 25-month range, each `errors.Is(err, domain.ErrInvalidArgument)` with the exact `ErrorDetail()` text (`from_month must use the format YYYY-MM`, `to_month must not be before from_month`, `range must not exceed 24 months`).
-- [ ] **Step 2: Run** `cd apps/api && go test ./internal/fin/service/ -run Insight -v`. Expected: FAIL (does not compile).
-- [ ] **Step 3: Implement** the types and `PeriodOverview`: parse months with layout `2006-01`, default both to the clock's current month, `compare_previous` defaults to `true`, compute `Net = Revenue - Expense` per month and total, and the previous range as the same length ending the month before `from`.
-- [ ] **Step 4: Run** the command from Step 2. Expected: PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `cd apps/api && go test ./internal/fin/service/ -run Insight -v`. Expected: FAIL (does not compile).
+- [x] **Step 3: Implement** the types and `PeriodOverview`: parse months with layout `2006-01`, default both to the clock's current month, `compare_previous` defaults to `true`, compute `Net = Revenue - Expense` per month and total, and the previous range as the same length ending the month before `from`.
+- [x] **Step 4: Run** the command from Step 2. Expected: PASS.
+- [x] **Step 5: Commit**
 ```bash
 git add apps/api/internal/fin/domain apps/api/internal/fin/model/insight.go apps/api/internal/fin/service
 git commit -m "feat(api): ✨ add period overview insight"
