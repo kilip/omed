@@ -19,20 +19,31 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// CreateCashFlowParams carries parameters required to record a posted income or expense event.
+// CashFlowItemParams carries item line information for creating or updating a cash flow document.
+type CashFlowItemParams struct {
+	AccountID   int64
+	Description string
+	Quantity    decimal.Decimal
+	UnitPrice   decimal.Decimal
+	Amount      decimal.Decimal
+	BaseAmount  decimal.Decimal
+}
+
+// CreateCashFlowParams carries parameters required to record a multi-item cash flow document.
 type CreateCashFlowParams struct {
-	FlowType          string
-	PeriodID          int64
-	PaymentAccountID  int64
-	CategoryAccountID int64
-	Amount            decimal.Decimal
-	BaseAmount        decimal.Decimal
-	TransactionDate   time.Time
-	Description       string
-	Reference         string
-	Currency          string
-	ExchangeRate      decimal.Decimal
-	PostedBy          int64
+	FlowType         string
+	PeriodID         int64
+	PaymentAccountID int64
+	Items            []CashFlowItemParams
+	TotalAmount      decimal.Decimal
+	TotalBaseAmount  decimal.Decimal
+	Status           string
+	TransactionDate  time.Time
+	Description      string
+	Reference        string
+	Currency         string
+	ExchangeRate     decimal.Decimal
+	PostedBy         int64
 }
 
 // CashFlowRepository defines database operations for income and expense quick entry transactions.
@@ -45,9 +56,9 @@ func NewCashFlowRepository(cli *ent.Client) CashFlowRepository {
 	return CashFlowRepository{cli: cli}
 }
 
-// CreatePosted creates a transaction, posted journal entry, and balanced postings for an income or expense event in a single atomic transaction.
+// Create creates a transaction, journal entry, and balanced postings for a cash flow document in a single atomic transaction.
 // Automatically retries on sequence number collision.
-func (r CashFlowRepository) CreatePosted(c context.Context, params CreateCashFlowParams) (domain.CashFlowItem, error) {
+func (r CashFlowRepository) Create(c context.Context, params CreateCashFlowParams) (domain.CashFlowItem, error) {
 	var dom domain.CashFlowItem
 	var createdID int64
 
@@ -77,11 +88,6 @@ func (r CashFlowRepository) CreatePosted(c context.Context, params CreateCashFlo
 				rate = params.ExchangeRate
 			}
 
-			baseAmt := params.Amount.Mul(rate)
-			if params.BaseAmount.IsPositive() {
-				baseAmt = params.BaseAmount
-			}
-
 			tBuilder := tx.Transaction.Create().
 				SetNumber(num).
 				SetTransactionDate(params.TransactionDate).
@@ -107,15 +113,24 @@ func (r CashFlowRepository) CreatePosted(c context.Context, params CreateCashFlo
 				return err
 			}
 
-			now := time.Now()
+			targetStatus := params.Status
+			if targetStatus == "" {
+				targetStatus = domain.EntryStatusPosted
+			}
+
 			eBuilder := tx.Entry.Create().
 				SetTransactionID(t.ID).
 				SetPeriodID(params.PeriodID).
 				SetNumber(entryNum).
 				SetEntryDate(params.TransactionDate).
-				SetStatus(entry.Status(domain.EntryStatusPosted)).
-				SetPostedAt(now).
-				SetPostedBy(params.PostedBy)
+				SetStatus(entry.Status(targetStatus))
+
+			if targetStatus == domain.EntryStatusPosted {
+				eBuilder.SetPostedAt(time.Now())
+				if params.PostedBy > 0 {
+					eBuilder.SetPostedBy(params.PostedBy)
+				}
+			}
 
 			if params.Description != "" {
 				eBuilder.SetDescription(params.Description)
@@ -126,23 +141,21 @@ func (r CashFlowRepository) CreatePosted(c context.Context, params CreateCashFlo
 				return err
 			}
 
-			var debitAccID, creditAccID int64
+			var paymentDir, itemDir posting.Direction
 			if params.FlowType == domain.CashFlowTypeExpense {
-				// EXPENSE: debit Category (Expense), credit Payment (Asset)
-				debitAccID = params.CategoryAccountID
-				creditAccID = params.PaymentAccountID
+				paymentDir = posting.DirectionCREDIT
+				itemDir = posting.DirectionDEBIT
 			} else {
-				// INCOME: debit Payment (Asset), credit Category (Revenue)
-				debitAccID = params.PaymentAccountID
-				creditAccID = params.CategoryAccountID
+				paymentDir = posting.DirectionDEBIT
+				itemDir = posting.DirectionCREDIT
 			}
 
 			p0 := tx.Posting.Create().
 				SetEntryID(createdEntry.ID).
-				SetAccountID(debitAccID).
-				SetDirection(posting.Direction(domain.PostingDirectionDebit)).
-				SetAmount(params.Amount).
-				SetBaseAmount(baseAmt).
+				SetAccountID(params.PaymentAccountID).
+				SetDirection(paymentDir).
+				SetAmount(params.TotalAmount).
+				SetBaseAmount(params.TotalBaseAmount).
 				SetPosition(0)
 			if params.Description != "" {
 				p0.SetDescription(params.Description)
@@ -151,25 +164,35 @@ func (r CashFlowRepository) CreatePosted(c context.Context, params CreateCashFlo
 				return err
 			}
 
-			p1 := tx.Posting.Create().
-				SetEntryID(createdEntry.ID).
-				SetAccountID(creditAccID).
-				SetDirection(posting.Direction(domain.PostingDirectionCredit)).
-				SetAmount(params.Amount).
-				SetBaseAmount(baseAmt).
-				SetPosition(1)
-			if params.Description != "" {
-				p1.SetDescription(params.Description)
-			}
-			if _, err := p1.Save(c); err != nil {
-				return err
+			for i, it := range params.Items {
+				pi := tx.Posting.Create().
+					SetEntryID(createdEntry.ID).
+					SetAccountID(it.AccountID).
+					SetDirection(itemDir).
+					SetAmount(it.Amount).
+					SetBaseAmount(it.BaseAmount).
+					SetPosition(i + 1)
+				if it.Description != "" {
+					pi.SetDescription(it.Description)
+				} else if params.Description != "" {
+					pi.SetDescription(params.Description)
+				}
+				if !it.Quantity.IsZero() {
+					pi.SetQuantity(it.Quantity)
+				}
+				if !it.UnitPrice.IsNegative() {
+					pi.SetUnitPrice(it.UnitPrice)
+				}
+				if _, err := pi.Save(c); err != nil {
+					return err
+				}
 			}
 
 			return nil
 		})
 
 		if err == nil {
-			return r.getByID(c, params.FlowType, createdID)
+			return r.GetByID(c, params.FlowType, createdID)
 		}
 
 		if ent.IsConstraintError(err) || isLockOrConflictError(err) {
@@ -181,6 +204,182 @@ func (r CashFlowRepository) CreatePosted(c context.Context, params CreateCashFlo
 	}
 
 	return dom, domain.ErrTransactionNumberTaken
+}
+
+// Update replaces the postings and updates header fields of a DRAFT cash flow document.
+func (r CashFlowRepository) Update(c context.Context, id int64, params CreateCashFlowParams) (domain.CashFlowItem, error) {
+	var dom domain.CashFlowItem
+
+	err := entx.WithTx(c, r.cli, func(tx *ent.Tx) error {
+		t, err := tx.Transaction.Query().
+			Where(
+				transaction.ID(id),
+				transaction.DeletedAtIsNil(),
+			).
+			WithEntries(func(eq *ent.EntryQuery) {
+				eq.Where(entry.DeletedAtIsNil()).
+					Order(ent.Asc(entry.FieldID))
+			}).
+			Only(c)
+		if err != nil {
+				if ent.IsNotFound(err) {
+					return domain.ErrTransactionNotFound
+				}
+				return err
+			}
+
+		if len(t.Edges.Entries) == 0 {
+			return domain.ErrTransactionNotFound
+		}
+		e := t.Edges.Entries[0]
+		if string(e.Status) != domain.EntryStatusDraft {
+			return domain.ErrEntryNotDraft
+		}
+
+		curr := t.Currency
+		if params.Currency != "" {
+			curr = params.Currency
+		}
+		rate := t.ExchangeRate
+		if params.ExchangeRate.IsPositive() {
+			rate = params.ExchangeRate
+		}
+
+		tUpdate := tx.Transaction.UpdateOneID(t.ID).
+			SetTransactionDate(params.TransactionDate).
+			SetCurrency(curr).
+			SetExchangeRate(rate)
+		if params.Description != "" {
+			tUpdate.SetDescription(params.Description)
+		} else {
+			tUpdate.ClearDescription()
+		}
+		if params.Reference != "" {
+			tUpdate.SetReference(params.Reference)
+		} else {
+			tUpdate.ClearReference()
+		}
+		if _, err := tUpdate.Save(c); err != nil {
+			return err
+		}
+
+		targetStatus := params.Status
+		if targetStatus == "" {
+			targetStatus = domain.EntryStatusDraft
+		}
+
+		eUpdate := tx.Entry.UpdateOneID(e.ID).
+			SetPeriodID(params.PeriodID).
+			SetEntryDate(params.TransactionDate).
+			SetStatus(entry.Status(targetStatus))
+		if params.Description != "" {
+			eUpdate.SetDescription(params.Description)
+		} else {
+			eUpdate.ClearDescription()
+		}
+		if targetStatus == domain.EntryStatusPosted {
+			eUpdate.SetPostedAt(time.Now())
+			if params.PostedBy > 0 {
+				eUpdate.SetPostedBy(params.PostedBy)
+			}
+		}
+		if _, err := eUpdate.Save(c); err != nil {
+			return err
+		}
+
+		if _, err := tx.Posting.Delete().Where(posting.EntryIDEQ(e.ID)).Exec(c); err != nil {
+			return err
+		}
+
+		var paymentDir, itemDir posting.Direction
+		if params.FlowType == domain.CashFlowTypeExpense {
+			paymentDir = posting.DirectionCREDIT
+			itemDir = posting.DirectionDEBIT
+		} else {
+			paymentDir = posting.DirectionDEBIT
+			itemDir = posting.DirectionCREDIT
+		}
+
+		p0 := tx.Posting.Create().
+			SetEntryID(e.ID).
+			SetAccountID(params.PaymentAccountID).
+			SetDirection(paymentDir).
+			SetAmount(params.TotalAmount).
+			SetBaseAmount(params.TotalBaseAmount).
+			SetPosition(0)
+		if params.Description != "" {
+			p0.SetDescription(params.Description)
+		}
+		if _, err := p0.Save(c); err != nil {
+			return err
+		}
+
+		for i, it := range params.Items {
+			pi := tx.Posting.Create().
+				SetEntryID(e.ID).
+				SetAccountID(it.AccountID).
+				SetDirection(itemDir).
+				SetAmount(it.Amount).
+				SetBaseAmount(it.BaseAmount).
+				SetPosition(i + 1)
+			if it.Description != "" {
+				pi.SetDescription(it.Description)
+			} else if params.Description != "" {
+				pi.SetDescription(params.Description)
+			}
+			if !it.Quantity.IsZero() {
+				pi.SetQuantity(it.Quantity)
+			}
+			if !it.UnitPrice.IsNegative() {
+				pi.SetUnitPrice(it.UnitPrice)
+			}
+			if _, err := pi.Save(c); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return dom, err
+	}
+
+	return r.GetByID(c, params.FlowType, id)
+}
+
+// GetByID retrieves a single cash flow transaction by ID and verifies the requested flowType.
+func (r CashFlowRepository) GetByID(c context.Context, flowType string, id int64) (domain.CashFlowItem, error) {
+	var dom domain.CashFlowItem
+
+	t, err := r.cli.Transaction.Query().
+		Where(
+			transaction.ID(id),
+			transaction.DeletedAtIsNil(),
+		).
+		WithCreator().
+		WithUpdater().
+		WithDeleter().
+		WithEntries(func(eq *ent.EntryQuery) {
+			eq.Where(entry.DeletedAtIsNil()).
+				Order(ent.Asc(entry.FieldID)).
+				WithPostings(func(pq *ent.PostingQuery) {
+					pq.Order(ent.Asc(posting.FieldPosition), ent.Asc(posting.FieldID)).
+						WithAccount()
+				})
+		}).
+		Only(c)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return dom, domain.ErrTransactionNotFound
+		}
+		return dom, err
+	}
+
+	res := toCashFlowDomain(t, "")
+	if flowType != "" && res.Type != flowType {
+		return dom, domain.ErrTransactionNotFound
+	}
+	return res, nil
 }
 
 // Search queries cash flow transactions matching the given filter criteria and flow type (INCOME or EXPENSE).
@@ -221,9 +420,19 @@ func (r CashFlowRepository) Search(c context.Context, flowType string, req model
 		categoryPostPreds = append(categoryPostPreds, posting.AccountIDEQ(*req.CategoryAccountID))
 	}
 
+	var allowedStatuses []entry.Status
+	if req.Status != nil && *req.Status != "" {
+		allowedStatuses = []entry.Status{entry.Status(*req.Status)}
+	} else {
+		allowedStatuses = []entry.Status{
+			entry.Status(domain.EntryStatusDraft),
+			entry.Status(domain.EntryStatusPosted),
+		}
+	}
+
 	entryPreds := []predicate.Entry{
 		entry.DeletedAtIsNil(),
-		entry.StatusEQ(entry.Status(domain.EntryStatusPosted)),
+		entry.StatusIn(allowedStatuses...),
 		entry.HasPostingsWith(paymentPostPreds...),
 		entry.HasPostingsWith(categoryPostPreds...),
 	}
@@ -288,36 +497,6 @@ func (r CashFlowRepository) Search(c context.Context, flowType string, req model
 	return res, cursor, nil
 }
 
-func (r CashFlowRepository) getByID(c context.Context, flowType string, id int64) (domain.CashFlowItem, error) {
-	var dom domain.CashFlowItem
-
-	t, err := r.cli.Transaction.Query().
-		Where(
-			transaction.ID(id),
-			transaction.DeletedAtIsNil(),
-		).
-		WithCreator().
-		WithUpdater().
-		WithDeleter().
-		WithEntries(func(eq *ent.EntryQuery) {
-			eq.Where(entry.DeletedAtIsNil()).
-				Order(ent.Asc(entry.FieldID)).
-				WithPostings(func(pq *ent.PostingQuery) {
-					pq.Order(ent.Asc(posting.FieldPosition), ent.Asc(posting.FieldID)).
-						WithAccount()
-				})
-		}).
-		Only(c)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return dom, domain.ErrTransactionNotFound
-		}
-		return dom, err
-	}
-
-	return toCashFlowDomain(t, flowType), nil
-}
-
 func toCashFlowDomain(t *ent.Transaction, flowType string) domain.CashFlowItem {
 	dom := domain.CashFlowItem{
 		ID:              t.ID,
@@ -329,6 +508,7 @@ func toCashFlowDomain(t *ent.Transaction, flowType string) domain.CashFlowItem {
 		ExchangeRate:    t.ExchangeRate,
 		Description:     t.Description,
 		Reference:       t.Reference,
+		Items:           []domain.CashFlowLine{},
 		AuditMeta: base.AuditMeta{
 			CreatedAt: t.CreatedAt,
 			UpdatedAt: t.UpdatedAt,
@@ -364,6 +544,14 @@ func toCashFlowDomain(t *ent.Transaction, flowType string) domain.CashFlowItem {
 		if string(entryCandidate.Status) == domain.EntryStatusPosted {
 			e = entryCandidate
 			break
+		}
+	}
+	if e == nil {
+		for _, entryCandidate := range t.Edges.Entries {
+			if string(entryCandidate.Status) == domain.EntryStatusDraft {
+				e = entryCandidate
+				break
+			}
 		}
 	}
 	if e == nil {
@@ -408,30 +596,50 @@ func toCashFlowDomain(t *ent.Transaction, flowType string) domain.CashFlowItem {
 		if detectedType == domain.CashFlowTypeExpense {
 			if string(p.Direction) == domain.PostingDirectionCredit {
 				dom.PaymentAccount = summary
-				if dom.Amount.IsZero() {
-					dom.Amount = p.Amount
-					dom.BaseAmount = p.BaseAmount
-				}
+				dom.Amount = p.Amount
+				dom.BaseAmount = p.BaseAmount
 			} else if string(p.Direction) == domain.PostingDirectionDebit {
-				dom.CategoryAccount = summary
-				if dom.Amount.IsZero() {
-					dom.Amount = p.Amount
-					dom.BaseAmount = p.BaseAmount
+				qty := decimal.NewFromInt(1)
+				if p.Quantity != nil {
+					qty = *p.Quantity
 				}
+				uPrice := p.Amount
+				if p.UnitPrice != nil {
+					uPrice = *p.UnitPrice
+				}
+				dom.Items = append(dom.Items, domain.CashFlowLine{
+					ID:          p.ID,
+					Account:     summary,
+					Description: p.Description,
+					Quantity:    qty,
+					UnitPrice:   uPrice,
+					Amount:      p.Amount,
+					BaseAmount:  p.BaseAmount,
+				})
 			}
 		} else {
 			if string(p.Direction) == domain.PostingDirectionDebit {
 				dom.PaymentAccount = summary
-				if dom.Amount.IsZero() {
-					dom.Amount = p.Amount
-					dom.BaseAmount = p.BaseAmount
-				}
+				dom.Amount = p.Amount
+				dom.BaseAmount = p.BaseAmount
 			} else if string(p.Direction) == domain.PostingDirectionCredit {
-				dom.CategoryAccount = summary
-				if dom.Amount.IsZero() {
-					dom.Amount = p.Amount
-					dom.BaseAmount = p.BaseAmount
+				qty := decimal.NewFromInt(1)
+				if p.Quantity != nil {
+					qty = *p.Quantity
 				}
+				uPrice := p.Amount
+				if p.UnitPrice != nil {
+					uPrice = *p.UnitPrice
+				}
+				dom.Items = append(dom.Items, domain.CashFlowLine{
+					ID:          p.ID,
+					Account:     summary,
+					Description: p.Description,
+					Quantity:    qty,
+					UnitPrice:   uPrice,
+					Amount:      p.Amount,
+					BaseAmount:  p.BaseAmount,
+				})
 			}
 		}
 	}

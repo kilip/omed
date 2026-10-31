@@ -25,8 +25,19 @@ type CashFlowAccountSummary struct {
 	Type string `json:"type"`
 }
 
+// CashFlowLine represents a single item line within a cash flow document.
+type CashFlowLine struct {
+	ID          int64                  `json:"id"`
+	Account     CashFlowAccountSummary `json:"account"`
+	Description string                 `json:"description,omitempty"`
+	Quantity    decimal.Decimal        `json:"quantity"`
+	UnitPrice   decimal.Decimal        `json:"unitPrice"`
+	Amount      decimal.Decimal        `json:"amount"`
+	BaseAmount  decimal.Decimal        `json:"baseAmount"`
+}
+
 // CashFlowItem represents a flattened, user-facing cash flow event (Income or Expense)
-// backed by an underlying financial transaction and posted journal entry.
+// backed by an underlying financial transaction and journal entry.
 type CashFlowItem struct {
 	ID              int64                  `json:"id"`
 	WorkspaceID     int64                  `json:"workspaceId"`
@@ -34,7 +45,7 @@ type CashFlowItem struct {
 	TransactionDate time.Time              `json:"transactionDate"`
 	Type            string                 `json:"type"`
 	PaymentAccount  CashFlowAccountSummary `json:"paymentAccount"`
-	CategoryAccount CashFlowAccountSummary `json:"categoryAccount"`
+	Items           []CashFlowLine         `json:"items"`
 	Amount          decimal.Decimal        `json:"amount"`
 	BaseAmount      decimal.Decimal        `json:"baseAmount"`
 	Currency        string                 `json:"currency"`
