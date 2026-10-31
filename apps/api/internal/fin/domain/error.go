@@ -118,7 +118,34 @@ var (
 	ErrFXRoundingAccountNotFound = errors.New("FX_ROUNDING_ACCOUNT_NOT_FOUND")
 	// ErrFXAccountInvalid indicates the configured FX account is inactive or not postable.
 	ErrFXAccountInvalid = errors.New("FX_ACCOUNT_INVALID")
+
+	// ErrInvalidArgument indicates an invalid input parameter.
+	ErrInvalidArgument = errors.New("INVALID_ARGUMENT")
 )
+
+// ArgumentError represents a validation error on a specific argument.
+type ArgumentError struct {
+	Field  string
+	Expect string
+}
+
+func (e ArgumentError) Error() string {
+	return e.ErrorDetail()
+}
+
+func (e ArgumentError) Is(target error) bool {
+	return target == ErrInvalidArgument
+}
+
+func (e ArgumentError) ErrorDetail() string {
+	if e.Field == "" || e.Expect == "" {
+		return e.Expect
+	}
+	if len(e.Expect) >= len(e.Field) && e.Expect[:len(e.Field)] == e.Field {
+		return e.Expect
+	}
+	return e.Field + " " + e.Expect
+}
 
 func init() {
 	base.AddToErrorMap(ErrAccountNotFound, fiber.StatusNotFound, "account not found")
@@ -178,4 +205,5 @@ func init() {
 	base.AddToErrorMap(ErrFXLossAccountNotFound, fiber.StatusUnprocessableEntity, "foreign exchange loss account not found or not configured")
 	base.AddToErrorMap(ErrFXRoundingAccountNotFound, fiber.StatusUnprocessableEntity, "foreign exchange rounding account not found or not configured")
 	base.AddToErrorMap(ErrFXAccountInvalid, fiber.StatusUnprocessableEntity, "configured foreign exchange account is invalid, inactive, or not postable")
+	base.AddToErrorMap(ErrInvalidArgument, fiber.StatusUnprocessableEntity, "invalid argument")
 }

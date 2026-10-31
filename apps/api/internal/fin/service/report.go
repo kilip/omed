@@ -59,6 +59,12 @@ func (s ReportService) getBaseCurrencyAndDecimals(c context.Context) (string, in
 	return baseCurrency, baseDecimals
 }
 
+// BaseCurrency returns the base currency configured for the workspace in context.
+func (s ReportService) BaseCurrency(ctx context.Context) string {
+	baseCurrency, _ := s.getBaseCurrencyAndDecimals(ctx)
+	return baseCurrency
+}
+
 // TrialBalance generates the Trial Balance report as of a specified date.
 func (s ReportService) TrialBalance(ctx context.Context, req model.TrialBalanceRequest) (model.TrialBalanceResponse, error) {
 	asOf := req.AsOfDate.Time()
