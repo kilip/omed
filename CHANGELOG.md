@@ -1,5 +1,50 @@
 # Changelog
 
+## [0.8.0](https://github.com/kilip/omed/compare/v0.7.0...v0.8.0) (2026-10-31)
+
+
+### Features
+
+* **agent:** ✨ add agent domain and repository ([ea1ed11](https://github.com/kilip/omed/commit/ea1ed1119accaa1e4a3e2123dfd5c65e599ee8ba))
+* **agent:** ✨ add agent provider service ([241c5a0](https://github.com/kilip/omed/commit/241c5a0cbd40f10202eee7c95e2cd7a3357f0767))
+* **agent:** ✨ add agent_providers ent schema and migration ([8b3dd56](https://github.com/kilip/omed/commit/8b3dd567aebba3d0a7ae05370e3c49b9251b0c7e))
+* **agent:** ✨ add provider endpoints and integration tests ([431334e](https://github.com/kilip/omed/commit/431334ebce6049eca1887e30e7b1956b22412d71))
+* **agent:** ✨ implement agent domain roles and provider repository ([019a488](https://github.com/kilip/omed/commit/019a4881b497f3b4948e9851fd218730355ee440))
+* **api:** ✨ add agent config and chart values ([0385f64](https://github.com/kilip/omed/commit/0385f641e37068c1b2b7a1a9bee57adb3af8e4d5))
+* **api:** ✨ add cashflow income and expense endpoints ([c5d8f4e](https://github.com/kilip/omed/commit/c5d8f4e4bdcc178e2963274cb95e4d51d6665099))
+* **api:** ✨ add finance settings endpoints and openapi spec ([098dd5a](https://github.com/kilip/omed/commit/098dd5ac9daa91e4777318f10a1704721a4d72be))
+* **api:** ✨ add item validation and draft editing to cashflow service ([2c9e140](https://github.com/kilip/omed/commit/2c9e1402384925cbf6fa1aa9bba1e09bbd5e8249))
+* **api:** ✨ add llmx adapter contract and memory driver ([4b1f946](https://github.com/kilip/omed/commit/4b1f946532bbd6edaa77ae597adcae177bab3c6f))
+* **api:** ✨ add llmx anthropic driver ([bb0aab0](https://github.com/kilip/omed/commit/bb0aab06431f937d80574e6d2cd5c41964c6dd34))
+* **api:** ✨ add llmx gemini driver ([a94dc36](https://github.com/kilip/omed/commit/a94dc364b9567a4e51c9a576a54251e2980aac8a))
+* **api:** ✨ add llmx openai driver ([bea8f8a](https://github.com/kilip/omed/commit/bea8f8aac7f7b41b33dd6a99388eed4fac3821e5))
+* **api:** ✨ add llmx url guard ([4983228](https://github.com/kilip/omed/commit/4983228b2e2c466294d2619aa77277918a056c0c))
+* **api:** ✨ add onboarding and decimal style to fin setting ([4188611](https://github.com/kilip/omed/commit/4188611fdaaa26b99cac1ada714a6a508efa6083))
+* **api:** ✨ add secretx cipher ([477057f](https://github.com/kilip/omed/commit/477057fa779f0d4dc4fb8ed40cbd3f25700e8f71))
+* **api:** ✨ expose income and expense get and update endpoints ([22f0864](https://github.com/kilip/omed/commit/22f0864111fbc524cf076c3170dab76ee4e2878f))
+* **api:** ✨ store income and expense as multi-item documents ([7e967cf](https://github.com/kilip/omed/commit/7e967cfc666b84f19f48b775e42af2db253d0a97))
+* **deploy:** ✨ add agent env to helm chart ([a722c15](https://github.com/kilip/omed/commit/a722c157c26f74627957af6959b69d384817914d))
+* **web:** ✨ add agent module scaffolding ([21aacd5](https://github.com/kilip/omed/commit/21aacd515aa8f4df1bbed80e5e8fa28af7e53344))
+* **web:** ✨ add agent providers screen ([b0885e3](https://github.com/kilip/omed/commit/b0885e3f538ff884435f72175ce6531ef567c1c3))
+* **web:** ✨ add cashflow detail, edit, and status filter ([68c9548](https://github.com/kilip/omed/commit/68c95487874850f4d70648cfb88ad2c4a50d7c3b))
+* **web:** ✨ add decimal style formatting and finance layout guard ([1ddc93b](https://github.com/kilip/omed/commit/1ddc93b6274c9eba99a5ec80ba1848d71fbf7b05))
+* **web:** ✨ add fin launcher and income expense quick entry ([335e783](https://github.com/kilip/omed/commit/335e7836a64cdc31105c9631d86ea5be112569f7))
+* **web:** ✨ add finance onboarding wizard and shared settings components ([8c52c8b](https://github.com/kilip/omed/commit/8c52c8bac315d72c396751181524429a22e7e139))
+* **web:** ✨ add finance settings page and launcher tile ([157b308](https://github.com/kilip/omed/commit/157b3082467bbc0da0ec409985237ef557daa4ae))
+* **web:** ✨ add money input and cashflow line helpers ([b177e78](https://github.com/kilip/omed/commit/b177e7875714fc04c54728b70581b4441b9eccc6))
+* **web:** ✨ add multi-item cashflow form with posting and draft ([b600111](https://github.com/kilip/omed/commit/b600111150d5183a2136dfcc5cca762b4a5864e5))
+* **web:** ✨ add route navigation loading overlay ([7ce310f](https://github.com/kilip/omed/commit/7ce310f6b149f54ae58114a850b72be322e39f39))
+
+
+### Bug Fixes
+
+* **agent:** 🐛 align provider service with llmx and base contracts ([26289cb](https://github.com/kilip/omed/commit/26289cb41918a7537b775ea306f9ca9f6eb13185))
+* **agent:** 🐛 resolve whole-branch review findings ([7ed9ce1](https://github.com/kilip/omed/commit/7ed9ce1b037060f8188c141bc40516818635c534))
+* **api:** 🐛 handle stream and body close errors ([deb4d50](https://github.com/kilip/omed/commit/deb4d50eac501eb2798e047bfd7ee969e7a8dbc8))
+* **e2e:** 🐛 fix select option selector in income expense page ([9c8efb2](https://github.com/kilip/omed/commit/9c8efb2b84592d100ca4a57fc901f25848589237))
+* **web:** 🐛 support 9-digit money input on opening balance ([5a6d828](https://github.com/kilip/omed/commit/5a6d828633ff44ae61a830c5ecf0c9cfd5708b7a))
+* **web:** 🐛 surface non-field errors in provider drawer ([a4683a4](https://github.com/kilip/omed/commit/a4683a4aa5539950a6b4c05df884f4f5d729ceb3))
+
 ## [0.7.0](https://github.com/kilip/omed/compare/v0.6.0...v0.7.0) (2026-10-30)
 
 
