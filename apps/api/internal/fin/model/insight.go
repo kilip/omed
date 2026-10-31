@@ -104,3 +104,72 @@ func (r *AccountBalanceResponse) Shrink() bool {
 	r.Hint = "narrow your account filter"
 	return true
 }
+
+// AccountRef represents a minimal account reference with code and name.
+type AccountRef struct {
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+// FindCashflowRequest defines parameters for the find cashflow insight tool.
+type FindCashflowRequest struct {
+	WorkspaceID     int64  `json:"workspace_id" jsonschema:"description=Workspace ID,required"`
+	Type            string `json:"type" jsonschema:"description=Document type: 'income' or 'expense',required,enum=income,enum=expense"`
+	DateFrom        string `json:"date_from,omitempty" jsonschema:"description=Start date in YYYY-MM-DD format (inclusive)"`
+	DateTo          string `json:"date_to,omitempty" jsonschema:"description=End date in YYYY-MM-DD format (inclusive)"`
+	Status          string `json:"status,omitempty" jsonschema:"description=Document status: 'draft' or 'posted'"`
+	Query           string `json:"query,omitempty" jsonschema:"description=Text search across description and reference"`
+	PaymentAccount  string `json:"payment_account,omitempty" jsonschema:"description=Account code or name substring for payment/cash account"`
+	CategoryAccount string `json:"category_account,omitempty" jsonschema:"description=Account code or name substring for category account"`
+	Cursor          string `json:"cursor,omitempty" jsonschema:"description=Opaque pagination cursor from previous response"`
+	Limit           int    `json:"limit,omitempty" jsonschema:"description=Maximum items to return (1-50, default 20)"`
+}
+
+// GetWorkspaceID returns the workspace ID for authorization and scoping.
+func (r FindCashflowRequest) GetWorkspaceID() int64 {
+	return r.WorkspaceID
+}
+
+// CashflowLine represents a single line in a cashflow document.
+type CashflowLine struct {
+	Account     AccountRef      `json:"account"`
+	Description string          `json:"description"`
+	Quantity    decimal.Decimal `json:"quantity"`
+	UnitPrice   decimal.Decimal `json:"unit_price"`
+	Amount      decimal.Decimal `json:"amount"`
+}
+
+// CashflowDoc represents a sanitized, public cashflow document for insights.
+type CashflowDoc struct {
+	ID             int64           `json:"id"`
+	Number         string          `json:"number"`
+	Date           string          `json:"date"`
+	Type           string          `json:"type"`
+	Status         string          `json:"status"`
+	PaymentAccount AccountRef      `json:"payment_account"`
+	Description    string          `json:"description"`
+	Reference      string          `json:"reference"`
+	Amount         decimal.Decimal `json:"amount"`
+	Currency       string          `json:"currency"`
+	BaseAmount     decimal.Decimal `json:"base_amount"`
+	Lines          []CashflowLine  `json:"lines"`
+}
+
+// FindCashflowResponse is the output of the find cashflow insight tool.
+type FindCashflowResponse struct {
+	Items      []CashflowDoc `json:"items"`
+	NextCursor string        `json:"next_cursor,omitempty"`
+	Truncated  bool          `json:"truncated,omitempty"`
+	Hint       string        `json:"hint,omitempty"`
+}
+
+// Shrink halves the items array to progressively reduce output size when oversize.
+func (r *FindCashflowResponse) Shrink() bool {
+	if len(r.Items) == 0 {
+		return false
+	}
+	r.Items = r.Items[:len(r.Items)/2]
+	r.Truncated = true
+	r.Hint = "narrow your search or reduce limit"
+	return true
+}

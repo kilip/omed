@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/base"
@@ -789,6 +791,429 @@ func (s *InsightServiceSuite) Test_AccountBalance_Shrink() {
 	s.True(res.Shrink())
 	s.Len(res.Accounts, 0)
 	s.False(res.Shrink(), "cannot shrink empty accounts")
+}
+
+
+func (s *InsightServiceSuite) Test_ResolveAccountRef_ExactCodeThenNameFragment() {
+	accounts := []domain.Account{
+		{Code: "1100", Name: "Bank Central Asia"},
+		{Code: "1200", Name: "Accounts Receivable"},
+		{Code: "5100", Name: "Operating Expenses"},
+	}
+	// By exact code
+	acc, err := service.ResolveAccountRef(accounts, "1100")
+	s.Require().NoError(err)
+	s.Equal("1100", acc.Code)
+
+	// By name fragment (case-insensitive)
+	acc, err = service.ResolveAccountRef(accounts, "receiv")
+	s.Require().NoError(err)
+	s.Equal("1200", acc.Code)
+}
+
+func (s *InsightServiceSuite) Test_ResolveAccountRef_Unknown_ReturnsAccountNotFound() {
+	accounts := []domain.Account{
+		{Code: "1100", Name: "Bank Central Asia"},
+	}
+	_, err := service.ResolveAccountRef(accounts, "9999")
+	s.Require().ErrorIs(err, domain.ErrAccountNotFound)
+}
+
+func (s *InsightServiceSuite) Test_ResolveAccountRef_Ambiguous_ListsUpToFiveCandidates() {
+	accounts := []domain.Account{
+		{Code: "6001", Name: "Marketing Social"},
+		{Code: "6002", Name: "Marketing Ads"},
+		{Code: "6003", Name: "Marketing SEO"},
+		{Code: "6004", Name: "Marketing Content"},
+		{Code: "6005", Name: "Marketing Events"},
+		{Code: "6006", Name: "Marketing Print"},
+		{Code: "6007", Name: "Marketing PR"},
+	}
+	_, err := service.ResolveAccountRef(accounts, "Marketing")
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, domain.ErrAccountReferenceAmbiguous)
+
+	var ambErr domain.AmbiguousAccountError
+	s.Require().True(errors.As(err, &ambErr))
+	s.Equal("6001 Marketing Social, 6002 Marketing Ads, 6003 Marketing SEO, 6004 Marketing Content, 6005 Marketing Events", ambErr.ErrorDetail())
+}
+
+func (s *InsightServiceSuite) Test_ResolveAccountRef_ExactCodeWinsOverNameMatches() {
+	// RF4: code 6710 also appears inside other account names
+	accounts := []domain.Account{
+		{Code: "6710", Name: "Interest Expense"},
+		{Code: "6800", Name: "Sub-account 6710 Special"},
+		{Code: "6900", Name: "Other 6710 Category"},
+	}
+	acc, err := service.ResolveAccountRef(accounts, "6710")
+	s.Require().NoError(err)
+	s.Equal("6710", acc.Code)
+	s.Equal("Interest Expense", acc.Name)
+}
+
+func (s *InsightServiceSuite) Test_TruncateText_KeepsValidUTF8() {
+	// RF5: 250 runes of 'é' and emoji
+	var sb strings.Builder
+	for i := 0; i < 125; i++ {
+		sb.WriteString("é🎉")
+	}
+	longStr := sb.String()
+	s.Equal(250, utf8.RuneCountInString(longStr))
+
+	truncated := service.TruncateText(longStr, 200)
+	s.True(utf8.ValidString(truncated))
+	s.Equal(200, utf8.RuneCountInString(truncated))
+}
+
+func (s *InsightServiceSuite) Test_FindCashflow_LimitAbove50_Rejected() {
+	svc := s.newService()
+	_, err := svc.FindCashflow(s.ctx(), model.FindCashflowRequest{
+		Type:  "income",
+		Limit: 51,
+	})
+	s.Require().Error(err)
+	var argErr domain.ArgumentError
+	s.Require().True(errors.As(err, &argErr))
+	s.Equal("limit", argErr.Field)
+	s.Equal("limit must be between 1 and 50; use cursor to read more", argErr.ErrorDetail())
+}
+
+func (s *InsightServiceSuite) Test_FindCashflow_InvalidTypeOrStatus() {
+	svc := s.newService()
+	// Invalid type
+	_, err := svc.FindCashflow(s.ctx(), model.FindCashflowRequest{
+		Type: "unknown",
+	})
+	s.Require().Error(err)
+	var argErr domain.ArgumentError
+	s.Require().True(errors.As(err, &argErr))
+	s.Equal("type", argErr.Field)
+	s.Equal(`type must be "income" or "expense"`, argErr.ErrorDetail())
+
+	// Invalid status
+	_, err = svc.FindCashflow(s.ctx(), model.FindCashflowRequest{
+		Type:   "income",
+		Status: "invalid_status",
+	})
+	s.Require().Error(err)
+	s.Require().True(errors.As(err, &argErr))
+	s.Equal("status", argErr.Field)
+	s.Equal(`status must be "draft" or "posted"`, argErr.ErrorDetail())
+}
+
+func (s *InsightServiceSuite) Test_FindCashflow_InvalidCursor_ReturnsErrInvalidCursor() {
+	svc := s.newService()
+	_, err := svc.FindCashflow(s.ctx(), model.FindCashflowRequest{
+		Type:   "income",
+		Cursor: "invalid-base64-cursor!!!",
+	})
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, base.ErrInvalidCursor)
+}
+
+func (s *InsightServiceSuite) Test_FindCashflow_Shrink() {
+	res := model.FindCashflowResponse{
+		Items: make([]model.CashflowDoc, 10),
+	}
+	s.True(res.Shrink())
+	s.Len(res.Items, 5)
+	s.True(res.Truncated)
+	s.NotEmpty(res.Hint)
+
+	// Shrink down to 0
+	res.Items = make([]model.CashflowDoc, 1)
+	s.True(res.Shrink())
+	s.Len(res.Items, 0)
+	s.False(res.Shrink(), "cannot shrink empty items")
+}
+
+func (s *InsightServiceSuite) Test_FindCashflow_OutputHasNoInternalFields() {
+	doc := model.CashflowDoc{
+		ID:             1,
+		Number:         "INC-001",
+		Date:           "2026-01-15",
+		Type:           "income",
+		Status:         "posted",
+		PaymentAccount: model.AccountRef{Code: "1101", Name: "Cash"},
+		Description:    "Test income",
+		Reference:      "REF-01",
+		Amount:         decimal.NewFromInt(100),
+		Currency:       "IDR",
+		BaseAmount:     decimal.NewFromInt(100),
+		Lines: []model.CashflowLine{
+			{
+				Account:     model.AccountRef{Code: "4101", Name: "Sales"},
+				Description: "Item 1",
+				Quantity:    decimal.NewFromInt(1),
+				UnitPrice:   decimal.NewFromInt(100),
+				Amount:      decimal.NewFromInt(100),
+			},
+		},
+	}
+	res := model.FindCashflowResponse{
+		Items: []model.CashflowDoc{doc},
+	}
+	data, err := json.Marshal(res)
+	s.Require().NoError(err)
+	raw := string(data)
+
+	forbidden := []string{"attachments", "auditMeta", "entryId", "entryNumber", "workspaceId"}
+	for _, key := range forbidden {
+		s.NotContains(raw, key)
+	}
+}
+
+func (s *InsightServiceSuite) Test_FindCashflow_TypeStatusDatesQueryAndAccounts() {
+	ctx := s.ctx()
+	svc := s.newService()
+
+	// Create accounts
+	cashAcc, err := s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("1101").
+		SetName("Main Cash").
+		SetType("ASSET").
+		SetNormalBalance("DEBIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	revAcc, err := s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("4101").
+		SetName("Consulting Revenue").
+		SetType("REVENUE").
+		SetNormalBalance("CREDIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	expAcc, err := s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("5101").
+		SetName("Office Supplies Expense").
+		SetType("EXPENSE").
+		SetNormalBalance("DEBIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Create 4 documents:
+	// 1. Income posted
+	inc1, err := s.cashflowSvc.CreateIncome(ctx, model.SaveCashFlowRequest{
+		PaymentAccountID: cashAcc.ID,
+		TransactionDate:  model.Date(time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)),
+		Reference:        "REF-INC-POSTED",
+		Description:      "Project Alpha Payment",
+		Currency:         "IDR",
+		Status:           "POSTED",
+		Items: []model.CashFlowItemRequest{
+			{
+				AccountID:   revAcc.ID,
+				Description: "Consulting Phase 1",
+				Quantity:    decimal.NewFromInt(1),
+				UnitPrice:   decimal.NewFromInt(1000),
+			},
+		},
+	})
+	s.Require().NoError(err)
+
+	// 2. Income draft
+	inc2, err := s.cashflowSvc.CreateIncome(ctx, model.SaveCashFlowRequest{
+		PaymentAccountID: cashAcc.ID,
+		TransactionDate:  model.Date(time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)),
+		Reference:        "REF-INC-DRAFT",
+		Description:      "Project Beta Draft",
+		Currency:         "IDR",
+		Status:           "DRAFT",
+		Items: []model.CashFlowItemRequest{
+			{
+				AccountID:   revAcc.ID,
+				Description: "Consulting Phase 2",
+				Quantity:    decimal.NewFromInt(1),
+				UnitPrice:   decimal.NewFromInt(2000),
+			},
+		},
+	})
+	s.Require().NoError(err)
+
+	// 3. Expense posted
+	exp1, err := s.cashflowSvc.CreateExpense(ctx, model.SaveCashFlowRequest{
+		PaymentAccountID: cashAcc.ID,
+		TransactionDate:  model.Date(time.Date(2026, 2, 5, 0, 0, 0, 0, time.UTC)),
+		Reference:        "REF-EXP-POSTED",
+		Description:      "Office Chairs",
+		Currency:         "IDR",
+		Status:           "POSTED",
+		Items: []model.CashFlowItemRequest{
+			{
+				AccountID:   expAcc.ID,
+				Description: "Ergonomic Chair",
+				Quantity:    decimal.NewFromInt(2),
+				UnitPrice:   decimal.NewFromInt(300),
+			},
+		},
+	})
+	s.Require().NoError(err)
+
+	// 4. Expense draft
+	exp2, err := s.cashflowSvc.CreateExpense(ctx, model.SaveCashFlowRequest{
+		PaymentAccountID: cashAcc.ID,
+		TransactionDate:  model.Date(time.Date(2026, 2, 15, 0, 0, 0, 0, time.UTC)),
+		Reference:        "REF-EXP-DRAFT",
+		Description:      "Office Desks Draft",
+		Currency:         "IDR",
+		Status:           "DRAFT",
+		Items: []model.CashFlowItemRequest{
+			{
+				AccountID:   expAcc.ID,
+				Description: "Standing Desk",
+				Quantity:    decimal.NewFromInt(1),
+				UnitPrice:   decimal.NewFromInt(400),
+			},
+		},
+	})
+	s.Require().NoError(err)
+
+	table := []struct {
+		name            string
+		req             model.FindCashflowRequest
+		expectedNumbers []string
+	}{
+		{
+			name:            "income posted",
+			req:             model.FindCashflowRequest{Type: "income", Status: "posted"},
+			expectedNumbers: []string{inc1.Number},
+		},
+		{
+			name:            "income draft",
+			req:             model.FindCashflowRequest{Type: "income", Status: "draft"},
+			expectedNumbers: []string{inc2.Number},
+		},
+		{
+			name:            "expense posted",
+			req:             model.FindCashflowRequest{Type: "expense", Status: "posted"},
+			expectedNumbers: []string{exp1.Number},
+		},
+		{
+			name:            "expense draft",
+			req:             model.FindCashflowRequest{Type: "expense", Status: "draft"},
+			expectedNumbers: []string{exp2.Number},
+		},
+		{
+			name:            "income date filter",
+			req:             model.FindCashflowRequest{Type: "income", DateFrom: "2026-01-01", DateTo: "2026-01-15"},
+			expectedNumbers: []string{inc1.Number},
+		},
+		{
+			name:            "query match description",
+			req:             model.FindCashflowRequest{Type: "income", Query: "Alpha"},
+			expectedNumbers: []string{inc1.Number},
+		},
+		{
+			name:            "payment account ref",
+			req:             model.FindCashflowRequest{Type: "income", PaymentAccount: "1101"},
+			expectedNumbers: []string{inc2.Number, inc1.Number},
+		},
+		{
+			name:            "category account ref by name fragment",
+			req:             model.FindCashflowRequest{Type: "expense", CategoryAccount: "Supplies"},
+			expectedNumbers: []string{exp2.Number, exp1.Number},
+		},
+	}
+
+	for _, tc := range table {
+		s.Run(tc.name, func() {
+			res, err := svc.FindCashflow(ctx, tc.req)
+			s.Require().NoError(err)
+			nums := make([]string, len(res.Items))
+			for i, it := range res.Items {
+				nums[i] = it.Number
+				s.Equal(tc.req.Type, it.Type)
+				if tc.req.Status != "" {
+					s.Equal(strings.ToLower(tc.req.Status), it.Status)
+				}
+			}
+			s.ElementsMatch(tc.expectedNumbers, nums)
+		})
+	}
+}
+
+func (s *InsightServiceSuite) Test_FindCashflow_CursorRoundTrip_NoDuplicates() {
+	ctx := s.ctx()
+	svc := s.newService()
+
+	cashAcc, err := s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("1102").
+		SetName("Bank Cursor").
+		SetType("ASSET").
+		SetNormalBalance("DEBIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	revAcc, err := s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("4102").
+		SetName("Revenue Cursor").
+		SetType("REVENUE").
+		SetNormalBalance("CREDIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Create 5 documents
+	createdIDs := make([]int64, 5)
+	for i := 0; i < 5; i++ {
+		inc, err := s.cashflowSvc.CreateIncome(ctx, model.SaveCashFlowRequest{
+			PaymentAccountID: cashAcc.ID,
+			TransactionDate:  model.Date(time.Date(2026, 1, 1+i, 0, 0, 0, 0, time.UTC)),
+			Reference:        fmt.Sprintf("REF-%d", i),
+			Description:      fmt.Sprintf("Income %d", i),
+			Currency:         "IDR",
+			Status:           "POSTED",
+			Items: []model.CashFlowItemRequest{
+				{
+					AccountID:   revAcc.ID,
+					Description: "Consulting",
+					Quantity:    decimal.NewFromInt(1),
+					UnitPrice:   decimal.NewFromInt(100),
+				},
+			},
+		})
+		s.Require().NoError(err)
+		createdIDs[i] = inc.ID
+	}
+
+	seenIDs := make(map[int64]bool)
+	cursor := ""
+	for {
+		res, err := svc.FindCashflow(ctx, model.FindCashflowRequest{
+			Type:   "income",
+			Limit:  2,
+			Cursor: cursor,
+		})
+		s.Require().NoError(err)
+		for _, doc := range res.Items {
+			s.False(seenIDs[doc.ID], "duplicate document ID %d", doc.ID)
+			seenIDs[doc.ID] = true
+		}
+		if res.NextCursor == "" {
+			break
+		}
+		cursor = res.NextCursor
+	}
+
+	s.Len(seenIDs, 5)
+	for _, id := range createdIDs {
+		s.True(seenIDs[id], "missing document ID %d", id)
+	}
 }
 
 func TestInsightServiceSuite(t *testing.T) {

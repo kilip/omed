@@ -3,6 +3,8 @@ package domain
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/internal/base"
@@ -121,6 +123,8 @@ var (
 
 	// ErrInvalidArgument indicates an invalid input parameter.
 	ErrInvalidArgument = errors.New("INVALID_ARGUMENT")
+	// ErrAccountReferenceAmbiguous indicates an account reference matched multiple accounts.
+	ErrAccountReferenceAmbiguous = errors.New("ACCOUNT_REFERENCE_AMBIGUOUS")
 )
 
 // ArgumentError represents a validation error on a specific argument.
@@ -145,6 +149,43 @@ func (e ArgumentError) ErrorDetail() string {
 		return e.Expect
 	}
 	return e.Field + " " + e.Expect
+}
+
+// AccountRef represents a minimal account reference with code and name.
+type AccountRef struct {
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+// AmbiguousAccountError represents an error where an account reference matched multiple accounts.
+type AmbiguousAccountError struct {
+	Reference  string
+	Candidates []AccountRef
+}
+
+// NewAmbiguousAccountError creates an AmbiguousAccountError.
+func NewAmbiguousAccountError(candidates []AccountRef) AmbiguousAccountError {
+	return AmbiguousAccountError{Candidates: candidates}
+}
+
+func (e AmbiguousAccountError) Error() string {
+	return e.ErrorDetail()
+}
+
+func (e AmbiguousAccountError) Is(target error) bool {
+	return target == ErrAccountReferenceAmbiguous
+}
+
+func (e AmbiguousAccountError) ErrorDetail() string {
+	limit := len(e.Candidates)
+	if limit > 5 {
+		limit = 5
+	}
+	pairs := make([]string, limit)
+	for i := 0; i < limit; i++ {
+		pairs[i] = fmt.Sprintf("%s %s", e.Candidates[i].Code, e.Candidates[i].Name)
+	}
+	return strings.Join(pairs, ", ")
 }
 
 func init() {
@@ -206,4 +247,5 @@ func init() {
 	base.AddToErrorMap(ErrFXRoundingAccountNotFound, fiber.StatusUnprocessableEntity, "foreign exchange rounding account not found or not configured")
 	base.AddToErrorMap(ErrFXAccountInvalid, fiber.StatusUnprocessableEntity, "configured foreign exchange account is invalid, inactive, or not postable")
 	base.AddToErrorMap(ErrInvalidArgument, fiber.StatusUnprocessableEntity, "invalid argument")
+	base.AddToErrorMap(ErrAccountReferenceAmbiguous, fiber.StatusUnprocessableEntity, "account reference matches more than one account")
 }

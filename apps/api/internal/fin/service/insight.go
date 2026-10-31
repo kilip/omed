@@ -11,7 +11,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const maxInsightAccounts = 50
+const (
+	maxInsightAccounts  = 50
+	maxInsightItems     = 50
+	maxInsightTextRunes = 200
+)
 
 // InsightService orchestrates financial data from multiple services to answer intent-oriented queries.
 type InsightService struct {
@@ -256,4 +260,235 @@ func isDigitsOnly(s string) bool {
 		}
 	}
 	return true
+}
+
+// FindCashflow finds cashflow documents based on filter criteria.
+func (s InsightService) FindCashflow(c context.Context, req model.FindCashflowRequest) (model.FindCashflowResponse, error) {
+	if base.WorkspaceIDFromContext(c) == 0 && req.WorkspaceID > 0 {
+		c = base.WithWorkspaceID(c, req.WorkspaceID)
+	}
+
+	limit := req.Limit
+	if limit == 0 {
+		limit = 20
+	}
+	if limit < 1 || limit > maxInsightItems {
+		return model.FindCashflowResponse{}, domain.ArgumentError{Field: "limit", Expect: "limit must be between 1 and 50; use cursor to read more"}
+	}
+
+	typ := strings.ToLower(strings.TrimSpace(req.Type))
+	if typ != "income" && typ != "expense" {
+		return model.FindCashflowResponse{}, domain.ArgumentError{Field: "type", Expect: `type must be "income" or "expense"`}
+	}
+
+	status := strings.ToLower(strings.TrimSpace(req.Status))
+	if status != "" && status != "draft" && status != "posted" {
+		return model.FindCashflowResponse{}, domain.ArgumentError{Field: "status", Expect: `status must be "draft" or "posted"`}
+	}
+
+	// Date parsing
+	var dateFrom *model.Date
+	if req.DateFrom != "" {
+		t, err := time.Parse("2006-01-02", req.DateFrom)
+		if err != nil {
+			return model.FindCashflowResponse{}, domain.ArgumentError{Field: "date_from", Expect: "invalid date format, expected YYYY-MM-DD"}
+		}
+		d := model.Date(t)
+		dateFrom = &d
+	}
+	var dateTo *model.Date
+	if req.DateTo != "" {
+		t, err := time.Parse("2006-01-02", req.DateTo)
+		if err != nil {
+			return model.FindCashflowResponse{}, domain.ArgumentError{Field: "date_to", Expect: "invalid date format, expected YYYY-MM-DD"}
+		}
+		d := model.Date(t)
+		dateTo = &d
+	}
+
+	// Account resolution if payment_account or category_account specified
+	var paymentAccountID *int64
+	var categoryAccountID *int64
+	if strings.TrimSpace(req.PaymentAccount) != "" || strings.TrimSpace(req.CategoryAccount) != "" {
+		accs, _, err := s.accounts.Search(c, model.SearchAccountRequest{})
+		if err != nil {
+			return model.FindCashflowResponse{}, err
+		}
+		if strings.TrimSpace(req.PaymentAccount) != "" {
+			acc, err := resolveAccountRef(accs, req.PaymentAccount)
+			if err != nil {
+				return model.FindCashflowResponse{}, err
+			}
+			paymentAccountID = &acc.ID
+		}
+		if strings.TrimSpace(req.CategoryAccount) != "" {
+			acc, err := resolveAccountRef(accs, req.CategoryAccount)
+			if err != nil {
+				return model.FindCashflowResponse{}, err
+			}
+			categoryAccountID = &acc.ID
+		}
+	}
+
+	searchReq := model.SearchCashFlowRequest{
+		DateFrom:          dateFrom,
+		DateTo:            dateTo,
+		PaymentAccountID:  paymentAccountID,
+		CategoryAccountID: categoryAccountID,
+		Limit:             &limit,
+	}
+	if req.Cursor != "" {
+		c := req.Cursor
+		searchReq.Cursor = &c
+	}
+	if req.Query != "" {
+		q := req.Query
+		searchReq.Query = &q
+	}
+	if status != "" {
+		st := strings.ToUpper(status)
+		searchReq.Status = &st
+	}
+
+	var items []domain.CashFlowItem
+	var nextCursor string
+
+	if typ == "income" {
+		p, cur, err := s.cashflow.SearchIncomes(c, searchReq)
+		if err != nil {
+			return model.FindCashflowResponse{}, err
+		}
+		items = p
+		nextCursor = cur
+	} else {
+		p, cur, err := s.cashflow.SearchExpenses(c, searchReq)
+		if err != nil {
+			return model.FindCashflowResponse{}, err
+		}
+		items = p
+		nextCursor = cur
+	}
+
+	docs := make([]model.CashflowDoc, 0, len(items))
+	for _, it := range items {
+		docType := strings.ToLower(it.Type)
+		docStatus := strings.ToLower(it.EntryStatus)
+
+		lines := make([]model.CashflowLine, 0, len(it.Items))
+		for _, l := range it.Items {
+			lines = append(lines, model.CashflowLine{
+				Account: model.AccountRef{
+					Code: l.Account.Code,
+					Name: l.Account.Name,
+				},
+				Description: truncateText(l.Description, maxInsightTextRunes),
+				Quantity:    l.Quantity,
+				UnitPrice:   l.UnitPrice,
+				Amount:      l.Amount,
+			})
+		}
+
+		docs = append(docs, model.CashflowDoc{
+			ID:     it.ID,
+			Number: it.Number,
+			Date:   time.Time(it.TransactionDate).Format("2006-01-02"),
+			Type:   docType,
+			Status: docStatus,
+			PaymentAccount: model.AccountRef{
+				Code: it.PaymentAccount.Code,
+				Name: it.PaymentAccount.Name,
+			},
+			Description: truncateText(it.Description, maxInsightTextRunes),
+			Reference:   truncateText(it.Reference, maxInsightTextRunes),
+			Amount:      it.Amount,
+			Currency:    it.Currency,
+			BaseAmount:  it.BaseAmount,
+			Lines:       lines,
+		})
+	}
+
+	return model.FindCashflowResponse{
+		Items:      docs,
+		NextCursor: nextCursor,
+	}, nil
+}
+
+func resolveAccountRef(accounts []domain.Account, ref string) (domain.Account, error) {
+	trimmed := strings.TrimSpace(ref)
+	if trimmed == "" {
+		return domain.Account{}, domain.ErrAccountNotFound
+	}
+
+	// 1. Exact match on Code (case-sensitive) takes precedence (RF4)
+	for _, a := range accounts {
+		if a.Code == trimmed {
+			return a, nil
+		}
+	}
+
+	// 2. Exact match on Code case-insensitive
+	lowerRef := strings.ToLower(trimmed)
+	var exactCodeMatches []domain.Account
+	for _, a := range accounts {
+		if strings.ToLower(a.Code) == lowerRef {
+			exactCodeMatches = append(exactCodeMatches, a)
+		}
+	}
+	if len(exactCodeMatches) == 1 {
+		return exactCodeMatches[0], nil
+	}
+	if len(exactCodeMatches) > 1 {
+		candidates := make([]domain.AccountRef, 0, len(exactCodeMatches))
+		for _, c := range exactCodeMatches {
+			candidates = append(candidates, domain.AccountRef{Code: c.Code, Name: c.Name})
+		}
+		return domain.Account{}, domain.NewAmbiguousAccountError(candidates)
+	}
+
+	// 3. Exact match on Name (case-insensitive)
+	var exactNameMatches []domain.Account
+	for _, a := range accounts {
+		if strings.EqualFold(a.Name, trimmed) {
+			exactNameMatches = append(exactNameMatches, a)
+		}
+	}
+	if len(exactNameMatches) == 1 {
+		return exactNameMatches[0], nil
+	}
+	if len(exactNameMatches) > 1 {
+		candidates := make([]domain.AccountRef, 0, len(exactNameMatches))
+		for _, c := range exactNameMatches {
+			candidates = append(candidates, domain.AccountRef{Code: c.Code, Name: c.Name})
+		}
+		return domain.Account{}, domain.NewAmbiguousAccountError(candidates)
+	}
+
+	// 4. Substring / contains match on Code or Name (case-insensitive)
+	var matches []domain.Account
+	for _, a := range accounts {
+		if strings.Contains(strings.ToLower(a.Code), lowerRef) || strings.Contains(strings.ToLower(a.Name), lowerRef) {
+			matches = append(matches, a)
+		}
+	}
+
+	if len(matches) == 0 {
+		return domain.Account{}, domain.ErrAccountNotFound
+	}
+	if len(matches) == 1 {
+		return matches[0], nil
+	}
+
+	candidates := make([]domain.AccountRef, 0, len(matches))
+	for _, c := range matches {
+		candidates = append(candidates, domain.AccountRef{Code: c.Code, Name: c.Name})
+	}
+	return domain.Account{}, domain.NewAmbiguousAccountError(candidates)
+}
+
+func truncateText(s string, maxRunes int) string {
+	r := []rune(s)
+	if len(r) <= maxRunes {
+		return s
+	}
+	return string(r[:maxRunes])
 }
