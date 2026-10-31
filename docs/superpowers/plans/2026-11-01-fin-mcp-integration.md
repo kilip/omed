@@ -149,7 +149,7 @@ git commit -m "feat(api): ✨ add period overview insight"
 - Produces (model): `AccountBalanceRequest{ WorkspaceID int64 "workspace_id"; AsOfDate string "as_of_date,omitempty"; Account string "account,omitempty" }` with `GetWorkspaceID()`; `AccountBalanceItem{ Code, Name, Type string; Debit, Credit, Net decimal.Decimal }`; `BalanceTotals{ Debit, Credit decimal.Decimal }`; `AccountBalanceResponse{ AsOfDate, BaseCurrency string; Accounts []AccountBalanceItem; Totals BalanceTotals; IsBalanced bool; Truncated bool; Hint string }` with `Shrink() bool` on the pointer receiver (drops the last half of `Accounts`, sets `Truncated` and `Hint`).
 - Produces (service): `const maxInsightAccounts = 50`; `func (s InsightService) AccountBalance(c context.Context, req model.AccountBalanceRequest) (model.AccountBalanceResponse, error)`.
 
-- [ ] **Step 1: Write failing tests**:
+- [x] **Step 1: Write failing tests**:
   - `Test_AccountBalance_CodePrefix`: `account: "11"` returns only codes starting with `11`; totals equal the sum over those accounts (acceptance 3).
   - `Test_AccountBalance_DigitsOnlyNeverMatchesNames`: an account named `Fund 11` with code `5000` is not returned for `"11"`.
   - `Test_AccountBalance_NameFragmentCaseInsensitive`: `"BANK"` matches `Bank Kaltim`.
@@ -158,10 +158,10 @@ git commit -m "feat(api): ✨ add period overview insight"
   - `Test_AccountBalance_NoAccounts_EmptyAndBalanced` (RF3).
   - `Test_AccountBalance_IsBalancedIgnoresFilter`: `IsBalanced` reflects the whole ledger even when the filter matches one account.
   - `Test_AccountBalance_InvalidDate`: `as_of_date must use the format YYYY-MM-DD` as `ArgumentError`.
-- [ ] **Step 2: Run** `cd apps/api && go test ./internal/fin/service/ -run Insight -v`. Expected: FAIL.
-- [ ] **Step 3: Implement** `AccountBalance`: the date defaults to the clock's today; a trimmed filter that is all digits matches by code prefix only, otherwise it matches a code prefix or a case-insensitive name fragment (this disambiguation is a plan decision; the spec only names both forms). Per-currency breakdown is not requested.
-- [ ] **Step 4: Run** the command from Step 2. Expected: PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `cd apps/api && go test ./internal/fin/service/ -run Insight -v`. Expected: FAIL.
+- [x] **Step 3: Implement** `AccountBalance`: the date defaults to the clock's today; a trimmed filter that is all digits matches by code prefix only, otherwise it matches a code prefix or a case-insensitive name fragment (this disambiguation is a plan decision; the spec only names both forms). Per-currency breakdown is not requested.
+- [x] **Step 4: Run** the command from Step 2. Expected: PASS.
+- [x] **Step 5: Commit**
 ```bash
 git add apps/api/internal/fin/model/insight.go apps/api/internal/fin/service
 git commit -m "feat(api): ✨ add account balance insight"

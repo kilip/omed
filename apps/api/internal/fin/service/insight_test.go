@@ -617,10 +617,30 @@ func (s *InsightServiceSuite) Test_AccountBalance_MoreThan50_TruncatedWithTotals
 	ctx := s.ctx()
 	svc := s.newService()
 
-	// Create 60 active accounts under 80xx
+	trx, err := s.client.Transaction.Create().
+		SetNumber("TRX-BATCH-80").
+		SetTransactionDate(time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)).
+		SetDescription("Seeding 60 accounts").
+		SetSource("MANUAL").
+		SetCurrency("IDR").
+		SetExchangeRate(dec(1)).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	je, err := s.client.Entry.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetTransactionID(trx.ID).
+		SetPeriodID(s.periodID).
+		SetNumber("JE-BATCH-80").
+		SetEntryDate(time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)).
+		SetStatus("POSTED").
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Create 60 active accounts under 80xx with balances
 	for i := 1; i <= 60; i++ {
 		code := fmt.Sprintf("80%02d", i)
-		_, err := s.client.Account.Create().
+		acc, err := s.client.Account.Create().
 			SetWorkspaceID(s.workspaceID).
 			SetCode(code).
 			SetName(fmt.Sprintf("Account %s", code)).
@@ -628,6 +648,28 @@ func (s *InsightServiceSuite) Test_AccountBalance_MoreThan50_TruncatedWithTotals
 			SetNormalBalance("DEBIT").
 			SetCurrency("IDR").
 			SetIsActive(true).
+			Save(ctx)
+		s.Require().NoError(err)
+
+		_, err = s.client.Posting.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetEntryID(je.ID).
+			SetAccountID(acc.ID).
+			SetDirection("DEBIT").
+			SetAmount(dec(100)).
+			SetBaseAmount(dec(100)).
+			SetPosition(i * 2).
+			Save(ctx)
+		s.Require().NoError(err)
+
+		_, err = s.client.Posting.Create().
+			SetWorkspaceID(s.workspaceID).
+			SetEntryID(je.ID).
+			SetAccountID(acc.ID).
+			SetDirection("CREDIT").
+			SetAmount(dec(20)).
+			SetBaseAmount(dec(20)).
+			SetPosition(i*2 + 1).
 			Save(ctx)
 		s.Require().NoError(err)
 	}
@@ -640,6 +682,48 @@ func (s *InsightServiceSuite) Test_AccountBalance_MoreThan50_TruncatedWithTotals
 	s.Len(res.Accounts, 50)
 	s.True(res.Truncated)
 	s.Contains(res.Hint, "account")
+	// Assert totals reflect the sum across all 60 accounts (6000 debit, 1200 credit) rather than only the returned 50
+	s.True(res.Totals.Debit.Equal(dec(6000)))
+	s.True(res.Totals.Credit.Equal(dec(1200)))
+}
+
+func (s *InsightServiceSuite) Test_AccountBalance_NonDigitsMatchesCodePrefix() {
+	ctx := s.ctx()
+	svc := s.newService()
+
+	// Account 1: alphanumeric code starting with A1, name does not match
+	_, err := s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("A101").
+		SetName("Operating Expense Alpha").
+		SetType("EXPENSE").
+		SetNormalBalance("DEBIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Account 2: alphanumeric code starting with B2, name does not match
+	_, err = s.client.Account.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetCode("B201").
+		SetName("Operating Expense Beta").
+		SetType("EXPENSE").
+		SetNormalBalance("DEBIT").
+		SetCurrency("IDR").
+		SetIsActive(true).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	// Search with lowercase alphanumeric code prefix 'a1'
+	res, err := svc.AccountBalance(ctx, model.AccountBalanceRequest{
+		WorkspaceID: s.workspaceID,
+		Account:     "a1",
+	})
+	s.Require().NoError(err)
+	s.Len(res.Accounts, 1)
+	s.Equal("A101", res.Accounts[0].Code)
+	s.Equal("Operating Expense Alpha", res.Accounts[0].Name)
 }
 
 func (s *InsightServiceSuite) Test_AccountBalance_NoAccounts_EmptyAndBalanced() {

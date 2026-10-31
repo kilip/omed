@@ -11,6 +11,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const maxInsightAccounts = 50
+
 // InsightService orchestrates financial data from multiple services to answer intent-oriented queries.
 type InsightService struct {
 	report   ReportService
@@ -202,7 +204,7 @@ func (s InsightService) AccountBalance(ctx context.Context, req model.AccountBal
 					continue
 				}
 			} else {
-				if !strings.Contains(strings.ToLower(acc.AccountName), lowerFilter) {
+				if !strings.HasPrefix(strings.ToLower(acc.AccountCode), lowerFilter) && !strings.Contains(strings.ToLower(acc.AccountName), lowerFilter) {
 					continue
 				}
 			}
@@ -231,8 +233,8 @@ func (s InsightService) AccountBalance(ctx context.Context, req model.AccountBal
 		IsBalanced: tbRes.IsBalanced,
 	}
 
-	if len(matched) > 50 {
-		res.Accounts = matched[:50]
+	if len(matched) > maxInsightAccounts {
+		res.Accounts = matched[:maxInsightAccounts]
 		res.Truncated = true
 		res.Hint = "narrow your account filter"
 	} else if matched != nil {
