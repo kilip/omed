@@ -17,7 +17,9 @@ import (
 
 // CashFlowRepositoryContract defines persistence operations for quick-entry cash flows.
 type CashFlowRepositoryContract interface {
-	CreatePosted(c context.Context, params repository.CreateCashFlowParams) (domain.CashFlowItem, error)
+	Create(c context.Context, params repository.CreateCashFlowParams) (domain.CashFlowItem, error)
+	Update(c context.Context, id int64, params repository.CreateCashFlowParams) (domain.CashFlowItem, error)
+	GetByID(c context.Context, flowType string, id int64) (domain.CashFlowItem, error)
 	Search(c context.Context, flowType string, req model.SearchCashFlowRequest) ([]domain.CashFlowItem, string, error)
 }
 
@@ -69,6 +71,28 @@ func (s CashFlowService) getBaseCurrencyAndDecimals(c context.Context) (string, 
 	return baseCurrency, baseDecimals
 }
 
+func (s CashFlowService) currencyDecimals(c context.Context, currency string) int32 {
+	if s.currencyRepo != nil && currency != "" {
+		if cur, err := s.currencyRepo.GetByCode(c, currency); err == nil {
+			dec := int32(cur.Decimals)
+			if dec > 4 {
+				return 4
+			}
+			if dec < 0 {
+				return 0
+			}
+			return dec
+		}
+	}
+	if currency == "IDR" {
+		return 0
+	}
+	if currency == "USD" {
+		return 2
+	}
+	return 4
+}
+
 func (s CashFlowService) resolveRate(c context.Context, currency string, explicitRate *decimal.Decimal, date time.Time) (decimal.Decimal, error) {
 	if explicitRate != nil {
 		if !explicitRate.IsPositive() {
@@ -86,21 +110,43 @@ func (s CashFlowService) resolveRate(c context.Context, currency string, explici
 	return s.rateRepo.Lookup(c, currency, baseCurrency, date)
 }
 
-func (s CashFlowService) createCashFlow(
+func (s CashFlowService) saveCashFlow(
 	c context.Context,
 	flowType string,
-	paymentAccountID, categoryAccountID int64,
-	expectedCategoryType string,
-	amount decimal.Decimal,
-	tDate time.Time,
-	description, reference, currency string,
-	explicitRate *decimal.Decimal,
-	attachmentFileIDs []int64,
+	id int64,
+	req model.SaveCashFlowRequest,
 ) (domain.CashFlowItem, error) {
-	if !amount.IsPositive() {
+	// 1. Items count (1 to 100), positive quantity, non-negative unit price
+	if len(req.Items) < 1 || len(req.Items) > 100 {
 		return domain.CashFlowItem{}, domain.ErrPostingInvalidAmount
 	}
+	for _, it := range req.Items {
+		if !it.Quantity.IsPositive() {
+			return domain.CashFlowItem{}, domain.ErrPostingInvalidQuantity
+		}
+		if it.UnitPrice.IsNegative() {
+			return domain.CashFlowItem{}, domain.ErrPostingInvalidUnitPrice
+		}
+	}
 
+	// Resolve document currency
+	baseCurrency, baseDecimals := s.getBaseCurrencyAndDecimals(c)
+	curr := baseCurrency
+	if req.Currency != "" {
+		curr = req.Currency
+	}
+
+	// 2. Line amounts = quantity * unitPrice rounded to document currency decimals (must be positive)
+	currDecimals := s.currencyDecimals(c, curr)
+	for _, it := range req.Items {
+		lineAmount := it.Quantity.Mul(it.UnitPrice).Round(currDecimals)
+		if !lineAmount.IsPositive() {
+			return domain.CashFlowItem{}, domain.ErrPostingInvalidAmount
+		}
+	}
+
+	// 3. Transaction date resolves to existing, open period
+	tDate := req.TransactionDate.Time()
 	period, err := s.periodRepo.FindByDate(c, tDate)
 	if err != nil {
 		if errors.Is(err, base.ErrNotFound) {
@@ -112,52 +158,105 @@ func (s CashFlowService) createCashFlow(
 		return domain.CashFlowItem{}, domain.ErrPeriodClosed
 	}
 
-	paymentAcc, err := s.accountRepo.GetByID(c, paymentAccountID)
+	// 4. Payment account (active, postable ASSET) & item accounts (active, postable REVENUE/EXPENSE)
+	paymentAcc, err := s.accountRepo.GetByID(c, req.PaymentAccountID)
 	if err != nil {
 		return domain.CashFlowItem{}, err
 	}
-	categoryAcc, err := s.accountRepo.GetByID(c, categoryAccountID)
-	if err != nil {
-		return domain.CashFlowItem{}, err
-	}
-
-	if !paymentAcc.IsActive || !categoryAcc.IsActive {
+	if !paymentAcc.IsActive {
 		return domain.CashFlowItem{}, domain.ErrPostingAccountInactive
 	}
-	if !paymentAcc.IsPostable || !categoryAcc.IsPostable {
+	if !paymentAcc.IsPostable {
 		return domain.CashFlowItem{}, domain.ErrPostingAccountNotPostable
 	}
-
-	if paymentAcc.Type != domain.AccountTypeAsset || categoryAcc.Type != expectedCategoryType {
+	if paymentAcc.Type != domain.AccountTypeAsset {
 		return domain.CashFlowItem{}, domain.ErrAccountInvalidType
 	}
 
-	baseCurrency, baseDecimals := s.getBaseCurrencyAndDecimals(c)
-	curr := baseCurrency
-	if currency != "" {
-		curr = currency
+	expectedCategoryType := domain.AccountTypeExpense
+	if flowType == domain.CashFlowTypeIncome {
+		expectedCategoryType = domain.AccountTypeRevenue
 	}
 
+	itemAccounts := make([]domain.Account, len(req.Items))
+	for i, it := range req.Items {
+		catAcc, err := s.accountRepo.GetByID(c, it.AccountID)
+		if err != nil {
+			return domain.CashFlowItem{}, err
+		}
+		if !catAcc.IsActive {
+			return domain.CashFlowItem{}, domain.ErrPostingAccountInactive
+		}
+		if !catAcc.IsPostable {
+			return domain.CashFlowItem{}, domain.ErrPostingAccountNotPostable
+		}
+		if catAcc.Type != expectedCategoryType {
+			return domain.CashFlowItem{}, domain.ErrAccountInvalidType
+		}
+		itemAccounts[i] = catAcc
+	}
+
+	// 5. Account currency match
 	if paymentAcc.Currency != "" && paymentAcc.Currency != curr {
 		return domain.CashFlowItem{}, domain.ErrPostingCurrencyMismatch
 	}
-	if categoryAcc.Currency != "" && categoryAcc.Currency != curr {
-		return domain.CashFlowItem{}, domain.ErrPostingCurrencyMismatch
+	for _, acc := range itemAccounts {
+		if acc.Currency != "" && acc.Currency != curr {
+			return domain.CashFlowItem{}, domain.ErrPostingCurrencyMismatch
+		}
 	}
 
-	rate, err := s.resolveRate(c, curr, explicitRate, tDate)
+	// 6. Rounding: compute line base amounts and totals
+	rate, err := s.resolveRate(c, curr, req.ExchangeRate, tDate)
 	if err != nil {
 		return domain.CashFlowItem{}, err
 	}
-	baseAmount := amount.Mul(rate).Round(int32(baseDecimals))
 
+	itemParams := make([]repository.CashFlowItemParams, len(req.Items))
+	totalAmount := decimal.Zero
+	totalBaseAmount := decimal.Zero
+
+	for i, it := range req.Items {
+		lineAmount := it.Quantity.Mul(it.UnitPrice).Round(currDecimals)
+		lineBaseAmount := lineAmount.Mul(rate).Round(int32(baseDecimals))
+		itemParams[i] = repository.CashFlowItemParams{
+			AccountID:   it.AccountID,
+			Description: it.Description,
+			Quantity:    it.Quantity,
+			UnitPrice:   it.UnitPrice,
+			Amount:      lineAmount,
+			BaseAmount:  lineBaseAmount,
+		}
+		totalAmount = totalAmount.Add(lineAmount)
+		totalBaseAmount = totalBaseAmount.Add(lineBaseAmount)
+	}
+
+	// 7. Status
+	status := req.Status
+	if status == "" {
+		status = domain.EntryStatusPosted
+	}
+	postedBy := base.UserIDFromContext(c)
+
+	// 8. Update check
+	if id != 0 {
+		existing, err := s.repo.GetByID(c, flowType, id)
+		if err != nil {
+			return domain.CashFlowItem{}, err
+		}
+		if existing.EntryStatus != domain.EntryStatusDraft {
+			return domain.CashFlowItem{}, domain.ErrEntryNotDraft
+		}
+	}
+
+	// 9. Attachments validation
 	var validatedFiles []coredomain.File
-	if len(attachmentFileIDs) > 0 {
+	if len(req.AttachmentFileIDs) > 0 {
 		if s.fileSvc == nil {
 			return domain.CashFlowItem{}, base.ErrUnknown
 		}
-		validatedFiles = make([]coredomain.File, 0, len(attachmentFileIDs))
-		for _, fileID := range attachmentFileIDs {
+		validatedFiles = make([]coredomain.File, 0, len(req.AttachmentFileIDs))
+		for _, fileID := range req.AttachmentFileIDs {
 			f, err := s.fileSvc.GetByID(c, fileID)
 			if err != nil {
 				return domain.CashFlowItem{}, err
@@ -166,32 +265,35 @@ func (s CashFlowService) createCashFlow(
 		}
 	}
 
-	postedBy := base.UserIDFromContext(c)
-
 	params := repository.CreateCashFlowParams{
-		FlowType:          flowType,
-		PeriodID:          period.ID,
-		PaymentAccountID:  paymentAcc.ID,
-		CategoryAccountID: categoryAcc.ID,
-		Amount:            amount,
-		BaseAmount:        baseAmount,
-		TransactionDate:   tDate,
-		Description:       description,
-		Reference:         reference,
-		Currency:          curr,
-		ExchangeRate:      rate,
-		PostedBy:          postedBy,
+		FlowType:         flowType,
+		PeriodID:         period.ID,
+		PaymentAccountID: paymentAcc.ID,
+		Items:            itemParams,
+		TotalAmount:      totalAmount,
+		TotalBaseAmount:  totalBaseAmount,
+		Status:           status,
+		TransactionDate:  tDate,
+		Description:      req.Description,
+		Reference:        req.Reference,
+		Currency:         curr,
+		ExchangeRate:     rate,
+		PostedBy:         postedBy,
 	}
 
-	item, err := s.repo.CreatePosted(c, params)
+	var item domain.CashFlowItem
+	if id == 0 {
+		item, err = s.repo.Create(c, params)
+	} else {
+		item, err = s.repo.Update(c, id, params)
+	}
 	if err != nil {
 		return domain.CashFlowItem{}, err
 	}
 
 	if s.fileSvc != nil && len(validatedFiles) > 0 {
-		item.Attachments = make([]coredomain.File, 0, len(validatedFiles))
 		for _, f := range validatedFiles {
-			updated, err := s.fileSvc.Update(c, f.ID, coremodel.UpdateFileRequest{
+			_, err := s.fileSvc.Update(c, f.ID, coremodel.UpdateFileRequest{
 				Name:       f.Name,
 				EntityType: domain.TransactionEntityType,
 				EntityID:   item.ID,
@@ -199,47 +301,54 @@ func (s CashFlowService) createCashFlow(
 			if err != nil {
 				return domain.CashFlowItem{}, err
 			}
-			item.Attachments = append(item.Attachments, updated)
 		}
 	}
 
-	return item, nil
+	items := []domain.CashFlowItem{item}
+	s.enrichAttachments(c, items)
+	return items[0], nil
 }
 
-// CreateExpense records a posted expense cash flow with Debit Expense and Credit Asset postings.
-func (s CashFlowService) CreateExpense(c context.Context, req model.CreateExpenseRequest) (domain.CashFlowItem, error) {
-	return s.createCashFlow(
-		c,
-		domain.CashFlowTypeExpense,
-		req.PaymentAccountID,
-		req.ExpenseAccountID,
-		domain.AccountTypeExpense,
-		req.Amount,
-		req.TransactionDate.Time(),
-		req.Description,
-		req.Reference,
-		req.Currency,
-		req.ExchangeRate,
-		req.AttachmentFileIDs,
-	)
+// CreateExpense records an expense cash flow (draft or posted).
+func (s CashFlowService) CreateExpense(c context.Context, req model.SaveCashFlowRequest) (domain.CashFlowItem, error) {
+	return s.saveCashFlow(c, domain.CashFlowTypeExpense, 0, req)
 }
 
-// CreateIncome records a posted income cash flow with Debit Asset and Credit Revenue postings.
-func (s CashFlowService) CreateIncome(c context.Context, req model.CreateIncomeRequest) (domain.CashFlowItem, error) {
-	return s.createCashFlow(
-		c,
-		domain.CashFlowTypeIncome,
-		req.PaymentAccountID,
-		req.RevenueAccountID,
-		domain.AccountTypeRevenue,
-		req.Amount,
-		req.TransactionDate.Time(),
-		req.Description,
-		req.Reference,
-		req.Currency,
-		req.ExchangeRate,
-		req.AttachmentFileIDs,
-	)
+// CreateIncome records an income cash flow (draft or posted).
+func (s CashFlowService) CreateIncome(c context.Context, req model.SaveCashFlowRequest) (domain.CashFlowItem, error) {
+	return s.saveCashFlow(c, domain.CashFlowTypeIncome, 0, req)
+}
+
+// UpdateExpense updates an existing draft expense cash flow.
+func (s CashFlowService) UpdateExpense(c context.Context, id int64, req model.SaveCashFlowRequest) (domain.CashFlowItem, error) {
+	return s.saveCashFlow(c, domain.CashFlowTypeExpense, id, req)
+}
+
+// UpdateIncome updates an existing draft income cash flow.
+func (s CashFlowService) UpdateIncome(c context.Context, id int64, req model.SaveCashFlowRequest) (domain.CashFlowItem, error) {
+	return s.saveCashFlow(c, domain.CashFlowTypeIncome, id, req)
+}
+
+// GetExpense retrieves an expense cash flow document by ID.
+func (s CashFlowService) GetExpense(c context.Context, id int64) (domain.CashFlowItem, error) {
+	item, err := s.repo.GetByID(c, domain.CashFlowTypeExpense, id)
+	if err != nil {
+		return domain.CashFlowItem{}, err
+	}
+	items := []domain.CashFlowItem{item}
+	s.enrichAttachments(c, items)
+	return items[0], nil
+}
+
+// GetIncome retrieves an income cash flow document by ID.
+func (s CashFlowService) GetIncome(c context.Context, id int64) (domain.CashFlowItem, error) {
+	item, err := s.repo.GetByID(c, domain.CashFlowTypeIncome, id)
+	if err != nil {
+		return domain.CashFlowItem{}, err
+	}
+	items := []domain.CashFlowItem{item}
+	s.enrichAttachments(c, items)
+	return items[0], nil
 }
 
 // SearchExpenses searches expense cash flows matching the given criteria.
