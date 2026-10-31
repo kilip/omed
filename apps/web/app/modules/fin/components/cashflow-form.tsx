@@ -336,6 +336,52 @@ export function CashflowForm({
         ? t("fin.expense.edit", "Edit Expense")
         : t("fin.expense.new", "New Expense");
 
+  const normalizedInitialValues = useMemo(() => {
+    if (!initialValues) {
+      return {
+        transactionDate: dayjs(),
+        currency: "IDR",
+        exchangeRate: 1,
+        items: [{ quantity: 1, unitPrice: 0 }],
+      };
+    }
+    const raw = initialValues as Record<string, unknown>;
+    const txDate = raw.transactionDate
+      ? typeof (raw.transactionDate as Dayjs).isValid === "function"
+        ? (raw.transactionDate as Dayjs)
+        : dayjs(raw.transactionDate as string)
+      : dayjs();
+
+    const paymentAccountId =
+      (raw.paymentAccountId as number | undefined) ??
+      (raw.paymentAccount as { id?: number } | undefined)?.id;
+
+    const rawItems =
+      (raw.items as Array<Record<string, unknown>> | undefined) ?? [];
+    const items =
+      rawItems.length > 0
+        ? rawItems.map((it) => ({
+            accountId:
+              (it.accountId as number | undefined) ??
+              (it.account as { id?: number } | undefined)?.id,
+            description: it.description as string | undefined,
+            quantity: it.quantity !== undefined ? Number(it.quantity) : 1,
+            unitPrice: it.unitPrice !== undefined ? Number(it.unitPrice) : 0,
+          }))
+        : [{ quantity: 1, unitPrice: 0 }];
+
+    return {
+      transactionDate: txDate,
+      paymentAccountId,
+      currency: (raw.currency as string | undefined) || "IDR",
+      exchangeRate:
+        raw.exchangeRate !== undefined ? Number(raw.exchangeRate) : 1,
+      reference: (raw.reference as string | undefined) ?? undefined,
+      description: (raw.description as string | undefined) ?? undefined,
+      items,
+    };
+  }, [initialValues]);
+
   return (
     <Page
       title={pageTitle}
@@ -367,14 +413,7 @@ export function CashflowForm({
           form={form}
           layout="vertical"
           size="small"
-          initialValues={
-            initialValues ?? {
-              transactionDate: dayjs(),
-              currency: "IDR",
-              exchangeRate: 1,
-              items: [{ quantity: 1, unitPrice: 0 }],
-            }
-          }
+          initialValues={normalizedInitialValues}
           className="w-full max-w-5xl"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4">

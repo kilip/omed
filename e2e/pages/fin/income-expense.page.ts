@@ -2,6 +2,13 @@ import assert from "node:assert/strict";
 import type { Locator } from "playwright";
 import { BasePage } from "../base.page";
 
+export interface CashflowItemInput {
+  account?: string;
+  description?: string;
+  quantity?: number | string;
+  unitPrice?: number | string;
+}
+
 export class FinIncomeExpensePage extends BasePage {
   readonly path = "/fin/expense";
 
@@ -27,20 +34,28 @@ export class FinIncomeExpensePage extends BasePage {
   }
 
   // Form locators
-  get saveButton(): Locator {
-    return this.page.getByRole("button", { name: /Save (Expense|Income)/i });
-  }
-
-  get amountInput(): Locator {
-    return this.page.locator("#amount");
-  }
-
   get descriptionInput(): Locator {
     return this.page.locator("#description");
   }
 
   get referenceInput(): Locator {
     return this.page.locator("#reference");
+  }
+
+  get addItemButton(): Locator {
+    return this.page.getByRole("button", { name: /Add item/i });
+  }
+
+  get postingButton(): Locator {
+    return this.page.getByRole("button", { name: "Posting" });
+  }
+
+  get draftButton(): Locator {
+    return this.page.getByRole("button", { name: "Draft" });
+  }
+
+  get editButton(): Locator {
+    return this.page.getByRole("button", { name: "Edit" });
   }
 
   get accountingPreview(): Locator {
@@ -81,17 +96,58 @@ export class FinIncomeExpensePage extends BasePage {
     await this.selectPaymentAccount(accountQuery);
   }
 
-  async selectExpenseAccount(accountQuery: string): Promise<void> {
-    await this.selectOption("expenseAccountId", accountQuery);
+  async addItem(): Promise<void> {
+    await this.addItemButton.waitFor({ state: "visible" });
+    await this.addItemButton.click();
   }
 
-  async selectRevenueAccount(accountQuery: string): Promise<void> {
-    await this.selectOption("revenueAccountId", accountQuery);
+  async fillItem(index: number, item: CashflowItemInput): Promise<void> {
+    if (item.account) {
+      await this.selectOption(`items_${index}_accountId`, item.account);
+    }
+    if (item.description !== undefined) {
+      const desc = this.page.locator(`#items_${index}_description`);
+      await desc.waitFor({ state: "visible" });
+      await desc.fill(item.description);
+    }
+    if (item.quantity !== undefined) {
+      const qty = this.page.locator(`#items_${index}_quantity`);
+      await qty.waitFor({ state: "visible" });
+      await qty.fill(String(item.quantity));
+    }
+    if (item.unitPrice !== undefined) {
+      const price = this.page.locator(`#items_${index}_unitPrice`);
+      await price.waitFor({ state: "visible" });
+      await price.fill(String(item.unitPrice));
+    }
   }
 
-  async fillAmount(amount: number | string): Promise<void> {
-    await this.amountInput.waitFor({ state: "visible" });
-    await this.amountInput.fill(String(amount));
+  async clickPosting(): Promise<void> {
+    await this.postingButton.waitFor({ state: "visible" });
+    await this.postingButton.click();
+    await this.page.waitForURL(
+      (url) =>
+        !url.pathname.endsWith("/new") && !url.pathname.endsWith("/edit"),
+      { timeout: 10_000 },
+    );
+  }
+
+  async clickDraft(): Promise<void> {
+    await this.draftButton.waitFor({ state: "visible" });
+    await this.draftButton.click();
+    await this.page.waitForURL(
+      (url) =>
+        !url.pathname.endsWith("/new") && !url.pathname.endsWith("/edit"),
+      { timeout: 10_000 },
+    );
+  }
+
+  async clickEdit(): Promise<void> {
+    await this.editButton.waitFor({ state: "visible" });
+    await this.editButton.click();
+    await this.page.waitForURL((url) => url.pathname.endsWith("/edit"), {
+      timeout: 10_000,
+    });
   }
 
   async fillDescription(desc: string): Promise<void> {
@@ -113,12 +169,19 @@ export class FinIncomeExpensePage extends BasePage {
     );
   }
 
-  async saveForm(): Promise<void> {
-    await this.saveButton.waitFor({ state: "visible" });
-    await this.saveButton.click();
-    await this.page.waitForURL((url) => !url.pathname.endsWith("/new"), {
-      timeout: 10_000,
-    });
+  async expectStatusTag(text: string): Promise<void> {
+    const tag = this.page.locator(".ant-tag").filter({ hasText: text });
+    await tag.first().waitFor({ state: "visible" });
+    assert.ok(
+      await tag.first().isVisible(),
+      `Expected status tag "${text}" to be visible`,
+    );
+  }
+
+  async clickRow(text: string): Promise<void> {
+    const row = this.tableRows.filter({ hasText: text });
+    await row.first().waitFor({ state: "visible" });
+    await row.first().click();
   }
 
   async expectItemInTable(text: string): Promise<void> {
