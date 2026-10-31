@@ -47,10 +47,14 @@ func initRoutes(mod FinModule, r fiber.Router, az *authz.Authorizer) {
 	expense := r.Group("/workspaces/:wid/fin/expense")
 	expense.Post("/", az.Require(domain.ObjTransaction, "create"), cashFlowCtl.CreateExpense)
 	expense.Post("/search", az.Require(domain.ObjTransaction, "read"), cashFlowCtl.SearchExpenses)
+	expense.Get("/:id", az.Require(domain.ObjTransaction, "read"), cashFlowCtl.GetExpense)
+	expense.Put("/:id", az.Require(domain.ObjTransaction, "update"), cashFlowCtl.UpdateExpense)
 
 	income := r.Group("/workspaces/:wid/fin/income")
 	income.Post("/", az.Require(domain.ObjTransaction, "create"), cashFlowCtl.CreateIncome)
 	income.Post("/search", az.Require(domain.ObjTransaction, "read"), cashFlowCtl.SearchIncomes)
+	income.Get("/:id", az.Require(domain.ObjTransaction, "read"), cashFlowCtl.GetIncome)
+	income.Put("/:id", az.Require(domain.ObjTransaction, "update"), cashFlowCtl.UpdateIncome)
 
 	entries := r.Group("/workspaces/:wid/fin/entries")
 	entryCtl := controller.NewEntryController(mod.EntryService)

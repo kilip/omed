@@ -13,8 +13,12 @@ import (
 
 // CashFlowServiceContract defines the operations required by CashFlowController.
 type CashFlowServiceContract interface {
-	CreateExpense(c context.Context, req model.CreateExpenseRequest) (domain.CashFlowItem, error)
-	CreateIncome(c context.Context, req model.CreateIncomeRequest) (domain.CashFlowItem, error)
+	CreateExpense(c context.Context, req model.SaveCashFlowRequest) (domain.CashFlowItem, error)
+	CreateIncome(c context.Context, req model.SaveCashFlowRequest) (domain.CashFlowItem, error)
+	UpdateExpense(c context.Context, id int64, req model.SaveCashFlowRequest) (domain.CashFlowItem, error)
+	UpdateIncome(c context.Context, id int64, req model.SaveCashFlowRequest) (domain.CashFlowItem, error)
+	GetExpense(c context.Context, id int64) (domain.CashFlowItem, error)
+	GetIncome(c context.Context, id int64) (domain.CashFlowItem, error)
 	SearchExpenses(c context.Context, req model.SearchCashFlowRequest) ([]domain.CashFlowItem, string, error)
 	SearchIncomes(c context.Context, req model.SearchCashFlowRequest) ([]domain.CashFlowItem, string, error)
 }
@@ -29,15 +33,15 @@ func NewCashFlowController(svc CashFlowServiceContract) CashFlowController {
 	return CashFlowController{svc: svc}
 }
 
-// CreateExpense creates a new posted expense cash flow entry.
+// CreateExpense creates a new expense cash flow entry.
 //
 //	@Summary		Create expense
-//	@Description	Create a new posted expense cash flow with payment and expense category accounts
+//	@Description	Create a new expense cash flow with payment and expense category accounts
 //	@Tags			Finance Expenses
 //	@Accept			json
 //	@Produce		json
 //	@Param			wid		path		int							true	"Workspace ID"
-//	@Param			request	body		model.CreateExpenseRequest	true	"Expense creation payload"
+//	@Param			request	body		model.SaveCashFlowRequest	true	"Expense creation payload"
 //	@Success		201		{object}	httpx.WebResponse[model.CashFlowItemResponse]
 //	@Failure		400		{object}	httpx.ErrorResponse
 //	@Failure		401		{object}	httpx.ErrorResponse
@@ -49,7 +53,7 @@ func NewCashFlowController(svc CashFlowServiceContract) CashFlowController {
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/fin/expense [post]
 func (ctl CashFlowController) CreateExpense(c fiber.Ctx) error {
-	var req model.CreateExpenseRequest
+	var req model.SaveCashFlowRequest
 	if err := c.Bind().Body(&req); err != nil {
 		return err
 	}
@@ -58,6 +62,70 @@ func (ctl CashFlowController) CreateExpense(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.Created(c, toCashFlowItemResponse(item))
+}
+
+// GetExpense retrieves an expense cash flow document by ID.
+//
+//	@Summary		Get expense by ID
+//	@Description	Retrieve expense cash flow document detail by ID
+//	@Tags			Finance Expenses
+//	@Produce		json
+//	@Param			wid	path		int	true	"Workspace ID"
+//	@Param			id	path		int	true	"Expense ID"
+//	@Success		200	{object}	httpx.WebResponse[model.CashFlowItemResponse]
+//	@Failure		400	{object}	httpx.ErrorResponse
+//	@Failure		401	{object}	httpx.ErrorResponse
+//	@Failure		403	{object}	httpx.ErrorResponse
+//	@Failure		404	{object}	httpx.ErrorResponse
+//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/expense/{id} [get]
+func (ctl CashFlowController) GetExpense(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	item, err := ctl.svc.GetExpense(c, id)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, toCashFlowItemResponse(item))
+}
+
+// UpdateExpense updates an existing draft expense cash flow entry.
+//
+//	@Summary		Update expense
+//	@Description	Update an existing draft expense cash flow document
+//	@Tags			Finance Expenses
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int							true	"Workspace ID"
+//	@Param			id		path		int							true	"Expense ID"
+//	@Param			request	body		model.SaveCashFlowRequest	true	"Expense update payload"
+//	@Success		200		{object}	httpx.WebResponse[model.CashFlowItemResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/expense/{id} [put]
+func (ctl CashFlowController) UpdateExpense(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	var req model.SaveCashFlowRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	item, err := ctl.svc.UpdateExpense(c, id, req)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, toCashFlowItemResponse(item))
 }
 
 // SearchExpenses searches expense cash flows within a workspace based on query parameters.
@@ -93,15 +161,15 @@ func (ctl CashFlowController) SearchExpenses(c fiber.Ctx) error {
 	return httpx.WithCursor(c, out, cursor)
 }
 
-// CreateIncome creates a new posted income cash flow entry.
+// CreateIncome creates a new income cash flow entry.
 //
 //	@Summary		Create income
-//	@Description	Create a new posted income cash flow with payment and revenue category accounts
+//	@Description	Create a new income cash flow with payment and revenue category accounts
 //	@Tags			Finance Incomes
 //	@Accept			json
 //	@Produce		json
 //	@Param			wid		path		int							true	"Workspace ID"
-//	@Param			request	body		model.CreateIncomeRequest	true	"Income creation payload"
+//	@Param			request	body		model.SaveCashFlowRequest	true	"Income creation payload"
 //	@Success		201		{object}	httpx.WebResponse[model.CashFlowItemResponse]
 //	@Failure		400		{object}	httpx.ErrorResponse
 //	@Failure		401		{object}	httpx.ErrorResponse
@@ -113,7 +181,7 @@ func (ctl CashFlowController) SearchExpenses(c fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/fin/income [post]
 func (ctl CashFlowController) CreateIncome(c fiber.Ctx) error {
-	var req model.CreateIncomeRequest
+	var req model.SaveCashFlowRequest
 	if err := c.Bind().Body(&req); err != nil {
 		return err
 	}
@@ -122,6 +190,70 @@ func (ctl CashFlowController) CreateIncome(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.Created(c, toCashFlowItemResponse(item))
+}
+
+// GetIncome retrieves an income cash flow document by ID.
+//
+//	@Summary		Get income by ID
+//	@Description	Retrieve income cash flow document detail by ID
+//	@Tags			Finance Incomes
+//	@Produce		json
+//	@Param			wid	path		int	true	"Workspace ID"
+//	@Param			id	path		int	true	"Income ID"
+//	@Success		200	{object}	httpx.WebResponse[model.CashFlowItemResponse]
+//	@Failure		400	{object}	httpx.ErrorResponse
+//	@Failure		401	{object}	httpx.ErrorResponse
+//	@Failure		403	{object}	httpx.ErrorResponse
+//	@Failure		404	{object}	httpx.ErrorResponse
+//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/income/{id} [get]
+func (ctl CashFlowController) GetIncome(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	item, err := ctl.svc.GetIncome(c, id)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, toCashFlowItemResponse(item))
+}
+
+// UpdateIncome updates an existing draft income cash flow entry.
+//
+//	@Summary		Update income
+//	@Description	Update an existing draft income cash flow document
+//	@Tags			Finance Incomes
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int							true	"Workspace ID"
+//	@Param			id		path		int							true	"Income ID"
+//	@Param			request	body		model.SaveCashFlowRequest	true	"Income update payload"
+//	@Success		200		{object}	httpx.WebResponse[model.CashFlowItemResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/fin/income/{id} [put]
+func (ctl CashFlowController) UpdateIncome(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	var req model.SaveCashFlowRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	item, err := ctl.svc.UpdateIncome(c, id, req)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, toCashFlowItemResponse(item))
 }
 
 // SearchIncomes searches income cash flows within a workspace based on query parameters.
@@ -179,6 +311,23 @@ func toCashFlowItemResponse(it domain.CashFlowItem) model.CashFlowItemResponse {
 			}
 		}
 	}
+	items := make([]model.CashFlowLineResponse, len(it.Items))
+	for i, line := range it.Items {
+		items[i] = model.CashFlowLineResponse{
+			ID: line.ID,
+			Account: model.CashFlowAccountSummaryResponse{
+				ID:   line.Account.ID,
+				Code: line.Account.Code,
+				Name: line.Account.Name,
+				Type: line.Account.Type,
+			},
+			Description: line.Description,
+			Quantity:    line.Quantity,
+			UnitPrice:   line.UnitPrice,
+			Amount:      line.Amount,
+			BaseAmount:  line.BaseAmount,
+		}
+	}
 	return model.CashFlowItemResponse{
 		ID:              it.ID,
 		WorkspaceID:     it.WorkspaceID,
@@ -191,12 +340,7 @@ func toCashFlowItemResponse(it domain.CashFlowItem) model.CashFlowItemResponse {
 			Name: it.PaymentAccount.Name,
 			Type: it.PaymentAccount.Type,
 		},
-		CategoryAccount: model.CashFlowAccountSummaryResponse{
-			ID:   it.CategoryAccount.ID,
-			Code: it.CategoryAccount.Code,
-			Name: it.CategoryAccount.Name,
-			Type: it.CategoryAccount.Type,
-		},
+		Items:        items,
 		Amount:       it.Amount,
 		BaseAmount:   it.BaseAmount,
 		Currency:     it.Currency,
