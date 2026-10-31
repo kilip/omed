@@ -135,7 +135,19 @@ describe("Provider form logic", () => {
     };
 
     const mapped = mapProviderError(error, (k) => k);
+    expect(mapped.field).toBeUndefined();
     expect(mapped.code).toBe("SECRET_KEY_MISSING");
     expect(mapped.message).toBe("agent.providers.errors.secretKeyMissing");
+  });
+
+  it("non-field errors return no field so drawer can display an alert", () => {
+    const notFound = {
+      code: "PROVIDER_NOT_FOUND",
+      message: "Not found",
+    };
+    const mapped = mapProviderError(notFound, (k) => k);
+    expect(mapped.field).toBeUndefined();
+    expect(mapped.code).toBe("PROVIDER_NOT_FOUND");
+    expect(mapped.message).toBe("agent.providers.errors.notFound");
   });
 });

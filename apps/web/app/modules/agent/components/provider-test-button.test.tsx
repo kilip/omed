@@ -39,6 +39,14 @@ describe("ProviderTestButton and test result formatting", () => {
     expect(failureDisplay.status).toBe("error");
     expect(failureDisplay.text).toContain("AUTH_FAILED");
 
+    const secretKeyMissingResult = {
+      ok: false,
+      code: "SECRET_KEY_MISSING",
+    };
+    const secretKeyDisplay = formatTestResult(secretKeyMissingResult, t);
+    expect(secretKeyDisplay.status).toBe("error");
+    expect(secretKeyDisplay.text).toContain("SECRET_KEY_MISSING");
+
     const html = renderToString(
       <ProviderTestButton providerId={1} wid={10} lastResult={successResult} />,
     );

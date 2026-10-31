@@ -828,6 +828,7 @@ export const id: Translation = {
           BAD_REQUEST: "Permintaan tidak valid",
           UNAVAILABLE: "Penyedia tidak tersedia atau waktu habis",
           BLOCKED_URL: "URL basis diblokir",
+          SECRET_KEY_MISSING: "Kunci enkripsi rahasia belum dikonfigurasi",
           UNKNOWN_ERROR: "Pengujian koneksi gagal",
         },
       },

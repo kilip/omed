@@ -823,6 +823,7 @@ export const en = {
           BAD_REQUEST: "Bad request",
           UNAVAILABLE: "Provider unavailable or timed out",
           BLOCKED_URL: "Base URL is blocked",
+          SECRET_KEY_MISSING: "Encryption secret key is not configured",
           UNKNOWN_ERROR: "Connection test failed",
         },
       },

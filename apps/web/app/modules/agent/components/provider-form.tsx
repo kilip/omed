@@ -1,5 +1,15 @@
-import { Button, Drawer, Form, Input, Select, Space, Switch } from "antd";
-import { useEffect } from "react";
+import {
+  Alert,
+  App,
+  Button,
+  Drawer,
+  Form,
+  Input,
+  Select,
+  Space,
+  Switch,
+} from "antd";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type Capabilities,
@@ -174,12 +184,17 @@ export function ProviderFormDrawer({
 }: ProviderFormDrawerProps): React.ReactElement | null {
   const { t } = useTranslation();
   const [form] = Form.useForm<ProviderFormValues>();
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const app = App.useApp?.();
+  const message = app?.message;
+
   const createMutation = useCreateProvider(wid);
   const updateMutation = useUpdateProvider(wid);
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (open) {
+      setGeneralError(null);
       if (provider) {
         form.setFieldsValue({
           name: provider.name ?? "",
@@ -211,6 +226,7 @@ export function ProviderFormDrawer({
 
   const handleSubmit = async () => {
     try {
+      setGeneralError(null);
       const values = await form.validateFields();
       if (provider) {
         const { payload, inlineErrorCode } = buildUpdateProviderPayload(
@@ -233,8 +249,8 @@ export function ProviderFormDrawer({
       } else {
         const payload = buildCreateProviderPayload(values);
         await createMutation.mutateAsync(payload);
-        clearFormKeyAfterSuccess(values);
       }
+      message?.success(t("common.saved"));
       form.resetFields();
       onClose();
       onSuccess?.();
@@ -245,6 +261,9 @@ export function ProviderFormDrawer({
       const mapped = mapProviderError(err, t);
       if (mapped.field) {
         form.setFields([{ name: mapped.field, errors: [mapped.message] }]);
+      } else {
+        setGeneralError(mapped.message);
+        message?.error(mapped.message);
       }
     }
   };
@@ -268,6 +287,14 @@ export function ProviderFormDrawer({
         </Space>
       }
     >
+      {generalError && (
+        <Alert
+          type="error"
+          message={generalError}
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
       <Form form={form} layout="vertical">
         <Form.Item
           name="name"
