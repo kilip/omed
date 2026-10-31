@@ -161,7 +161,7 @@ func TestGuardBlocksDialToLoopback(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected dial to loopback to succeed when allowPrivate=true, got %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", resp.StatusCode)
 	}
@@ -202,7 +202,7 @@ func TestRedirectsAreNotFollowed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected GET to succeed without following redirect, got error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusFound {
 		t.Fatalf("expected status 302, got %d", resp.StatusCode)

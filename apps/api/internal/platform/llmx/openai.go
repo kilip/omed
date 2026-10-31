@@ -254,7 +254,7 @@ func (a *openAIAdapter) Stream(ctx context.Context, req Request) iter.Seq2[Event
 		}
 
 		stream := a.client.Chat.Completions.NewStreaming(ctx, params)
-		defer stream.Close()
+		defer func() { _ = stream.Close() }()
 
 		type toolCallAccum struct {
 			index int64

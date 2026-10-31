@@ -222,7 +222,7 @@ func (a *anthropicAdapter) Stream(ctx context.Context, req Request) iter.Seq2[Ev
 	return func(yield func(Event, error) bool) {
 		params := a.buildParams(req)
 		stream := a.client.Messages.NewStreaming(ctx, params)
-		defer stream.Close()
+		defer func() { _ = stream.Close() }()
 
 		type toolCallAccum struct {
 			index int64
