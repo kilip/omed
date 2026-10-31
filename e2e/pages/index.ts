@@ -1,4 +1,5 @@
 import type { Page } from "playwright";
+import { AgentProvidersPage } from "./agent/providers.page";
 import { CmsMediaPage } from "./cms/media.page";
 import { CmsPagesPage } from "./cms/pages.page";
 import { CmsPostsPage } from "./cms/posts.page";
@@ -51,6 +52,9 @@ export const createPages = (page: Page) => ({
     posts: new CmsPostsPage(page),
     pages: new CmsPagesPage(page),
     media: new CmsMediaPage(page),
+  },
+  agent: {
+    providers: new AgentProvidersPage(page),
   },
 });
 

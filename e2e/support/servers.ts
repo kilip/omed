@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import net from "node:net";
 import path from "node:path";
 import { config, repoRoot } from "./config";
+import { startFakeLlmServer, stopFakeLlmServer } from "./fake-llm-server";
 
 const webRequire = createRequire(path.join(repoRoot, "apps/web/package.json"));
 const reactRouterBin = path.join(
@@ -32,6 +33,8 @@ const children: { service: Service; process: ChildProcess }[] = [];
 
 const sharedEnv = (): NodeJS.ProcessEnv => ({
   OMED_ENV: "test",
+  OMED_SECRET_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  OMED_LLM_ALLOW_PRIVATE_URLS: "true",
   OMED_DB_URL: config.dbUrl,
   OMED_DB_MIGRATE_ON_START: "true",
   OMED_S3_DRIVER: config.s3Driver,
@@ -171,6 +174,7 @@ async function start(service: Service): Promise<void> {
 
 /** Starts `api` and `web` unless they already answer on their port. */
 export async function startServers(): Promise<void> {
+  await startFakeLlmServer();
   if (!config.autoStart) return;
 
   mkdirSync(apiCoverDir, { recursive: true });
@@ -182,6 +186,7 @@ export async function startServers(): Promise<void> {
 
 /** Stops only the processes this runner started. */
 export async function stopServers(): Promise<void> {
+  await stopFakeLlmServer();
   const stopped: Promise<void>[] = [];
   for (const { process: child } of children.splice(0).reverse()) {
     if (child.pid === undefined || child.exitCode !== null) continue;

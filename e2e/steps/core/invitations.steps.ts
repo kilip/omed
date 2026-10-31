@@ -11,6 +11,9 @@ Given("I have an active workspace", async function (this: OmedWorld) {
     ownerId: this.user.id,
   });
   this.workspace = ws;
+  await this.context.addInitScript((wid) => {
+    localStorage.setItem("omed.workspace", String(wid));
+  }, ws.id);
   await testClient.resetEmails();
 });
 
