@@ -772,5 +772,76 @@ export const id: Translation = {
     menu: {
       providers: "Penyedia",
     },
+    providers: {
+      title: "Penyedia Model",
+      description: "Penyedia model AI dan konfigurasi koneksi",
+      defaultBadge: "Default",
+      deleteConfirm: "Apakah Anda yakin ingin menghapus penyedia ini?",
+      deleteSuccess: "Penyedia berhasil dihapus",
+      setDefaultSuccess: "Penyedia default berhasil diperbarui",
+      apiKeyEditHelp: "Biarkan kosong jika tidak ingin mengubah kunci API",
+      actions: {
+        add: "Tambah Penyedia",
+        edit: "Ubah",
+        delete: "Hapus",
+        setDefault: "Jadikan default",
+        test: "Uji koneksi",
+      },
+      fields: {
+        name: "Nama",
+        kind: "Jenis",
+        model: "Model",
+        baseUrl: "URL Basis",
+        apiKey: "Kunci API",
+        apiKeyHint: "Petunjuk Kunci",
+        capabilities: "Kemampuan",
+        isDefault: "Jadikan penyedia default",
+      },
+      validation: {
+        nameRequired: "Nama wajib diisi",
+        kindRequired: "Jenis wajib diisi",
+        modelRequired: "Model wajib diisi",
+        apiKeyRequired: "Kunci API wajib diisi",
+      },
+      kinds: {
+        openai_compat: "Kompatibel OpenAI",
+        anthropic: "Anthropic",
+        gemini: "Google Gemini",
+      },
+      capabilities: {
+        streaming: "Streaming",
+        structuredOutput: "Output Terstruktur",
+        toolCalling: "Pemanggilan Alat",
+        vision: "Visual (Vision)",
+      },
+      drawer: {
+        createTitle: "Tambah Penyedia",
+        editTitle: "Ubah Penyedia",
+      },
+      test: {
+        success: "Koneksi berhasil ({{latency}}ms)",
+        testing: "Menguji koneksi...",
+        codes: {
+          AUTH_FAILED: "Autentikasi gagal",
+          MODEL_NOT_FOUND: "Model tidak ditemukan",
+          RATE_LIMITED: "Batas permintaan terlampaui",
+          BAD_REQUEST: "Permintaan tidak valid",
+          UNAVAILABLE: "Penyedia tidak tersedia atau waktu habis",
+          BLOCKED_URL: "URL basis diblokir",
+          UNKNOWN_ERROR: "Pengujian koneksi gagal",
+        },
+      },
+      errors: {
+        secretKeyMissing:
+          "Kunci enkripsi rahasia belum dikonfigurasi di server",
+        apiKeyRequired: "Kunci API wajib diisi saat mengubah URL basis",
+        nameTaken: "Nama penyedia sudah digunakan di workspace ini",
+        invalidBaseUrl: "URL basis penyedia tidak valid",
+        notFound: "Penyedia tidak ditemukan",
+        keyUnreadable: "Gagal mendekripsi kunci API penyedia",
+        testRateLimited:
+          "Terlalu banyak permintaan uji koneksi, silakan tunggu sebentar",
+      },
+    },
   },
 };

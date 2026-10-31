@@ -767,6 +767,76 @@ export const en = {
     menu: {
       providers: "Providers",
     },
+    providers: {
+      title: "Providers",
+      description: "AI model providers and connection configuration",
+      defaultBadge: "Default",
+      deleteConfirm: "Are you sure you want to delete this provider?",
+      deleteSuccess: "Provider deleted successfully",
+      setDefaultSuccess: "Default provider updated",
+      apiKeyEditHelp: "Leave blank to keep existing API key",
+      actions: {
+        add: "Add Provider",
+        edit: "Edit",
+        delete: "Delete",
+        setDefault: "Set as default",
+        test: "Test connection",
+      },
+      fields: {
+        name: "Name",
+        kind: "Kind",
+        model: "Model",
+        baseUrl: "Base URL",
+        apiKey: "API Key",
+        apiKeyHint: "Key Hint",
+        capabilities: "Capabilities",
+        isDefault: "Set as default provider",
+      },
+      validation: {
+        nameRequired: "Name is required",
+        kindRequired: "Kind is required",
+        modelRequired: "Model is required",
+        apiKeyRequired: "API key is required",
+      },
+      kinds: {
+        openai_compat: "OpenAI Compatible",
+        anthropic: "Anthropic",
+        gemini: "Google Gemini",
+      },
+      capabilities: {
+        streaming: "Streaming",
+        structuredOutput: "Structured Output",
+        toolCalling: "Tool Calling",
+        vision: "Vision",
+      },
+      drawer: {
+        createTitle: "Add Provider",
+        editTitle: "Edit Provider",
+      },
+      test: {
+        success: "Connection successful ({{latency}}ms)",
+        testing: "Testing connection...",
+        codes: {
+          AUTH_FAILED: "Authentication failed",
+          MODEL_NOT_FOUND: "Model not found",
+          RATE_LIMITED: "Rate limit exceeded",
+          BAD_REQUEST: "Bad request",
+          UNAVAILABLE: "Provider unavailable or timed out",
+          BLOCKED_URL: "Base URL is blocked",
+          UNKNOWN_ERROR: "Connection test failed",
+        },
+      },
+      errors: {
+        secretKeyMissing:
+          "Encryption secret key is not configured on the server",
+        apiKeyRequired: "API key is required when updating the base URL",
+        nameTaken: "Provider name already exists in this workspace",
+        invalidBaseUrl: "Invalid provider base URL",
+        notFound: "Provider not found",
+        keyUnreadable: "Failed to decrypt provider API key",
+        testRateLimited: "Too many test connection requests, please slow down",
+      },
+    },
   },
 };
 

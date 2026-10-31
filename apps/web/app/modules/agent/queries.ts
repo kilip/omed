@@ -1,4 +1,4 @@
-import type { components, paths } from "@omed/openapi";
+import type { components } from "@omed/openapi";
 import {
   queryOptions,
   useMutation,
