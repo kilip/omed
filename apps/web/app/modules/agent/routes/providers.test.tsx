@@ -148,4 +148,39 @@ describe("AgentProvidersPage route", () => {
     expect(html).not.toContain("agent.providers.actions.setDefault");
     expect(html).not.toContain("agent.providers.actions.test");
   });
+
+  it("manager sees add and edit actions", () => {
+    vi.mocked(useAgentPermissions).mockReturnValue({
+      canManage: true,
+      canRead: true,
+      isAdmin: false,
+      isViewer: false,
+      isOwner: false,
+    });
+
+    vi.mocked(useProviders).mockReturnValue({
+      data: [
+        {
+          id: 5,
+          name: "Test Gemini",
+          kind: "gemini",
+          model: "gemini-2.0-flash",
+          capabilities: { streaming: true },
+          isDefault: false,
+        },
+      ],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useProviders>);
+
+    const html = renderToString(
+      <AgentProvidersPage
+        loaderData={{ wid: 10 }}
+        params={{}}
+        matches={emptyMatches}
+      />,
+    );
+
+    expect(html).toContain("agent.providers.actions.add");
+    expect(html).toContain("agent.providers.actions.edit");
+  });
 });

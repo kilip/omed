@@ -11,13 +11,11 @@ import {
 } from "antd";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { requireWorkspaceId } from "~/lib/workspace";
-import {
-  mapProviderError,
-  ProviderFormDrawer,
-} from "../components/provider-form";
+import { mapProviderError } from "../components/provider-form";
 import { ProviderTestButton } from "../components/provider-test-button";
 import { useAgentPermissions } from "../hooks/use-agent-permissions";
 import {
@@ -38,30 +36,18 @@ export default function AgentProvidersPage({
   loaderData,
 }: Route.ComponentProps): React.ReactElement {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const wid = loaderData?.wid ?? 0;
   const permissions = useAgentPermissions(wid);
   const { data: providers, isLoading } = useProviders(wid);
   const setDefaultMutation = useSetDefaultProvider(wid);
   const deleteMutation = useDeleteProvider(wid);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingProvider, setEditingProvider] =
-    useState<ProviderResponse | null>(null);
   const [settingDefaultId, setSettingDefaultId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const app = App.useApp?.();
   const message = app?.message;
-
-  const handleOpenCreate = useCallback(() => {
-    setEditingProvider(null);
-    setDrawerOpen(true);
-  }, []);
-
-  const handleOpenEdit = useCallback((provider: ProviderResponse) => {
-    setEditingProvider(provider);
-    setDrawerOpen(true);
-  }, []);
 
   const handleSetDefault = useCallback(
     async (id: number) => {
@@ -213,7 +199,7 @@ export default function AgentProvidersPage({
               <Button
                 size="small"
                 icon={<EditOutlined />}
-                onClick={() => handleOpenEdit(record)}
+                onClick={() => navigate(`/agent/providers/${record.id}/edit`)}
               >
                 {t("agent.providers.actions.edit")}
               </Button>
@@ -247,7 +233,7 @@ export default function AgentProvidersPage({
     deletingId,
     handleSetDefault,
     handleDelete,
-    handleOpenEdit,
+    navigate,
   ]);
 
   return (
@@ -258,7 +244,7 @@ export default function AgentProvidersPage({
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleOpenCreate}
+            onClick={() => navigate("/agent/providers/new")}
           >
             {t("agent.providers.actions.add")}
           </Button>
@@ -274,14 +260,6 @@ export default function AgentProvidersPage({
           pagination={false}
         />
       </Panel>
-      {permissions.canManage && (
-        <ProviderFormDrawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          provider={editingProvider}
-          wid={wid}
-        />
-      )}
     </Page>
   );
 }

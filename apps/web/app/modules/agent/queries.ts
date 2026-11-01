@@ -75,6 +75,14 @@ export function useProviders(wid?: number) {
   });
 }
 
+export function useProvider(id?: number, wid?: number) {
+  const resolvedWid = useResolvedWid(wid);
+  return useQuery({
+    ...providerQueryOptions(resolvedWid, id ?? 0),
+    enabled: Boolean(resolvedWid && id),
+  });
+}
+
 export function useCreateProvider(wid?: number) {
   const resolvedWid = useResolvedWid(wid);
   const queryClient = useQueryClient();
