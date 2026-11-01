@@ -104,6 +104,16 @@ type Config struct {
 	RateLimitSensitiveMax int `env:"OMED_RATE_LIMIT_SENSITIVE_MAX,default=10"`
 	// RateLimitSensitiveExpiration is the expiration window for sensitive routes. Defaults to 1m.
 	RateLimitSensitiveExpiration time.Duration `env:"OMED_RATE_LIMIT_SENSITIVE_EXPIRATION,default=1m"`
+	// OTPLength is the length of generated one-time passwords in digits (6-10). Defaults to 6.
+	OTPLength int `env:"OMED_OTP_LENGTH,default=6"`
+	// OTPTTL is the lifespan of an issued OTP code. Defaults to 10m.
+	OTPTTL time.Duration `env:"OMED_OTP_TTL,default=10m"`
+	// OTPMaxAttempts is the maximum number of failed verification attempts per code. Defaults to 5.
+	OTPMaxAttempts int `env:"OMED_OTP_MAX_ATTEMPTS,default=5"`
+	// OTPResendCooldown is the minimum delay required between OTP requests for an email. Defaults to 60s.
+	OTPResendCooldown time.Duration `env:"OMED_OTP_RESEND_COOLDOWN,default=60s"`
+	// OTPHourlyLimit is the maximum number of OTP requests allowed per email per hour. Defaults to 5.
+	OTPHourlyLimit int `env:"OMED_OTP_HOURLY_LIMIT,default=5"`
 }
 
 // IsTestRoutesEnabled returns true when the environment is development or test.
@@ -111,11 +121,36 @@ func (c Config) IsTestRoutesEnabled() bool {
 	return c.Env == "development" || c.Env == "test"
 }
 
+// IsOTPEnabled returns true when the mailer driver is smtp or test routes are enabled.
+func (c Config) IsOTPEnabled() bool {
+	return c.MailerDriver == "smtp" || c.IsTestRoutesEnabled()
+}
+
 // Validate checks application configuration integrity.
 // In production mode, AuthSecret must be at least 32 bytes long.
 func (c Config) Validate() error {
 	if c.Env == "production" && len(c.AuthSecret) < 32 {
 		return errors.New("OMED_AUTH_SECRET must be at least 32 bytes in production")
+	}
+	return nil
+}
+
+// ValidateOTP validates one-time password configuration integrity.
+func (c Config) ValidateOTP() error {
+	if c.OTPLength < 6 || c.OTPLength > 10 {
+		return errors.New("OMED_OTP_LENGTH must be between 6 and 10")
+	}
+	if c.OTPTTL <= 0 {
+		return errors.New("OMED_OTP_TTL must be greater than 0")
+	}
+	if c.OTPMaxAttempts < 1 {
+		return errors.New("OMED_OTP_MAX_ATTEMPTS must be at least 1")
+	}
+	if c.OTPResendCooldown <= 0 {
+		return errors.New("OMED_OTP_RESEND_COOLDOWN must be greater than 0")
+	}
+	if c.OTPHourlyLimit < 1 {
+		return errors.New("OMED_OTP_HOURLY_LIMIT must be at least 1")
 	}
 	return nil
 }
@@ -138,6 +173,10 @@ func GetConfig() Config {
 	}
 
 	if err := config.Validate(); err != nil {
+		logFatalf("%s", err)
+	}
+
+	if err := config.ValidateOTP(); err != nil {
 		logFatalf("%s", err)
 	}
 

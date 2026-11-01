@@ -275,3 +275,169 @@ func (s *ConfigSuite) Test_GetConfig_Fallbacks() {
 func TestConfigSuite(t *testing.T) {
 	suite.Run(t, new(ConfigSuite))
 }
+
+type OTPConfigSuite struct {
+	suite.Suite
+}
+
+func (s *OTPConfigSuite) SetupTest() {
+	s.T().Setenv("OMED_AUTH_SECRET", "test-secret-at-least-32-chars-long!")
+}
+
+func (s *OTPConfigSuite) Test_GetConfig_OTPDefaults() {
+	for _, env := range []string{
+		"OMED_OTP_LENGTH",
+		"OMED_OTP_TTL",
+		"OMED_OTP_MAX_ATTEMPTS",
+		"OMED_OTP_RESEND_COOLDOWN",
+		"OMED_OTP_HOURLY_LIMIT",
+	} {
+		if val, ok := os.LookupEnv(env); ok {
+			s.Require().NoError(os.Unsetenv(env))
+			v := val
+			k := env
+			s.T().Cleanup(func() {
+				s.Require().NoError(os.Setenv(k, v))
+			})
+		}
+	}
+
+	cfg := config.GetConfig()
+	s.Equal(6, cfg.OTPLength)
+	s.Equal(10*time.Minute, cfg.OTPTTL)
+	s.Equal(5, cfg.OTPMaxAttempts)
+	s.Equal(60*time.Second, cfg.OTPResendCooldown)
+	s.Equal(5, cfg.OTPHourlyLimit)
+}
+
+func (s *OTPConfigSuite) Test_ValidateOTP() {
+	tests := []struct {
+		name    string
+		mutate  func(*config.Config)
+		wantErr string
+	}{
+		{
+			name:    "valid default",
+			mutate:  nil,
+			wantErr: "",
+		},
+		{
+			name: "valid length 6",
+			mutate: func(c *config.Config) {
+				c.OTPLength = 6
+			},
+			wantErr: "",
+		},
+		{
+			name: "valid length 10",
+			mutate: func(c *config.Config) {
+				c.OTPLength = 10
+			},
+			wantErr: "",
+		},
+		{
+			name: "reject length 5",
+			mutate: func(c *config.Config) {
+				c.OTPLength = 5
+			},
+			wantErr: "OMED_OTP_LENGTH must be between 6 and 10",
+		},
+		{
+			name: "reject length 11",
+			mutate: func(c *config.Config) {
+				c.OTPLength = 11
+			},
+			wantErr: "OMED_OTP_LENGTH must be between 6 and 10",
+		},
+		{
+			name: "reject TTL 0",
+			mutate: func(c *config.Config) {
+				c.OTPTTL = 0
+			},
+			wantErr: "OMED_OTP_TTL must be greater than 0",
+		},
+		{
+			name: "reject MaxAttempts 0",
+			mutate: func(c *config.Config) {
+				c.OTPMaxAttempts = 0
+			},
+			wantErr: "OMED_OTP_MAX_ATTEMPTS must be at least 1",
+		},
+		{
+			name: "reject ResendCooldown 0",
+			mutate: func(c *config.Config) {
+				c.OTPResendCooldown = 0
+			},
+			wantErr: "OMED_OTP_RESEND_COOLDOWN must be greater than 0",
+		},
+		{
+			name: "reject HourlyLimit 0",
+			mutate: func(c *config.Config) {
+				c.OTPHourlyLimit = 0
+			},
+			wantErr: "OMED_OTP_HOURLY_LIMIT must be at least 1",
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			cfg := config.Config{
+				OTPLength:         6,
+				OTPTTL:            10 * time.Minute,
+				OTPMaxAttempts:    5,
+				OTPResendCooldown: 60 * time.Second,
+				OTPHourlyLimit:    5,
+			}
+			if tt.mutate != nil {
+				tt.mutate(&cfg)
+			}
+			err := cfg.ValidateOTP()
+			if tt.wantErr == "" {
+				s.NoError(err)
+			} else {
+				s.EqualError(err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func (s *OTPConfigSuite) Test_IsOTPEnabled() {
+	tests := []struct {
+		mailerDriver string
+		env          string
+		want         bool
+	}{
+		{mailerDriver: "smtp", env: "production", want: true},
+		{mailerDriver: "memory", env: "production", want: false},
+		{mailerDriver: "memory", env: "development", want: true},
+		{mailerDriver: "memory", env: "test", want: true},
+		{mailerDriver: "smtp", env: "test", want: true},
+	}
+
+	for _, tt := range tests {
+		cfg := config.Config{
+			MailerDriver: tt.mailerDriver,
+			Env:          tt.env,
+		}
+		s.Equal(tt.want, cfg.IsOTPEnabled(), fmt.Sprintf("%s+%s", tt.mailerDriver, tt.env))
+	}
+}
+
+func (s *OTPConfigSuite) Test_GetConfig_ValidateOTP_Fatal() {
+	var fatalMsg string
+	restore := config.SetLogFatalf(func(format string, v ...any) {
+		fatalMsg = fmt.Sprintf(format, v...)
+		panic("fatal: " + fatalMsg)
+	})
+	defer restore()
+
+	s.T().Setenv("OMED_OTP_LENGTH", "4")
+	s.Panics(func() {
+		config.GetConfig()
+	})
+	s.Contains(fatalMsg, "OMED_OTP_LENGTH must be between 6 and 10")
+}
+
+func TestOTPConfigSuite(t *testing.T) {
+	suite.Run(t, new(OTPConfigSuite))
+}
