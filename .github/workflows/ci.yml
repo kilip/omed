@@ -292,7 +292,7 @@ jobs:
           --health-timeout 3s
           --health-retries 10
       rustfs:
-        image: rustfs/rustfs:1.0.1
+        image: rustfs/rustfs:1.0.4
         env:
           RUSTFS_ACCESS_KEY: rustfsadmin
           RUSTFS_SECRET_KEY: rustfsadmin
