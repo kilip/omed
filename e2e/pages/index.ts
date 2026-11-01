@@ -3,6 +3,7 @@ import { AgentProvidersPage } from "./agent/providers.page";
 import { CmsMediaPage } from "./cms/media.page";
 import { CmsPagesPage } from "./cms/pages.page";
 import { CmsPostsPage } from "./cms/posts.page";
+import { AccessTokensPage } from "./core/access-tokens.page";
 import { HomePage } from "./core/home.page";
 import { InvitationsPage } from "./core/invitations.page";
 import { InvitePage } from "./core/invite.page";
@@ -33,6 +34,7 @@ export const createPages = (page: Page) => ({
     invite: new InvitePage(page),
     members: new MembersPage(page),
     workspaces: new WorkspacesPage(page),
+    accessTokens: new AccessTokensPage(page),
   },
   fin: {
     dashboard: new FinDashboardPage(page),
