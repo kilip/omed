@@ -12,7 +12,7 @@
 - **Multi-Workspace Organization:** Every user gets a personal workspace and can create dedicated workspaces for different businesses, teams, or projects.
 - **Team Collaboration & Invitations:** Invite team members via email and manage pending invitations.
 - **Role-Based Access Control:** Assign granular roles per workspace so members only see and manage the modules and data they are authorized for.
-- **Social Sign-In:** Quick authentication with Google and GitHub.
+- **Social & Email OTP Sign-In:** Quick authentication with Google and GitHub, or passwordless one-time codes sent via email.
 - **Personal Access Tokens (PAT):** Generate time-bounded access tokens (`30`, `90`, or `365` days) to connect external AI assistants and tools safely.
 - **Bilingual Interface:** Built-in support for English (`en`) and Indonesian (`id`).
 

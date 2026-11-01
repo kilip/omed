@@ -90,6 +90,33 @@ To add a new OAuth provider:
 2. Register it in `core/oauth_drivers.go`.
 3. Add the credentials to `config.go` and follow `AGENTS.md` section 6 for the Helm chart when new `OMED_*` variables are introduced.
 
+## Passwordless OTP
+
+Passwordless authentication allows users to sign in using a time-bounded one-time numeric code delivered to their email address, providing a secure alternative to OAuth without passwords.
+
+### Authentication Flow
+
+1. **Request Code (`POST /auth/otp/request`):** The client submits an email address and an optional locale (`en` or `id`). The API generates a cryptographically random numeric code (configured via `OMED_OTP_LENGTH`, default 6 digits) and sends it asynchronously using the localized `otp` email template. The endpoint always returns HTTP 202 Accepted (`success: true`, `codeLength`, `ttlSeconds`, `resendAfterSeconds`) for both existing and unknown emails to prevent account enumeration.
+2. **Verify Code (`POST /auth/otp/verify`):** The client submits the email and received code. On successful verification, the user is provisioned or retrieved through `FindOrCreateVerified` with `email_verified=true` (sharing the verified provisioning path with OAuth), a new session is created, and the `omed_session` HTTP-only cookie is set alongside returning the session DTO.
+
+### Storage and HMAC-SHA256 Hashing
+
+- **Hashed Storage:** Codes are never stored or logged in plaintext. They are saved in PostgreSQL table `core.login_otps` as an HMAC-SHA256 hex digest: `hex(HMAC-SHA256(AuthSecret, "omed:otp:v1:" + email + ":" + code))`.
+- **Timing Protection:** Verification matches codes using constant-time comparison (`hmac.Equal`) to eliminate timing side-channels.
+- **Single Active Code & Replay Defense:** Issuing a new code marks prior unconsumed codes for that email address as consumed. Upon successful verification, `consumed_at` is stamped immediately to prevent code reuse.
+- **Table Schema:** The `core.login_otps` table tracks `id`, `email`, `code_hash`, `expires_at`, `attempts`, `consumed_at`, `ip_address`, and `created_at`, with composite indexes on `(email, created_at)` and `(expires_at)`.
+
+### Rate Limits and Protection
+
+- **Attempt Lockout:** Failed attempts increment the `attempts` counter. When `OMED_OTP_MAX_ATTEMPTS` (default 5) is reached, the code is locked. All verification failures (expired, bad code, locked, already consumed) uniformly return `AUTH_OTP_INVALID` (HTTP 400).
+- **Resend Cooldown:** Successive requests for the same email within `OMED_OTP_RESEND_COOLDOWN` (default 60s) silently suppress email delivery while returning the standard 202 response.
+- **Hourly Request Limit:** Each email address is limited to `OMED_OTP_HOURLY_LIMIT` (default 5) sent emails per hour. Excess requests within the window succeed silently without triggering an email send.
+- **Sensitive Route Limiter:** `POST /auth/otp/request` is registered under sensitive routes protected by the Fiber per-IP rate limiter (default 10 requests/minute).
+
+### Availability Rule
+
+Passwordless email authentication is active only when an SMTP transport is configured (`OMED_MAILER_DRIVER=smtp`) or when running in `development` or `test` mode (`OMED_ENV=development` or `OMED_ENV=test`, where memory transport is permitted). In production environments without SMTP (`OMED_MAILER_DRIVER=memory`), the request endpoint returns `AUTH_OTP_UNAVAILABLE` (HTTP 503).
+
 ## Model Context Protocol (MCP) Server
 
 `apps/api` exposes a built-in Model Context Protocol server at `/mcp` so external AI assistants and MCP clients can securely interact with workspace data.

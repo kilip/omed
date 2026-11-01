@@ -51,8 +51,15 @@ cp apps/web/.env.example apps/web/.env
 | `OMED_RATE_LIMIT_ENABLED` | `true` | Toggle HTTP rate limiting |
 | `OMED_RATE_LIMIT_GENERAL_MAX` / `OMED_RATE_LIMIT_GENERAL_EXPIRATION` | `100` / `1m` | Rate limit window for general routes |
 | `OMED_RATE_LIMIT_SENSITIVE_MAX` / `OMED_RATE_LIMIT_SENSITIVE_EXPIRATION` | `10` / `1m` | Rate limit window for sensitive routes |
+| `OMED_OTP_LENGTH` | `6` | Length of generated login OTP codes (6–10 digits) |
+| `OMED_OTP_TTL` | `10m` | Lifespan / time-to-live of an issued OTP code |
+| `OMED_OTP_MAX_ATTEMPTS` | `5` | Maximum failed verification attempts before the code is locked |
+| `OMED_OTP_RESEND_COOLDOWN` | `60s` | Minimum cooldown delay required between OTP requests for an email |
+| `OMED_OTP_HOURLY_LIMIT` | `5` | Maximum OTP email requests allowed per email address per hour |
 | `OMED_REDIS_URL` | - | Planned (not yet used by application code) |
 | `OMED_KAFKA_BROKERS` | - | Planned (not yet used by application code) |
+
+> **Note on Email OTP Availability:** Passwordless email OTP login is enabled when `OMED_MAILER_DRIVER=smtp` or when `OMED_ENV` is `development` or `test`. In production environments without SMTP configured (`OMED_MAILER_DRIVER=memory`), OTP endpoints return `AUTH_OTP_UNAVAILABLE` (HTTP 503).
 
 ## Web Environment Variables (`apps/web`)
 
