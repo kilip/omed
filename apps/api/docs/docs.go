@@ -428,6 +428,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_string": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-httpx_NoContent": {
                 "properties": {
                     "data": {
@@ -1951,6 +1968,24 @@ const docTemplate = `{
                 "required": [
                     "email",
                     "roles"
+                ],
+                "type": "object"
+            },
+            "model.ListModelsRequest": {
+                "properties": {
+                    "apiKey": {
+                        "type": "string"
+                    },
+                    "baseUrl": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "apiKey",
+                    "kind"
                 ],
                 "type": "object"
             },
@@ -5057,6 +5092,126 @@ const docTemplate = `{
                 ]
             }
         },
+        "/workspaces/{wid}/agent/providers/models": {
+            "post": {
+                "description": "List available models from an unsaved provider configuration",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.ListModelsRequest",
+                                "summary": "request",
+                                "description": "Provider model probe payload"
+                            }
+                        }
+                    },
+                    "description": "Provider model probe payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_string"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    },
+                    "503": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Service Unavailable"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Probe provider models",
+                "tags": [
+                    "Agent Providers"
+                ]
+            }
+        },
         "/workspaces/{wid}/agent/providers/test": {
             "post": {
                 "description": "Test connectivity and validity of unsaved agent provider configuration",
@@ -5565,6 +5720,122 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Set default provider",
+                "tags": [
+                    "Agent Providers"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/providers/{id}/models": {
+            "get": {
+                "description": "List available models from an existing configured LLM provider",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Provider ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_string"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    },
+                    "503": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Service Unavailable"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List models for provider",
                 "tags": [
                     "Agent Providers"
                 ]
