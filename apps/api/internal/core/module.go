@@ -50,6 +50,8 @@ type CoreModule struct {
 	FileService service.FileService
 	// SessionService handles session business logic.
 	SessionService service.SessionService
+	// AccessTokenService handles personal access token business logic.
+	AccessTokenService service.AccessTokenService
 	// OAuthService handles third-party OAuth2 authentication.
 	OAuthService service.OAuthService
 	// Authorizer handles workspace-scoped authorization checks.
@@ -77,6 +79,7 @@ func New(cfg Config) *CoreModule {
 	files := repository.NewFileRepository(cfg.EntCli)
 	accounts := repository.NewAccountRepository(cfg.EntCli, cfg.AuthSecret)
 	sessions := repository.NewSessionRepository(cfg.EntCli)
+	accessTokens := repository.NewAccessTokenRepository(cfg.EntCli)
 
 	userSvc := service.NewUserService(users)
 	workspaceSvc := service.NewWorkspaceService(workspaces, cfg.Storage)
@@ -84,6 +87,7 @@ func New(cfg Config) *CoreModule {
 	invitationSvc := service.NewInvitationService(invitations, workspaceSvc, members, userSvc, cfg.Mailer, cfg.WebURL)
 	fileSvc := service.NewFileService(files, cfg.Storage)
 	sessionSvc := service.NewSessionService(sessions, users, cfg.SessionTTL)
+	accessTokenSvc := service.NewAccessTokenService(accessTokens)
 	oauthSvc := service.NewOAuthService(service.OAuthServiceParams{
 		Accounts:       accounts,
 		Users:          users,
@@ -99,14 +103,15 @@ func New(cfg Config) *CoreModule {
 	})
 
 	mod := &CoreModule{
-		cfg:               cfg,
-		UserService:       userSvc,
-		WorkspaceService:  workspaceSvc,
-		MemberService:     memberSvc,
-		InvitationService: invitationSvc,
-		FileService:       fileSvc,
-		SessionService:    sessionSvc,
-		OAuthService:      oauthSvc,
+		cfg:                cfg,
+		UserService:        userSvc,
+		WorkspaceService:   workspaceSvc,
+		MemberService:      memberSvc,
+		InvitationService:  invitationSvc,
+		FileService:        fileSvc,
+		SessionService:     sessionSvc,
+		AccessTokenService: accessTokenSvc,
+		OAuthService:       oauthSvc,
 	}
 
 	InitEntCli(cfg.EntCli)
