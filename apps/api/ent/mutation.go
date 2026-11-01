@@ -22,6 +22,7 @@ import (
 	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/personalaccesstoken"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/session"
@@ -55,6 +56,7 @@ const (
 	TypeFile                = "File"
 	TypeFinSetting          = "FinSetting"
 	TypePeriod              = "Period"
+	TypePersonalAccessToken = "PersonalAccessToken"
 	TypePosting             = "Posting"
 	TypeSession             = "Session"
 	TypeTransaction         = "Transaction"
@@ -14587,6 +14589,741 @@ func (m *PeriodMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Period edge %s", name)
+}
+
+// PersonalAccessTokenMutation represents an operation that mutates the PersonalAccessToken nodes in the graph.
+type PersonalAccessTokenMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	name          *string
+	token_hash    *string
+	prefix        *string
+	expires_at    *time.Time
+	revoked_at    *time.Time
+	created_at    *time.Time
+	clearedFields map[string]struct{}
+	user          *int64
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*PersonalAccessToken, error)
+	predicates    []predicate.PersonalAccessToken
+}
+
+var _ ent.Mutation = (*PersonalAccessTokenMutation)(nil)
+
+// personalaccesstokenOption allows management of the mutation configuration using functional options.
+type personalaccesstokenOption func(*PersonalAccessTokenMutation)
+
+// newPersonalAccessTokenMutation creates new mutation for the PersonalAccessToken entity.
+func newPersonalAccessTokenMutation(c config, op Op, opts ...personalaccesstokenOption) *PersonalAccessTokenMutation {
+	m := &PersonalAccessTokenMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePersonalAccessToken,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPersonalAccessTokenID sets the ID field of the mutation.
+func withPersonalAccessTokenID(id int64) personalaccesstokenOption {
+	return func(m *PersonalAccessTokenMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PersonalAccessToken
+		)
+		m.oldValue = func(ctx context.Context) (*PersonalAccessToken, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PersonalAccessToken.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPersonalAccessToken sets the old PersonalAccessToken of the mutation.
+func withPersonalAccessToken(node *PersonalAccessToken) personalaccesstokenOption {
+	return func(m *PersonalAccessTokenMutation) {
+		m.oldValue = func(context.Context) (*PersonalAccessToken, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PersonalAccessTokenMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PersonalAccessTokenMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PersonalAccessToken entities.
+func (m *PersonalAccessTokenMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PersonalAccessTokenMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PersonalAccessTokenMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PersonalAccessToken.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *PersonalAccessTokenMutation) SetUserID(i int64) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *PersonalAccessTokenMutation) UserID() (r int64, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the PersonalAccessToken entity.
+// If the PersonalAccessToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PersonalAccessTokenMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *PersonalAccessTokenMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetName sets the "name" field.
+func (m *PersonalAccessTokenMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *PersonalAccessTokenMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the PersonalAccessToken entity.
+// If the PersonalAccessToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PersonalAccessTokenMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *PersonalAccessTokenMutation) ResetName() {
+	m.name = nil
+}
+
+// SetTokenHash sets the "token_hash" field.
+func (m *PersonalAccessTokenMutation) SetTokenHash(s string) {
+	m.token_hash = &s
+}
+
+// TokenHash returns the value of the "token_hash" field in the mutation.
+func (m *PersonalAccessTokenMutation) TokenHash() (r string, exists bool) {
+	v := m.token_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenHash returns the old "token_hash" field's value of the PersonalAccessToken entity.
+// If the PersonalAccessToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PersonalAccessTokenMutation) OldTokenHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenHash: %w", err)
+	}
+	return oldValue.TokenHash, nil
+}
+
+// ResetTokenHash resets all changes to the "token_hash" field.
+func (m *PersonalAccessTokenMutation) ResetTokenHash() {
+	m.token_hash = nil
+}
+
+// SetPrefix sets the "prefix" field.
+func (m *PersonalAccessTokenMutation) SetPrefix(s string) {
+	m.prefix = &s
+}
+
+// Prefix returns the value of the "prefix" field in the mutation.
+func (m *PersonalAccessTokenMutation) Prefix() (r string, exists bool) {
+	v := m.prefix
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrefix returns the old "prefix" field's value of the PersonalAccessToken entity.
+// If the PersonalAccessToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PersonalAccessTokenMutation) OldPrefix(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrefix is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrefix requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrefix: %w", err)
+	}
+	return oldValue.Prefix, nil
+}
+
+// ResetPrefix resets all changes to the "prefix" field.
+func (m *PersonalAccessTokenMutation) ResetPrefix() {
+	m.prefix = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *PersonalAccessTokenMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *PersonalAccessTokenMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the PersonalAccessToken entity.
+// If the PersonalAccessToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PersonalAccessTokenMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *PersonalAccessTokenMutation) ResetExpiresAt() {
+	m.expires_at = nil
+}
+
+// SetRevokedAt sets the "revoked_at" field.
+func (m *PersonalAccessTokenMutation) SetRevokedAt(t time.Time) {
+	m.revoked_at = &t
+}
+
+// RevokedAt returns the value of the "revoked_at" field in the mutation.
+func (m *PersonalAccessTokenMutation) RevokedAt() (r time.Time, exists bool) {
+	v := m.revoked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevokedAt returns the old "revoked_at" field's value of the PersonalAccessToken entity.
+// If the PersonalAccessToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PersonalAccessTokenMutation) OldRevokedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevokedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevokedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevokedAt: %w", err)
+	}
+	return oldValue.RevokedAt, nil
+}
+
+// ClearRevokedAt clears the value of the "revoked_at" field.
+func (m *PersonalAccessTokenMutation) ClearRevokedAt() {
+	m.revoked_at = nil
+	m.clearedFields[personalaccesstoken.FieldRevokedAt] = struct{}{}
+}
+
+// RevokedAtCleared returns if the "revoked_at" field was cleared in this mutation.
+func (m *PersonalAccessTokenMutation) RevokedAtCleared() bool {
+	_, ok := m.clearedFields[personalaccesstoken.FieldRevokedAt]
+	return ok
+}
+
+// ResetRevokedAt resets all changes to the "revoked_at" field.
+func (m *PersonalAccessTokenMutation) ResetRevokedAt() {
+	m.revoked_at = nil
+	delete(m.clearedFields, personalaccesstoken.FieldRevokedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PersonalAccessTokenMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PersonalAccessTokenMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PersonalAccessToken entity.
+// If the PersonalAccessToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PersonalAccessTokenMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PersonalAccessTokenMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *PersonalAccessTokenMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[personalaccesstoken.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *PersonalAccessTokenMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *PersonalAccessTokenMutation) UserIDs() (ids []int64) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *PersonalAccessTokenMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the PersonalAccessTokenMutation builder.
+func (m *PersonalAccessTokenMutation) Where(ps ...predicate.PersonalAccessToken) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PersonalAccessTokenMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PersonalAccessTokenMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PersonalAccessToken, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PersonalAccessTokenMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PersonalAccessTokenMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PersonalAccessToken).
+func (m *PersonalAccessTokenMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PersonalAccessTokenMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.user != nil {
+		fields = append(fields, personalaccesstoken.FieldUserID)
+	}
+	if m.name != nil {
+		fields = append(fields, personalaccesstoken.FieldName)
+	}
+	if m.token_hash != nil {
+		fields = append(fields, personalaccesstoken.FieldTokenHash)
+	}
+	if m.prefix != nil {
+		fields = append(fields, personalaccesstoken.FieldPrefix)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, personalaccesstoken.FieldExpiresAt)
+	}
+	if m.revoked_at != nil {
+		fields = append(fields, personalaccesstoken.FieldRevokedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, personalaccesstoken.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PersonalAccessTokenMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case personalaccesstoken.FieldUserID:
+		return m.UserID()
+	case personalaccesstoken.FieldName:
+		return m.Name()
+	case personalaccesstoken.FieldTokenHash:
+		return m.TokenHash()
+	case personalaccesstoken.FieldPrefix:
+		return m.Prefix()
+	case personalaccesstoken.FieldExpiresAt:
+		return m.ExpiresAt()
+	case personalaccesstoken.FieldRevokedAt:
+		return m.RevokedAt()
+	case personalaccesstoken.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PersonalAccessTokenMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case personalaccesstoken.FieldUserID:
+		return m.OldUserID(ctx)
+	case personalaccesstoken.FieldName:
+		return m.OldName(ctx)
+	case personalaccesstoken.FieldTokenHash:
+		return m.OldTokenHash(ctx)
+	case personalaccesstoken.FieldPrefix:
+		return m.OldPrefix(ctx)
+	case personalaccesstoken.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case personalaccesstoken.FieldRevokedAt:
+		return m.OldRevokedAt(ctx)
+	case personalaccesstoken.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PersonalAccessToken field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PersonalAccessTokenMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case personalaccesstoken.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case personalaccesstoken.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case personalaccesstoken.FieldTokenHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenHash(v)
+		return nil
+	case personalaccesstoken.FieldPrefix:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrefix(v)
+		return nil
+	case personalaccesstoken.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case personalaccesstoken.FieldRevokedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevokedAt(v)
+		return nil
+	case personalaccesstoken.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PersonalAccessToken field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PersonalAccessTokenMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PersonalAccessTokenMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PersonalAccessTokenMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PersonalAccessToken numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PersonalAccessTokenMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(personalaccesstoken.FieldRevokedAt) {
+		fields = append(fields, personalaccesstoken.FieldRevokedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PersonalAccessTokenMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PersonalAccessTokenMutation) ClearField(name string) error {
+	switch name {
+	case personalaccesstoken.FieldRevokedAt:
+		m.ClearRevokedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PersonalAccessToken nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PersonalAccessTokenMutation) ResetField(name string) error {
+	switch name {
+	case personalaccesstoken.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case personalaccesstoken.FieldName:
+		m.ResetName()
+		return nil
+	case personalaccesstoken.FieldTokenHash:
+		m.ResetTokenHash()
+		return nil
+	case personalaccesstoken.FieldPrefix:
+		m.ResetPrefix()
+		return nil
+	case personalaccesstoken.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case personalaccesstoken.FieldRevokedAt:
+		m.ResetRevokedAt()
+		return nil
+	case personalaccesstoken.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PersonalAccessToken field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PersonalAccessTokenMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, personalaccesstoken.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PersonalAccessTokenMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case personalaccesstoken.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PersonalAccessTokenMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PersonalAccessTokenMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PersonalAccessTokenMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, personalaccesstoken.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PersonalAccessTokenMutation) EdgeCleared(name string) bool {
+	switch name {
+	case personalaccesstoken.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PersonalAccessTokenMutation) ClearEdge(name string) error {
+	switch name {
+	case personalaccesstoken.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown PersonalAccessToken unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PersonalAccessTokenMutation) ResetEdge(name string) error {
+	switch name {
+	case personalaccesstoken.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown PersonalAccessToken edge %s", name)
 }
 
 // PostingMutation represents an operation that mutates the Posting nodes in the graph.

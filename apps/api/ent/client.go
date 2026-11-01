@@ -26,6 +26,7 @@ import (
 	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/personalaccesstoken"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/session"
 	"github.com/kilip/omed/api/ent/transaction"
@@ -65,6 +66,8 @@ type Client struct {
 	FinSetting *FinSettingClient
 	// Period is the client for interacting with the Period builders.
 	Period *PeriodClient
+	// PersonalAccessToken is the client for interacting with the PersonalAccessToken builders.
+	PersonalAccessToken *PersonalAccessTokenClient
 	// Posting is the client for interacting with the Posting builders.
 	Posting *PostingClient
 	// Session is the client for interacting with the Session builders.
@@ -103,6 +106,7 @@ func (c *Client) init() {
 	c.File = NewFileClient(c.config)
 	c.FinSetting = NewFinSettingClient(c.config)
 	c.Period = NewPeriodClient(c.config)
+	c.PersonalAccessToken = NewPersonalAccessTokenClient(c.config)
 	c.Posting = NewPostingClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.Transaction = NewTransactionClient(c.config)
@@ -217,6 +221,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		File:                NewFileClient(cfg),
 		FinSetting:          NewFinSettingClient(cfg),
 		Period:              NewPeriodClient(cfg),
+		PersonalAccessToken: NewPersonalAccessTokenClient(cfg),
 		Posting:             NewPostingClient(cfg),
 		Session:             NewSessionClient(cfg),
 		Transaction:         NewTransactionClient(cfg),
@@ -255,6 +260,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		File:                NewFileClient(cfg),
 		FinSetting:          NewFinSettingClient(cfg),
 		Period:              NewPeriodClient(cfg),
+		PersonalAccessToken: NewPersonalAccessTokenClient(cfg),
 		Posting:             NewPostingClient(cfg),
 		Session:             NewSessionClient(cfg),
 		Transaction:         NewTransactionClient(cfg),
@@ -293,9 +299,9 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Account, c.AgentProvider, c.CmsMedia, c.CmsPage, c.CmsPost, c.Currency,
-		c.Entry, c.ExchangeRate, c.File, c.FinSetting, c.Period, c.Posting, c.Session,
-		c.Transaction, c.User, c.UserAccount, c.Workspace, c.WorkspaceInvitation,
-		c.WorkspaceMember,
+		c.Entry, c.ExchangeRate, c.File, c.FinSetting, c.Period, c.PersonalAccessToken,
+		c.Posting, c.Session, c.Transaction, c.User, c.UserAccount, c.Workspace,
+		c.WorkspaceInvitation, c.WorkspaceMember,
 	} {
 		n.Use(hooks...)
 	}
@@ -306,9 +312,9 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Account, c.AgentProvider, c.CmsMedia, c.CmsPage, c.CmsPost, c.Currency,
-		c.Entry, c.ExchangeRate, c.File, c.FinSetting, c.Period, c.Posting, c.Session,
-		c.Transaction, c.User, c.UserAccount, c.Workspace, c.WorkspaceInvitation,
-		c.WorkspaceMember,
+		c.Entry, c.ExchangeRate, c.File, c.FinSetting, c.Period, c.PersonalAccessToken,
+		c.Posting, c.Session, c.Transaction, c.User, c.UserAccount, c.Workspace,
+		c.WorkspaceInvitation, c.WorkspaceMember,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -339,6 +345,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinSetting.mutate(ctx, m)
 	case *PeriodMutation:
 		return c.Period.mutate(ctx, m)
+	case *PersonalAccessTokenMutation:
+		return c.PersonalAccessToken.mutate(ctx, m)
 	case *PostingMutation:
 		return c.Posting.mutate(ctx, m)
 	case *SessionMutation:
@@ -2735,6 +2743,158 @@ func (c *PeriodClient) mutate(ctx context.Context, m *PeriodMutation) (Value, er
 	}
 }
 
+// PersonalAccessTokenClient is a client for the PersonalAccessToken schema.
+type PersonalAccessTokenClient struct {
+	config
+}
+
+// NewPersonalAccessTokenClient returns a client for the PersonalAccessToken from the given config.
+func NewPersonalAccessTokenClient(c config) *PersonalAccessTokenClient {
+	return &PersonalAccessTokenClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `personalaccesstoken.Hooks(f(g(h())))`.
+func (c *PersonalAccessTokenClient) Use(hooks ...Hook) {
+	c.hooks.PersonalAccessToken = append(c.hooks.PersonalAccessToken, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `personalaccesstoken.Intercept(f(g(h())))`.
+func (c *PersonalAccessTokenClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PersonalAccessToken = append(c.inters.PersonalAccessToken, interceptors...)
+}
+
+// Create returns a builder for creating a PersonalAccessToken entity.
+func (c *PersonalAccessTokenClient) Create() *PersonalAccessTokenCreate {
+	mutation := newPersonalAccessTokenMutation(c.config, OpCreate)
+	return &PersonalAccessTokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PersonalAccessToken entities.
+func (c *PersonalAccessTokenClient) CreateBulk(builders ...*PersonalAccessTokenCreate) *PersonalAccessTokenCreateBulk {
+	return &PersonalAccessTokenCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PersonalAccessTokenClient) MapCreateBulk(slice any, setFunc func(*PersonalAccessTokenCreate, int)) *PersonalAccessTokenCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PersonalAccessTokenCreateBulk{err: fmt.Errorf("calling to PersonalAccessTokenClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PersonalAccessTokenCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PersonalAccessTokenCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PersonalAccessToken.
+func (c *PersonalAccessTokenClient) Update() *PersonalAccessTokenUpdate {
+	mutation := newPersonalAccessTokenMutation(c.config, OpUpdate)
+	return &PersonalAccessTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PersonalAccessTokenClient) UpdateOne(_m *PersonalAccessToken) *PersonalAccessTokenUpdateOne {
+	mutation := newPersonalAccessTokenMutation(c.config, OpUpdateOne, withPersonalAccessToken(_m))
+	return &PersonalAccessTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PersonalAccessTokenClient) UpdateOneID(id int64) *PersonalAccessTokenUpdateOne {
+	mutation := newPersonalAccessTokenMutation(c.config, OpUpdateOne, withPersonalAccessTokenID(id))
+	return &PersonalAccessTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PersonalAccessToken.
+func (c *PersonalAccessTokenClient) Delete() *PersonalAccessTokenDelete {
+	mutation := newPersonalAccessTokenMutation(c.config, OpDelete)
+	return &PersonalAccessTokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PersonalAccessTokenClient) DeleteOne(_m *PersonalAccessToken) *PersonalAccessTokenDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PersonalAccessTokenClient) DeleteOneID(id int64) *PersonalAccessTokenDeleteOne {
+	builder := c.Delete().Where(personalaccesstoken.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PersonalAccessTokenDeleteOne{builder}
+}
+
+// Query returns a query builder for PersonalAccessToken.
+func (c *PersonalAccessTokenClient) Query() *PersonalAccessTokenQuery {
+	return &PersonalAccessTokenQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePersonalAccessToken},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PersonalAccessToken entity by its id.
+func (c *PersonalAccessTokenClient) Get(ctx context.Context, id int64) (*PersonalAccessToken, error) {
+	return c.Query().Where(personalaccesstoken.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PersonalAccessTokenClient) GetX(ctx context.Context, id int64) *PersonalAccessToken {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a PersonalAccessToken.
+func (c *PersonalAccessTokenClient) QueryUser(_m *PersonalAccessToken) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(personalaccesstoken.Table, personalaccesstoken.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, personalaccesstoken.UserTable, personalaccesstoken.UserColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.PersonalAccessToken
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PersonalAccessTokenClient) Hooks() []Hook {
+	return c.hooks.PersonalAccessToken
+}
+
+// Interceptors returns the client interceptors.
+func (c *PersonalAccessTokenClient) Interceptors() []Interceptor {
+	return c.inters.PersonalAccessToken
+}
+
+func (c *PersonalAccessTokenClient) mutate(ctx context.Context, m *PersonalAccessTokenMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PersonalAccessTokenCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PersonalAccessTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PersonalAccessTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PersonalAccessTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PersonalAccessToken mutation op: %q", m.Op())
+	}
+}
+
 // PostingClient is a client for the Posting schema.
 type PostingClient struct {
 	config
@@ -4278,13 +4438,15 @@ func (c *WorkspaceMemberClient) mutate(ctx context.Context, m *WorkspaceMemberMu
 type (
 	hooks struct {
 		Account, AgentProvider, CmsMedia, CmsPage, CmsPost, Currency, Entry,
-		ExchangeRate, File, FinSetting, Period, Posting, Session, Transaction, User,
-		UserAccount, Workspace, WorkspaceInvitation, WorkspaceMember []ent.Hook
+		ExchangeRate, File, FinSetting, Period, PersonalAccessToken, Posting, Session,
+		Transaction, User, UserAccount, Workspace, WorkspaceInvitation,
+		WorkspaceMember []ent.Hook
 	}
 	inters struct {
 		Account, AgentProvider, CmsMedia, CmsPage, CmsPost, Currency, Entry,
-		ExchangeRate, File, FinSetting, Period, Posting, Session, Transaction, User,
-		UserAccount, Workspace, WorkspaceInvitation, WorkspaceMember []ent.Interceptor
+		ExchangeRate, File, FinSetting, Period, PersonalAccessToken, Posting, Session,
+		Transaction, User, UserAccount, Workspace, WorkspaceInvitation,
+		WorkspaceMember []ent.Interceptor
 	}
 )
 
@@ -4302,6 +4464,7 @@ var (
 		File:                tableSchemas[2],
 		FinSetting:          tableSchemas[3],
 		Period:              tableSchemas[3],
+		PersonalAccessToken: tableSchemas[2],
 		Posting:             tableSchemas[3],
 		Session:             tableSchemas[2],
 		Transaction:         tableSchemas[3],

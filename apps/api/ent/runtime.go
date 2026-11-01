@@ -16,6 +16,7 @@ import (
 	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/personalaccesstoken"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/schema"
 	"github.com/kilip/omed/api/ent/session"
@@ -379,6 +380,24 @@ func init() {
 	periodDescName := periodFields[1].Descriptor()
 	// period.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	period.NameValidator = periodDescName.Validators[0].(func(string) error)
+	personalaccesstokenFields := schema.PersonalAccessToken{}.Fields()
+	_ = personalaccesstokenFields
+	// personalaccesstokenDescName is the schema descriptor for name field.
+	personalaccesstokenDescName := personalaccesstokenFields[2].Descriptor()
+	// personalaccesstoken.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	personalaccesstoken.NameValidator = personalaccesstokenDescName.Validators[0].(func(string) error)
+	// personalaccesstokenDescTokenHash is the schema descriptor for token_hash field.
+	personalaccesstokenDescTokenHash := personalaccesstokenFields[3].Descriptor()
+	// personalaccesstoken.TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	personalaccesstoken.TokenHashValidator = personalaccesstokenDescTokenHash.Validators[0].(func(string) error)
+	// personalaccesstokenDescPrefix is the schema descriptor for prefix field.
+	personalaccesstokenDescPrefix := personalaccesstokenFields[4].Descriptor()
+	// personalaccesstoken.PrefixValidator is a validator for the "prefix" field. It is called by the builders before save.
+	personalaccesstoken.PrefixValidator = personalaccesstokenDescPrefix.Validators[0].(func(string) error)
+	// personalaccesstokenDescCreatedAt is the schema descriptor for created_at field.
+	personalaccesstokenDescCreatedAt := personalaccesstokenFields[7].Descriptor()
+	// personalaccesstoken.DefaultCreatedAt holds the default value on creation for the created_at field.
+	personalaccesstoken.DefaultCreatedAt = personalaccesstokenDescCreatedAt.Default.(func() time.Time)
 	postingMixin := schema.Posting{}.Mixin()
 	postingMixinFields1 := postingMixin[1].Fields()
 	_ = postingMixinFields1

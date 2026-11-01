@@ -141,6 +141,18 @@ func (f PeriodFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PeriodMutation", m)
 }
 
+// The PersonalAccessTokenFunc type is an adapter to allow the use of ordinary
+// function as PersonalAccessToken mutator.
+type PersonalAccessTokenFunc func(context.Context, *ent.PersonalAccessTokenMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PersonalAccessTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PersonalAccessTokenMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PersonalAccessTokenMutation", m)
+}
+
 // The PostingFunc type is an adapter to allow the use of ordinary
 // function as Posting mutator.
 type PostingFunc func(context.Context, *ent.PostingMutation) (ent.Value, error)

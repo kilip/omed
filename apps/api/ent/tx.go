@@ -34,6 +34,8 @@ type Tx struct {
 	FinSetting *FinSettingClient
 	// Period is the client for interacting with the Period builders.
 	Period *PeriodClient
+	// PersonalAccessToken is the client for interacting with the PersonalAccessToken builders.
+	PersonalAccessToken *PersonalAccessTokenClient
 	// Posting is the client for interacting with the Posting builders.
 	Posting *PostingClient
 	// Session is the client for interacting with the Session builders.
@@ -192,6 +194,7 @@ func (tx *Tx) init() {
 	tx.File = NewFileClient(tx.config)
 	tx.FinSetting = NewFinSettingClient(tx.config)
 	tx.Period = NewPeriodClient(tx.config)
+	tx.PersonalAccessToken = NewPersonalAccessTokenClient(tx.config)
 	tx.Posting = NewPostingClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.Transaction = NewTransactionClient(tx.config)

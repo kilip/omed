@@ -37,6 +37,16 @@ var (
 	ErrFileRequired = errors.New("FILE_REQUIRED")
 	// ErrFileEmpty indicates that the uploaded file has zero bytes.
 	ErrFileEmpty = errors.New("FILE_EMPTY")
+	// ErrTokenExpired indicates that the access token has passed its expiration time.
+	ErrTokenExpired = errors.New("TOKEN_EXPIRED")
+	// ErrTokenInvalid indicates that the access token is invalid or revoked.
+	ErrTokenInvalid = errors.New("TOKEN_INVALID")
+	// ErrTokenLimitReached indicates that the user has reached the maximum allowed active tokens.
+	ErrTokenLimitReached = errors.New("TOKEN_LIMIT_REACHED")
+	// ErrTokenInvalidExpiry indicates that the requested token expiration is invalid.
+	ErrTokenInvalidExpiry = errors.New("TOKEN_INVALID_EXPIRY")
+	// ErrTokenInvalidName indicates that the provided token name is invalid.
+	ErrTokenInvalidName = errors.New("TOKEN_INVALID_NAME")
 )
 
 func init() {
@@ -53,4 +63,9 @@ func init() {
 	base.AddToErrorMap(ErrInvitationRevoked, fiber.StatusUnprocessableEntity, "invitation has been revoked")
 	base.AddToErrorMap(ErrFileRequired, fiber.StatusBadRequest, "file is required")
 	base.AddToErrorMap(ErrFileEmpty, fiber.StatusUnprocessableEntity, "uploaded file cannot be empty")
+	base.AddToErrorMap(ErrTokenExpired, fiber.StatusUnauthorized, "token has expired")
+	base.AddToErrorMap(ErrTokenInvalid, fiber.StatusUnauthorized, "invalid token")
+	base.AddToErrorMap(ErrTokenLimitReached, fiber.StatusUnprocessableEntity, "active token limit reached")
+	base.AddToErrorMap(ErrTokenInvalidExpiry, fiber.StatusUnprocessableEntity, "invalid token expiry")
+	base.AddToErrorMap(ErrTokenInvalidName, fiber.StatusUnprocessableEntity, "invalid token name")
 }

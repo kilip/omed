@@ -752,6 +752,38 @@ var (
 			},
 		},
 	}
+	// PersonalAccessTokensColumns holds the columns for the "personal_access_tokens" table.
+	PersonalAccessTokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "token_hash", Type: field.TypeString, Unique: true},
+		{Name: "prefix", Type: field.TypeString},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "revoked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// PersonalAccessTokensTable holds the schema information for the "personal_access_tokens" table.
+	PersonalAccessTokensTable = &schema.Table{
+		Name:       "personal_access_tokens",
+		Columns:    PersonalAccessTokensColumns,
+		PrimaryKey: []*schema.Column{PersonalAccessTokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "personal_access_tokens_users_user",
+				Columns:    []*schema.Column{PersonalAccessTokensColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "personalaccesstoken_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{PersonalAccessTokensColumns[7]},
+			},
+		},
+	}
 	// PostingsColumns holds the columns for the "postings" table.
 	PostingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1172,6 +1204,7 @@ var (
 		FilesTable,
 		FinSettingsTable,
 		PeriodsTable,
+		PersonalAccessTokensTable,
 		PostingsTable,
 		SessionsTable,
 		TransactionsTable,
@@ -1229,6 +1262,7 @@ func init() {
 	PeriodsTable.ForeignKeys[1].RefTable = UsersTable
 	PeriodsTable.ForeignKeys[2].RefTable = UsersTable
 	PeriodsTable.ForeignKeys[3].RefTable = UsersTable
+	PersonalAccessTokensTable.ForeignKeys[0].RefTable = UsersTable
 	PostingsTable.ForeignKeys[0].RefTable = EntriesTable
 	PostingsTable.ForeignKeys[1].RefTable = WorkspacesTable
 	PostingsTable.ForeignKeys[2].RefTable = UsersTable

@@ -18,6 +18,7 @@ type SchemaConfig struct {
 	File                string // File table.
 	FinSetting          string // FinSetting table.
 	Period              string // Period table.
+	PersonalAccessToken string // PersonalAccessToken table.
 	Posting             string // Posting table.
 	Session             string // Session table.
 	Transaction         string // Transaction table.

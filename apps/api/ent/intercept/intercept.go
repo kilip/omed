@@ -19,6 +19,7 @@ import (
 	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/finsetting"
 	"github.com/kilip/omed/api/ent/period"
+	"github.com/kilip/omed/api/ent/personalaccesstoken"
 	"github.com/kilip/omed/api/ent/posting"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/session"
@@ -383,6 +384,33 @@ func (f TraversePeriod) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.PeriodQuery", q)
 }
 
+// The PersonalAccessTokenFunc type is an adapter to allow the use of ordinary function as a Querier.
+type PersonalAccessTokenFunc func(context.Context, *ent.PersonalAccessTokenQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f PersonalAccessTokenFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.PersonalAccessTokenQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.PersonalAccessTokenQuery", q)
+}
+
+// The TraversePersonalAccessToken type is an adapter to allow the use of ordinary function as Traverser.
+type TraversePersonalAccessToken func(context.Context, *ent.PersonalAccessTokenQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraversePersonalAccessToken) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraversePersonalAccessToken) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.PersonalAccessTokenQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.PersonalAccessTokenQuery", q)
+}
+
 // The PostingFunc type is an adapter to allow the use of ordinary function as a Querier.
 type PostingFunc func(context.Context, *ent.PostingQuery) (ent.Value, error)
 
@@ -624,6 +652,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.FinSettingQuery, predicate.FinSetting, finsetting.OrderOption]{typ: ent.TypeFinSetting, tq: q}, nil
 	case *ent.PeriodQuery:
 		return &query[*ent.PeriodQuery, predicate.Period, period.OrderOption]{typ: ent.TypePeriod, tq: q}, nil
+	case *ent.PersonalAccessTokenQuery:
+		return &query[*ent.PersonalAccessTokenQuery, predicate.PersonalAccessToken, personalaccesstoken.OrderOption]{typ: ent.TypePersonalAccessToken, tq: q}, nil
 	case *ent.PostingQuery:
 		return &query[*ent.PostingQuery, predicate.Posting, posting.OrderOption]{typ: ent.TypePosting, tq: q}, nil
 	case *ent.SessionQuery:

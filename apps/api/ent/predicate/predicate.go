@@ -39,6 +39,9 @@ type FinSetting func(*sql.Selector)
 // Period is the predicate function for period builders.
 type Period func(*sql.Selector)
 
+// PersonalAccessToken is the predicate function for personalaccesstoken builders.
+type PersonalAccessToken func(*sql.Selector)
+
 // Posting is the predicate function for posting builders.
 type Posting func(*sql.Selector)
 
