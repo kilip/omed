@@ -1,6 +1,7 @@
 import {
   ApartmentOutlined,
   DashboardOutlined,
+  KeyOutlined,
   LinkOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -32,6 +33,12 @@ export default defineModule({
       labelKey: "core.menu.invitations",
       icon: LinkOutlined,
       hideInPersonalWorkspace: true,
+    },
+    {
+      key: "access-tokens",
+      path: "access-tokens",
+      labelKey: "core.menu.accessTokens",
+      icon: KeyOutlined,
     },
   ],
 });

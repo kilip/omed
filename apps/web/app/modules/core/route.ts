@@ -13,4 +13,5 @@ export default prefix("core", [
   route("members/new", "modules/core/routes/member-new.tsx"),
   route("members/:id", "modules/core/routes/member-edit.tsx"),
   route("invitations", "modules/core/routes/invitations.tsx"),
+  route("access-tokens", "modules/core/routes/access-tokens.tsx"),
 ]) satisfies RouteConfigEntry[];

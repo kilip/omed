@@ -17,6 +17,10 @@ export const permissionKeys = {
   all: (wid: number) => ["core", "workspaces", wid, "permissions"] as const,
 };
 
+export const accessTokenKeys = {
+  all: ["access-tokens"] as const,
+};
+
 /** Current user permissions and roles in a workspace. */
 export const permissionsQueryOptions = (wid: number) =>
   queryOptions({
@@ -61,4 +65,11 @@ export const invitationsQueryOptions = (wid: number) =>
           body: { limit: 100 },
         }),
       ),
+  });
+
+/** Access tokens of the authenticated user. */
+export const accessTokensQueryOptions = () =>
+  queryOptions({
+    queryKey: accessTokenKeys.all,
+    queryFn: () => unwrapList(api.GET("/users/me/access-tokens")),
   });
