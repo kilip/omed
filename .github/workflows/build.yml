@@ -85,7 +85,7 @@ jobs:
       - name: Package Helm chart
         run: |
           mkdir -p .cr-release-packages
-          helm package deploy/helm/omed -d .cr-release-packages
+          helm package helm -d .cr-release-packages
 
       - name: Push Helm chart to GHCR
         run: |

@@ -129,6 +129,12 @@ Fail early on invalid secret values when the chart manages the Secret.
 {{- if lt (len .Values.secrets.authSecret) 32 }}
 {{- fail "secrets.authSecret must be at least 32 characters when secrets.existingSecret is empty" }}
 {{- end }}
+{{- if not .Values.secrets.secretKey }}
+{{- fail "secrets.secretKey is required when secrets.existingSecret is empty" }}
+{{- end }}
+{{- if lt (len .Values.secrets.secretKey) 32 }}
+{{- fail "secrets.secretKey must be at least 32 characters when secrets.existingSecret is empty" }}
+{{- end }}
 {{- end }}
 {{- end }}
 

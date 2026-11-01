@@ -29,8 +29,7 @@ secrets:
   dbUrl: ""
   # -- OMED_AUTH_SECRET. Required when existingSecret is empty, at least 32 chars.
   authSecret: ""
-  # -- OMED_SECRET_KEY. Base64-encoded 32-byte master key for encrypting provider credentials.
-  # If omitted, agent provider credential encryption is disabled.
+  # -- OMED_SECRET_KEY. Required when existingSecret is empty. Base64-encoded 32-byte master key for encrypting provider credentials.
   # NOTE: Losing this key makes stored provider keys unrecoverable!
   secretKey: ""
   # -- OMED_GOOGLE_ID

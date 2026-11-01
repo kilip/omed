@@ -18,7 +18,7 @@ omed/
 │   └── tsconfig/      # @omed/tsconfig    - Shared base tsconfig
 ├── e2e/               # e2e               - End-to-end tests (Cucumber + Playwright)
 ├── docs/              # Technical documentation and design specs
-├── deploy/helm/omed/  # Kubernetes Helm chart
+├── helm/             # Kubernetes Helm chart
 ├── .devcontainer/     # Full dev environment (tools + Postgres, Redis, RustFS, Kafka)
 ├── .github/           # CI, image builds, release-please, Renovate
 ├── AGENTS.md          # Conventions for AI coding agents (CLAUDE.md and GEMINI.md point here)

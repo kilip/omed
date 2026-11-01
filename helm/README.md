@@ -43,7 +43,7 @@ helm install omed oci://ghcr.io/kilip/charts/omed \
 Or from local source checkout:
 
 ```bash
-helm install omed deploy/helm/omed \
+helm install omed helm \
   --set secrets.existingSecret=omed-secrets \
   --set ingress.className=nginx \
   --set ingress.web.host=app.example.com \
@@ -57,6 +57,7 @@ With chart-managed secrets (prefer a values file over `--set` so secrets stay ou
 secrets:
   dbUrl: postgres://user:pass@db:5432/omed?sslmode=require
   authSecret: <at least 32 random characters>
+  secretKey: <base64-encoded 32-byte master key>
   s3AccessKey: s3-access-key
   s3SecretKey: s3-secret-key
   mailerUser: smtp-user
@@ -75,7 +76,7 @@ ingress:
 ```
 
 ```bash
-helm install omed deploy/helm/omed -f my-values.yaml
+helm install omed helm -f my-values.yaml
 ```
 
 ## Secrets
@@ -86,7 +87,7 @@ Both containers load the Secret with `envFrom`, so its keys are the env var name
 | --- | --- | --- | --- |
 | `OMED_DB_URL` | `dbUrl` | yes | PostgreSQL connection string |
 | `OMED_AUTH_SECRET` | `authSecret` | yes | Session signing secret, at least 32 bytes in production |
-| `OMED_SECRET_KEY` | `secretKey` | no | Base64-encoded 32-byte master key for encrypting provider credentials (losing this key makes stored provider keys unrecoverable) |
+| `OMED_SECRET_KEY` | `secretKey` | yes | Base64-encoded 32-byte master key for encrypting provider credentials (losing this key makes stored provider keys unrecoverable) |
 | `OMED_S3_ACCESS_KEY` | `s3AccessKey` | no | S3 access key ID |
 | `OMED_S3_SECRET_KEY` | `s3SecretKey` | no | S3 secret access key |
 | `OMED_MAILER_USER` | `mailerUser` | no | SMTP username |
@@ -142,6 +143,7 @@ To configure email delivery via Gmail SMTP:
    kubectl create secret generic omed-secrets \
      --from-literal=OMED_DB_URL='postgres://omed:pass@paradedb-rw.storage.svc:5432/omed?sslmode=disable' \
      --from-literal=OMED_AUTH_SECRET="$(openssl rand -hex 32)" \
+     --from-literal=OMED_SECRET_KEY="$(openssl rand -base64 32)" \
      --from-literal=OMED_S3_ACCESS_KEY='minioadmin' \
      --from-literal=OMED_S3_SECRET_KEY='minioadmin'
    ```
@@ -193,8 +195,8 @@ See [`values.yaml`](./values.yaml) for every option with comments. Most-used key
 ## Development
 
 ```bash
-helm lint deploy/helm/omed --strict -f deploy/helm/omed/ci/full-values.yaml
-helm template omed deploy/helm/omed -f deploy/helm/omed/ci/full-values.yaml \
+helm lint helm --strict -f helm/ci/full-values.yaml
+helm template omed helm -f helm/ci/full-values.yaml \
   | kubeconform -strict -summary -kubernetes-version 1.30.0
 ```
 

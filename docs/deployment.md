@@ -32,7 +32,7 @@ The `omed-api` image embeds `apps/api/migrations` in `/api` and also includes `/
 
 ## Kubernetes (Helm)
 
-The Helm chart in [`deploy/helm/omed`](../deploy/helm/omed) deploys `api` and `web`, runs database migrations as a pre-install/pre-upgrade hook Job, and exposes both services through an Ingress. PostgreSQL, S3, and SMTP are managed externally.
+The Helm chart in [`helm`](../helm) deploys `api` and `web`, runs database migrations as a pre-install/pre-upgrade hook Job, and exposes both services through an Ingress. PostgreSQL, S3, and SMTP are managed externally.
 
 ```bash
 helm install omed oci://ghcr.io/kilip/charts/omed \
@@ -41,4 +41,4 @@ helm install omed oci://ghcr.io/kilip/charts/omed \
   --set ingress.api.host=api.example.com
 ```
 
-See the [Helm chart README](../deploy/helm/omed/README.md) for full details on secrets, values, and URL derivation.
+See the [Helm chart README](../helm/README.md) for full details on secrets, values, and URL derivation.
