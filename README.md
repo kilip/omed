@@ -64,14 +64,7 @@ Detailed technical guides live in the [`docs/`](./docs) directory:
 - **[Deployment Guide](./docs/deployment.md)** — Docker image builds, runtime configuration, production migrations, and Kubernetes Helm chart deployment.
 - **[Branding & Visual Guidelines](./BRANDING.md)** — Design tokens, typography, and dashboard UI guidelines.
 - **[AI Agent Guidelines](./AGENTS.md)** — Conventions and workflows for AI coding assistants.
-
----
-
-## Contributing
-
-1. Branch off `main`.
-2. Follow [Conventional Commits](https://www.conventionalcommits.org) with a required scope and emoji prefix, e.g. `feat(api): ✨ add auth` (see [AGENTS.md](./AGENTS.md)).
-3. Ensure `bun run lint` and relevant tests pass before opening a pull request.
+- **[Contributing Guide](./CONTRIBUTING.md)** — Pull request workflow, branch naming, commit conventions, and code standards.
 
 ## License
 
