@@ -1,7 +1,7 @@
 # Design Spec: MCP Foundation (`platform/mcpx` Transport and Personal Access Tokens)
 
 - **Date:** 2026-11-01
-- **Status:** Accepted
+- **Status:** Approved
 - **Modules:** `core` (personal access tokens), `platform/mcpx` (transport), `apps/web` module `core` (token page)
 - **Author:** Claude (pair programming with the repository owner)
 - **Related:** [`2026-11-01-fin-mcp-integration-design.md`](./2026-11-01-fin-mcp-integration-design.md) defines the three MCP sub-projects and is the consumer of this one. [`2026-10-30-agent-provider-design.md`](./2026-10-30-agent-provider-design.md) keeps the MCP server out of the `agent` module; this spec does not change that.
@@ -142,7 +142,7 @@ Status is derived, not stored: `revoked` if `revoked_at` is set, else `expired` 
 
 | Method and path | Behavior |
 | --- | --- |
-| `POST /users/me/access-tokens` | Body `name`, `expires_in_days` in `{30, 90, 365}`. Returns 201 with `id`, `name`, `prefix`, `expires_at`, and `token` (plaintext, this response only). |
+| `POST /users/me/access-tokens` | Body `name`, `expiresInDays` in `{30, 90, 365}` (omitted means 90). Returns 201 with `id`, `name`, `prefix`, `expires_at`, and `token` (plaintext, this response only). |
 | `GET /users/me/access-tokens` | The caller's tokens without secrets: `id`, `name`, `prefix`, `expires_at`, `created_at`, `status`. |
 | `DELETE /users/me/access-tokens/:id` | Revoke. A token owned by another user returns `NOT_FOUND`. |
 

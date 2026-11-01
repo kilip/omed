@@ -41,6 +41,8 @@ omed/
 - Authorization in `apps/api` is **workspace based**: every user gets a personal workspace, can create more, and can invite other users. Roles are assigned per workspace membership, and a user can only access or read workspace resources when they are a member or owner of that workspace.
 - Modules in `apps/api` register their roles & permissions in code via `authz.AddRole` in `init()` (e.g. `fin:accountant` -> `fin:invoice read`). Permissions are verified per-request using an in-memory Casbin enforcer based on resolved workspace membership.
 - The dashboard is split into modules (`core`, `fin`, `cms`, `agent`), each under `apps/web/app/modules/<module>/`. A module declares its routes in `route.ts` and its launcher metadata (label, icon, etc.) in `module.ts`; there is no central registry file.
+  - **Core (`core`) module routes & capabilities:**
+    - `/core/access-tokens`: Personal Access Token (PAT) management for external MCP clients (create token with 30/90/365-day expiry, one-time plaintext reveal, list active/expired/revoked tokens, and revoke).
   - **Finance (`fin`) module routes & capabilities:**
     - `/fin`: Finance dashboard with financial overview and status metrics.
     - `/fin/onboarding`: 2-step financial onboarding wizard configuring currency, fiscal period, and CoA template.
@@ -75,6 +77,11 @@ omed/
   - **Admin and public API summary:**
     - Admin API: authenticated workspace-scoped CRUD and publishing endpoints under `/workspaces/:wid/cms/{posts,pages,media}`.
     - Public API: unauthenticated read-only endpoints under `/public/workspaces/:wid/cms/{posts,pages,media}`.
+  - **Model Context Protocol (MCP) server:**
+    - Endpoint: `/mcp` exposes a unified Streamable HTTP transport (`github.com/modelcontextprotocol/go-sdk`) operating in stateless mode (`Stateless: true`, `JSONResponse: true`).
+    - Authentication: Bearer Personal Access Token (`Authorization: Bearer omed_pat_...`). Session cookies are bypassed at `/mcp`, and PATs cannot access REST endpoints.
+    - Module tool registration: Modules register tools into the shared server during boot via `config.HasMCP` (`RegisterMCP(r *mcpx.Registrar) error`). Tools execute with the authenticated user identity and workspace authorization verified via Casbin.
+    - Configuration: Always enabled; no new environment variables or Helm changes are needed.
 
 ## Tech Stack
 

@@ -228,14 +228,12 @@ git commit -m "feat(api): ✨ register fin insight tools with the mcp server"
 
 ### Task 7: Integration tests through `/mcp` and documentation
 
-**Blocked until sub-project 2 mounts `/mcp` and issues PATs.**
-
 **Files:**
 - Create: `apps/api/internal/fin/test/mcp_test.go`
 - Modify: `AGENTS.md` (section 3 module layout gains `mcp/`), `README.md` (MCP endpoint and the three tools)
 
 **Interfaces:**
-- Consumes: the `/mcp` endpoint and PAT creation helper from sub-project 2 (names fixed in its plan); `testutil.ApiTestSuite`.
+- Consumes: the `/mcp` endpoint and `EnsurePAT(userID)` from `testutil`; `testutil.ApiTestSuite`.
 
 - [ ] **Step 1: Write integration tests** (spec §6) using the owner's seeded data: success for each tool; `Test_Mcp_NonMember_NotFound`; `Test_Mcp_RoleWithoutAccountRead_ForbiddenOnFindCashflow`; `Test_Mcp_FindCashflow_CursorRoundTrip`; `Test_Mcp_AccountBalance_TruncatedFlag` (60 accounts); `Test_Mcp_PeriodOverview_EqualsReportSummary`; `Test_Mcp_RevokedToken_Rejected` (transport-level, asserts only that no tool runs).
 - [ ] **Step 2: Run** `cd apps/api && go test ./internal/fin/test/ -run Mcp -v`. Expected: FAIL before the mount exists, then PASS.
