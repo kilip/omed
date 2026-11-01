@@ -81,6 +81,15 @@ omed/
 - **Roles:** `agent:admin` (full management access) and `agent:viewer` (view providers and configurations).
 - **API Endpoints:** authenticated workspace-scoped CRUD, model listing, and connection testing endpoints under `/workspaces/:wid/agent/providers*`.
 
+## OAuth Provider Drivers
+
+Third-party OAuth2 authentication is handled through the driver pattern in `internal/platform/oauthx`. The package defines the `Driver` interface (for authorization URL generation, code exchange, and profile retrieval), a shared `Base` struct that encapsulates standard OAuth2 authorization flow and JSON fetching, and a thread-safe `Registry`. Concrete drivers (`google` and `github`) implement provider-specific token exchanges and user profile normalization. At application startup, providers are automatically registered into the registry if their corresponding environment credentials (`OMED_GOOGLE_*` and `OMED_GITHUB_*`) are configured.
+
+To add a new OAuth provider:
+1. Create `oauthx/<name>` implementing `Driver` by embedding `Base`.
+2. Register it in `core/oauth_drivers.go`.
+3. Add the credentials to `config.go` and follow `AGENTS.md` section 6 for the Helm chart when new `OMED_*` variables are introduced.
+
 ## Model Context Protocol (MCP) Server
 
 `apps/api` exposes a built-in Model Context Protocol server at `/mcp` so external AI assistants and MCP clients can securely interact with workspace data.
