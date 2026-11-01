@@ -1,15 +1,19 @@
+import { ReloadOutlined } from "@ant-design/icons";
 import {
   Alert,
   App,
+  AutoComplete,
   Button,
+  Card,
   Drawer,
   Form,
   Input,
   Select,
   Space,
   Switch,
+  Tooltip,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type Capabilities,
@@ -17,10 +21,18 @@ import {
   type ProviderResponse,
   type UpdateProviderRequest,
   useCreateProvider,
+  useProbeProviderModels,
+  useProviderModels,
   useUpdateProvider,
 } from "../queries";
 
 export type ProviderKind = "openai_compat" | "anthropic" | "gemini";
+
+export const DEFAULT_BASE_URLS_BY_KIND: Record<ProviderKind, string> = {
+  openai_compat: "https://api.openai.com/v1",
+  anthropic: "https://api.anthropic.com",
+  gemini: "https://generativelanguage.googleapis.com",
+};
 
 export type ProviderFormValues = {
   name: string;
@@ -52,6 +64,31 @@ export const DEFAULT_CAPABILITIES_BY_KIND: Record<string, Capabilities> = {
     vision: true,
   },
 };
+
+export function resolveBaseUrlOnKindChange(
+  currentUrl: string | undefined,
+  prevKind: ProviderKind | undefined,
+  nextKind: ProviderKind,
+  isCustomized: boolean,
+): { baseUrl: string; isCustomized: boolean } {
+  const trimmed = currentUrl?.trim() ?? "";
+  const isUntouchedOrDefault =
+    !isCustomized ||
+    trimmed === "" ||
+    (prevKind !== undefined && trimmed === DEFAULT_BASE_URLS_BY_KIND[prevKind]);
+
+  if (isUntouchedOrDefault) {
+    return {
+      baseUrl: DEFAULT_BASE_URLS_BY_KIND[nextKind],
+      isCustomized: false,
+    };
+  }
+
+  return {
+    baseUrl: trimmed,
+    isCustomized: true,
+  };
+}
 
 export function buildCreateProviderPayload(
   values: ProviderFormValues,
@@ -171,24 +208,33 @@ export function mapProviderError(
   };
 }
 
-export type ProviderFormDrawerProps = {
-  open: boolean;
-  onClose: () => void;
+export type ProviderFormProps = {
   provider?: ProviderResponse | null;
   wid?: number;
   onSuccess?: () => void;
+  onCancel?: () => void;
 };
 
-export function ProviderFormDrawer({
-  open,
-  onClose,
+export function ProviderForm({
   provider,
   wid,
   onSuccess,
-}: ProviderFormDrawerProps): React.ReactElement | null {
+  onCancel,
+}: ProviderFormProps): React.ReactElement {
   const { t } = useTranslation();
   const [form] = Form.useForm<ProviderFormValues>();
   const [generalError, setGeneralError] = useState<string | null>(null);
+
+  const initialKind = (provider?.kind as ProviderKind) ?? "openai_compat";
+  const [currentKind, setCurrentKind] = useState<ProviderKind>(initialKind);
+  const [isBaseUrlCustomized, setIsBaseUrlCustomized] = useState(() => {
+    if (!provider?.baseUrl) return false;
+    return provider.baseUrl !== DEFAULT_BASE_URLS_BY_KIND[initialKind];
+  });
+
+  const [probedModels, setProbedModels] = useState<string[] | null>(null);
+  const [probeError, setProbeError] = useState<string | null>(null);
+
   const app = App.useApp?.();
   const message = app?.message;
 
@@ -196,37 +242,156 @@ export function ProviderFormDrawer({
   const updateMutation = useUpdateProvider(wid);
   const isPending = createMutation.isPending || updateMutation.isPending;
 
+  const queryModels = useProviderModels(wid, provider?.id);
+  const probeMutation = useProbeProviderModels(wid);
+
+  const watchedApiKey = Form.useWatch("apiKey", form);
+  const watchedBaseUrl = Form.useWatch("baseUrl", form);
+  const watchedKind = Form.useWatch("kind", form);
+
   useEffect(() => {
-    if (open) {
-      setGeneralError(null);
-      if (provider) {
-        form.setFieldsValue({
-          name: provider.name ?? "",
-          kind: (provider.kind as ProviderKind) ?? "openai_compat",
-          baseUrl: provider.baseUrl ?? "",
-          model: provider.model ?? "",
-          apiKey: "",
-          capabilities: {
-            streaming: provider.capabilities?.streaming ?? true,
-            structuredOutput: provider.capabilities?.structuredOutput ?? true,
-            toolCalling: provider.capabilities?.toolCalling ?? true,
-            vision: provider.capabilities?.vision ?? true,
-          },
-          isDefault: provider.isDefault ?? false,
+    setGeneralError(null);
+    setProbeError(null);
+    setProbedModels(null);
+    if (provider) {
+      const k = (provider.kind as ProviderKind) ?? "openai_compat";
+      setCurrentKind(k);
+      const existingUrl = provider.baseUrl ?? "";
+      const isCustom = Boolean(
+        existingUrl && existingUrl !== DEFAULT_BASE_URLS_BY_KIND[k],
+      );
+      setIsBaseUrlCustomized(isCustom);
+      form.setFieldsValue({
+        name: provider.name ?? "",
+        kind: k,
+        baseUrl: existingUrl,
+        model: provider.model ?? "",
+        apiKey: "",
+        capabilities: {
+          streaming: provider.capabilities?.streaming ?? true,
+          structuredOutput: provider.capabilities?.structuredOutput ?? true,
+          toolCalling: provider.capabilities?.toolCalling ?? true,
+          vision: provider.capabilities?.vision ?? true,
+        },
+        isDefault: provider.isDefault ?? false,
+      });
+    } else {
+      setCurrentKind("openai_compat");
+      setIsBaseUrlCustomized(false);
+      form.setFieldsValue({
+        name: "",
+        kind: "openai_compat",
+        baseUrl: DEFAULT_BASE_URLS_BY_KIND.openai_compat,
+        model: "",
+        apiKey: "",
+        capabilities: DEFAULT_CAPABILITIES_BY_KIND.openai_compat,
+        isDefault: false,
+      });
+    }
+  }, [provider, form]);
+
+  useEffect(() => {
+    const trimmedKey = watchedApiKey?.trim();
+    const trimmedUrl = watchedBaseUrl?.trim();
+    const kind = watchedKind || currentKind;
+
+    if (!trimmedKey || !trimmedUrl || !kind) {
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setProbeError(null);
+        const res = await probeMutation.mutateAsync({
+          apiKey: trimmedKey,
+          baseUrl: trimmedUrl,
+          kind,
         });
-      } else {
-        form.setFieldsValue({
-          name: "",
-          kind: "openai_compat",
-          baseUrl: "",
-          model: "",
-          apiKey: "",
-          capabilities: DEFAULT_CAPABILITIES_BY_KIND.openai_compat,
-          isDefault: false,
+        setProbedModels(res ?? []);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setProbeError(msg);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [
+    watchedApiKey,
+    watchedBaseUrl,
+    watchedKind,
+    currentKind,
+    probeMutation.mutateAsync,
+  ]);
+
+  const handleKindChange = (newKind: ProviderKind) => {
+    form.setFieldValue("kind", newKind);
+    const currentUrl = form.getFieldValue("baseUrl");
+    const next = resolveBaseUrlOnKindChange(
+      currentUrl,
+      currentKind,
+      newKind,
+      isBaseUrlCustomized,
+    );
+    form.setFieldValue("baseUrl", next.baseUrl);
+    setIsBaseUrlCustomized(next.isCustomized);
+    setCurrentKind(newKind);
+    setProbedModels(null);
+    setProbeError(null);
+  };
+
+  const handleBaseUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    const kind = (form.getFieldValue("kind") || currentKind) as ProviderKind;
+    if (val && val !== DEFAULT_BASE_URLS_BY_KIND[kind]) {
+      setIsBaseUrlCustomized(true);
+    } else {
+      setIsBaseUrlCustomized(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    const currentKey = form.getFieldValue("apiKey")?.trim();
+    const currentUrl = form.getFieldValue("baseUrl")?.trim();
+    const kind = (form.getFieldValue("kind") || currentKind) as ProviderKind;
+
+    if (currentKey && currentUrl && kind) {
+      try {
+        setProbeError(null);
+        const res = await probeMutation.mutateAsync({
+          apiKey: currentKey,
+          baseUrl: currentUrl,
+          kind,
         });
+        setProbedModels(res ?? []);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setProbeError(msg);
+      }
+    } else if (provider?.id) {
+      try {
+        setProbeError(null);
+        await queryModels.refetch();
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setProbeError(msg);
       }
     }
-  }, [open, provider, form]);
+  };
+
+  const rawModels = probedModels ?? queryModels.data ?? [];
+  const modelOptions = useMemo(
+    () => rawModels.map((m) => ({ value: m, label: m })),
+    [rawModels],
+  );
+
+  const isLoadingModels = queryModels.isFetching || probeMutation.isPending;
+  const modelError =
+    probeError ||
+    (queryModels.isError
+      ? (queryModels.error instanceof Error
+          ? queryModels.error.message
+          : String(queryModels.error)) || t("common.error")
+      : null);
 
   const handleSubmit = async () => {
     try {
@@ -256,7 +421,6 @@ export function ProviderFormDrawer({
       }
       message?.success(t("common.saved"));
       form.resetFields();
-      onClose();
       onSuccess?.();
     } catch (err: unknown) {
       if (err && typeof err === "object" && "errorFields" in err) {
@@ -273,24 +437,7 @@ export function ProviderFormDrawer({
   };
 
   return (
-    <Drawer
-      title={
-        provider
-          ? t("agent.providers.drawer.editTitle")
-          : t("agent.providers.drawer.createTitle")
-      }
-      open={open}
-      onClose={onClose}
-      destroyOnHidden
-      extra={
-        <Space>
-          <Button onClick={onClose}>{t("common.cancel")}</Button>
-          <Button type="primary" loading={isPending} onClick={handleSubmit}>
-            {t("common.save")}
-          </Button>
-        </Space>
-      }
-    >
+    <Card>
       {generalError && (
         <Alert
           type="error"
@@ -299,7 +446,23 @@ export function ProviderFormDrawer({
           style={{ marginBottom: 16 }}
         />
       )}
-      <Form form={form} layout="vertical">
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          name: provider?.name ?? "",
+          kind: initialKind,
+          baseUrl: provider
+            ? (provider.baseUrl ?? "")
+            : DEFAULT_BASE_URLS_BY_KIND.openai_compat,
+          model: provider?.model ?? "",
+          apiKey: "",
+          capabilities:
+            provider?.capabilities ??
+            DEFAULT_CAPABILITIES_BY_KIND.openai_compat,
+          isDefault: provider?.isDefault ?? false,
+        }}
+      >
         <Form.Item
           name="name"
           label={t("agent.providers.fields.name")}
@@ -325,6 +488,7 @@ export function ProviderFormDrawer({
         >
           <Select
             disabled={Boolean(provider)}
+            onChange={handleKindChange}
             options={[
               {
                 value: "openai_compat",
@@ -343,20 +507,62 @@ export function ProviderFormDrawer({
         </Form.Item>
 
         <Form.Item
-          name="model"
           label={t("agent.providers.fields.model")}
-          rules={[
-            {
-              required: true,
-              message: t("agent.providers.validation.modelRequired"),
-            },
-          ]}
+          required
+          extra={
+            isLoadingModels
+              ? t("agent.providers.models.loading")
+              : t("agent.providers.models.customHint")
+          }
         >
-          <Input />
+          <Space.Compact style={{ width: "100%" }}>
+            <Form.Item
+              name="model"
+              noStyle
+              rules={[
+                {
+                  required: true,
+                  message: t("agent.providers.validation.modelRequired"),
+                },
+              ]}
+            >
+              <AutoComplete
+                options={modelOptions}
+                filterOption={(inputValue, option) =>
+                  (option?.value ?? "")
+                    .toLowerCase()
+                    .includes(inputValue.toLowerCase())
+                }
+                placeholder="e.g. gpt-4o, claude-3-7-sonnet"
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+            <Tooltip title={t("agent.providers.models.refresh")}>
+              <Button
+                icon={<ReloadOutlined spin={isLoadingModels} />}
+                loading={isLoadingModels}
+                onClick={handleRefresh}
+                aria-label={t("agent.providers.models.refresh")}
+              />
+            </Tooltip>
+          </Space.Compact>
+          {modelError && (
+            <Alert
+              type="warning"
+              showIcon
+              message={t("agent.providers.models.loadFailed", {
+                error: modelError,
+              })}
+              style={{ marginTop: 8 }}
+            />
+          )}
         </Form.Item>
 
         <Form.Item name="baseUrl" label={t("agent.providers.fields.baseUrl")}>
-          <Input placeholder="https://api.openai.com/v1" />
+          <Input
+            placeholder={DEFAULT_BASE_URLS_BY_KIND[currentKind]}
+            onChange={handleBaseUrlChange}
+          />
         </Form.Item>
 
         <Form.Item
@@ -414,7 +620,62 @@ export function ProviderFormDrawer({
             <Switch />
           </Form.Item>
         )}
+
+        <Form.Item style={{ marginBottom: 0, marginTop: 16 }}>
+          <Space>
+            {onCancel && (
+              <Button onClick={onCancel}>{t("common.cancel")}</Button>
+            )}
+            <Button type="primary" loading={isPending} onClick={handleSubmit}>
+              {t("common.save")}
+            </Button>
+          </Space>
+        </Form.Item>
       </Form>
+    </Card>
+  );
+}
+
+export type ProviderFormDrawerProps = {
+  open: boolean;
+  onClose: () => void;
+  provider?: ProviderResponse | null;
+  wid?: number;
+  onSuccess?: () => void;
+};
+
+export function ProviderFormDrawer({
+  open,
+  onClose,
+  provider,
+  wid,
+  onSuccess,
+}: ProviderFormDrawerProps): React.ReactElement | null {
+  const { t } = useTranslation();
+
+  return (
+    <Drawer
+      title={
+        provider
+          ? t("agent.providers.drawer.editTitle")
+          : t("agent.providers.drawer.createTitle")
+      }
+      open={open}
+      onClose={onClose}
+      destroyOnHidden
+      footer={null}
+    >
+      {open && (
+        <ProviderForm
+          provider={provider}
+          wid={wid}
+          onCancel={onClose}
+          onSuccess={() => {
+            onClose();
+            onSuccess?.();
+          }}
+        />
+      )}
     </Drawer>
   );
 }
