@@ -1980,6 +1980,11 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "kind": {
+                        "enum": [
+                            "openai_compat",
+                            "anthropic",
+                            "gemini"
+                        ],
                         "type": "string"
                     }
                 },

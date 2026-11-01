@@ -11065,7 +11065,8 @@ export interface components {
     "model.ListModelsRequest": {
       apiKey: string;
       baseUrl?: string;
-      kind: string;
+      /** @enum {string} */
+      kind: "openai_compat" | "anthropic" | "gemini";
     };
     "model.MediaResponse": {
       altText?: string;

@@ -13,16 +13,12 @@ export class AgentProvidersPage extends BasePage {
     return this.page.locator(".ant-table-tbody .ant-table-row");
   }
 
-  get drawer(): Locator {
-    return this.page.locator(".ant-drawer");
-  }
-
   get nameInput(): Locator {
     return this.page.locator("#name");
   }
 
   get kindSelect(): Locator {
-    return this.page.locator(".ant-drawer .ant-select:has(#kind)");
+    return this.page.locator(".ant-select:has(#kind)");
   }
 
   get modelInput(): Locator {
@@ -42,11 +38,11 @@ export class AgentProvidersPage extends BasePage {
   }
 
   get saveButton(): Locator {
-    return this.drawer.getByRole("button", { name: /^save$/i });
+    return this.page.getByRole("button", { name: /^save$/i });
   }
 
   get cancelButton(): Locator {
-    return this.drawer.getByRole("button", { name: /^cancel$/i });
+    return this.page.getByRole("button", { name: /^cancel$/i });
   }
 
   get popconfirmOkButton(): Locator {
@@ -71,7 +67,6 @@ export class AgentProvidersPage extends BasePage {
   async clickAddProvider(): Promise<void> {
     await this.addButton.waitFor({ state: "visible" });
     await this.addButton.click();
-    await this.drawer.waitFor({ state: "visible" });
     await this.nameInput.waitFor({ state: "visible" });
   }
 
@@ -109,7 +104,7 @@ export class AgentProvidersPage extends BasePage {
 
   async submitForm(): Promise<void> {
     await this.saveButton.click();
-    await this.drawer.waitFor({ state: "hidden" });
+    await this.expectProvidersPageLoaded();
   }
 
   async expectProviderInTable(name: string): Promise<void> {
