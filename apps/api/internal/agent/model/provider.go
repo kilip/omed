@@ -43,7 +43,7 @@ type TestResult struct {
 
 // ListModelsRequest defines payload to list models for an ad-hoc configuration.
 type ListModelsRequest struct {
-	Kind    string `json:"kind" validate:"required"`
+	Kind    string `json:"kind" validate:"required,oneof=openai_compat anthropic gemini"`
 	BaseURL string `json:"baseUrl"`
 	APIKey  string `json:"apiKey" validate:"required"`
 }

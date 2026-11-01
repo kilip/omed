@@ -370,6 +370,7 @@ export function ProviderForm({
     } else if (provider?.id) {
       try {
         setProbeError(null);
+        setProbedModels(null);
         await queryModels.refetch();
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -507,8 +508,14 @@ export function ProviderForm({
         </Form.Item>
 
         <Form.Item
+          name="model"
           label={t("agent.providers.fields.model")}
-          required
+          rules={[
+            {
+              required: true,
+              message: t("agent.providers.validation.modelRequired"),
+            },
+          ]}
           extra={
             isLoadingModels
               ? t("agent.providers.models.loading")
@@ -516,16 +523,7 @@ export function ProviderForm({
           }
         >
           <Space.Compact style={{ width: "100%" }}>
-            <Form.Item
-              name="model"
-              noStyle
-              rules={[
-                {
-                  required: true,
-                  message: t("agent.providers.validation.modelRequired"),
-                },
-              ]}
-            >
+            <Form.Item name="model" noStyle>
               <AutoComplete
                 options={modelOptions}
                 filterOption={(inputValue, option) =>
