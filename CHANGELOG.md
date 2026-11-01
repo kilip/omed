@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.9.0](https://github.com/kilip/omed/compare/v0.8.0...v0.9.0) (2026-11-01)
+
+
+### Features
+
+* **agent:** ✨ expose models listing endpoints with authz and tests ([d3aa8b2](https://github.com/kilip/omed/commit/d3aa8b25fe0ca254c60ff4d06a264ac086a8fa2f))
+* **agent:** ✨ implement ListModels and ListModelsConfig in provider service ([839df08](https://github.com/kilip/omed/commit/839df084c4f84981a86a1185a956a4a384d3680a))
+* **api:** ✨ add access token endpoints ([1a68c9c](https://github.com/kilip/omed/commit/1a68c9c6108b79508003fcdcbcd41a1371ecb721))
+* **api:** ✨ add account balance insight service ([91d66cb](https://github.com/kilip/omed/commit/91d66cb5af00e8bdcf31da57b61973ff38f3a3e5))
+* **api:** ✨ add cashflow search insight ([29a233e](https://github.com/kilip/omed/commit/29a233e7d2397266a969b9087ac15b5ff80b64c4))
+* **api:** ✨ add fin period overview insight service ([02391df](https://github.com/kilip/omed/commit/02391dfd6f8bcde9eec60067c46981686840608c))
+* **api:** ✨ add github oauthx driver ([d308860](https://github.com/kilip/omed/commit/d3088606cf0b8a0bbb1aee5062d250bf935e35a0))
+* **api:** ✨ add google oauthx driver ([5d99614](https://github.com/kilip/omed/commit/5d99614085a60aaddba0e3c2b0780edb21dc23ce))
+* **api:** ✨ add ListModels to llmx provider drivers ([f58288f](https://github.com/kilip/omed/commit/f58288fda4bc3e7c3a0868c5273f8db773edfb01))
+* **api:** ✨ add mcp tool registrar on the go sdk ([bf50af8](https://github.com/kilip/omed/commit/bf50af882281efdc9f46deaf3057a1c8af538b26))
+* **api:** ✨ add mcpx fiber handler with bearer token verification ([7d62e02](https://github.com/kilip/omed/commit/7d62e02d041861893f7e44777394297a8cf823ca))
+* **api:** ✨ add oauthx base helper for oauth2 drivers ([c4ca695](https://github.com/kilip/omed/commit/c4ca6958b049a28432fa3bbacb2641cbdfa7ec26))
+* **api:** ✨ add oauthx driver interface and registry ([f5e99aa](https://github.com/kilip/omed/commit/f5e99aa126536971a3adb29cd99fd482531426fc))
+* **api:** ✨ add personal access token schema and repository ([e1098d9](https://github.com/kilip/omed/commit/e1098d9583bee3d6e3798032d2ed7fbcfaf7aae6))
+* **api:** ✨ add personal access token service ([584196a](https://github.com/kilip/omed/commit/584196a7ffd5043ce8dc8e47d7599c9632dc42ba))
+* **api:** ✨ mount mcp endpoint with personal access token auth ([9dba581](https://github.com/kilip/omed/commit/9dba5813861773f5a5f5e9a9071f71e5e8d3e293))
+* **api:** ✨ register fin insight tools with the mcp server ([2407f7b](https://github.com/kilip/omed/commit/2407f7b12f550be17c0a2a56359ee5fec80aeb3a))
+* **deploy:** ✨ move helm chart to ./helm and require secret key ([0763708](https://github.com/kilip/omed/commit/076370884288a6e6d5d1aa5ca66ce43a85379400))
+* **web:** ✨ add access tokens page ([f2d3faf](https://github.com/kilip/omed/commit/f2d3faf27b811a0f508ae935c5c508f1b775df61))
+* **web:** ✨ add dedicated new and edit provider routes replacing drawer ([1fc9609](https://github.com/kilip/omed/commit/1fc960925dee9d6406c63059d903c4dbe3104213))
+* **web:** ✨ add default base URLs, model AutoComplete and auto-fetch to ProviderForm ([28cd83e](https://github.com/kilip/omed/commit/28cd83e3a6aa135890558b37da1b2dfb5e899a2a))
+* **web:** ✨ add provider models query hooks and translation keys ([593667f](https://github.com/kilip/omed/commit/593667fe6674e69a7be3d0f613b00d67389cc692))
+
+
+### Bug Fixes
+
+* **agent:** 🐛 address final review polish for validation and model state ([183c683](https://github.com/kilip/omed/commit/183c683b6c266301912715b94fe8d8dc9a78c9f3))
+* **agent:** 🐛 resolve duplicate model id and ensure unique input selector ([1d07001](https://github.com/kilip/omed/commit/1d07001cac93aee5556abd3e4b6dcbf5754f9ce3))
+* **api:** 🐛 fix account filter matching and verify truncation totals in insight service ([6350642](https://github.com/kilip/omed/commit/63506420cf236bfcdd4519f22279f97403431f93))
+* **api:** 🐛 handle errcheck for close in mcpx handler tests ([d6af5ae](https://github.com/kilip/omed/commit/d6af5ae8b70c61401f87a44dfe98daa99f71f84c))
+* **api:** 🐛 omit tool output schema in sdk to allow custom decimal serialization ([2eb50f5](https://github.com/kilip/omed/commit/2eb50f5f770408b1fc64a69e67b7b8bd8b1d0dbc))
+* **api:** 🐛 return serialized call tool result to skip sdk schema mismatch ([c1a9f08](https://github.com/kilip/omed/commit/c1a9f08fa39271577b392e013ec70bae579f62dc))
+* **api:** 🐛 update go.sum from ent code generation and check cs.Close in tests ([567959a](https://github.com/kilip/omed/commit/567959a70e5de0fb8f3e852503a7b0c299662cca))
+* **e2e:** 🐛 update agent providers page object and regenerate OpenAPI contract ([c83adeb](https://github.com/kilip/omed/commit/c83adeb41a8cfcc717b5b117254aeecb905f93ac))
+
 ## [0.8.0](https://github.com/kilip/omed/compare/v0.7.0...v0.8.0) (2026-10-31)
 
 
