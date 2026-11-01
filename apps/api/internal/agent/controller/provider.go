@@ -19,6 +19,8 @@ type ProviderServiceContract interface {
 	SetDefault(ctx context.Context, id int64) (domain.Provider, error)
 	Test(ctx context.Context, id int64) (model.TestResult, error)
 	TestConfig(ctx context.Context, req model.TestProviderRequest) (model.TestResult, error)
+	ListModels(ctx context.Context, id int64) ([]string, error)
+	ListModelsConfig(ctx context.Context, req model.ListModelsRequest) ([]string, error)
 }
 
 // ProviderController handles HTTP requests for agent provider management.
@@ -258,6 +260,67 @@ func (ctl ProviderController) TestConfig(c fiber.Ctx) error {
 		return err
 	}
 	res, err := ctl.svc.TestConfig(c, req)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, res)
+}
+
+// ListModels lists models for an existing agent provider.
+//
+//	@Summary		List models for provider
+//	@Description	List available models from an existing configured LLM provider
+//	@Tags			Agent Providers
+//	@Produce		json
+//	@Param			wid	path		int	true	"Workspace ID"
+//	@Param			id	path		int	true	"Provider ID"
+//	@Success		200	{object}	httpx.WebResponse[[]string]
+//	@Failure		400	{object}	httpx.ErrorResponse
+//	@Failure		401	{object}	httpx.ErrorResponse
+//	@Failure		403	{object}	httpx.ErrorResponse
+//	@Failure		404	{object}	httpx.ErrorResponse
+//	@Failure		429	{object}	httpx.ErrorResponse
+//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Failure		503	{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/agent/providers/{id}/models [get]
+func (ctl ProviderController) ListModels(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	res, err := ctl.svc.ListModels(c, id)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, res)
+}
+
+// ListModelsConfig probes provider models for an unsaved provider configuration.
+//
+//	@Summary		Probe provider models
+//	@Description	List available models from an unsaved provider configuration
+//	@Tags			Agent Providers
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int						true	"Workspace ID"
+//	@Param			request	body		model.ListModelsRequest	true	"Provider model probe payload"
+//	@Success		200		{object}	httpx.WebResponse[[]string]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		429		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Failure		503		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/agent/providers/models [post]
+func (ctl ProviderController) ListModelsConfig(c fiber.Ctx) error {
+	var req model.ListModelsRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	res, err := ctl.svc.ListModelsConfig(c, req)
 	if err != nil {
 		return err
 	}

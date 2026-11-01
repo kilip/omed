@@ -14,9 +14,11 @@ func initRoutes(mod AgentModule, r fiber.Router, az *authz.Authorizer) {
 	providers.Get("/", az.Require(domain.ObjProvider, "read"), ctl.List)
 	providers.Post("/", az.Require(domain.ObjProvider, "create"), ctl.Create)
 	providers.Post("/test", az.Require(domain.ObjProvider, "create"), ctl.TestConfig)
+	providers.Post("/models", az.Require(domain.ObjProvider, "create"), ctl.ListModelsConfig)
 	providers.Get("/:id", az.Require(domain.ObjProvider, "read"), ctl.Get)
 	providers.Patch("/:id", az.Require(domain.ObjProvider, "update"), ctl.Update)
 	providers.Delete("/:id", az.Require(domain.ObjProvider, "delete"), ctl.Delete)
 	providers.Post("/:id/default", az.Require(domain.ObjProvider, "update"), ctl.SetDefault)
 	providers.Post("/:id/test", az.Require(domain.ObjProvider, "update"), ctl.Test)
+	providers.Get("/:id/models", az.Require(domain.ObjProvider, "read"), ctl.ListModels)
 }

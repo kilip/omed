@@ -2,9 +2,11 @@ package test
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gofiber/fiber/v3"
@@ -25,6 +27,13 @@ func TestProviderSuite(t *testing.T) {
 	suite.Run(t, new(ProviderSuite))
 }
 
+func TestProvider_ListModels(t *testing.T) {
+	if f := flag.Lookup("test.run"); f == nil || f.Value.String() == "" {
+		t.Skip("skipping duplicate suite run when no -run filter is specified")
+	}
+	suite.Run(t, new(ProviderSuite))
+}
+
 func (s *ProviderSuite) SetupSuite() {
 	s.fakeServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if s.authFail || r.Header.Get("Authorization") == "Bearer bad-key" {
@@ -34,6 +43,19 @@ func (s *ProviderSuite) SetupSuite() {
 					"message": "Invalid API key",
 					"type":    "invalid_request_error",
 					"code":    "invalid_api_key",
+				},
+			})
+			return
+		}
+
+		if strings.HasSuffix(r.URL.Path, "/models") {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"object": "list",
+				"data": []map[string]any{
+					{"id": "gpt-4o", "object": "model"},
+					{"id": "gpt-4o-mini", "object": "model"},
 				},
 			})
 			return
@@ -187,12 +209,28 @@ func (s *ProviderSuite) TestPermissionMatrix() {
 	s.SessionToken = ""
 	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers", ws.ID), fiber.MethodGet, nil)
 	s.AssertStatus(fiber.StatusUnauthorized)
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/models", ws.ID), fiber.MethodPost, model.ListModelsRequest{
+		Kind:    "openai_compat",
+		BaseURL: s.fakeServer.URL,
+		APIKey:  "k1",
+	})
+	s.AssertStatus(fiber.StatusUnauthorized)
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d/models", ws.ID, provider.ID), fiber.MethodGet, nil)
+	s.AssertStatus(fiber.StatusUnauthorized)
 
 	// 2. Member with no role -> 403
 	norole := s.AsUser("norole-prov@example.com", "No Role User")
 	s.AddMember(ws.ID, norole.ID)
 
 	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers", ws.ID), fiber.MethodGet, nil)
+	s.AssertStatus(fiber.StatusForbidden)
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/models", ws.ID), fiber.MethodPost, model.ListModelsRequest{
+		Kind:    "openai_compat",
+		BaseURL: s.fakeServer.URL,
+		APIKey:  "k1",
+	})
+	s.AssertStatus(fiber.StatusForbidden)
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d/models", ws.ID, provider.ID), fiber.MethodGet, nil)
 	s.AssertStatus(fiber.StatusForbidden)
 	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers", ws.ID), fiber.MethodPost, model.CreateProviderRequest{
 		Name:    "Fail",
@@ -231,11 +269,31 @@ func (s *ProviderSuite) TestPermissionMatrix() {
 	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d/test", ws.ID, provider.ID), fiber.MethodPost, nil)
 	s.AssertStatus(fiber.StatusForbidden)
 
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d/models", ws.ID, provider.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/models", ws.ID), fiber.MethodPost, model.ListModelsRequest{
+		Kind:    "openai_compat",
+		BaseURL: s.fakeServer.URL,
+		APIKey:  "k",
+	})
+	s.AssertStatus(fiber.StatusForbidden)
+
 	// 4. Admin role: all operations ok
 	admin := s.AsUser("admin-prov@example.com", "Admin User")
 	s.AddMember(ws.ID, admin.ID, domain.RoleAdmin)
 
 	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d", ws.ID, provider.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d/models", ws.ID, provider.ID), fiber.MethodGet, nil)
+	s.OK()
+
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/models", ws.ID), fiber.MethodPost, model.ListModelsRequest{
+		Kind:    "openai_compat",
+		BaseURL: s.fakeServer.URL,
+		APIKey:  "k",
+	})
 	s.OK()
 
 	adminUpdatedName := "Admin Update"
@@ -329,6 +387,24 @@ func (s *ProviderSuite) TestKeyNeverInAnyResponse() {
 	updated := respUpdate.Data
 	s.True(updated.HasKey)
 	s.Equal("9999", updated.KeyHint)
+
+	// ListModels (existing)
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d/models", ws.ID, created.ID), fiber.MethodGet, nil)
+	s.OK()
+	respModels := testutil.DecodeOther[[]string](s)
+	bModels, _ := json.Marshal(respModels)
+	s.NotContains(string(bModels), rawKey)
+
+	// ListModelsConfig
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/models", ws.ID), fiber.MethodPost, model.ListModelsRequest{
+		Kind:    "openai_compat",
+		BaseURL: s.fakeServer.URL,
+		APIKey:  rawKey,
+	})
+	s.OK()
+	respConfigModels := testutil.DecodeOther[[]string](s)
+	bConfigModels, _ := json.Marshal(respConfigModels)
+	s.NotContains(string(bConfigModels), rawKey)
 }
 
 func (s *ProviderSuite) TestTestEndpointOK() {
@@ -428,6 +504,51 @@ func (s *ProviderSuite) TestUpdateBaseURLWithoutKey422() {
 	newURL := "http://127.0.0.1:9999/v1"
 	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d", ws.ID, p.ID), fiber.MethodPatch, model.UpdateProviderRequest{
 		BaseURL: &newURL,
+	})
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+}
+
+func (s *ProviderSuite) TestProvider_ListModels_ExistingAndConfig() {
+	ws := s.ensureWorkspace("Provider ListModels WS", s.User.ID)
+
+	// 1. POST /workspaces/:wid/agent/providers/models with valid payload -> 200 OK with []string
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/models", ws.ID), fiber.MethodPost, model.ListModelsRequest{
+		Kind:    "openai_compat",
+		BaseURL: s.fakeServer.URL,
+		APIKey:  "valid-key",
+	})
+	s.OK()
+	modelsResp := testutil.DecodeOther[[]string](s).Data
+	s.Equal([]string{"gpt-4o", "gpt-4o-mini"}, modelsResp)
+
+	// 2. GET /workspaces/:wid/agent/providers/:id/models -> 200 OK with []string
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers", ws.ID), fiber.MethodPost, model.CreateProviderRequest{
+		Name:    "Saved Models Provider",
+		Kind:    "openai_compat",
+		BaseURL: s.fakeServer.URL,
+		Model:   "gpt-4o-mini",
+		APIKey:  "valid-key",
+	})
+	s.Created()
+	created := s.GetResponse().Data
+
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/%d/models", ws.ID, created.ID), fiber.MethodGet, nil)
+	s.OK()
+	savedModelsResp := testutil.DecodeOther[[]string](s).Data
+	s.Equal([]string{"gpt-4o", "gpt-4o-mini"}, savedModelsResp)
+
+	// 3. POST /workspaces/:wid/agent/providers/models with blocked URL -> 422 or 400
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/models", ws.ID), fiber.MethodPost, model.ListModelsRequest{
+		Kind:    "openai_compat",
+		BaseURL: "ftp://127.0.0.1:9999",
+		APIKey:  "valid-key",
+	})
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	// Missing required fields -> 422 (validation error)
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/providers/models", ws.ID), fiber.MethodPost, model.ListModelsRequest{
+		Kind:   "",
+		APIKey: "",
 	})
 	s.AssertStatus(fiber.StatusUnprocessableEntity)
 }
