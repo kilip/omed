@@ -15,6 +15,8 @@ export type UpdateProviderRequest =
   components["schemas"]["model.UpdateProviderRequest"];
 export type TestProviderRequest =
   components["schemas"]["model.TestProviderRequest"];
+export type ListModelsRequest =
+  components["schemas"]["model.ListModelsRequest"];
 export type TestResult = components["schemas"]["model.TestResult"];
 export type Capabilities = components["schemas"]["llmx.Capabilities"];
 
@@ -24,6 +26,8 @@ export const agentKeys = {
     ["agent", "workspaces", wid, "providers"] as const,
   provider: (wid: number, id: number) =>
     ["agent", "workspaces", wid, "providers", id] as const,
+  providerModels: (wid: number, id: number) =>
+    ["agent", "workspaces", wid, "providers", id, "models"] as const,
 };
 
 export const providersQueryOptions = (wid: number) =>
@@ -43,6 +47,17 @@ export const providerQueryOptions = (wid: number, id: number) =>
     queryFn: () =>
       unwrapOne(
         api.GET("/workspaces/{wid}/agent/providers/{id}", {
+          params: { path: { wid, id } },
+        }),
+      ),
+  });
+
+export const providerModelsQueryOptions = (wid: number, id: number) =>
+  queryOptions({
+    queryKey: agentKeys.providerModels(wid, id),
+    queryFn: () =>
+      unwrapList(
+        api.GET("/workspaces/{wid}/agent/providers/{id}/models", {
           params: { path: { wid, id } },
         }),
       ),
@@ -158,6 +173,28 @@ export function useTestProviderConfig(wid?: number) {
     mutationFn: (body: TestProviderRequest) =>
       unwrapOne(
         api.POST("/workspaces/{wid}/agent/providers/test", {
+          params: { path: { wid: resolvedWid } },
+          body,
+        }),
+      ),
+  });
+}
+
+export function useProviderModels(wid?: number, providerId?: number) {
+  const resolvedWid = useResolvedWid(wid);
+  return useQuery({
+    ...providerModelsQueryOptions(resolvedWid, providerId ?? 0),
+    enabled: Boolean(resolvedWid && providerId),
+  });
+}
+
+export function useProbeProviderModels(wid?: number) {
+  const resolvedWid = useResolvedWid(wid);
+
+  return useMutation({
+    mutationFn: (body: ListModelsRequest) =>
+      unwrapList(
+        api.POST("/workspaces/{wid}/agent/providers/models", {
           params: { path: { wid: resolvedWid } },
           body,
         }),

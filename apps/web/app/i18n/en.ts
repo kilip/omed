@@ -858,6 +858,16 @@ export const en = {
         createTitle: "Add Provider",
         editTitle: "Edit Provider",
       },
+      routes: {
+        createTitle: "Add Provider",
+        editTitle: "Edit Provider",
+      },
+      models: {
+        loading: "Loading models...",
+        loadFailed: "Failed to load models: {{error}}",
+        refresh: "Refresh models",
+        customHint: "Select from list or type custom model name",
+      },
       test: {
         success: "Connection successful ({{latency}}ms)",
         testing: "Testing connection...",

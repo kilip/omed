@@ -863,6 +863,16 @@ export const id: Translation = {
         createTitle: "Tambah Penyedia",
         editTitle: "Ubah Penyedia",
       },
+      routes: {
+        createTitle: "Tambah Penyedia",
+        editTitle: "Ubah Penyedia",
+      },
+      models: {
+        loading: "Memuat model...",
+        loadFailed: "Gagal memuat model: {{error}}",
+        refresh: "Segarkan model",
+        customHint: "Pilih dari daftar atau ketik nama model kustom",
+      },
       test: {
         success: "Koneksi berhasil ({{latency}}ms)",
         testing: "Menguji koneksi...",
