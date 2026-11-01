@@ -22,7 +22,7 @@ export class AgentProvidersPage extends BasePage {
   }
 
   get modelInput(): Locator {
-    return this.page.locator("#model");
+    return this.page.locator("input#model");
   }
 
   get baseUrlInput(): Locator {

@@ -508,14 +508,8 @@ export function ProviderForm({
         </Form.Item>
 
         <Form.Item
-          name="model"
           label={t("agent.providers.fields.model")}
-          rules={[
-            {
-              required: true,
-              message: t("agent.providers.validation.modelRequired"),
-            },
-          ]}
+          required
           extra={
             isLoadingModels
               ? t("agent.providers.models.loading")
@@ -523,7 +517,16 @@ export function ProviderForm({
           }
         >
           <Space.Compact style={{ width: "100%" }}>
-            <Form.Item name="model" noStyle>
+            <Form.Item
+              name="model"
+              noStyle
+              rules={[
+                {
+                  required: true,
+                  message: t("agent.providers.validation.modelRequired"),
+                },
+              ]}
+            >
               <AutoComplete
                 options={modelOptions}
                 filterOption={(inputValue, option) =>
