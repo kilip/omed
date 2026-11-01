@@ -85,7 +85,7 @@ func Test_Handler_ValidToken_ListToolsAndCallSeeUser(t *testing.T) {
 
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	go func() {
 		_ = app.Listener(ln)
@@ -106,7 +106,7 @@ func Test_Handler_ValidToken_ListToolsAndCallSeeUser(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(context.Background(), clientTransport, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	listRes, err := cs.ListTools(context.Background(), nil)
 	require.NoError(t, err)
@@ -196,7 +196,7 @@ func Test_Handler_AuthorizationVariants_Return401Generic(t *testing.T) {
 
 			resp, err := app.Test(req)
 			require.NoError(t, err)
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, tt.expectStatus, resp.StatusCode)
 
@@ -246,7 +246,7 @@ func Test_Handler_ExpiredToken_Returns401WithLink(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 
@@ -312,7 +312,7 @@ func Test_Handler_InvalidAndUnknownVerifierErrors_Return401Generic(t *testing.T)
 
 			resp, err := app.Test(req)
 			require.NoError(t, err)
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 			require.Equal(t, `Bearer error="invalid_token"`, resp.Header.Get("WWW-Authenticate"))
@@ -364,7 +364,7 @@ func Test_Handler_SessionCookieOnly_Returns401(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.Equal(t, int32(0), atomic.LoadInt32(&verifierCalls))
@@ -410,7 +410,7 @@ func Test_Handler_NeverLogsToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	logs := logBuf.String()
 	require.NotEmpty(t, logs)
