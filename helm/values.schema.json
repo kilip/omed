@@ -120,6 +120,26 @@
               "type": "object",
               "properties": { "enabled": { "type": "boolean" } }
             },
+            "otp": {
+              "type": "object",
+              "properties": {
+                "length": {
+                  "type": "integer",
+                  "minimum": 6,
+                  "maximum": 10
+                },
+                "ttl": { "type": "string" },
+                "maxAttempts": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "resendCooldown": { "type": "string" },
+                "hourlyLimit": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
             "llmAllowPrivateURLs": { "type": "boolean" }
           }
         },

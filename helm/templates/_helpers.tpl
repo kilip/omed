@@ -191,6 +191,16 @@ Non-secret env vars shared by the api Deployment and the migration Job.
   value: {{ $c.cmsMedia.allowedTypes | quote }}
 - name: OMED_RATE_LIMIT_ENABLED
   value: {{ $c.rateLimit.enabled | quote }}
+- name: OMED_OTP_LENGTH
+  value: {{ $c.otp.length | quote }}
+- name: OMED_OTP_TTL
+  value: {{ $c.otp.ttl | quote }}
+- name: OMED_OTP_MAX_ATTEMPTS
+  value: {{ $c.otp.maxAttempts | quote }}
+- name: OMED_OTP_RESEND_COOLDOWN
+  value: {{ $c.otp.resendCooldown | quote }}
+- name: OMED_OTP_HOURLY_LIMIT
+  value: {{ $c.otp.hourlyLimit | quote }}
 - name: OMED_LLM_ALLOW_PRIVATE_URLS
   value: {{ $c.llmAllowPrivateURLs | quote }}
 {{- with .Values.api.extraEnv }}

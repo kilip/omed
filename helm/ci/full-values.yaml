@@ -20,6 +20,12 @@ api:
       host: smtp.example.com
     s3:
       endpoint: https://s3.example.com
+    otp:
+      length: 6
+      ttl: 10m
+      maxAttempts: 5
+      resendCooldown: 60s
+      hourlyLimit: 5
     llmAllowPrivateURLs: true
   extraEnv:
     - name: OMED_READ_TIMEOUT

@@ -88,6 +88,12 @@ api:
       allowedTypes: .png,.jpg,.jpeg,.webp,.gif,.pdf
     rateLimit:
       enabled: true
+    otp:
+      length: 6
+      ttl: 10m
+      maxAttempts: 5
+      resendCooldown: 60s
+      hourlyLimit: 5
     # -- OMED_LLM_ALLOW_PRIVATE_URLS. Allow private / loopback IP addresses for custom LLM endpoints.
     llmAllowPrivateURLs: false
   # -- Extra env vars for the api container (and migration Job).
