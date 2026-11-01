@@ -154,7 +154,7 @@ func Test_ListTools_ReadOnlyHintAndRequiredWorkspaceID(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	listRes, err := cs.ListTools(ctx, nil)
 	require.NoError(t, err)

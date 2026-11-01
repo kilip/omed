@@ -102,7 +102,7 @@ func Test_Call_NonMember_ReturnsNotFoundToolError(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_balance",
@@ -153,7 +153,7 @@ func Test_Call_MissingOnePermission_ReturnsForbidden(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_cashflow",
@@ -195,7 +195,7 @@ func Test_Call_WorkspaceIDMissing_ReturnsValidationMessage(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_balance",
@@ -238,7 +238,7 @@ func Test_Call_NoUser_ReturnsUnauthorized(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_balance",
@@ -294,7 +294,7 @@ func Test_Call_Success_ContextCarriesMembership(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_balance",
@@ -348,7 +348,7 @@ func Test_Call_UnknownError_IsGenericAndLogged(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_balance",
@@ -412,7 +412,7 @@ func Test_Call_ErrorDetailer_AppendedToMessage(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_balance",
@@ -469,7 +469,7 @@ func Test_Call_OversizeResult_IsShrunkAndFlagged(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_balance",
@@ -527,7 +527,7 @@ func Test_Call_OversizeNotShrinkable_ReturnsResultTooLarge(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "1.0.0"}, nil)
 	cs, err := client.Connect(ctx, ct, nil)
 	require.NoError(t, err)
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	callRes, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "fin_balance",
