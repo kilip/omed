@@ -368,6 +368,42 @@ func (s *FiberSuite) Test_GetFiber_RateLimiting_Sensitive_Auth() {
 	s.Equal(fiber.StatusTooManyRequests, resp3.StatusCode)
 }
 
+func (s *FiberSuite) Test_SensitiveRoute_OTPRequest_RateLimited() {
+	cfg := config.Config{
+		RateLimitEnabled:             true,
+		Env:                          "production",
+		RateLimitGeneralMax:          100,
+		RateLimitGeneralExpiration:   1 * time.Minute,
+		RateLimitSensitiveMax:        2,
+		RateLimitSensitiveExpiration: 1 * time.Minute,
+	}
+	app := config.GetFiber(cfg, s.logger)
+	app.Post("/auth/otp/request", func(c fiber.Ctx) error {
+		return c.SendString("otp request ok")
+	})
+
+	// 1st request -> 200
+	req1 := httptest.NewRequest(fiber.MethodPost, "/auth/otp/request", nil)
+	resp1, err := app.Test(req1)
+	s.Require().NoError(err)
+	_ = resp1.Body.Close()
+	s.Equal(fiber.StatusOK, resp1.StatusCode)
+
+	// 2nd request -> 200
+	req2 := httptest.NewRequest(fiber.MethodPost, "/auth/otp/request", nil)
+	resp2, err := app.Test(req2)
+	s.Require().NoError(err)
+	_ = resp2.Body.Close()
+	s.Equal(fiber.StatusOK, resp2.StatusCode)
+
+	// 3rd request -> 429
+	req3 := httptest.NewRequest(fiber.MethodPost, "/auth/otp/request", nil)
+	resp3, err := app.Test(req3)
+	s.Require().NoError(err)
+	defer func() { _ = resp3.Body.Close() }()
+	s.Equal(fiber.StatusTooManyRequests, resp3.StatusCode)
+}
+
 func (s *FiberSuite) Test_GetFiber_RateLimiting_Sensitive_Invitations() {
 	cfg := config.Config{
 		RateLimitEnabled:             true,
