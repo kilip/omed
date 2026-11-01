@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +24,9 @@ import (
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/core/repository"
 	"github.com/kilip/omed/api/internal/core/service"
+	"github.com/kilip/omed/api/internal/platform/oauthx"
+	"github.com/kilip/omed/api/internal/platform/oauthx/github"
+	"github.com/kilip/omed/api/internal/platform/oauthx/google"
 	"github.com/kilip/omed/api/testutil"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/oauth2"
@@ -35,8 +39,55 @@ type OAuthServiceSuite struct {
 	accountRepo repository.AccountRepository
 	sessionSvc  service.SessionService
 	oauthSvc    service.OAuthService
+	registry    *oauthx.Registry
 	mockServer  *httptest.Server
 	ctx         context.Context
+}
+
+func (s *OAuthServiceSuite) useGoogle(userInfoPath string) {
+	s.registry.Register(google.New(
+		google.Config{
+			ClientID:     "mock-google-id",
+			ClientSecret: "mock-google-secret",
+			HTTPClient:   s.mockServer.Client(),
+		},
+		google.WithEndpoint(oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token",
+		}),
+		google.WithUserInfoURL(s.mockServer.URL+userInfoPath),
+	))
+}
+
+func (s *OAuthServiceSuite) useGithub(userInfoPath, emailsPath string) {
+	opts := []github.Option{
+		github.WithEndpoint(oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token",
+		}),
+		github.WithUserInfoURL(s.mockServer.URL + userInfoPath),
+	}
+	if emailsPath != "" {
+		opts = append(opts, github.WithEmailsURL(s.mockServer.URL+emailsPath))
+	}
+	s.registry.Register(github.New(
+		github.Config{
+			ClientID:     "mock-github-id",
+			ClientSecret: "mock-github-secret",
+			HTTPClient:   s.mockServer.Client(),
+		},
+		opts...,
+	))
+}
+
+func (s *OAuthServiceSuite) signedState(claims model.OAuthStateClaims) string {
+	data, err := json.Marshal(claims)
+	s.Require().NoError(err)
+	payload := base64.RawURLEncoding.EncodeToString(data)
+	mac := hmac.New(sha256.New, []byte("test-secret-key-at-least-32-bytes-long"))
+	mac.Write([]byte(payload))
+	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	return fmt.Sprintf("%s.%s", payload, sig)
 }
 
 func (s *OAuthServiceSuite) SetupSuite() {
@@ -58,6 +109,15 @@ func (s *OAuthServiceSuite) SetupSuite() {
 				"refresh_token": "mock-refresh-token-456",
 				"expires_in":    3600,
 			})
+		case "/token-error":
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"error": "invalid_grant",
+			})
+		case "/userinfo/error":
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte("internal server error"))
 		case "/userinfo/google":
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]any{
@@ -158,6 +218,8 @@ func (s *OAuthServiceSuite) SetupSuite() {
 		}
 	}))
 
+	s.registry = oauthx.NewRegistry()
+
 	s.oauthSvc = service.NewOAuthService(service.OAuthServiceParams{
 		Accounts:       s.accountRepo,
 		Users:          s.userRepo,
@@ -165,41 +227,11 @@ func (s *OAuthServiceSuite) SetupSuite() {
 		AuthSecret:     "test-secret-key-at-least-32-bytes-long",
 		ApiURL:         "http://localhost:8001",
 		TrustedOrigins: []string{"http://localhost:3000", "https://app.example.com"},
-		GoogleID:       "mock-google-id",
-		GoogleSecret:   "mock-google-secret",
-		GithubID:       "mock-github-id",
-		GithubSecret:   "mock-github-secret",
-		HTTPClient:     s.mockServer.Client(),
+		Drivers:        s.registry,
 	})
 
-	// Override Google provider endpoints to point to mock server
-	if svcWithReg, ok := s.oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	}); ok {
-		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-			ID:           domain.ProviderGoogle,
-			ClientID:     "mock-google-id",
-			ClientSecret: "mock-google-secret",
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  s.mockServer.URL + "/auth",
-				TokenURL: s.mockServer.URL + "/token",
-			},
-			Scopes:      []string{"openid", "email"},
-			UserInfoURL: s.mockServer.URL + "/userinfo/google",
-		})
-		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-			ID:           domain.ProviderGithub,
-			ClientID:     "mock-github-id",
-			ClientSecret: "mock-github-secret",
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  s.mockServer.URL + "/auth",
-				TokenURL: s.mockServer.URL + "/token",
-			},
-			Scopes:      []string{"read:user", "user:email"},
-			UserInfoURL: s.mockServer.URL + "/userinfo/github",
-			EmailsURL:   s.mockServer.URL + "/userinfo/github/emails",
-		})
-	}
+	s.useGoogle("/userinfo/google")
+	s.useGithub("/userinfo/github", "/userinfo/github/emails")
 }
 
 func (s *OAuthServiceSuite) TearDownSuite() {
@@ -219,33 +251,8 @@ func (s *OAuthServiceSuite) SetupTest() {
 	_, _ = s.client.Workspace.Delete().Exec(ctx)
 	_, _ = s.client.User.Delete().Exec(ctx)
 
-	if svcWithReg, ok := s.oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	}); ok {
-		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-			ID:           domain.ProviderGoogle,
-			ClientID:     "mock-google-id",
-			ClientSecret: "mock-google-secret",
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  s.mockServer.URL + "/auth",
-				TokenURL: s.mockServer.URL + "/token",
-			},
-			Scopes:      []string{"openid", "email"},
-			UserInfoURL: s.mockServer.URL + "/userinfo/google",
-		})
-		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-			ID:           domain.ProviderGithub,
-			ClientID:     "mock-github-id",
-			ClientSecret: "mock-github-secret",
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  s.mockServer.URL + "/auth",
-				TokenURL: s.mockServer.URL + "/token",
-			},
-			Scopes:      []string{"read:user", "user:email"},
-			UserInfoURL: s.mockServer.URL + "/userinfo/github",
-			EmailsURL:   s.mockServer.URL + "/userinfo/github/emails",
-		})
-	}
+	s.useGoogle("/userinfo/google")
+	s.useGithub("/userinfo/github", "/userinfo/github/emails")
 }
 
 func (s *OAuthServiceSuite) Test_GetAuthURL_Success() {
@@ -259,6 +266,16 @@ func (s *OAuthServiceSuite) Test_GetAuthURL_Success() {
 	s.Contains(res.URL, s.mockServer.URL+"/auth")
 	s.Contains(res.URL, "client_id=mock-google-id")
 	s.Contains(res.URL, "state=")
+	s.Contains(res.URL, "redirect_uri=http%3A%2F%2Flocalhost%3A8001%2Fauth%2Fcallback%2Fgoogle")
+}
+
+func (s *OAuthServiceSuite) Test_GetAuthURL_EmptyOrMiscasedProvider() {
+	for _, p := range []string{"", "GOOGLE", "Google", "GITHUB"} {
+		_, err := s.oauthSvc.GetAuthURL(model.SignInSocialRequest{
+			Provider: p,
+		})
+		s.Require().ErrorIs(err, domain.ErrInvalidProvider)
+	}
 }
 
 func (s *OAuthServiceSuite) Test_GetAuthURL_UntrustedCallbackURL() {
@@ -274,6 +291,39 @@ func (s *OAuthServiceSuite) Test_GetAuthURL_InvalidProvider() {
 	_, err := s.oauthSvc.GetAuthURL(model.SignInSocialRequest{
 		Provider: "unsupported-provider",
 	})
+	s.Require().ErrorIs(err, domain.ErrInvalidProvider)
+}
+
+func (s *OAuthServiceSuite) Test_NewOAuthService_NilDrivers_RejectsAllProviders() {
+	svc := service.NewOAuthService(service.OAuthServiceParams{
+		Accounts:   s.accountRepo,
+		Users:      s.userRepo,
+		Sessions:   s.sessionSvc,
+		AuthSecret: "test-secret-key-at-least-32-bytes-long",
+		ApiURL:     "http://localhost:8001",
+		Drivers:    nil,
+	})
+
+	_, err := svc.GetAuthURL(model.SignInSocialRequest{
+		Provider: domain.ProviderGoogle,
+	})
+	s.Require().ErrorIs(err, domain.ErrInvalidProvider)
+
+	state := s.signedState(model.OAuthStateClaims{
+		Nonce:     "valid-nonce",
+		Provider:  domain.ProviderGoogle,
+		ExpiresAt: time.Now().Add(10 * time.Minute).Unix(),
+	})
+
+	_, _, _, err = svc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"valid-nonce",
+		"127.0.0.1",
+		"TestBrowser",
+	)
 	s.Require().ErrorIs(err, domain.ErrInvalidProvider)
 }
 
@@ -347,24 +397,14 @@ func (s *OAuthServiceSuite) Test_HandleCallback_NonceValidation() {
 }
 
 func (s *OAuthServiceSuite) Test_HandleCallback_UntrustedCallbackURL() {
-	// Attacker crafts or manipulates state with an untrusted external callback URL
-	claims := model.OAuthStateClaims{
+	state := s.signedState(model.OAuthStateClaims{
 		Nonce:       "attacker-nonce",
 		Provider:    domain.ProviderGoogle,
 		CallbackURL: "https://evil.attacker.com/steal-token",
 		ExpiresAt:   time.Now().Add(10 * time.Minute).Unix(),
-	}
-	data, err := json.Marshal(claims)
-	s.Require().NoError(err)
-	payload := base64.RawURLEncoding.EncodeToString(data)
+	})
 
-	// HMAC sign with auth secret
-	mac := hmac.New(sha256.New, []byte("test-secret-key-at-least-32-bytes-long"))
-	mac.Write([]byte(payload))
-	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
-	state := fmt.Sprintf("%s.%s", payload, sig)
-
-	_, _, _, err = s.oauthSvc.HandleCallback(
+	_, _, _, err := s.oauthSvc.HandleCallback(
 		s.ctx,
 		domain.ProviderGoogle,
 		"mock-code-123",
@@ -377,20 +417,12 @@ func (s *OAuthServiceSuite) Test_HandleCallback_UntrustedCallbackURL() {
 }
 
 func (s *OAuthServiceSuite) Test_HandleCallback_TrustedExternalCallbackURL() {
-	claims := model.OAuthStateClaims{
+	state := s.signedState(model.OAuthStateClaims{
 		Nonce:       "valid-nonce",
 		Provider:    domain.ProviderGoogle,
 		CallbackURL: "https://app.example.com/welcome",
 		ExpiresAt:   time.Now().Add(10 * time.Minute).Unix(),
-	}
-	data, err := json.Marshal(claims)
-	s.Require().NoError(err)
-	payload := base64.RawURLEncoding.EncodeToString(data)
-
-	mac := hmac.New(sha256.New, []byte("test-secret-key-at-least-32-bytes-long"))
-	mac.Write([]byte(payload))
-	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
-	state := fmt.Sprintf("%s.%s", payload, sig)
+	})
 
 	_, _, redirectURL, err := s.oauthSvc.HandleCallback(
 		s.ctx,
@@ -554,20 +586,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_Google_UnverifiedEmail_Rejected(
 	s.Require().NoError(err)
 
 	// Override Google provider to return unverified profile
-	svcWithReg := s.oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	})
-	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-		ID:           domain.ProviderGoogle,
-		ClientID:     "mock-google-id",
-		ClientSecret: "mock-google-secret",
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  s.mockServer.URL + "/auth",
-			TokenURL: s.mockServer.URL + "/token",
-		},
-		Scopes:      []string{"openid", "email"},
-		UserInfoURL: s.mockServer.URL + "/userinfo/google-unverified",
-	})
+	s.useGoogle("/userinfo/google-unverified")
 
 	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,
@@ -602,20 +621,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_Google_VerifiedEmail_Success() {
 	s.Require().NoError(err)
 
 	// Override Google provider to return verified profile
-	svcWithReg := s.oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	})
-	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-		ID:           domain.ProviderGoogle,
-		ClientID:     "mock-google-id",
-		ClientSecret: "mock-google-secret",
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  s.mockServer.URL + "/auth",
-			TokenURL: s.mockServer.URL + "/token",
-		},
-		Scopes:      []string{"openid", "email"},
-		UserInfoURL: s.mockServer.URL + "/userinfo/google-verified",
-	})
+	s.useGoogle("/userinfo/google-verified")
 
 	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,
@@ -653,21 +659,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_UnverifiedEmail_Rejected(
 	s.Require().NoError(err)
 
 	// Override GitHub provider to return unverified profile
-	svcWithReg := s.oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	})
-	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-		ID:           domain.ProviderGithub,
-		ClientID:     "mock-github-id",
-		ClientSecret: "mock-github-secret",
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  s.mockServer.URL + "/auth",
-			TokenURL: s.mockServer.URL + "/token",
-		},
-		Scopes:      []string{"read:user", "user:email"},
-		UserInfoURL: s.mockServer.URL + "/userinfo/github-unverified",
-		EmailsURL:   s.mockServer.URL + "/userinfo/github-unverified/emails",
-	})
+	s.useGithub("/userinfo/github-unverified", "/userinfo/github-unverified/emails")
 
 	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGithub,
@@ -702,21 +694,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_VerifiedEmail_Success() {
 	s.Require().NoError(err)
 
 	// Override GitHub provider to return verified profile
-	svcWithReg := s.oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	})
-	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-		ID:           domain.ProviderGithub,
-		ClientID:     "mock-github-id",
-		ClientSecret: "mock-github-secret",
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  s.mockServer.URL + "/auth",
-			TokenURL: s.mockServer.URL + "/token",
-		},
-		Scopes:      []string{"read:user", "user:email"},
-		UserInfoURL: s.mockServer.URL + "/userinfo/github-verified",
-		EmailsURL:   s.mockServer.URL + "/userinfo/github-verified/emails",
-	})
+	s.useGithub("/userinfo/github-verified", "/userinfo/github-verified/emails")
 
 	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGithub,
@@ -744,20 +722,7 @@ func (s *OAuthServiceSuite) Test_AccountLinking_GitHub_VerifiedEmail_Success() {
 }
 
 func (s *OAuthServiceSuite) Test_AccountLinking_NewUser_UnverifiedEmail_Rejected() {
-	svcWithReg := s.oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	})
-	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-		ID:           domain.ProviderGoogle,
-		ClientID:     "mock-google-id",
-		ClientSecret: "mock-google-secret",
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  s.mockServer.URL + "/auth",
-			TokenURL: s.mockServer.URL + "/token",
-		},
-		Scopes:      []string{"openid", "email"},
-		UserInfoURL: s.mockServer.URL + "/userinfo/google-unverified",
-	})
+	s.useGoogle("/userinfo/google-unverified")
 
 	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,
@@ -781,40 +746,88 @@ func (s *OAuthServiceSuite) Test_AccountLinking_NewUser_UnverifiedEmail_Rejected
 	s.Require().Error(err)
 }
 
-func (s *OAuthServiceSuite) Test_FetchGithubEmail_PicksVerifiedNonPrimaryWhenPrimaryUnverified() {
-	svcWithReg := s.oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	})
-	svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-		ID:           domain.ProviderGithub,
-		ClientID:     "mock-github-id",
-		ClientSecret: "mock-github-secret",
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  s.mockServer.URL + "/auth",
-			TokenURL: s.mockServer.URL + "/token",
+func (s *OAuthServiceSuite) Test_HandleCallback_TokenEndpointRejects_ReturnsExchangeFailed() {
+	s.registry.Register(google.New(
+		google.Config{
+			ClientID:     "mock-google-id",
+			ClientSecret: "mock-google-secret",
+			HTTPClient:   s.mockServer.Client(),
 		},
-		Scopes:      []string{"read:user", "user:email"},
-		UserInfoURL: s.mockServer.URL + "/userinfo/github-fallback",
-		EmailsURL:   s.mockServer.URL + "/userinfo/github-fallback/emails",
+		google.WithEndpoint(oauth2.Endpoint{
+			AuthURL:  s.mockServer.URL + "/auth",
+			TokenURL: s.mockServer.URL + "/token-error",
+		}),
+		google.WithUserInfoURL(s.mockServer.URL+"/userinfo/google"),
+	))
+
+	state := s.signedState(model.OAuthStateClaims{
+		Nonce:     "valid-nonce",
+		Provider:  domain.ProviderGoogle,
+		ExpiresAt: time.Now().Add(10 * time.Minute).Unix(),
 	})
 
-	state, nonce := s.getStateAndNonce(model.SignInSocialRequest{
-		Provider:    domain.ProviderGithub,
-		CallbackURL: "http://localhost:3000/dashboard",
-	})
-
-	sess, user, _, err := s.oauthSvc.HandleCallback(
+	_, _, _, err := s.oauthSvc.HandleCallback(
 		s.ctx,
-		domain.ProviderGithub,
+		domain.ProviderGoogle,
 		"mock-code-123",
 		state,
-		nonce,
+		"valid-nonce",
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, domain.ErrOAuthExchangeFailed)
+}
+
+func (s *OAuthServiceSuite) Test_HandleCallback_UserInfo5xx_ReturnsFetchUserInfoFailed() {
+	s.useGoogle("/userinfo/error")
+
+	state := s.signedState(model.OAuthStateClaims{
+		Nonce:     "valid-nonce",
+		Provider:  domain.ProviderGoogle,
+		ExpiresAt: time.Now().Add(10 * time.Minute).Unix(),
+	})
+
+	_, _, _, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"valid-nonce",
+		"127.0.0.1",
+		"TestBrowser",
+	)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, domain.ErrFetchUserInfoFailed)
+	s.Contains(err.Error(), "status 500")
+}
+
+func (s *OAuthServiceSuite) Test_HandleCallback_ScopeFallsBackToDriverScopes() {
+	s.useGoogle("/userinfo/google")
+
+	state := s.signedState(model.OAuthStateClaims{
+		Nonce:     "valid-nonce",
+		Provider:  domain.ProviderGoogle,
+		ExpiresAt: time.Now().Add(10 * time.Minute).Unix(),
+	})
+
+	_, _, _, err := s.oauthSvc.HandleCallback(
+		s.ctx,
+		domain.ProviderGoogle,
+		"mock-code-123",
+		state,
+		"valid-nonce",
 		"127.0.0.1",
 		"TestBrowser",
 	)
 	s.Require().NoError(err)
-	s.Equal("verified-fallback@example.com", user.Email)
-	s.NotEmpty(sess.Token)
+
+	acc, err := s.accountRepo.FindByProviderAndAccountID(s.ctx, domain.ProviderGoogle, "google-1001")
+	s.Require().NoError(err)
+
+	driver, err := s.registry.Get(domain.ProviderGoogle)
+	s.Require().NoError(err)
+	s.Equal(strings.Join(driver.Scopes(), " "), acc.Scope)
 }
 
 type failingAccountRepo struct {
@@ -845,27 +858,11 @@ func (s *OAuthServiceSuite) Test_HandleCallback_AccountUpsertError_LoggedAndRetu
 		AuthSecret:     "test-secret-key-at-least-32-bytes-long",
 		ApiURL:         "http://localhost:8001",
 		TrustedOrigins: []string{"http://localhost:3000"},
-		GoogleID:       "mock-google-id",
-		GoogleSecret:   "mock-google-secret",
-		HTTPClient:     s.mockServer.Client(),
+		Drivers:        s.registry,
 		Logger:         logger,
 	})
 
-	if svcWithReg, ok := oauthSvc.(interface {
-		RegisterProvider(service.OAuthProviderConfig)
-	}); ok {
-		svcWithReg.RegisterProvider(service.OAuthProviderConfig{
-			ID:           domain.ProviderGoogle,
-			ClientID:     "mock-google-id",
-			ClientSecret: "mock-google-secret",
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  s.mockServer.URL + "/auth",
-				TokenURL: s.mockServer.URL + "/token",
-			},
-			Scopes:      []string{"openid", "email"},
-			UserInfoURL: s.mockServer.URL + "/userinfo/google",
-		})
-	}
+	s.useGoogle("/userinfo/google")
 
 	authRes, err := oauthSvc.GetAuthURL(model.SignInSocialRequest{
 		Provider:    domain.ProviderGoogle,

@@ -95,10 +95,7 @@ func New(cfg Config) *CoreModule {
 		AuthSecret:     cfg.AuthSecret,
 		ApiURL:         cfg.ApiURL,
 		TrustedOrigins: cfg.TrustedOrigins,
-		GoogleID:       cfg.GoogleID,
-		GoogleSecret:   cfg.GoogleSecret,
-		GithubID:       cfg.GithubID,
-		GithubSecret:   cfg.GithubSecret,
+		Drivers:        newOAuthRegistry(cfg),
 		Logger:         cfg.Logger,
 	})
 

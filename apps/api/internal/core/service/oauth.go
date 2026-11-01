@@ -11,20 +11,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
-	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/core/repository"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
-	"golang.org/x/oauth2/google"
+	"github.com/kilip/omed/api/internal/platform/oauthx"
 )
 
 // AccountRepository defines persistence operations for OAuth accounts.
@@ -41,17 +36,6 @@ type OAuthService interface {
 	HandleCallback(ctx context.Context, provider string, code string, state string, expectedNonce string, ipAddress string, userAgent string) (domain.Session, domain.User, string, error)
 }
 
-// OAuthProviderConfig holds credentials and endpoint URLs for an OAuth2 provider.
-type OAuthProviderConfig struct {
-	ID           string
-	ClientID     string
-	ClientSecret string
-	Endpoint     oauth2.Endpoint
-	Scopes       []string
-	UserInfoURL  string
-	EmailsURL    string
-}
-
 type oauthService struct {
 	accounts       AccountRepository
 	users          repository.UserRepository
@@ -59,8 +43,7 @@ type oauthService struct {
 	authSecret     string
 	apiURL         string
 	trustedOrigins []string
-	providers      map[string]OAuthProviderConfig
-	httpClient     *http.Client
+	drivers        *oauthx.Registry
 	logger         *slog.Logger
 }
 
@@ -72,21 +55,12 @@ type OAuthServiceParams struct {
 	AuthSecret     string
 	ApiURL         string
 	TrustedOrigins []string
-	GoogleID       string
-	GoogleSecret   string
-	GithubID       string
-	GithubSecret   string
-	HTTPClient     *http.Client
+	Drivers        *oauthx.Registry
 	Logger         *slog.Logger
 }
 
 // NewOAuthService constructs an OAuthService configured with providers and verification keys.
 func NewOAuthService(p OAuthServiceParams) OAuthService {
-	client := p.HTTPClient
-	if client == nil {
-		client = &http.Client{Timeout: 10 * time.Second}
-	}
-
 	logger := p.Logger
 	if logger == nil {
 		logger = slog.Default()
@@ -97,36 +71,9 @@ func NewOAuthService(p OAuthServiceParams) OAuthService {
 		apiURL = "http://localhost:8001"
 	}
 
-	providers := make(map[string]OAuthProviderConfig)
-
-	if p.GoogleID != "" && p.GoogleSecret != "" {
-		providers[domain.ProviderGoogle] = OAuthProviderConfig{
-			ID:           domain.ProviderGoogle,
-			ClientID:     p.GoogleID,
-			ClientSecret: p.GoogleSecret,
-			Endpoint:     google.Endpoint,
-			Scopes: []string{
-				"openid",
-				"https://www.googleapis.com/auth/userinfo.email",
-				"https://www.googleapis.com/auth/userinfo.profile",
-			},
-			UserInfoURL: "https://www.googleapis.com/oauth2/v2/userinfo",
-		}
-	}
-
-	if p.GithubID != "" && p.GithubSecret != "" {
-		providers[domain.ProviderGithub] = OAuthProviderConfig{
-			ID:           domain.ProviderGithub,
-			ClientID:     p.GithubID,
-			ClientSecret: p.GithubSecret,
-			Endpoint:     github.Endpoint,
-			Scopes: []string{
-				"read:user",
-				"user:email",
-			},
-			UserInfoURL: "https://api.github.com/user",
-			EmailsURL:   "https://api.github.com/user/emails",
-		}
+	drivers := p.Drivers
+	if drivers == nil {
+		drivers = oauthx.NewRegistry()
 	}
 
 	return &oauthService{
@@ -136,38 +83,46 @@ func NewOAuthService(p OAuthServiceParams) OAuthService {
 		authSecret:     p.AuthSecret,
 		apiURL:         apiURL,
 		trustedOrigins: p.TrustedOrigins,
-		providers:      providers,
-		httpClient:     client,
+		drivers:        drivers,
 		logger:         logger,
 	}
 }
 
-// RegisterProvider allows adding or overriding a provider config (useful for testing).
-func (s *oauthService) RegisterProvider(cfg OAuthProviderConfig) {
-	s.providers[cfg.ID] = cfg
+func (s *oauthService) driver(provider string) (oauthx.Driver, error) {
+	d, err := s.drivers.Get(provider)
+	if err != nil {
+		if errors.Is(err, oauthx.ErrUnsupportedProvider) {
+			return nil, domain.ErrInvalidProvider
+		}
+		return nil, err
+	}
+	return d, nil
 }
 
-func (s *oauthService) getOAuthConfig(provider string) (*oauth2.Config, *OAuthProviderConfig, error) {
-	p, ok := s.providers[provider]
-	if !ok {
-		return nil, nil, domain.ErrInvalidProvider
+func (s *oauthService) redirectURL(provider string) string {
+	apiURL := strings.TrimRight(s.apiURL, "/")
+	if apiURL == "" {
+		apiURL = "http://localhost:8001"
 	}
+	return fmt.Sprintf("%s/auth/callback/%s", apiURL, provider)
+}
 
-	redirectURI := fmt.Sprintf("%s/auth/callback/%s", s.apiURL, provider)
-
-	conf := &oauth2.Config{
-		ClientID:     p.ClientID,
-		ClientSecret: p.ClientSecret,
-		Endpoint:     p.Endpoint,
-		Scopes:       p.Scopes,
-		RedirectURL:  redirectURI,
+func profileToUserInfo(p *oauthx.Profile) model.OAuthUserInfo {
+	if p == nil {
+		return model.OAuthUserInfo{}
 	}
-
-	return conf, &p, nil
+	return model.OAuthUserInfo{
+		ID:            p.ID,
+		Email:         p.Email,
+		Name:          p.Name,
+		Avatar:        p.Avatar,
+		EmailVerified: p.EmailVerified,
+		Locale:        p.Locale,
+	}
 }
 
 func (s *oauthService) GetAuthURL(req model.SignInSocialRequest) (model.SignInSocialResponse, error) {
-	conf, _, err := s.getOAuthConfig(req.Provider)
+	d, err := s.driver(req.Provider)
 	if err != nil {
 		return model.SignInSocialResponse{}, err
 	}
@@ -184,7 +139,7 @@ func (s *oauthService) GetAuthURL(req model.SignInSocialRequest) (model.SignInSo
 		return model.SignInSocialResponse{}, err
 	}
 
-	authURL := conf.AuthCodeURL(state, oauth2.AccessTypeOffline)
+	authURL := d.GetAuthURL(state, s.redirectURL(req.Provider))
 
 	return model.SignInSocialResponse{
 		URL:      authURL,
@@ -215,24 +170,22 @@ func (s *oauthService) HandleCallback(
 		return domain.Session{}, domain.User{}, "", domain.ErrInvalidState
 	}
 
-	conf, pCfg, err := s.getOAuthConfig(provider)
+	d, err := s.driver(claims.Provider)
 	if err != nil {
 		return domain.Session{}, domain.User{}, "", err
 	}
 
-	// Attach custom HTTP client to exchange context if configured
-	exchangeCtx := context.WithValue(ctx, oauth2.HTTPClient, s.httpClient)
-	token, err := conf.Exchange(exchangeCtx, code)
+	token, err := d.ExchangeCode(ctx, code, s.redirectURL(claims.Provider))
 	if err != nil {
 		return domain.Session{}, domain.User{}, "", fmt.Errorf("%w: %v", domain.ErrOAuthExchangeFailed, err)
 	}
 
-	// Fetch user info from provider
-	userInfo, err := s.fetchUserInfo(exchangeCtx, pCfg, token)
+	profile, err := d.FetchUserProfile(ctx, token)
 	if err != nil {
 		return domain.Session{}, domain.User{}, "", fmt.Errorf("%w: %v", domain.ErrFetchUserInfoFailed, err)
 	}
 
+	userInfo := profileToUserInfo(profile)
 	if claims.Locale != "" {
 		userInfo.Locale = claims.Locale
 	}
@@ -252,8 +205,8 @@ func (s *oauthService) HandleCallback(
 
 	idToken, _ := token.Extra("id_token").(string)
 	scope, _ := token.Extra("scope").(string)
-	if scope == "" && pCfg != nil {
-		scope = strings.Join(pCfg.Scopes, " ")
+	if scope == "" {
+		scope = strings.Join(d.Scopes(), " ")
 	}
 
 	_, err = s.accounts.Upsert(ctx, domain.Account{
@@ -339,148 +292,6 @@ func (s *oauthService) resolveUser(ctx context.Context, provider string, info mo
 	}
 
 	return createdUser, nil
-}
-
-func (s *oauthService) fetchUserInfo(ctx context.Context, p *OAuthProviderConfig, token *oauth2.Token) (model.OAuthUserInfo, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.UserInfoURL, nil)
-	if err != nil {
-		return model.OAuthUserInfo{}, err
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := s.httpClient.Do(req)
-	if err != nil {
-		return model.OAuthUserInfo{}, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		b, _ := io.ReadAll(resp.Body)
-		return model.OAuthUserInfo{}, fmt.Errorf("provider returned status %d: %s", resp.StatusCode, string(b))
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return model.OAuthUserInfo{}, err
-	}
-
-	switch p.ID {
-	case domain.ProviderGoogle:
-		var gUser struct {
-			ID            string `json:"id"`
-			Email         string `json:"email"`
-			VerifiedEmail bool   `json:"verified_email"`
-			EmailVerified bool   `json:"email_verified"`
-			Name          string `json:"name"`
-			Picture       string `json:"picture"`
-			Locale        string `json:"locale"`
-		}
-		if err := json.Unmarshal(body, &gUser); err != nil {
-			return model.OAuthUserInfo{}, err
-		}
-		return model.OAuthUserInfo{
-			ID:            gUser.ID,
-			Email:         gUser.Email,
-			Name:          gUser.Name,
-			Avatar:        gUser.Picture,
-			EmailVerified: gUser.VerifiedEmail || gUser.EmailVerified,
-			Locale:        gUser.Locale,
-		}, nil
-
-	case domain.ProviderGithub:
-		var ghUser struct {
-			ID            int64  `json:"id"`
-			Login         string `json:"login"`
-			Name          string `json:"name"`
-			Email         string `json:"email"`
-			AvatarURL     string `json:"avatar_url"`
-			EmailVerified *bool  `json:"email_verified"`
-			Verified      *bool  `json:"verified"`
-		}
-		if err := json.Unmarshal(body, &ghUser); err != nil {
-			return model.OAuthUserInfo{}, err
-		}
-
-		userEmail := ghUser.Email
-		emailVerified := false
-
-		if ghUser.EmailVerified != nil {
-			emailVerified = *ghUser.EmailVerified
-		} else if ghUser.Verified != nil {
-			emailVerified = *ghUser.Verified
-		}
-
-		// GitHub users often have private emails or unverified profile emails.
-		// Query /user/emails to get a verified email address.
-		if vEmail, ok := s.fetchGithubEmail(ctx, token.AccessToken); ok {
-			userEmail = vEmail
-			emailVerified = true
-		}
-
-		displayName := ghUser.Name
-		if displayName == "" {
-			displayName = ghUser.Login
-		}
-
-		return model.OAuthUserInfo{
-			ID:            strconv.FormatInt(ghUser.ID, 10),
-			Email:         userEmail,
-			Name:          displayName,
-			Avatar:        ghUser.AvatarURL,
-			EmailVerified: emailVerified,
-		}, nil
-
-	default:
-		return model.OAuthUserInfo{}, fmt.Errorf("unsupported provider %s", p.ID)
-	}
-}
-
-func (s *oauthService) fetchGithubEmail(ctx context.Context, accessToken string) (string, bool) {
-	emailsURL := "https://api.github.com/user/emails"
-	if p, ok := s.providers[domain.ProviderGithub]; ok && p.EmailsURL != "" {
-		emailsURL = p.EmailsURL
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, emailsURL, nil)
-	if err != nil {
-		return "", false
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := s.httpClient.Do(req)
-	if err != nil {
-		return "", false
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", false
-	}
-
-	var emails []struct {
-		Email    string `json:"email"`
-		Primary  bool   `json:"primary"`
-		Verified bool   `json:"verified"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&emails); err != nil {
-		return "", false
-	}
-
-	for _, e := range emails {
-		if e.Primary && e.Verified {
-			return e.Email, true
-		}
-	}
-	for _, e := range emails {
-		if e.Verified {
-			return e.Email, true
-		}
-	}
-
-	return "", false
 }
 
 func (s *oauthService) generateState(req model.SignInSocialRequest) (string, string, error) {
