@@ -7,6 +7,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"github.com/kilip/omed/api/internal/platform/mailx"
+	"github.com/kilip/omed/api/internal/platform/mcpx"
 	"github.com/kilip/omed/api/internal/platform/s3x"
 )
 
@@ -26,6 +27,8 @@ type State struct {
 	Secure fiber.Router
 	// Authz is the workspace authorization engine.
 	Authz *authz.Authorizer
+	// MCPRegistrar is the registrar for MCP tool registration.
+	MCPRegistrar *mcpx.Registrar
 	// Mailer is the application-wide email dispatcher.
 	Mailer mailx.Mailer
 	// Storage is the application-wide S3 object storage manager.

@@ -20,6 +20,7 @@ import (
 	"github.com/kilip/omed/api/internal/fin"
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"github.com/kilip/omed/api/internal/platform/mailx"
+	"github.com/kilip/omed/api/internal/platform/mcpx"
 	"github.com/kilip/omed/api/internal/platform/s3x"
 	"github.com/kilip/omed/api/internal/platform/secretx"
 	"github.com/kilip/omed/api/internal/testctl"
@@ -28,9 +29,11 @@ import (
 
 // Omed manages application modules and the HTTP server lifecycle.
 type Omed struct {
-	state          State
-	modules        []Module
-	sessionService service.SessionService
+	state              State
+	modules            []Module
+	sessionService     service.SessionService
+	accessTokenService service.AccessTokenService
+	mcpRegistrar       *mcpx.Registrar
 }
 
 // State returns the application runtime state.
@@ -106,6 +109,13 @@ func New(state State) Omed {
 	coreMod.SetAuthorizer(az)
 	state.Authz = az
 
+	mcpReg := mcpx.NewRegistrar(mcpx.Config{
+		Authorizer: az,
+		Resolver:   coreMod.MemberService,
+		Logger:     state.Logger,
+	})
+	state.MCPRegistrar = mcpReg
+
 	finMod := fin.New(fin.Config{
 		FiberApp:               state.FiberApp,
 		Logger:                 state.Logger,
@@ -149,7 +159,9 @@ func New(state State) Omed {
 			cmsMod,
 			agentMod,
 		},
-		sessionService: coreMod.SessionService,
+		sessionService:     coreMod.SessionService,
+		accessTokenService: coreMod.AccessTokenService,
+		mcpRegistrar:       mcpReg,
 	}
 }
 
@@ -216,6 +228,25 @@ func (a *Omed) Boot() error {
 		if bootErr := m.Boot(); bootErr != nil {
 			return errors.Join(bootErr, err)
 		}
+	}
+
+	reg := a.mcpRegistrar
+	if reg == nil {
+		reg = a.state.MCPRegistrar
+	}
+
+	for _, m := range a.modules {
+		if mcpMod, ok := m.(HasMCP); ok && reg != nil {
+			if mcpErr := mcpMod.RegisterMCP(reg); mcpErr != nil {
+				err = errors.Join(mcpErr, err)
+			}
+		}
+	}
+
+	if reg != nil && a.state.FiberApp != nil && a.accessTokenService != nil {
+		mcpHandler := newMCPHandler(a.state, reg, a.accessTokenService)
+		a.state.FiberApp.All("/mcp", mcpHandler)
+		a.state.FiberApp.All("/mcp/*", mcpHandler)
 	}
 
 	if a.state.Config.IsTestRoutesEnabled() && a.state.EntCli != nil {

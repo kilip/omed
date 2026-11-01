@@ -19,7 +19,7 @@ type AuthConfig struct {
 }
 
 // NewAuthMiddleware returns a Fiber handler that authenticates requests using SessionService.
-// It bypasses OPTIONS, /healthz, /readyz, /internal/*, /auth, /auth/*, GET /invitations/:token,
+// It bypasses OPTIONS, /healthz, /readyz, /internal/*, /auth, /auth/*, /mcp, /mcp/*, GET /invitations/:token,
 // unauthenticated GET/HEAD requests to /public/*, and /test/* (when IsTestRoutesEnabled is true).
 func NewAuthMiddleware(cfg AuthConfig) fiber.Handler {
 	cookieName := cfg.CookieName
@@ -35,6 +35,8 @@ func NewAuthMiddleware(cfg AuthConfig) fiber.Handler {
 			strings.HasPrefix(c.Path(), "/internal") ||
 			strings.HasPrefix(c.Path(), "/auth/") ||
 			c.Path() == "/auth" ||
+			c.Path() == "/mcp" ||
+			strings.HasPrefix(c.Path(), "/mcp/") ||
 			(cfg.IsTestRoutesEnabled && (strings.HasPrefix(c.Path(), "/test/") || c.Path() == "/test")) ||
 			((c.Method() == fiber.MethodGet || c.Method() == fiber.MethodHead) && strings.HasPrefix(c.Path(), "/public/")) ||
 			(c.Method() == fiber.MethodGet && strings.HasPrefix(c.Path(), "/invitations/") && !strings.HasSuffix(c.Path(), "/accept")) {

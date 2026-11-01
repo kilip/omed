@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -32,6 +33,7 @@ type ApiTestSuite[T any] struct {
 	User         *base.UserContext
 	SessionToken string
 	Cookies      []*http.Cookie
+	Headers      http.Header
 	Context      context.Context
 }
 
@@ -71,6 +73,7 @@ func (s *ApiTestSuite[T]) SetupSuite() {
 // SetupTest prepares test state before each test case runs, resetting cookies and provisioning a default test user.
 func (s *ApiTestSuite[T]) SetupTest() {
 	s.Cookies = nil
+	s.Headers = make(http.Header)
 	if s.Context == nil || s.Context.Value(base.USER_CONTEXT_KEY) == nil {
 		s.Context = NewUserContext()
 	}
@@ -135,6 +138,32 @@ func (s *ApiTestSuite[T]) EnsureSession(userID int64) string {
 	return token
 }
 
+// EnsurePAT creates an active personal access token in the test DB for the given user ID and returns the plaintext token.
+func (s *ApiTestSuite[T]) EnsurePAT(userID int64) string {
+	rawBytes := make([]byte, 32)
+	_, err := rand.Read(rawBytes)
+	require.NoError(s.T(), err)
+	plaintext := "omed_pat_" + base64.RawURLEncoding.EncodeToString(rawBytes)
+	prefix := plaintext[:12]
+	h := sha256.Sum256([]byte(plaintext))
+	tokenHash := hex.EncodeToString(h[:])
+
+	ctx := s.Context
+	if ctx == nil || ctx.Value(base.USER_CONTEXT_KEY) == nil {
+		ctx = NewUserContext()
+	}
+
+	_, err = entClient.PersonalAccessToken.Create().
+		SetUserID(userID).
+		SetName("Test Token").
+		SetPrefix(prefix).
+		SetTokenHash(tokenHash).
+		SetExpiresAt(time.Now().Add(90 * 24 * time.Hour)).
+		Save(ctx)
+	require.NoError(s.T(), err)
+	return plaintext
+}
+
 // AddMember adds a user as a member of a workspace with the given roles in the test DB.
 func (s *ApiTestSuite[T]) AddMember(wid, uid int64, roles ...string) {
 	ctx := s.Context
@@ -158,6 +187,14 @@ func (s *ApiTestSuite[T]) SetCookie(cookie *http.Cookie) {
 		}
 	}
 	s.Cookies = append(s.Cookies, cookie)
+}
+
+// SetHeader sets an HTTP header to be sent with subsequent test requests.
+func (s *ApiTestSuite[T]) SetHeader(key, value string) {
+	if s.Headers == nil {
+		s.Headers = make(http.Header)
+	}
+	s.Headers.Set(key, value)
 }
 
 // EnsureUser creates or updates a user in the test database and returns the resulting user entity.
@@ -211,6 +248,11 @@ func (s *ApiTestSuite[T]) RequestWithToken(path string, method string, requestBo
 
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
+	}
+	for k, vs := range s.Headers {
+		for _, v := range vs {
+			req.Header.Add(k, v)
+		}
 	}
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)

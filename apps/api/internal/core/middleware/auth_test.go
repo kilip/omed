@@ -92,6 +92,18 @@ func setupTestApp(sessions *mockSessionService, cookieName string, isTestRoutesE
 	app.Post("/public/x", func(c fiber.Ctx) error {
 		return c.SendString("public post ok")
 	})
+	app.All("/mcp", func(c fiber.Ctx) error {
+		return c.SendString("mcp ok")
+	})
+	app.All("/mcp/*", func(c fiber.Ctx) error {
+		return c.SendString("mcp sub ok")
+	})
+	app.All("/mcpx", func(c fiber.Ctx) error {
+		return c.SendString("mcpx ok")
+	})
+	app.All("/mcp-foo", func(c fiber.Ctx) error {
+		return c.SendString("mcp-foo ok")
+	})
 	app.All("/api/protected", func(c fiber.Ctx) error {
 		if u, ok := c.Locals(base.USER_CONTEXT_KEY).(base.UserContext); ok {
 			capturedUser = u
@@ -313,4 +325,33 @@ func TestAuthMiddleware_TestRoutesGating(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, fiber.StatusOK, resp2.StatusCode)
 	})
+}
+
+func Test_Auth_McpPathBypass(t *testing.T) {
+	mockSvc := &mockSessionService{}
+	app, _ := setupTestApp(mockSvc, "token")
+
+	// 1. /mcp passes through without a session
+	reqMCP := httptest.NewRequest(fiber.MethodPost, "/mcp", nil)
+	respMCP, err := app.Test(reqMCP)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, respMCP.StatusCode)
+
+	// 2. /mcp/ passes through without a session
+	reqMCPSlash := httptest.NewRequest(fiber.MethodPost, "/mcp/", nil)
+	respMCPSlash, err := app.Test(reqMCPSlash)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, respMCPSlash.StatusCode)
+
+	// 3. /mcpx returns 401
+	reqMCPX := httptest.NewRequest(fiber.MethodPost, "/mcpx", nil)
+	respMCPX, err := app.Test(reqMCPX)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, respMCPX.StatusCode)
+
+	// 4. /mcp-foo returns 401
+	reqMCPFoo := httptest.NewRequest(fiber.MethodPost, "/mcp-foo", nil)
+	respMCPFoo, err := app.Test(reqMCPFoo)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, respMCPFoo.StatusCode)
 }
