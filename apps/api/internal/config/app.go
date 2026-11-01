@@ -100,6 +100,14 @@ func New(state State) Omed {
 		Mailer:              state.Mailer,
 		Storage:             state.Storage,
 		IsTestRoutesEnabled: state.Config.IsTestRoutesEnabled(),
+		OTP: service.OTPConfig{
+			Enabled:        state.Config.IsOTPEnabled(),
+			Length:         state.Config.OTPLength,
+			TTL:            state.Config.OTPTTL,
+			MaxAttempts:    state.Config.OTPMaxAttempts,
+			ResendCooldown: state.Config.OTPResendCooldown,
+			HourlyLimit:    state.Config.OTPHourlyLimit,
+		},
 	})
 
 	az, err := authz.New(coreMod.MemberService)

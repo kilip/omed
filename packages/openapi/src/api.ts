@@ -119,6 +119,130 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/auth/otp/request": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Request OTP code
+     * @description Send a one-time password to the specified email address
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description OTP request payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.OTPRequest"];
+        };
+      };
+      responses: {
+        /** @description Accepted */
+        202: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.OTPRequestResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Service Unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/otp/verify": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Verify OTP code
+     * @description Verify one-time password code and return authenticated session
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description OTP verify payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.OTPVerifyRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["model.SessionResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Service Unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/auth/sign-in/social": {
     parameters: {
       query?: never;
@@ -11096,6 +11220,20 @@ export interface components {
       month?: string;
       /** @example 25000000.00 */
       revenue?: string;
+    };
+    "model.OTPRequest": {
+      email: string;
+      locale?: string;
+    };
+    "model.OTPRequestResponse": {
+      codeLength?: number;
+      resendAfterSeconds?: number;
+      success?: boolean;
+      ttlSeconds?: number;
+    };
+    "model.OTPVerifyRequest": {
+      code: string;
+      email: string;
     };
     "model.PageResponse": {
       auditMeta?: components["schemas"]["base.AuditMeta"];

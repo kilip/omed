@@ -14,13 +14,42 @@ import (
 // OAuthNonceCookieName is the default cookie name used to bind OAuth state to the browser session.
 const OAuthNonceCookieName = "omed_oauth_nonce"
 
+type sessionCookies struct {
+	name   string
+	secure bool
+}
+
+func (s sessionCookies) set(c fiber.Ctx, sess domain.Session) {
+	c.Cookie(&fiber.Cookie{
+		Name:     s.name,
+		Value:    sess.Token,
+		Path:     "/",
+		Expires:  sess.ExpiresAt,
+		HTTPOnly: true,
+		Secure:   s.secure,
+		SameSite: "Lax",
+	})
+}
+
+func (s sessionCookies) clear(c fiber.Ctx) {
+	c.Cookie(&fiber.Cookie{
+		Name:     s.name,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HTTPOnly: true,
+		Secure:   s.secure,
+		SameSite: "Lax",
+	})
+}
+
 // AuthController handles social sign-in, OAuth callback, session retrieval, and logout.
 type AuthController struct {
 	oauth           service.OAuthService
 	sessions        service.SessionService
-	cookieName      string
+	cookies         sessionCookies
 	nonceCookieName string
-	cookieSecure    bool
 }
 
 // AuthOption configures an AuthController.
@@ -30,7 +59,7 @@ type AuthOption func(*AuthController)
 func WithCookieName(name string) AuthOption {
 	return func(a *AuthController) {
 		if name != "" {
-			a.cookieName = name
+			a.cookies.name = name
 		}
 	}
 }
@@ -47,7 +76,7 @@ func WithOAuthNonceCookieName(name string) AuthOption {
 // WithCookieSecure configures whether the session cookie has the Secure attribute.
 func WithCookieSecure(secure bool) AuthOption {
 	return func(a *AuthController) {
-		a.cookieSecure = secure
+		a.cookies.secure = secure
 	}
 }
 
@@ -56,9 +85,8 @@ func NewAuthController(oauth service.OAuthService, sessions service.SessionServi
 	a := AuthController{
 		oauth:           oauth,
 		sessions:        sessions,
-		cookieName:      "omed_session",
+		cookies:         sessionCookies{name: "omed_session", secure: false},
 		nonceCookieName: OAuthNonceCookieName,
-		cookieSecure:    false,
 	}
 	for _, opt := range opts {
 		opt(&a)
@@ -101,7 +129,7 @@ func (a AuthController) SignInSocial(c fiber.Ctx) error {
 		Path:     "/",
 		Expires:  time.Now().Add(10 * time.Minute),
 		HTTPOnly: true,
-		Secure:   a.cookieSecure,
+		Secure:   a.cookies.secure,
 		SameSite: "Lax",
 	})
 
@@ -164,7 +192,7 @@ func (a AuthController) Callback(c fiber.Ctx) error {
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
 		HTTPOnly: true,
-		Secure:   a.cookieSecure,
+		Secure:   a.cookies.secure,
 		SameSite: "Lax",
 	})
 
@@ -177,15 +205,7 @@ func (a AuthController) Callback(c fiber.Ctx) error {
 	}
 
 	// Set HttpOnly session cookie
-	c.Cookie(&fiber.Cookie{
-		Name:     a.cookieName,
-		Value:    sess.Token,
-		Path:     "/",
-		Expires:  sess.ExpiresAt,
-		HTTPOnly: true,
-		Secure:   a.cookieSecure,
-		SameSite: "Lax",
-	})
+	a.cookies.set(c, sess)
 
 	// If request came from API client or explicit POST, return JSON
 	if strings.Contains(c.Get(fiber.HeaderAccept), "application/json") && c.Method() == fiber.MethodPost {
@@ -232,16 +252,7 @@ func (a AuthController) SignOut(c fiber.Ctx) error {
 		_ = a.sessions.RevokeSession(c.Context(), token)
 	}
 
-	c.Cookie(&fiber.Cookie{
-		Name:     a.cookieName,
-		Value:    "",
-		Path:     "/",
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-		HTTPOnly: true,
-		Secure:   a.cookieSecure,
-		SameSite: "Lax",
-	})
+	a.cookies.clear(c)
 
 	return c.JSON(fiber.Map{"success": true})
 }
@@ -251,7 +262,7 @@ func (a AuthController) extractToken(c fiber.Ctx) string {
 	if strings.HasPrefix(authHeader, "Bearer ") {
 		return strings.TrimPrefix(authHeader, "Bearer ")
 	}
-	if cookie := c.Cookies(a.cookieName); cookie != "" {
+	if cookie := c.Cookies(a.cookies.name); cookie != "" {
 		return cookie
 	}
 	return ""

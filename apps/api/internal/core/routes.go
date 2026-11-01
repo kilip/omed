@@ -25,6 +25,14 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 	auth.Get("/get-session", ctlA.GetSession)
 	auth.Post("/sign-out", ctlA.SignOut)
 
+	ctlOTP := controller.NewOTPController(
+		mod.OTPService,
+		mod.cfg.SessionCookieName,
+		cookieSecure,
+	)
+	auth.Post("/otp/request", ctlOTP.Request)
+	auth.Post("/otp/verify", ctlOTP.Verify)
+
 	users := r.Group("/users")
 	ctlU := controller.NewUserController(mod.UserService)
 	ctlT := controller.NewAccessTokenController(mod.AccessTokenService)

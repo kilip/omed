@@ -33,6 +33,7 @@ type Config struct {
 	Env                 string
 	ApiUrl              string
 	IsTestRoutesEnabled bool
+	OTP                 service.OTPConfig
 }
 
 // CoreModule represents the core module implementing base.Module.
@@ -54,6 +55,8 @@ type CoreModule struct {
 	AccessTokenService service.AccessTokenService
 	// OAuthService handles third-party OAuth2 authentication.
 	OAuthService service.OAuthService
+	// OTPService handles passwordless one-time password operations.
+	OTPService service.OTPService
 	// Authorizer handles workspace-scoped authorization checks.
 	Authorizer *authz.Authorizer
 }
@@ -80,6 +83,7 @@ func New(cfg Config) *CoreModule {
 	accounts := repository.NewAccountRepository(cfg.EntCli, cfg.AuthSecret)
 	sessions := repository.NewSessionRepository(cfg.EntCli)
 	accessTokens := repository.NewAccessTokenRepository(cfg.EntCli)
+	otps := repository.NewOTPRepository(cfg.EntCli)
 
 	userSvc := service.NewUserService(users)
 	workspaceSvc := service.NewWorkspaceService(workspaces, cfg.Storage)
@@ -98,6 +102,15 @@ func New(cfg Config) *CoreModule {
 		Drivers:        newOAuthRegistry(cfg),
 		Logger:         cfg.Logger,
 	})
+	otpSvc := service.NewOTPService(service.OTPServiceParams{
+		Repo:       otps,
+		Users:      userSvc,
+		Sessions:   sessionSvc,
+		Mailer:     cfg.Mailer,
+		AuthSecret: cfg.AuthSecret,
+		Config:     cfg.OTP,
+		Logger:     cfg.Logger,
+	})
 
 	mod := &CoreModule{
 		cfg:                cfg,
@@ -109,6 +122,7 @@ func New(cfg Config) *CoreModule {
 		SessionService:     sessionSvc,
 		AccessTokenService: accessTokenSvc,
 		OAuthService:       oauthSvc,
+		OTPService:         otpSvc,
 	}
 
 	InitEntCli(cfg.EntCli)

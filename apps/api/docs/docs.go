@@ -2076,6 +2076,52 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.OTPRequest": {
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "locale": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email"
+                ],
+                "type": "object"
+            },
+            "model.OTPRequestResponse": {
+                "properties": {
+                    "codeLength": {
+                        "type": "integer"
+                    },
+                    "resendAfterSeconds": {
+                        "type": "integer"
+                    },
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "ttlSeconds": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.OTPVerifyRequest": {
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "code",
+                    "email"
+                ],
+                "type": "object"
+            },
             "model.PageResponse": {
                 "properties": {
                     "auditMeta": {
@@ -3650,6 +3696,114 @@ const docTemplate = `{
                     }
                 },
                 "summary": "Get current session",
+                "tags": [
+                    "Authentication"
+                ]
+            }
+        },
+        "/auth/otp/request": {
+            "post": {
+                "description": "Send a one-time password to the specified email address",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.OTPRequest",
+                                "summary": "request",
+                                "description": "OTP request payload"
+                            }
+                        }
+                    },
+                    "description": "OTP request payload",
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.OTPRequestResponse"
+                                }
+                            }
+                        },
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "503": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Service Unavailable"
+                    }
+                },
+                "summary": "Request OTP code",
+                "tags": [
+                    "Authentication"
+                ]
+            }
+        },
+        "/auth/otp/verify": {
+            "post": {
+                "description": "Verify one-time password code and return authenticated session",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.OTPVerifyRequest",
+                                "summary": "request",
+                                "description": "OTP verify payload"
+                            }
+                        }
+                    },
+                    "description": "OTP verify payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.SessionResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "503": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Service Unavailable"
+                    }
+                },
+                "summary": "Verify OTP code",
                 "tags": [
                     "Authentication"
                 ]
