@@ -2,7 +2,7 @@
 
 Guidance for AI coding agents (Claude, Gemini, and others) working in this repository. This file is the single source of truth: `CLAUDE.md` and `GEMINI.md` only point here.
 
-Read [README.md](./README.md) for architecture and [BRANDING.md](./BRANDING.md) for dashboard visual guidelines.
+Read [README.md](./README.md) for product overview, [docs/architecture.md](./docs/architecture.md) for architecture, and [BRANDING.md](./BRANDING.md) for dashboard visual guidelines.
 
 ## 1. General rules
 
@@ -96,7 +96,7 @@ Dependency direction is strictly `controller -> service -> repository` and `mcp 
 
 ### API contract
 
-Controllers carry the Swaggo annotations. After changing annotations or response models, regenerate and commit `apps/api/docs/*` and `packages/openapi/src/api.ts` (see the README, section "OpenAPI & Types").
+Controllers carry the Swaggo annotations. After changing annotations or response models, regenerate and commit `apps/api/docs/*` and `packages/openapi/src/api.ts` (see [docs/development.md](./docs/development.md), section "OpenAPI & Types").
 
 ### Database schemas & migrations
 
