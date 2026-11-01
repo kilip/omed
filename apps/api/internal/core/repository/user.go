@@ -55,7 +55,10 @@ func (r UserRepository) GetByID(c context.Context, id int64) (domain.User, error
 // FindByEmail retrieves a user domain entity by email. Returns base.ErrNotFound if not found.
 func (r UserRepository) FindByEmail(c context.Context, email string) (domain.User, error) {
 	var usr domain.User
-	u, err := r.cli.User.Query().Where(user.EmailEQ(email)).Only(c)
+	u, err := r.cli.User.Query().
+		Where(user.EmailEqualFold(email)).
+		Order(ent.Asc(user.FieldID)).
+		First(c)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return usr, base.ErrNotFound
@@ -236,14 +239,14 @@ func (r UserRepository) Delete(c context.Context, id int64) error {
 
 func toDomain(u *ent.User) domain.User {
 	return domain.User{
-		ID:        u.ID,
-		Name:      u.Name,
-		Email:     u.Email,
-		Avatar:    u.Avatar,
+		ID:            u.ID,
+		Name:          u.Name,
+		Email:         u.Email,
+		Avatar:        u.Avatar,
 		Locale:        u.Locale,
 		Currency:      u.Currency,
 		EmailVerified: u.EmailVerified,
 		CreatedAt:     u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
+		UpdatedAt:     u.UpdatedAt,
 	}
 }

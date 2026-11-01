@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/core/domain"
 	"github.com/kilip/omed/api/internal/core/model"
 	"github.com/kilip/omed/api/internal/core/service"
@@ -253,6 +254,142 @@ func (u *UserSuite) Test_SetRepository() {
 	actual, err := u.service.GetByID(ctx, 10)
 	u.NoError(err)
 	u.Equal(expected, actual)
+}
+
+func (u *UserSuite) Test_FindOrCreateVerified_ExistingUser() {
+	ctx := context.Background()
+	expected := domain.User{
+		ID:            1,
+		Name:          "Existing User",
+		Email:         "user@example.com",
+		EmailVerified: true,
+	}
+
+	u.mockRepo.EXPECT().FindByEmail(ctx, "user@example.com").Return(expected, nil)
+
+	actual, err := u.service.FindOrCreateVerified(ctx, service.ProvisionInput{
+		Email:  "user@example.com",
+		Name:   "Existing User",
+		Locale: "en",
+	})
+	u.NoError(err)
+	u.Equal(expected, actual)
+}
+
+func (u *UserSuite) Test_FindOrCreateVerified_NewUser() {
+	ctx := context.Background()
+	req := model.CreateUserRequest{
+		Name:          "bob",
+		Email:         "bob@example.com",
+		EmailVerified: true,
+		Locale:        "id",
+		Currency:      "IDR",
+	}
+	expected := domain.User{
+		ID:            2,
+		Name:          req.Name,
+		Email:         req.Email,
+		EmailVerified: true,
+		Locale:        req.Locale,
+		Currency:      req.Currency,
+	}
+
+	u.mockRepo.EXPECT().FindByEmail(ctx, "bob@example.com").Return(domain.User{}, base.ErrNotFound)
+	u.mockRepo.EXPECT().Create(ctx, req).Return(expected, nil)
+
+	actual, err := u.service.FindOrCreateVerified(ctx, service.ProvisionInput{
+		Email:  "bob@example.com",
+		Name:   "",
+		Locale: "id-ID",
+	})
+	u.NoError(err)
+	u.Equal(expected, actual)
+}
+
+func (u *UserSuite) Test_FindOrCreateVerified_EmailTakenRace() {
+	ctx := context.Background()
+	req := model.CreateUserRequest{
+		Name:          "charlie",
+		Email:         "charlie@example.com",
+		EmailVerified: true,
+		Locale:        "en",
+		Currency:      "USD",
+	}
+	expected := domain.User{
+		ID:            3,
+		Name:          req.Name,
+		Email:         req.Email,
+		EmailVerified: true,
+	}
+
+	gomock.InOrder(
+		u.mockRepo.EXPECT().FindByEmail(ctx, "charlie@example.com").Return(domain.User{}, base.ErrNotFound),
+		u.mockRepo.EXPECT().Create(ctx, req).Return(domain.User{}, domain.ErrEmailTaken),
+		u.mockRepo.EXPECT().FindByEmail(ctx, "charlie@example.com").Return(expected, nil),
+	)
+
+	actual, err := u.service.FindOrCreateVerified(ctx, service.ProvisionInput{
+		Email:  "charlie@example.com",
+		Name:   "charlie",
+		Locale: "en",
+	})
+	u.NoError(err)
+	u.Equal(expected, actual)
+}
+
+func (u *UserSuite) Test_FindOrCreateVerified_EmptyEmailSkipsLookup() {
+	ctx := context.Background()
+	req := model.CreateUserRequest{
+		Name:          "Anonymous",
+		Email:         "",
+		EmailVerified: true,
+		Locale:        "en",
+		Currency:      "USD",
+	}
+	expected := domain.User{
+		ID:            4,
+		Name:          req.Name,
+		Email:         req.Email,
+		EmailVerified: true,
+	}
+
+	u.mockRepo.EXPECT().Create(ctx, req).Return(expected, nil)
+
+	actual, err := u.service.FindOrCreateVerified(ctx, service.ProvisionInput{
+		Email:  "",
+		Name:   "Anonymous",
+		Locale: "en",
+	})
+	u.NoError(err)
+	u.Equal(expected, actual)
+}
+
+func Test_FindOrCreateVerified_ExistingUser(t *testing.T) {
+	s := new(UserSuite)
+	s.SetT(t)
+	s.SetupTest()
+	s.Test_FindOrCreateVerified_ExistingUser()
+}
+
+func Test_FindOrCreateVerified_NewUser(t *testing.T) {
+	s := new(UserSuite)
+	s.SetT(t)
+	s.SetupTest()
+	s.Test_FindOrCreateVerified_NewUser()
+}
+
+func Test_FindOrCreateVerified_EmailTakenRace(t *testing.T) {
+	s := new(UserSuite)
+	s.SetT(t)
+	s.SetupTest()
+	s.Test_FindOrCreateVerified_EmailTakenRace()
+}
+
+func Test_FindOrCreateVerified_EmptyEmailSkipsLookup(t *testing.T) {
+	s := new(UserSuite)
+	s.SetT(t)
+	s.SetupTest()
+	s.Test_FindOrCreateVerified_EmptyEmailSkipsLookup()
 }
 
 func TestUserSuite(t *testing.T) {

@@ -36,10 +36,16 @@ type OAuthService interface {
 	HandleCallback(ctx context.Context, provider string, code string, state string, expectedNonce string, ipAddress string, userAgent string) (domain.Session, domain.User, string, error)
 }
 
+// UserProvisioner defines the contract for finding or creating a verified user.
+type UserProvisioner interface {
+	FindOrCreateVerified(ctx context.Context, in ProvisionInput) (domain.User, error)
+}
+
 type oauthService struct {
 	accounts       AccountRepository
 	users          repository.UserRepository
 	sessions       SessionService
+	provisioner    UserProvisioner
 	authSecret     string
 	apiURL         string
 	trustedOrigins []string
@@ -52,6 +58,7 @@ type OAuthServiceParams struct {
 	Accounts       AccountRepository
 	Users          repository.UserRepository
 	Sessions       SessionService
+	Provisioner    UserProvisioner
 	AuthSecret     string
 	ApiURL         string
 	TrustedOrigins []string
@@ -76,10 +83,16 @@ func NewOAuthService(p OAuthServiceParams) OAuthService {
 		drivers = oauthx.NewRegistry()
 	}
 
+	provisioner := p.Provisioner
+	if provisioner == nil {
+		provisioner = NewUserService(p.Users)
+	}
+
 	return &oauthService{
 		accounts:       p.Accounts,
 		users:          p.Users,
 		sessions:       p.Sessions,
+		provisioner:    provisioner,
 		authSecret:     p.AuthSecret,
 		apiURL:         apiURL,
 		trustedOrigins: p.TrustedOrigins,
@@ -257,15 +270,6 @@ func (s *oauthService) resolveUser(ctx context.Context, provider string, info mo
 		return domain.User{}, domain.ErrEmailNotVerified
 	}
 
-	// 3. Check if user with same email exists
-	if info.Email != "" {
-		usr, err := s.users.FindByEmail(ctx, info.Email)
-		if err == nil {
-			return usr, nil
-		}
-	}
-
-	// 4. User does not exist, provision new user (which also auto-creates personal workspace)
 	name := info.Name
 	if name == "" {
 		name = strings.Split(info.Email, "@")[0]
@@ -274,24 +278,12 @@ func (s *oauthService) resolveUser(ctx context.Context, provider string, info mo
 		name = fmt.Sprintf("User-%s", info.ID)
 	}
 
-	locale, currency := NormalizeLocaleAndCurrency(info.Locale)
-	createdUser, err := s.users.Create(ctx, model.CreateUserRequest{
-		Name:          name,
-		Email:         info.Email,
-		Avatar:        info.Avatar,
-		Locale:        locale,
-		Currency:      currency,
-		EmailVerified: info.EmailVerified,
+	return s.provisioner.FindOrCreateVerified(ctx, ProvisionInput{
+		Email:  info.Email,
+		Name:   name,
+		Avatar: info.Avatar,
+		Locale: info.Locale,
 	})
-	if err != nil {
-		// In case of race condition on email, try to fetch again
-		if errors.Is(err, domain.ErrEmailTaken) {
-			return s.users.FindByEmail(ctx, info.Email)
-		}
-		return domain.User{}, err
-	}
-
-	return createdUser, nil
 }
 
 func (s *oauthService) generateState(req model.SignInSocialRequest) (string, string, error) {

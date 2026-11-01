@@ -347,6 +347,25 @@ func (s *UserRepoSuite) Test_Search_NoResults() {
 	s.Empty(cursor)
 }
 
+func (s *UserRepoSuite) Test_FindByEmail_IsCaseInsensitive() {
+	ctx := context.Background()
+	created := s.createTestUser("Alice", "Alice@Example.com", "")
+
+	usr, err := s.repo.FindByEmail(ctx, "alice@example.com")
+	s.Require().NoError(err)
+	s.Equal(created.ID, usr.ID)
+	s.Equal("Alice@Example.com", usr.Email)
+}
+
+func Test_FindByEmail_IsCaseInsensitive(t *testing.T) {
+	s := new(UserRepoSuite)
+	s.SetT(t)
+	s.SetupSuite()
+	defer s.TearDownSuite()
+	s.SetupTest()
+	s.Test_FindByEmail_IsCaseInsensitive()
+}
+
 func TestUserRepoSuite(t *testing.T) {
 	suite.Run(t, new(UserRepoSuite))
 }
