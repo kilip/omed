@@ -301,6 +301,46 @@ export class TestClient {
     });
   }
 
+  async waitForOtpCode(email: string, timeoutMs = 10_000): Promise<string> {
+    const start = Date.now();
+    const normalizedEmail = email.toLowerCase();
+    while (Date.now() - start < timeoutMs) {
+      const messages = await this.getSentEmails();
+      for (let i = messages.length - 1; i >= 0; i--) {
+        const msg = messages[i];
+        if (!msg) continue;
+        const isRecipient = msg.To?.some(
+          (t) => t.Address?.toLowerCase() === normalizedEmail,
+        );
+        if (isRecipient && msg.TextBody) {
+          const match = msg.TextBody.match(/\b\d{6,10}\b/);
+          if (match) {
+            return match[0];
+          }
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+    throw new Error(
+      `Timed out after ${timeoutMs}ms waiting for OTP code email for ${email}`,
+    );
+  }
+
+  async ensureUser(data: {
+    name?: string;
+    email: string;
+    avatar?: string;
+  }): Promise<TestUser> {
+    return this.request<TestUser>("/test/users", {
+      method: "POST",
+      body: JSON.stringify({
+        name: data.name ?? "Test User",
+        email: data.email,
+        avatar: data.avatar,
+      }),
+    });
+  }
+
   async setupAuthenticatedUser(options?: {
     name?: string;
     email?: string;

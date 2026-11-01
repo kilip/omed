@@ -101,6 +101,13 @@ Before({ tags: "@authenticated" }, async function (this: OmedWorld) {
   this.sessionToken = session.token;
 });
 
+After({ tags: "@otp" }, async function (this: OmedWorld) {
+  if (this.otpEmail) {
+    const u = await testClient.ensureUser({ email: this.otpEmail });
+    await testClient.deleteUser(u.id);
+  }
+});
+
 After(async function (this: OmedWorld, scenario) {
   if (scenario.result?.status === Status.FAILED) {
     const png = await this.page.screenshot({ fullPage: true });

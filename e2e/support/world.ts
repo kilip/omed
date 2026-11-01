@@ -18,6 +18,7 @@ export class OmedWorld extends World {
   /** Set by the `@authenticated` hook. */
   user?: TestUser;
   sessionToken?: string;
+  otpEmail?: string;
   workspace?: TestWorkspace;
   recipientUser?: TestUser;
   invitationLink?: string;
