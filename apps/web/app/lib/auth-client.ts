@@ -11,6 +11,10 @@ export type SignInSocialResponse =
 export type UpdateUserRequest =
   components["schemas"]["model.UpdateUserRequest"];
 export type UserResponse = components["schemas"]["model.UserResponse"];
+export type OtpRequestBody = components["schemas"]["model.OTPRequest"];
+export type OtpRequestResponse =
+  components["schemas"]["model.OTPRequestResponse"];
+export type OtpVerifyBody = components["schemas"]["model.OTPVerifyRequest"];
 
 export interface SessionData {
   user: User;
@@ -83,6 +87,68 @@ export const authClient = {
           return {};
         }
         return { error: { message: "No redirect URL received" } };
+      } catch (err) {
+        return {
+          error: { message: err instanceof Error ? err.message : String(err) },
+        };
+      }
+    },
+  },
+
+  otp: {
+    async request(body: OtpRequestBody): Promise<{
+      data?: OtpRequestResponse;
+      error?: { message: string; code?: string };
+    }> {
+      try {
+        const { data, error, response } = await api.POST("/auth/otp/request", {
+          body,
+        });
+        if (error || !response.ok) {
+          const errBody = error as
+            | { error?: { message?: string; code?: string } }
+            | undefined;
+          return {
+            error: {
+              message:
+                errBody?.error?.message ||
+                response.statusText ||
+                "Failed to request OTP",
+              ...(errBody?.error?.code ? { code: errBody.error.code } : {}),
+            },
+          };
+        }
+        return { data };
+      } catch (err) {
+        return {
+          error: { message: err instanceof Error ? err.message : String(err) },
+        };
+      }
+    },
+
+    async verify(body: OtpVerifyBody): Promise<{
+      data?: SessionResponse;
+      error?: { message: string; code?: string };
+    }> {
+      try {
+        const { data, error, response } = await api.POST("/auth/otp/verify", {
+          body,
+        });
+        if (error || !response.ok) {
+          const errBody = error as
+            | { error?: { message?: string; code?: string } }
+            | undefined;
+          return {
+            error: {
+              message:
+                errBody?.error?.message ||
+                response.statusText ||
+                "Failed to verify OTP",
+              ...(errBody?.error?.code ? { code: errBody.error.code } : {}),
+            },
+          };
+        }
+        return { data };
       } catch (err) {
         return {
           error: { message: err instanceof Error ? err.message : String(err) },

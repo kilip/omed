@@ -242,4 +242,126 @@ describe("authClient", () => {
       expect(result.error?.message).toBe("Failed to clear session");
     });
   });
+
+  describe("otp", () => {
+    it("otp.request returns data on success", async () => {
+      const mockResponse = {
+        codeLength: 6,
+        resendAfterSeconds: 60,
+        success: true,
+        ttlSeconds: 600,
+      };
+
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: mockResponse,
+        response: new Response(null, { status: 202 }),
+      } as unknown as ApiPostResult);
+
+      const result = await authClient.otp.request({
+        email: "user@example.com",
+        locale: "en",
+      });
+
+      expect(api.POST).toHaveBeenCalledWith("/auth/otp/request", {
+        body: {
+          email: "user@example.com",
+          locale: "en",
+        },
+      });
+      expect(result).toEqual({ data: mockResponse });
+    });
+
+    it("otp.request surfaces AUTH_OTP_UNAVAILABLE code and message", async () => {
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        error: {
+          error: {
+            code: "AUTH_OTP_UNAVAILABLE",
+            message: "email sign-in is not available",
+          },
+        },
+        response: new Response(null, { status: 503 }),
+      } as unknown as ApiPostResult);
+
+      const result = await authClient.otp.request({
+        email: "user@example.com",
+      });
+
+      expect(result).toEqual({
+        error: {
+          code: "AUTH_OTP_UNAVAILABLE",
+          message: "email sign-in is not available",
+        },
+      });
+    });
+
+    it("otp.verify returns session data", async () => {
+      const mockSession = {
+        session: {
+          id: 10,
+          userId: 1,
+          expiresAt: "2026-12-31T00:00:00Z",
+        },
+        user: {
+          id: 1,
+          name: "Test User",
+          email: "user@example.com",
+        },
+      };
+
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: mockSession,
+        response: new Response(null, { status: 200 }),
+      } as unknown as ApiPostResult);
+
+      const result = await authClient.otp.verify({
+        email: "user@example.com",
+        code: "123456",
+      });
+
+      expect(api.POST).toHaveBeenCalledWith("/auth/otp/verify", {
+        body: {
+          email: "user@example.com",
+          code: "123456",
+        },
+      });
+      expect(result).toEqual({ data: mockSession });
+    });
+
+    it("otp.verify surfaces AUTH_OTP_INVALID code", async () => {
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        error: {
+          error: {
+            code: "AUTH_OTP_INVALID",
+            message: "invalid or expired code",
+          },
+        },
+        response: new Response(null, { status: 400 }),
+      } as unknown as ApiPostResult);
+
+      const result = await authClient.otp.verify({
+        email: "user@example.com",
+        code: "000000",
+      });
+
+      expect(result).toEqual({
+        error: {
+          code: "AUTH_OTP_INVALID",
+          message: "invalid or expired code",
+        },
+      });
+    });
+
+    it("otp.verify converts a thrown network error", async () => {
+      vi.mocked(api.POST).mockRejectedValueOnce(new Error("Network failure"));
+
+      const result = await authClient.otp.verify({
+        email: "user@example.com",
+        code: "123456",
+      });
+
+      expect(result).toEqual({
+        error: { message: "Network failure" },
+      });
+    });
+  });
 });
