@@ -22,8 +22,16 @@ type ErrorDetailer interface {
 // ErrResultTooLarge indicates that a tool's serialized output exceeded the size cap.
 var ErrResultTooLarge = errors.New("RESULT_TOO_LARGE")
 
+// ErrTokenExpired indicates that the provided bearer token has expired.
+var ErrTokenExpired = errors.New("TOKEN_EXPIRED")
+
+// ErrTokenInvalid indicates that the provided bearer token is invalid or malformed.
+var ErrTokenInvalid = errors.New("TOKEN_INVALID")
+
 func init() {
 	base.AddToErrorMap(ErrResultTooLarge, fiber.StatusRequestEntityTooLarge, "result too large")
+	base.AddToErrorMap(ErrTokenExpired, fiber.StatusUnauthorized, "token expired")
+	base.AddToErrorMap(ErrTokenInvalid, fiber.StatusUnauthorized, "invalid token")
 }
 
 // ErrorPayload represents the JSON text content embedded inside a tool error result.

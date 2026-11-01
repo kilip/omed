@@ -223,7 +223,7 @@ Route `/core/access-tokens` (module `core`): a table with name, prefix, expiry, 
 
 ## 9. Open Items to Verify Before Implementation
 
-1. **Transport spike:** `Stateless` plus `JSONResponse` behind the Fiber v3 adapter, and the exact SDK symbols (`go doc`). `go.mod` already contains the SDK (v1.8.0) because the registrar uses it.
-2. **Origin and CORS:** whether the SDK validates the `Origin` header on Streamable HTTP, and whether browser-based MCP clients need CORS on `/mcp`. Decide based on the spike.
+1. **Transport spike (verified):** `Stateless: true` and `JSONResponse: true` behind `adaptor.HTTPHandler` work as designed. Fiber handles Bearer token parsing and error responses (`httpx.ErrorResponse`, `WWW-Authenticate`), passes verified identity via `c.Locals` through fasthttp context, which `auth.RequireBearerToken` reads and binds to `auth.TokenInfo{UserID: ...}`. The MCP Streamable transport populates `req.Extra.TokenInfo`, and `mcp.StreamableClientTransport` connects cleanly over loopback HTTP with round-trip tool execution (`tools/list` and `tools/call`).
+2. **Origin and CORS (verified):** `mcp.StreamableHTTPHandler` checks `Origin` only when `CrossOriginProtection` is configured in `StreamableHTTPOptions` (nil by default, so no origin validation or rejection occurs). Because `/mcp` uses Bearer tokens and ignores session cookies, ambient-credential CSRF does not apply, and standard MCP clients do not require custom CORS preflight handling on `/mcp`.
 3. **Rate limiting:** the existing limiter (general and sensitive tiers) may or may not cover `/mcp`. Decide whether `/mcp` falls under the general tier and whether failed PAT checks count against the sensitive tier.
 4. **Client behavior:** whether common MCP clients surface the `error_description` text to the user.
