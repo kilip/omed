@@ -77,14 +77,15 @@ Every module uses the same layers, under `internal/{module_name}/`:
 apps/api/internal/{module_name}/
 ├── controller/    # HTTP handlers (Fiber), Swaggo annotations, request/response DTOs
 ├── middleware/    # Module-specific Fiber middleware
+├── mcp/           # MCP tool adapters, registered through mcpx, never import controllers or repositories
 ├── service/       # Business logic and orchestration
 ├── repository/    # Data access (Ent)
 └── test/          # Integration tests (API endpoint testing)
 ```
 
-Dependency direction is strictly `controller -> service -> repository`:
+Dependency direction is strictly `controller -> service -> repository` and `mcp -> service -> repository`:
 
-- Controllers never touch Ent or repositories directly.
+- Controllers and MCP adapters never touch Ent or repositories directly.
 - Only repositories talk to the database.
 - A module reaches another module through that module's service, never its repository.
 

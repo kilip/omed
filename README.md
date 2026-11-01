@@ -82,6 +82,13 @@ omed/
     - Authentication: Bearer Personal Access Token (`Authorization: Bearer omed_pat_...`). Session cookies are bypassed at `/mcp`, and PATs cannot access REST endpoints.
     - Module tool registration: Modules register tools into the shared server during boot via `config.HasMCP` (`RegisterMCP(r *mcpx.Registrar) error`). Tools execute with the authenticated user identity and workspace authorization verified via Casbin.
     - Configuration: Always enabled; no new environment variables or Helm changes are needed.
+    - Available tools:
+      - `fin_period_overview`: Monthly financial revenue, expense, and net overview with previous period comparison (requires `fin:account` `read`).
+        - Arguments: `workspace_id` (required, int64), `from_month` (optional, `YYYY-MM`, default current month), `to_month` (optional, `YYYY-MM`, default current month, max 24 months), `compare_previous` (optional, boolean, default `true`).
+      - `fin_account_balance`: Trial balance and account balances as of a date (requires `fin:account` `read`).
+        - Arguments: `workspace_id` (required, int64), `as_of_date` (optional, `YYYY-MM-DD`, default today), `account` (optional, code prefix or case-insensitive name fragment). Returns at most 50 accounts (sets `truncated: true` if exceeded).
+      - `fin_find_cashflow`: Search income and expense cashflow documents (requires `fin:transaction` `read` and `fin:account` `read`).
+        - Arguments: `workspace_id` (required, int64), `type` (required, `income` or `expense`), `date_from` (optional, `YYYY-MM-DD`), `date_to` (optional, `YYYY-MM-DD`), `status` (optional, `draft` or `posted`), `query` (optional, description text search), `payment_account` (optional, code or name), `category_account` (optional, code or name), `limit` (optional, integer 1 to 50, default 20), `cursor` (optional, pagination cursor).
 
 ## Tech Stack
 

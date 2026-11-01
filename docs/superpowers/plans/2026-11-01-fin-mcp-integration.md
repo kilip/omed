@@ -179,7 +179,7 @@ git commit -m "feat(api): ✨ add account balance insight"
 - Produces (model): `AccountRef{ Code, Name string }`; `FindCashflowRequest{ WorkspaceID int64 "workspace_id"; Type string "type"; DateFrom, DateTo, Status, Query, PaymentAccount, CategoryAccount, Cursor string; Limit int }` (all optional except the first two, snake_case JSON) with `GetWorkspaceID()`; `CashflowLine{ Account AccountRef; Description string; Quantity, UnitPrice, Amount decimal.Decimal }`; `CashflowDoc{ ID int64; Number, Date, Type, Status string; PaymentAccount AccountRef; Description, Reference string; Amount decimal.Decimal; Currency string; BaseAmount decimal.Decimal; Lines []CashflowLine }` (no attachments, audit metadata, workspace id, or entry id); `FindCashflowResponse{ Items []CashflowDoc; NextCursor string "next_cursor"; Truncated bool; Hint string }` with `Shrink() bool`.
 - Produces (service): `const maxInsightItems = 50`, `const maxInsightTextRunes = 200`; `func (s InsightService) FindCashflow(c context.Context, req model.FindCashflowRequest) (model.FindCashflowResponse, error)`; `func resolveAccountRef(accounts []domain.Account, ref string) (domain.Account, error)`; `func truncateText(s string, maxRunes int) string`.
 
-- [ ] **Step 1: Write failing tests**:
+- [x] **Step 1: Write failing tests**:
   - `Test_FindCashflow_TypeStatusDatesQueryAndAccounts`: table over `income`/`expense`, `draft`/`posted`, a date range, a text query, and payment and category references, asserting the expected document numbers (acceptance 4). `Status` and `Type` are lowercase in the output.
   - `Test_FindCashflow_CursorRoundTrip_NoDuplicates`: five documents, `limit: 2`, following `NextCursor` until empty returns every document exactly once.
   - `Test_FindCashflow_OutputHasNoInternalFields`: the marshaled item contains none of the keys `attachments`, `auditMeta`, `entryId`, `entryNumber`, `workspaceId` (acceptance 7).
@@ -188,10 +188,10 @@ git commit -m "feat(api): ✨ add account balance insight"
   - `Test_FindCashflow_InvalidTypeOrStatus`: `type must be "income" or "expense"`, `status must be "draft" or "posted"`.
   - `Test_FindCashflow_InvalidCursor_ReturnsErrInvalidCursor`.
   - `Test_TruncateText_KeepsValidUTF8` (RF5): 250 runes of `é` and emoji cut to 200 runes, `utf8.ValidString` true.
-- [ ] **Step 2: Run** `cd apps/api && go test ./internal/fin/service/ -run Insight -v`. Expected: FAIL.
-- [ ] **Step 3: Implement** `FindCashflow`. Load the chart once with `AccountService.Search` only when a reference is present; map `type` to the matching search; map `date_from`/`date_to` with `model.Date`; uppercase `status`; default `limit` 20; map each `domain.CashFlowItem` to `CashflowDoc` (document `ID`, not entry id) and cut descriptions with `truncateText`.
-- [ ] **Step 4: Run** the command from Step 2. Expected: PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `cd apps/api && go test ./internal/fin/service/ -run Insight -v`. Expected: FAIL.
+- [x] **Step 3: Implement** `FindCashflow`. Load the chart once with `AccountService.Search` only when a reference is present; map `type` to the matching search; map `date_from`/`date_to` with `model.Date`; uppercase `status`; default `limit` 20; map each `domain.CashFlowItem` to `CashflowDoc` (document `ID`, not entry id) and cut descriptions with `truncateText`.
+- [x] **Step 4: Run** the command from Step 2. Expected: PASS.
+- [x] **Step 5: Commit**
 ```bash
 git add apps/api/internal/fin/domain apps/api/internal/fin/model/insight.go apps/api/internal/fin/service
 git commit -m "feat(api): ✨ add cashflow search insight"
@@ -210,17 +210,17 @@ git commit -m "feat(api): ✨ add cashflow search insight"
 - Produces: `type Insights interface{ PeriodOverview(context.Context, model.PeriodOverviewRequest) (model.PeriodOverviewResponse, error); AccountBalance(context.Context, model.AccountBalanceRequest) (model.AccountBalanceResponse, error); FindCashflow(context.Context, model.FindCashflowRequest) (model.FindCashflowResponse, error) }`; `func RegisterTools(r *mcpx.Registrar, in Insights)`; `FinModule.InsightService service.InsightService` built in `New()` as `service.NewInsightService(reportSvc, accountSvc, cashFlowSvc)`; `func (m *FinModule) RegisterMCP(r *mcpx.Registrar) error`; `type HasMCP interface{ RegisterMCP(r *mcpx.Registrar) error }` in `config/contracts.go`.
 - Tool permissions: `fin_period_overview` and `fin_account_balance` require `fin:account read`; `fin_find_cashflow` requires `fin:transaction read` and `fin:account read`. All three are `ReadOnly: true`. Descriptions are read by the client model, so each states its units, defaults, and limits (months `YYYY-MM`, max 24; accounts max 50; `limit` 1 to 50).
 
-- [ ] **Step 1: Write failing tests** against a real `mcpx.Registrar` (stub resolver and roles as in Task 1) and a fake `Insights`, called through the SDK in-memory client (import the SDK as `sdk` in test files only):
+- [x] **Step 1: Write failing tests** against a real `mcpx.Registrar` (stub resolver and roles as in Task 1) and a fake `Insights`, called through the SDK in-memory client (import the SDK as `sdk` in test files only):
   - `Test_RegisterTools_ThreeReadOnlyTools`: tool names, `readOnlyHint`, and a required `workspace_id` property.
   - `Test_FindCashflow_RoleWithoutAccountRead_Forbidden` (acceptance 6): a role holding only `fin:transaction read` gets `FORBIDDEN`.
   - `Test_Tool_NonMember_NotFound`.
   - `Test_Tools_MoneyIsStringWithCurrency`: each tool's structured content has string amounts and a currency field (acceptance 7).
   - `Test_ArgumentError_ReachesClientWithExpectedFormat`: the fake returns `ArgumentError`, the client text contains `from_month must use the format YYYY-MM`.
   - In `config/contracts_test.go`: `var _ HasMCP = (*fin.FinModule)(nil)` (the assertion lives in `config`, because `fin` importing `config` would be an import cycle).
-- [ ] **Step 2: Run** `cd apps/api && go test ./internal/fin/mcp/ ./internal/config/ -v`. Expected: FAIL.
-- [ ] **Step 3: Implement** `RegisterTools` (one `mcpx.AddTool` call per tool, each in its own file with its description constant), then `RegisterMCP` on `FinModule` calling `RegisterTools(r, m.InsightService)`, and `HasMCP` next to `HasPreBoot`.
-- [ ] **Step 4: Run** the command from Step 2. Expected: PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `cd apps/api && go test ./internal/fin/mcp/ ./internal/config/ -v`. Expected: FAIL.
+- [x] **Step 3: Implement** `RegisterTools` (one `mcpx.AddTool` call per tool, each in its own file with its description constant), then `RegisterMCP` on `FinModule` calling `RegisterTools(r, m.InsightService)`, and `HasMCP` next to `HasPreBoot`.
+- [x] **Step 4: Run** the command from Step 2. Expected: PASS.
+- [x] **Step 5: Commit**
 ```bash
 git add apps/api/internal/fin apps/api/internal/config
 git commit -m "feat(api): ✨ register fin insight tools with the mcp server"
@@ -235,11 +235,11 @@ git commit -m "feat(api): ✨ register fin insight tools with the mcp server"
 **Interfaces:**
 - Consumes: the `/mcp` endpoint and `EnsurePAT(userID)` from `testutil`; `testutil.ApiTestSuite`.
 
-- [ ] **Step 1: Write integration tests** (spec §6) using the owner's seeded data: success for each tool; `Test_Mcp_NonMember_NotFound`; `Test_Mcp_RoleWithoutAccountRead_ForbiddenOnFindCashflow`; `Test_Mcp_FindCashflow_CursorRoundTrip`; `Test_Mcp_AccountBalance_TruncatedFlag` (60 accounts); `Test_Mcp_PeriodOverview_EqualsReportSummary`; `Test_Mcp_RevokedToken_Rejected` (transport-level, asserts only that no tool runs).
-- [ ] **Step 2: Run** `cd apps/api && go test ./internal/fin/test/ -run Mcp -v`. Expected: FAIL before the mount exists, then PASS.
-- [ ] **Step 3: Update docs**: add `mcp/` to the layer list in `AGENTS.md` section 3 (`mcp/` — MCP tool adapters, registered through `mcpx`, never import controllers or repositories), and add a README section naming the endpoint, authentication by PAT, and the three tools with their arguments.
-- [ ] **Step 4: Verify everything**: `cd apps/api && gofmt -l . && go vet ./... && go test ./...` then `bun run lint`. Expected: no gofmt output, no vet errors, PASS (acceptance 9).
-- [ ] **Step 5: Commit** (two commits)
+- [x] **Step 1: Write integration tests** (spec §6) using the owner's seeded data: success for each tool; `Test_Mcp_NonMember_NotFound`; `Test_Mcp_RoleWithoutAccountRead_ForbiddenOnFindCashflow`; `Test_Mcp_FindCashflow_CursorRoundTrip`; `Test_Mcp_AccountBalance_TruncatedFlag` (60 accounts); `Test_Mcp_PeriodOverview_EqualsReportSummary`; `Test_Mcp_RevokedToken_Rejected` (transport-level, asserts only that no tool runs).
+- [x] **Step 2: Run** `cd apps/api && go test ./internal/fin/test/ -run Mcp -v`. Expected: FAIL before the mount exists, then PASS.
+- [x] **Step 3: Update docs**: add `mcp/` to the layer list in `AGENTS.md` section 3 (`mcp/` — MCP tool adapters, registered through `mcpx`, never import controllers or repositories), and add a README section naming the endpoint, authentication by PAT, and the three tools with their arguments.
+- [x] **Step 4: Verify everything**: `cd apps/api && gofmt -l . && go vet ./... && go test ./...` then `bun run lint`. Expected: no gofmt output, no vet errors, PASS (acceptance 9).
+- [x] **Step 5: Commit** (two commits)
 ```bash
 git add apps/api/internal/fin/test/mcp_test.go
 git commit -m "test(api): ✅ cover fin mcp tools through the mcp endpoint"
