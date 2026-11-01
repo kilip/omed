@@ -18,6 +18,7 @@ import (
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/finsetting"
+	"github.com/kilip/omed/api/ent/loginotp"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/personalaccesstoken"
 	"github.com/kilip/omed/api/ent/posting"
@@ -357,6 +358,33 @@ func (f TraverseFinSetting) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.FinSettingQuery", q)
 }
 
+// The LoginOTPFunc type is an adapter to allow the use of ordinary function as a Querier.
+type LoginOTPFunc func(context.Context, *ent.LoginOTPQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f LoginOTPFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.LoginOTPQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.LoginOTPQuery", q)
+}
+
+// The TraverseLoginOTP type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseLoginOTP func(context.Context, *ent.LoginOTPQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseLoginOTP) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseLoginOTP) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.LoginOTPQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.LoginOTPQuery", q)
+}
+
 // The PeriodFunc type is an adapter to allow the use of ordinary function as a Querier.
 type PeriodFunc func(context.Context, *ent.PeriodQuery) (ent.Value, error)
 
@@ -650,6 +678,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.FileQuery, predicate.File, file.OrderOption]{typ: ent.TypeFile, tq: q}, nil
 	case *ent.FinSettingQuery:
 		return &query[*ent.FinSettingQuery, predicate.FinSetting, finsetting.OrderOption]{typ: ent.TypeFinSetting, tq: q}, nil
+	case *ent.LoginOTPQuery:
+		return &query[*ent.LoginOTPQuery, predicate.LoginOTP, loginotp.OrderOption]{typ: ent.TypeLoginOTP, tq: q}, nil
 	case *ent.PeriodQuery:
 		return &query[*ent.PeriodQuery, predicate.Period, period.OrderOption]{typ: ent.TypePeriod, tq: q}, nil
 	case *ent.PersonalAccessTokenQuery:

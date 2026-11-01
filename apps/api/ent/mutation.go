@@ -21,6 +21,7 @@ import (
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/finsetting"
+	"github.com/kilip/omed/api/ent/loginotp"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/personalaccesstoken"
 	"github.com/kilip/omed/api/ent/posting"
@@ -55,6 +56,7 @@ const (
 	TypeExchangeRate        = "ExchangeRate"
 	TypeFile                = "File"
 	TypeFinSetting          = "FinSetting"
+	TypeLoginOTP            = "LoginOTP"
 	TypePeriod              = "Period"
 	TypePersonalAccessToken = "PersonalAccessToken"
 	TypePosting             = "Posting"
@@ -13282,6 +13284,739 @@ func (m *FinSettingMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FinSetting edge %s", name)
+}
+
+// LoginOTPMutation represents an operation that mutates the LoginOTP nodes in the graph.
+type LoginOTPMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	email         *string
+	code_hash     *string
+	expires_at    *time.Time
+	attempts      *int
+	addattempts   *int
+	consumed_at   *time.Time
+	ip_address    *string
+	created_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*LoginOTP, error)
+	predicates    []predicate.LoginOTP
+}
+
+var _ ent.Mutation = (*LoginOTPMutation)(nil)
+
+// loginotpOption allows management of the mutation configuration using functional options.
+type loginotpOption func(*LoginOTPMutation)
+
+// newLoginOTPMutation creates new mutation for the LoginOTP entity.
+func newLoginOTPMutation(c config, op Op, opts ...loginotpOption) *LoginOTPMutation {
+	m := &LoginOTPMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLoginOTP,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLoginOTPID sets the ID field of the mutation.
+func withLoginOTPID(id int64) loginotpOption {
+	return func(m *LoginOTPMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LoginOTP
+		)
+		m.oldValue = func(ctx context.Context) (*LoginOTP, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LoginOTP.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLoginOTP sets the old LoginOTP of the mutation.
+func withLoginOTP(node *LoginOTP) loginotpOption {
+	return func(m *LoginOTPMutation) {
+		m.oldValue = func(context.Context) (*LoginOTP, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LoginOTPMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LoginOTPMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LoginOTP entities.
+func (m *LoginOTPMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LoginOTPMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LoginOTPMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LoginOTP.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetEmail sets the "email" field.
+func (m *LoginOTPMutation) SetEmail(s string) {
+	m.email = &s
+}
+
+// Email returns the value of the "email" field in the mutation.
+func (m *LoginOTPMutation) Email() (r string, exists bool) {
+	v := m.email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmail returns the old "email" field's value of the LoginOTP entity.
+// If the LoginOTP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginOTPMutation) OldEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmail: %w", err)
+	}
+	return oldValue.Email, nil
+}
+
+// ResetEmail resets all changes to the "email" field.
+func (m *LoginOTPMutation) ResetEmail() {
+	m.email = nil
+}
+
+// SetCodeHash sets the "code_hash" field.
+func (m *LoginOTPMutation) SetCodeHash(s string) {
+	m.code_hash = &s
+}
+
+// CodeHash returns the value of the "code_hash" field in the mutation.
+func (m *LoginOTPMutation) CodeHash() (r string, exists bool) {
+	v := m.code_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCodeHash returns the old "code_hash" field's value of the LoginOTP entity.
+// If the LoginOTP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginOTPMutation) OldCodeHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCodeHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCodeHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCodeHash: %w", err)
+	}
+	return oldValue.CodeHash, nil
+}
+
+// ResetCodeHash resets all changes to the "code_hash" field.
+func (m *LoginOTPMutation) ResetCodeHash() {
+	m.code_hash = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *LoginOTPMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *LoginOTPMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the LoginOTP entity.
+// If the LoginOTP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginOTPMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *LoginOTPMutation) ResetExpiresAt() {
+	m.expires_at = nil
+}
+
+// SetAttempts sets the "attempts" field.
+func (m *LoginOTPMutation) SetAttempts(i int) {
+	m.attempts = &i
+	m.addattempts = nil
+}
+
+// Attempts returns the value of the "attempts" field in the mutation.
+func (m *LoginOTPMutation) Attempts() (r int, exists bool) {
+	v := m.attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttempts returns the old "attempts" field's value of the LoginOTP entity.
+// If the LoginOTP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginOTPMutation) OldAttempts(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttempts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttempts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttempts: %w", err)
+	}
+	return oldValue.Attempts, nil
+}
+
+// AddAttempts adds i to the "attempts" field.
+func (m *LoginOTPMutation) AddAttempts(i int) {
+	if m.addattempts != nil {
+		*m.addattempts += i
+	} else {
+		m.addattempts = &i
+	}
+}
+
+// AddedAttempts returns the value that was added to the "attempts" field in this mutation.
+func (m *LoginOTPMutation) AddedAttempts() (r int, exists bool) {
+	v := m.addattempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAttempts resets all changes to the "attempts" field.
+func (m *LoginOTPMutation) ResetAttempts() {
+	m.attempts = nil
+	m.addattempts = nil
+}
+
+// SetConsumedAt sets the "consumed_at" field.
+func (m *LoginOTPMutation) SetConsumedAt(t time.Time) {
+	m.consumed_at = &t
+}
+
+// ConsumedAt returns the value of the "consumed_at" field in the mutation.
+func (m *LoginOTPMutation) ConsumedAt() (r time.Time, exists bool) {
+	v := m.consumed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsumedAt returns the old "consumed_at" field's value of the LoginOTP entity.
+// If the LoginOTP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginOTPMutation) OldConsumedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsumedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsumedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsumedAt: %w", err)
+	}
+	return oldValue.ConsumedAt, nil
+}
+
+// ClearConsumedAt clears the value of the "consumed_at" field.
+func (m *LoginOTPMutation) ClearConsumedAt() {
+	m.consumed_at = nil
+	m.clearedFields[loginotp.FieldConsumedAt] = struct{}{}
+}
+
+// ConsumedAtCleared returns if the "consumed_at" field was cleared in this mutation.
+func (m *LoginOTPMutation) ConsumedAtCleared() bool {
+	_, ok := m.clearedFields[loginotp.FieldConsumedAt]
+	return ok
+}
+
+// ResetConsumedAt resets all changes to the "consumed_at" field.
+func (m *LoginOTPMutation) ResetConsumedAt() {
+	m.consumed_at = nil
+	delete(m.clearedFields, loginotp.FieldConsumedAt)
+}
+
+// SetIPAddress sets the "ip_address" field.
+func (m *LoginOTPMutation) SetIPAddress(s string) {
+	m.ip_address = &s
+}
+
+// IPAddress returns the value of the "ip_address" field in the mutation.
+func (m *LoginOTPMutation) IPAddress() (r string, exists bool) {
+	v := m.ip_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIPAddress returns the old "ip_address" field's value of the LoginOTP entity.
+// If the LoginOTP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginOTPMutation) OldIPAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIPAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIPAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIPAddress: %w", err)
+	}
+	return oldValue.IPAddress, nil
+}
+
+// ClearIPAddress clears the value of the "ip_address" field.
+func (m *LoginOTPMutation) ClearIPAddress() {
+	m.ip_address = nil
+	m.clearedFields[loginotp.FieldIPAddress] = struct{}{}
+}
+
+// IPAddressCleared returns if the "ip_address" field was cleared in this mutation.
+func (m *LoginOTPMutation) IPAddressCleared() bool {
+	_, ok := m.clearedFields[loginotp.FieldIPAddress]
+	return ok
+}
+
+// ResetIPAddress resets all changes to the "ip_address" field.
+func (m *LoginOTPMutation) ResetIPAddress() {
+	m.ip_address = nil
+	delete(m.clearedFields, loginotp.FieldIPAddress)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LoginOTPMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LoginOTPMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LoginOTP entity.
+// If the LoginOTP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginOTPMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LoginOTPMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the LoginOTPMutation builder.
+func (m *LoginOTPMutation) Where(ps ...predicate.LoginOTP) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LoginOTPMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LoginOTPMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LoginOTP, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LoginOTPMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LoginOTPMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LoginOTP).
+func (m *LoginOTPMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LoginOTPMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.email != nil {
+		fields = append(fields, loginotp.FieldEmail)
+	}
+	if m.code_hash != nil {
+		fields = append(fields, loginotp.FieldCodeHash)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, loginotp.FieldExpiresAt)
+	}
+	if m.attempts != nil {
+		fields = append(fields, loginotp.FieldAttempts)
+	}
+	if m.consumed_at != nil {
+		fields = append(fields, loginotp.FieldConsumedAt)
+	}
+	if m.ip_address != nil {
+		fields = append(fields, loginotp.FieldIPAddress)
+	}
+	if m.created_at != nil {
+		fields = append(fields, loginotp.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LoginOTPMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case loginotp.FieldEmail:
+		return m.Email()
+	case loginotp.FieldCodeHash:
+		return m.CodeHash()
+	case loginotp.FieldExpiresAt:
+		return m.ExpiresAt()
+	case loginotp.FieldAttempts:
+		return m.Attempts()
+	case loginotp.FieldConsumedAt:
+		return m.ConsumedAt()
+	case loginotp.FieldIPAddress:
+		return m.IPAddress()
+	case loginotp.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LoginOTPMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case loginotp.FieldEmail:
+		return m.OldEmail(ctx)
+	case loginotp.FieldCodeHash:
+		return m.OldCodeHash(ctx)
+	case loginotp.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case loginotp.FieldAttempts:
+		return m.OldAttempts(ctx)
+	case loginotp.FieldConsumedAt:
+		return m.OldConsumedAt(ctx)
+	case loginotp.FieldIPAddress:
+		return m.OldIPAddress(ctx)
+	case loginotp.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LoginOTP field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LoginOTPMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case loginotp.FieldEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmail(v)
+		return nil
+	case loginotp.FieldCodeHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCodeHash(v)
+		return nil
+	case loginotp.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case loginotp.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttempts(v)
+		return nil
+	case loginotp.FieldConsumedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsumedAt(v)
+		return nil
+	case loginotp.FieldIPAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIPAddress(v)
+		return nil
+	case loginotp.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LoginOTP field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LoginOTPMutation) AddedFields() []string {
+	var fields []string
+	if m.addattempts != nil {
+		fields = append(fields, loginotp.FieldAttempts)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LoginOTPMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case loginotp.FieldAttempts:
+		return m.AddedAttempts()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LoginOTPMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case loginotp.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAttempts(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LoginOTP numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LoginOTPMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(loginotp.FieldConsumedAt) {
+		fields = append(fields, loginotp.FieldConsumedAt)
+	}
+	if m.FieldCleared(loginotp.FieldIPAddress) {
+		fields = append(fields, loginotp.FieldIPAddress)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LoginOTPMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LoginOTPMutation) ClearField(name string) error {
+	switch name {
+	case loginotp.FieldConsumedAt:
+		m.ClearConsumedAt()
+		return nil
+	case loginotp.FieldIPAddress:
+		m.ClearIPAddress()
+		return nil
+	}
+	return fmt.Errorf("unknown LoginOTP nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LoginOTPMutation) ResetField(name string) error {
+	switch name {
+	case loginotp.FieldEmail:
+		m.ResetEmail()
+		return nil
+	case loginotp.FieldCodeHash:
+		m.ResetCodeHash()
+		return nil
+	case loginotp.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case loginotp.FieldAttempts:
+		m.ResetAttempts()
+		return nil
+	case loginotp.FieldConsumedAt:
+		m.ResetConsumedAt()
+		return nil
+	case loginotp.FieldIPAddress:
+		m.ResetIPAddress()
+		return nil
+	case loginotp.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LoginOTP field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LoginOTPMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LoginOTPMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LoginOTPMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LoginOTPMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LoginOTPMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LoginOTPMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LoginOTPMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LoginOTP unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LoginOTPMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LoginOTP edge %s", name)
 }
 
 // PeriodMutation represents an operation that mutates the Period nodes in the graph.

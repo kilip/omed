@@ -129,6 +129,18 @@ func (f FinSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinSettingMutation", m)
 }
 
+// The LoginOTPFunc type is an adapter to allow the use of ordinary
+// function as LoginOTP mutator.
+type LoginOTPFunc func(context.Context, *ent.LoginOTPMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LoginOTPFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LoginOTPMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LoginOTPMutation", m)
+}
+
 // The PeriodFunc type is an adapter to allow the use of ordinary
 // function as Period mutator.
 type PeriodFunc func(context.Context, *ent.PeriodMutation) (ent.Value, error)

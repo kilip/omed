@@ -17,6 +17,7 @@ type SchemaConfig struct {
 	ExchangeRate        string // ExchangeRate table.
 	File                string // File table.
 	FinSetting          string // FinSetting table.
+	LoginOTP            string // LoginOTP table.
 	Period              string // Period table.
 	PersonalAccessToken string // PersonalAccessToken table.
 	Posting             string // Posting table.

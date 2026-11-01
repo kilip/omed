@@ -681,6 +681,35 @@ var (
 			},
 		},
 	}
+	// LoginOtpsColumns holds the columns for the "login_otps" table.
+	LoginOtpsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "email", Type: field.TypeString},
+		{Name: "code_hash", Type: field.TypeString},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "attempts", Type: field.TypeInt, Default: 0},
+		{Name: "consumed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "ip_address", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// LoginOtpsTable holds the schema information for the "login_otps" table.
+	LoginOtpsTable = &schema.Table{
+		Name:       "login_otps",
+		Columns:    LoginOtpsColumns,
+		PrimaryKey: []*schema.Column{LoginOtpsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "loginotp_email_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{LoginOtpsColumns[1], LoginOtpsColumns[7]},
+			},
+			{
+				Name:    "loginotp_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{LoginOtpsColumns[3]},
+			},
+		},
+	}
 	// PeriodsColumns holds the columns for the "periods" table.
 	PeriodsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1203,6 +1232,7 @@ var (
 		ExchangeRatesTable,
 		FilesTable,
 		FinSettingsTable,
+		LoginOtpsTable,
 		PeriodsTable,
 		PersonalAccessTokensTable,
 		PostingsTable,
@@ -1258,6 +1288,9 @@ func init() {
 	FinSettingsTable.ForeignKeys[0].RefTable = WorkspacesTable
 	FinSettingsTable.ForeignKeys[1].RefTable = UsersTable
 	FinSettingsTable.ForeignKeys[2].RefTable = UsersTable
+	LoginOtpsTable.Annotation = &entsql.Annotation{
+		Table: "login_otps",
+	}
 	PeriodsTable.ForeignKeys[0].RefTable = WorkspacesTable
 	PeriodsTable.ForeignKeys[1].RefTable = UsersTable
 	PeriodsTable.ForeignKeys[2].RefTable = UsersTable

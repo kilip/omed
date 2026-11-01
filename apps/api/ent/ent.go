@@ -22,6 +22,7 @@ import (
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/finsetting"
+	"github.com/kilip/omed/api/ent/loginotp"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/personalaccesstoken"
 	"github.com/kilip/omed/api/ent/posting"
@@ -102,6 +103,7 @@ func checkColumn(t, c string) error {
 			exchangerate.Table:        exchangerate.ValidColumn,
 			file.Table:                file.ValidColumn,
 			finsetting.Table:          finsetting.ValidColumn,
+			loginotp.Table:            loginotp.ValidColumn,
 			period.Table:              period.ValidColumn,
 			personalaccesstoken.Table: personalaccesstoken.ValidColumn,
 			posting.Table:             posting.ValidColumn,

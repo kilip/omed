@@ -36,6 +36,9 @@ type File func(*sql.Selector)
 // FinSetting is the predicate function for finsetting builders.
 type FinSetting func(*sql.Selector)
 
+// LoginOTP is the predicate function for loginotp builders.
+type LoginOTP func(*sql.Selector)
+
 // Period is the predicate function for period builders.
 type Period func(*sql.Selector)
 

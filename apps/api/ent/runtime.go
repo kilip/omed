@@ -15,6 +15,7 @@ import (
 	"github.com/kilip/omed/api/ent/exchangerate"
 	"github.com/kilip/omed/api/ent/file"
 	"github.com/kilip/omed/api/ent/finsetting"
+	"github.com/kilip/omed/api/ent/loginotp"
 	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/ent/personalaccesstoken"
 	"github.com/kilip/omed/api/ent/posting"
@@ -361,6 +362,24 @@ func init() {
 	finsettingDescOnboarding := finsettingFields[1].Descriptor()
 	// finsetting.DefaultOnboarding holds the default value on creation for the onboarding field.
 	finsetting.DefaultOnboarding = finsettingDescOnboarding.Default.(bool)
+	loginotpFields := schema.LoginOTP{}.Fields()
+	_ = loginotpFields
+	// loginotpDescEmail is the schema descriptor for email field.
+	loginotpDescEmail := loginotpFields[1].Descriptor()
+	// loginotp.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	loginotp.EmailValidator = loginotpDescEmail.Validators[0].(func(string) error)
+	// loginotpDescCodeHash is the schema descriptor for code_hash field.
+	loginotpDescCodeHash := loginotpFields[2].Descriptor()
+	// loginotp.CodeHashValidator is a validator for the "code_hash" field. It is called by the builders before save.
+	loginotp.CodeHashValidator = loginotpDescCodeHash.Validators[0].(func(string) error)
+	// loginotpDescAttempts is the schema descriptor for attempts field.
+	loginotpDescAttempts := loginotpFields[4].Descriptor()
+	// loginotp.DefaultAttempts holds the default value on creation for the attempts field.
+	loginotp.DefaultAttempts = loginotpDescAttempts.Default.(int)
+	// loginotpDescCreatedAt is the schema descriptor for created_at field.
+	loginotpDescCreatedAt := loginotpFields[7].Descriptor()
+	// loginotp.DefaultCreatedAt holds the default value on creation for the created_at field.
+	loginotp.DefaultCreatedAt = loginotpDescCreatedAt.Default.(func() time.Time)
 	periodMixin := schema.Period{}.Mixin()
 	periodMixinFields1 := periodMixin[1].Fields()
 	_ = periodMixinFields1
