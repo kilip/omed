@@ -1,6 +1,11 @@
 package llmx
 
-import "sync"
+import (
+	"context"
+	"errors"
+	"strings"
+	"sync"
+)
 
 var (
 	registryMu sync.RWMutex
@@ -31,4 +36,34 @@ func New(cfg Config) (Adapter, error) {
 	}
 
 	return factory(cfg)
+}
+
+// ListModels queries the provider for available model identifiers.
+func ListModels(ctx context.Context, cfg Config) ([]string, error) {
+	adapter, err := New(cfg)
+	if err != nil {
+		return nil, sanitizeError(err, cfg.APIKey)
+	}
+
+	lister, ok := adapter.(ModelLister)
+	if !ok {
+		return nil, ErrUnsupportedKind
+	}
+
+	models, err := lister.ListModels(ctx)
+	if err != nil {
+		return nil, sanitizeError(err, cfg.APIKey)
+	}
+
+	return models, nil
+}
+
+func sanitizeError(err error, apiKey string) error {
+	if err == nil || apiKey == "" {
+		return err
+	}
+	if strings.Contains(err.Error(), apiKey) {
+		return errors.New(strings.ReplaceAll(err.Error(), apiKey, "[REDACTED]"))
+	}
+	return err
 }

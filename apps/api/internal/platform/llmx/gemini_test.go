@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -20,6 +21,8 @@ func TestGemini(t *testing.T) {
 	t.Run("TestErrorBodyNeverContainsAPIKey", testGeminiErrorBodyNeverContainsAPIKey)
 	t.Run("TestNoRedirectFollow", testGeminiNoRedirectFollow)
 	t.Run("TestCapabilitiesOverride", testGeminiCapabilitiesOverride)
+	t.Run("TestListModels", testGeminiListModels)
+	t.Run("TestListModelsError", testGeminiListModelsError)
 }
 
 func testGeminiChatMapsRequestAndResponse(t *testing.T) {
@@ -407,5 +410,82 @@ func testGeminiCapabilitiesOverride(t *testing.T) {
 	}
 	if got := adapter.Capabilities(); got != *override {
 		t.Errorf("Capabilities() = %#v, want %#v", got, *override)
+	}
+}
+
+func testGeminiListModels(t *testing.T) {
+	var gotAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("x-goog-api-key")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"models": [
+				{
+					"name": "models/gemini-2.5-flash",
+					"displayName": "Gemini 2.5 Flash"
+				},
+				{
+					"name": "models/gemini-1.5-pro",
+					"displayName": "Gemini 1.5 Pro"
+				},
+				{
+					"name": "gemini-1.0-pro",
+					"displayName": "Gemini 1.0 Pro"
+				}
+			]
+		}`))
+	}))
+	defer srv.Close()
+
+	cfg := Config{
+		Kind:             KindGemini,
+		BaseURL:          srv.URL,
+		APIKey:           "sk-test-gemini-key",
+		AllowPrivateURLs: true,
+	}
+
+	models, err := ListModels(context.Background(), cfg)
+	if err != nil {
+		t.Fatalf("ListModels error: %v", err)
+	}
+
+	if gotAuth != "sk-test-gemini-key" {
+		t.Errorf("x-goog-api-key = %q, want sk-test-gemini-key", gotAuth)
+	}
+
+	want := []string{"gemini-1.0-pro", "gemini-1.5-pro", "gemini-2.5-flash"}
+	if !slices.Equal(models, want) {
+		t.Errorf("ListModels = %v, want %v", models, want)
+	}
+}
+
+func testGeminiListModelsError(t *testing.T) {
+	secret := "sk-super-secret-gemini-key-999"
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = fmt.Fprintf(w, `{"error":{"code":401,"message":"API key not valid: %s","status":"UNAUTHENTICATED"}}`, secret)
+	}))
+	defer srv.Close()
+
+	cfg := Config{
+		Kind:             KindGemini,
+		BaseURL:          srv.URL,
+		APIKey:           secret,
+		AllowPrivateURLs: true,
+	}
+
+	_, err := ListModels(context.Background(), cfg)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+	if !errors.Is(err, ErrAuth) {
+		t.Errorf("err = %v, want ErrAuth", err)
+	}
+	if strings.Contains(err.Error(), secret) {
+		t.Errorf("error leaked secret key: %v", err)
+	}
+	if !strings.Contains(err.Error(), "[REDACTED]") {
+		t.Errorf("error missing [REDACTED]: %v", err)
 	}
 }

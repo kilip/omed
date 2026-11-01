@@ -59,3 +59,63 @@ func TestRegisterAndNew(t *testing.T) {
 	require.NotNil(t, adapter2)
 	assert.Same(t, customClient, capturedConfig.HTTPClient)
 }
+
+func TestListModels_MemoryAdapter(t *testing.T) {
+	ctx := context.Background()
+	models, err := llmx.ListModels(ctx, llmx.Config{
+		Kind: llmx.Kind("memory"),
+	})
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if len(models) == 0 {
+		t.Fatalf("expected non-empty models list")
+	}
+	assert.Equal(t, []string{"memory-default", "memory-fast"}, models)
+}
+
+func TestListModels_UnsupportedKind(t *testing.T) {
+	_, err := llmx.ListModels(context.Background(), llmx.Config{
+		Kind: "unknown_provider",
+	})
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, llmx.ErrUnsupportedKind))
+}
+
+func TestListModels_NotModelLister(t *testing.T) {
+	llmx.Register("no_lister_kind", func(cfg llmx.Config) (llmx.Adapter, error) {
+		return &dummyAdapter{}, nil
+	})
+
+	_, err := llmx.ListModels(context.Background(), llmx.Config{
+		Kind: "no_lister_kind",
+	})
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, llmx.ErrUnsupportedKind))
+}
+
+type errorListerAdapter struct {
+	dummyAdapter
+	err error
+}
+
+func (e *errorListerAdapter) ListModels(ctx context.Context) ([]string, error) {
+	return nil, e.err
+}
+
+func TestListModels_RedactsAPIKey(t *testing.T) {
+	secretKey := "sk-secret-leaked-key-12345"
+	llmx.Register("leaky_kind", func(cfg llmx.Config) (llmx.Adapter, error) {
+		return &errorListerAdapter{
+			err: errors.New("failed with key: " + cfg.APIKey),
+		}, nil
+	})
+
+	_, err := llmx.ListModels(context.Background(), llmx.Config{
+		Kind:   "leaky_kind",
+		APIKey: secretKey,
+	})
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), secretKey)
+	assert.Contains(t, err.Error(), "[REDACTED]")
+}

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -20,6 +21,8 @@ func TestOpenAI(t *testing.T) {
 	t.Run("TestErrorBodyNeverContainsAPIKey", testOpenAIErrorBodyNeverContainsAPIKey)
 	t.Run("TestNoRedirectFollow", testOpenAINoRedirectFollow)
 	t.Run("TestCapabilitiesOverride", testOpenAICapabilitiesOverride)
+	t.Run("TestListModels", testOpenAIListModels)
+	t.Run("TestListModelsError", testOpenAIListModelsError)
 }
 
 func testOpenAIChatMapsRequestAndResponse(t *testing.T) {
@@ -375,5 +378,74 @@ func testOpenAICapabilitiesOverride(t *testing.T) {
 	}
 	if got := adapter.Capabilities(); got != *override {
 		t.Errorf("Capabilities() = %#v, want %#v", got, *override)
+	}
+}
+
+func testOpenAIListModels(t *testing.T) {
+	var gotAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"object": "list",
+			"data": [
+				{"id": "gpt-4o", "object": "model", "created": 1700000000, "owned_by": "openai"},
+				{"id": "gpt-3.5-turbo", "object": "model", "created": 1700000000, "owned_by": "openai"},
+				{"id": "text-embedding-3-small", "object": "model", "created": 1700000000, "owned_by": "openai"}
+			]
+		}`))
+	}))
+	defer srv.Close()
+
+	cfg := Config{
+		Kind:             KindOpenAICompat,
+		BaseURL:          srv.URL,
+		APIKey:           "sk-test-key",
+		AllowPrivateURLs: true,
+	}
+
+	models, err := ListModels(context.Background(), cfg)
+	if err != nil {
+		t.Fatalf("ListModels error: %v", err)
+	}
+
+	if gotAuth != "Bearer sk-test-key" {
+		t.Errorf("Authorization = %q, want Bearer sk-test-key", gotAuth)
+	}
+
+	want := []string{"gpt-3.5-turbo", "gpt-4o", "text-embedding-3-small"}
+	if !slices.Equal(models, want) {
+		t.Errorf("ListModels = %v, want %v", models, want)
+	}
+}
+
+func testOpenAIListModelsError(t *testing.T) {
+	secret := "sk-super-secret-key-12345"
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = fmt.Fprintf(w, `{"error":{"message":"unauthorized: invalid key %s"}}`, secret)
+	}))
+	defer srv.Close()
+
+	cfg := Config{
+		Kind:             KindOpenAICompat,
+		BaseURL:          srv.URL,
+		APIKey:           secret,
+		AllowPrivateURLs: true,
+	}
+
+	_, err := ListModels(context.Background(), cfg)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+	if !errors.Is(err, ErrAuth) {
+		t.Errorf("err = %v, want ErrAuth", err)
+	}
+	if strings.Contains(err.Error(), secret) {
+		t.Errorf("error leaked secret key: %v", err)
+	}
+	if !strings.Contains(err.Error(), "[REDACTED]") {
+		t.Errorf("error missing [REDACTED]: %v", err)
 	}
 }

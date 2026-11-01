@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"sort"
 	"strings"
 
 	"google.golang.org/genai"
@@ -14,6 +15,11 @@ import (
 func init() {
 	Register(KindGemini, newGemini)
 }
+
+var (
+	_ Adapter     = (*geminiAdapter)(nil)
+	_ ModelLister = (*geminiAdapter)(nil)
+)
 
 type geminiAdapter struct {
 	client       *genai.Client
@@ -58,6 +64,23 @@ func newGemini(cfg Config) (Adapter, error) {
 
 func (a *geminiAdapter) Capabilities() Capabilities {
 	return a.capabilities
+}
+
+// ListModels returns the list of available model identifiers.
+func (a *geminiAdapter) ListModels(ctx context.Context) ([]string, error) {
+	page, err := a.client.Models.List(ctx, nil)
+	if err != nil {
+		return nil, a.wrapError(err)
+	}
+
+	models := make([]string, 0, len(page.Items))
+	for _, m := range page.Items {
+		if m != nil && m.Name != "" {
+			models = append(models, strings.TrimPrefix(m.Name, "models/"))
+		}
+	}
+	sort.Strings(models)
+	return models, nil
 }
 
 func (a *geminiAdapter) wrapError(err error) error {

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"iter"
+	"sort"
 	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
@@ -16,6 +17,11 @@ import (
 func init() {
 	Register(KindAnthropic, newAnthropic)
 }
+
+var (
+	_ Adapter     = (*anthropicAdapter)(nil)
+	_ ModelLister = (*anthropicAdapter)(nil)
+)
 
 type anthropicAdapter struct {
 	client       anthropic.Client
@@ -58,6 +64,23 @@ func newAnthropic(cfg Config) (Adapter, error) {
 
 func (a *anthropicAdapter) Capabilities() Capabilities {
 	return a.capabilities
+}
+
+// ListModels returns the list of available model identifiers.
+func (a *anthropicAdapter) ListModels(ctx context.Context) ([]string, error) {
+	page, err := a.client.Models.List(ctx, anthropic.ModelListParams{})
+	if err != nil {
+		return nil, a.wrapError(err)
+	}
+
+	models := make([]string, 0, len(page.Data))
+	for _, m := range page.Data {
+		if m.ID != "" {
+			models = append(models, m.ID)
+		}
+	}
+	sort.Strings(models)
+	return models, nil
 }
 
 func (a *anthropicAdapter) wrapError(err error) error {

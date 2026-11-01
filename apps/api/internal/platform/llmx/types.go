@@ -14,6 +14,7 @@ const (
 	KindOpenAICompat Kind = "openai_compat"
 	KindAnthropic    Kind = "anthropic"
 	KindGemini       Kind = "gemini"
+	KindMemory       Kind = "memory"
 )
 
 // Role defines the role of a message participant.
@@ -113,6 +114,11 @@ type Adapter interface {
 	Chat(ctx context.Context, req Request) (*Response, error)
 	Stream(ctx context.Context, req Request) iter.Seq2[Event, error]
 	Capabilities() Capabilities
+}
+
+// ModelLister defines an optional interface for adapters capable of listing models.
+type ModelLister interface {
+	ListModels(ctx context.Context) ([]string, error)
 }
 
 // Config provides configuration for constructing an Adapter.

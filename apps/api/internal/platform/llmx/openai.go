@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"sort"
 	"strings"
 
 	"github.com/openai/openai-go"
@@ -19,6 +20,11 @@ import (
 func init() {
 	Register(KindOpenAICompat, newOpenAI)
 }
+
+var (
+	_ Adapter     = (*openAIAdapter)(nil)
+	_ ModelLister = (*openAIAdapter)(nil)
+)
 
 type openAIAdapter struct {
 	client       openai.Client
@@ -61,6 +67,23 @@ func newOpenAI(cfg Config) (Adapter, error) {
 
 func (a *openAIAdapter) Capabilities() Capabilities {
 	return a.capabilities
+}
+
+// ListModels returns the list of available model identifiers.
+func (a *openAIAdapter) ListModels(ctx context.Context) ([]string, error) {
+	page, err := a.client.Models.List(ctx)
+	if err != nil {
+		return nil, a.wrapError(err)
+	}
+
+	models := make([]string, 0, len(page.Data))
+	for _, m := range page.Data {
+		if m.ID != "" {
+			models = append(models, m.ID)
+		}
+	}
+	sort.Strings(models)
+	return models, nil
 }
 
 func (a *openAIAdapter) wrapError(err error) error {

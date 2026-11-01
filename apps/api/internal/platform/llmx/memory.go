@@ -6,6 +6,17 @@ import (
 	"sync"
 )
 
+func init() {
+	Register(KindMemory, func(cfg Config) (Adapter, error) {
+		return NewMemory(), nil
+	})
+}
+
+var (
+	_ Adapter     = (*Memory)(nil)
+	_ ModelLister = (*Memory)(nil)
+)
+
 // Memory implements Adapter by returning scripted responses in order and recording received requests.
 type Memory struct {
 	mu       sync.Mutex
@@ -88,4 +99,12 @@ func (m *Memory) Stream(ctx context.Context, req Request) iter.Seq2[Event, error
 // Capabilities returns the default capabilities for KindOpenAICompat.
 func (m *Memory) Capabilities() Capabilities {
 	return DefaultCapabilities(KindOpenAICompat)
+}
+
+// ListModels returns a static list of available memory models.
+func (m *Memory) ListModels(ctx context.Context) ([]string, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	return []string{"memory-default", "memory-fast"}, nil
 }

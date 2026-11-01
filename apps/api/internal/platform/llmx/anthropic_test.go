@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -20,6 +21,8 @@ func TestAnthropic(t *testing.T) {
 	t.Run("TestErrorBodyNeverContainsAPIKey", testAnthropicErrorBodyNeverContainsAPIKey)
 	t.Run("TestNoRedirectFollow", testAnthropicNoRedirectFollow)
 	t.Run("TestCapabilitiesOverride", testAnthropicCapabilitiesOverride)
+	t.Run("TestListModels", testAnthropicListModels)
+	t.Run("TestListModelsError", testAnthropicListModelsError)
 }
 
 func testAnthropicChatMapsRequestAndResponse(t *testing.T) {
@@ -411,5 +414,89 @@ func testAnthropicCapabilitiesOverride(t *testing.T) {
 	}
 	if got := adapter.Capabilities(); got != *override {
 		t.Errorf("Capabilities() = %#v, want %#v", got, *override)
+	}
+}
+
+func testAnthropicListModels(t *testing.T) {
+	var gotAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("X-Api-Key")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"data": [
+				{
+					"id": "claude-3-5-sonnet-20241022",
+					"display_name": "Claude 3.5 Sonnet",
+					"type": "model",
+					"created_at": "2024-10-22T00:00:00Z"
+				},
+				{
+					"id": "claude-3-opus-20240229",
+					"display_name": "Claude 3 Opus",
+					"type": "model",
+					"created_at": "2024-02-29T00:00:00Z"
+				},
+				{
+					"id": "claude-3-5-haiku-20241022",
+					"display_name": "Claude 3.5 Haiku",
+					"type": "model",
+					"created_at": "2024-10-22T00:00:00Z"
+				}
+			],
+			"has_more": false
+		}`))
+	}))
+	defer srv.Close()
+
+	cfg := Config{
+		Kind:             KindAnthropic,
+		BaseURL:          srv.URL,
+		APIKey:           "sk-test-anthropic-key",
+		AllowPrivateURLs: true,
+	}
+
+	models, err := ListModels(context.Background(), cfg)
+	if err != nil {
+		t.Fatalf("ListModels error: %v", err)
+	}
+
+	if gotAuth != "sk-test-anthropic-key" {
+		t.Errorf("X-Api-Key = %q, want sk-test-anthropic-key", gotAuth)
+	}
+
+	want := []string{"claude-3-5-haiku-20241022", "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"}
+	if !slices.Equal(models, want) {
+		t.Errorf("ListModels = %v, want %v", models, want)
+	}
+}
+
+func testAnthropicListModelsError(t *testing.T) {
+	secret := "sk-super-secret-anthropic-key-999"
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = fmt.Fprintf(w, `{"type":"error","error":{"type":"authentication_error","message":"invalid key %s"}}`, secret)
+	}))
+	defer srv.Close()
+
+	cfg := Config{
+		Kind:             KindAnthropic,
+		BaseURL:          srv.URL,
+		APIKey:           secret,
+		AllowPrivateURLs: true,
+	}
+
+	_, err := ListModels(context.Background(), cfg)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+	if !errors.Is(err, ErrAuth) {
+		t.Errorf("err = %v, want ErrAuth", err)
+	}
+	if strings.Contains(err.Error(), secret) {
+		t.Errorf("error leaked secret key: %v", err)
+	}
+	if !strings.Contains(err.Error(), "[REDACTED]") {
+		t.Errorf("error missing [REDACTED]: %v", err)
 	}
 }

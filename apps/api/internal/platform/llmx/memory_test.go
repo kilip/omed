@@ -2,6 +2,7 @@ package llmx_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 
@@ -120,4 +121,21 @@ func TestMemoryCapabilities(t *testing.T) {
 	mem := llmx.NewMemory()
 	expected := llmx.DefaultCapabilities(llmx.KindOpenAICompat)
 	assert.Equal(t, expected, mem.Capabilities())
+}
+
+func TestMemoryListModels(t *testing.T) {
+	mem := llmx.NewMemory()
+
+	var _ llmx.ModelLister = mem
+
+	ctx := context.Background()
+	models, err := mem.ListModels(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"memory-default", "memory-fast"}, models)
+
+	canceledCtx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err = mem.ListModels(canceledCtx)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, context.Canceled))
 }
