@@ -80,6 +80,19 @@ export const en = {
     github: "Continue with GitHub",
     invitationHint:
       "No account yet? Ask a workspace owner for an invitation link.",
+    otp: {
+      divider: "or",
+      emailLabel: "Email",
+      emailPlaceholder: "you@example.com",
+      sendCode: "Send code",
+      codeHint: "Enter the {{length}}-digit code we sent to {{email}}.",
+      resend: "Resend code",
+      resendIn: "Resend code in {{seconds}}s",
+      changeEmail: "Use a different email",
+      invalid: "That code is invalid or expired.",
+      unavailable: "Email sign-in is not available right now.",
+      failed: "Could not send the code. Try again.",
+    },
   },
   invite: {
     title: "Join {{workspace}}",

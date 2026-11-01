@@ -5,11 +5,12 @@ import {
   GoogleOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
-import { App, Button } from "antd";
+import { App, Button, Divider } from "antd";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { redirect } from "react-router";
 import { Logo } from "~/components/Logo";
+import { OtpLoginForm } from "~/components/OtpLoginForm";
 import { LanguageMenu, ThemeMenu } from "~/components/PreferenceMenus";
 import { authClient } from "~/lib/auth-client";
 import { env } from "~/lib/env";
@@ -142,6 +143,8 @@ export default function Login() {
           >
             {t("login.github")}
           </Button>
+          <Divider>{t("login.otp.divider")}</Divider>
+          <OtpLoginForm />
           <p
             className="m-0 text-xs"
             style={{ color: "var(--omed-text-secondary)" }}

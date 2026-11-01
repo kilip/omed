@@ -82,6 +82,19 @@ export const id: Translation = {
     github: "Lanjutkan dengan GitHub",
     invitationHint:
       "Belum punya akun? Minta tautan undangan ke pemilik workspace.",
+    otp: {
+      divider: "atau",
+      emailLabel: "Email",
+      emailPlaceholder: "anda@contoh.com",
+      sendCode: "Kirim kode",
+      codeHint: "Masukkan kode {{length}} digit yang kami kirim ke {{email}}.",
+      resend: "Kirim ulang kode",
+      resendIn: "Kirim ulang kode dalam {{seconds}} dtk",
+      changeEmail: "Gunakan email lain",
+      invalid: "Kode tidak valid atau sudah kedaluwarsa.",
+      unavailable: "Masuk dengan email belum tersedia saat ini.",
+      failed: "Gagal mengirim kode. Coba lagi.",
+    },
   },
   invite: {
     title: "Gabung ke {{workspace}}",
