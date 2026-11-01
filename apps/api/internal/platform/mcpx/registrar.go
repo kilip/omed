@@ -108,7 +108,7 @@ func AddTool[In WorkspaceScoped, Out any](r *Registrar, spec ToolSpec, h func(ct
 		},
 	}
 
-	mcp.AddTool[In, Out](r.server, tool, func(ctx context.Context, req *mcp.CallToolRequest, in In) (*mcp.CallToolResult, Out, error) {
+	mcp.AddTool[In, any](r.server, tool, func(ctx context.Context, req *mcp.CallToolRequest, in In) (*mcp.CallToolResult, any, error) {
 		var zero Out
 
 		wid := in.GetWorkspaceID()
