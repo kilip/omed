@@ -45,6 +45,8 @@ type ProviderService interface {
 	SetDefault(ctx context.Context, id int64) (domain.Provider, error)
 	Test(ctx context.Context, id int64) (model.TestResult, error)
 	TestConfig(ctx context.Context, req model.TestProviderRequest) (model.TestResult, error)
+	ListModels(ctx context.Context, id int64) ([]string, error)
+	ListModelsConfig(ctx context.Context, req model.ListModelsRequest) ([]string, error)
 	ResolveAdapter(ctx context.Context, providerID *int64) (llmx.Adapter, error)
 }
 
@@ -72,6 +74,13 @@ func WithTestTimeout(d time.Duration) ProviderOption {
 	}
 }
 
+// WithListModels overrides the model listing function.
+func WithListModels(f func(context.Context, llmx.Config) ([]string, error)) ProviderOption {
+	return func(s *providerService) {
+		s.listModels = f
+	}
+}
+
 type providerService struct {
 	repo           ProviderRepository
 	cipher         *secretx.Cipher
@@ -80,6 +89,7 @@ type providerService struct {
 	now            func() time.Time
 	testTimeout    time.Duration
 	limiter        *RateLimiter
+	listModels     func(context.Context, llmx.Config) ([]string, error)
 }
 
 // NewProviderService creates a new ProviderService implementation.
@@ -91,6 +101,7 @@ func NewProviderService(repo repository.ProviderRepository, cipher *secretx.Ciph
 		adapterFactory: llmx.New,
 		now:            time.Now,
 		testTimeout:    DefaultTestTimeout,
+		listModels:     llmx.ListModels,
 	}
 	for _, opt := range opts {
 		opt(s)
@@ -416,4 +427,51 @@ func (s *providerService) runTest(ctx context.Context, adapter llmx.Adapter) (mo
 		OK:        true,
 		LatencyMs: latencyMs,
 	}, nil
+}
+
+func (s *providerService) ListModels(ctx context.Context, id int64) ([]string, error) {
+	if !s.limiter.Allow(base.UserIDFromContext(ctx)) {
+		return nil, domain.ErrTestRateLimited
+	}
+
+	if s.cipher == nil || !s.cipher.Enabled() {
+		return nil, domain.ErrSecretKeyMissing
+	}
+
+	row, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	apiKey, err := s.cipher.Decrypt(row.APIKeyEnc, strconv.FormatInt(row.WorkspaceID, 10))
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", domain.ErrProviderKeyUnreadable, err)
+	}
+
+	return s.listModels(ctx, llmx.Config{
+		Kind:             llmx.Kind(row.Kind),
+		BaseURL:          row.BaseURL,
+		APIKey:           apiKey,
+		AllowPrivateURLs: s.allowPrivate,
+	})
+}
+
+func (s *providerService) ListModelsConfig(ctx context.Context, req model.ListModelsRequest) ([]string, error) {
+	if !s.limiter.Allow(base.UserIDFromContext(ctx)) {
+		return nil, domain.ErrTestRateLimited
+	}
+
+	baseURL := strings.TrimSpace(req.BaseURL)
+	if baseURL != "" {
+		if err := llmx.ValidateBaseURL(baseURL, s.allowPrivate); err != nil {
+			return nil, fmt.Errorf("%w: %w", domain.ErrInvalidBaseURL, err)
+		}
+	}
+
+	return s.listModels(ctx, llmx.Config{
+		Kind:             llmx.Kind(req.Kind),
+		BaseURL:          baseURL,
+		APIKey:           strings.TrimSpace(req.APIKey),
+		AllowPrivateURLs: s.allowPrivate,
+	})
 }

@@ -554,3 +554,205 @@ func (b *blockingStubAdapter) Stream(ctx context.Context, req llmx.Request) iter
 func (b *blockingStubAdapter) Capabilities() llmx.Capabilities {
 	return llmx.Capabilities{}
 }
+
+func TestProviderService_ListModels_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockProviderRepository(ctrl)
+	cipher := newTestCipher(t)
+
+	ctx := newContextWithUserWorkspace(1, 42)
+	encKey, err := cipher.Encrypt("sk-test-key-1234", "42")
+	require.NoError(t, err)
+
+	provID := int64(10)
+	repo.EXPECT().Get(ctx, provID).Return(&ent.AgentProvider{
+		ID:          10,
+		WorkspaceID: 42,
+		Name:        "Test Provider",
+		Kind:        agentprovider.Kind(llmx.KindOpenAICompat),
+		BaseURL:     "https://api.openai.com/v1",
+		Model:       "gpt-4o",
+		APIKeyEnc:   encKey,
+	}, nil)
+
+	listCalled := false
+	customList := func(ctx context.Context, cfg llmx.Config) ([]string, error) {
+		listCalled = true
+		assert.Equal(t, llmx.KindOpenAICompat, cfg.Kind)
+		assert.Equal(t, "https://api.openai.com/v1", cfg.BaseURL)
+		assert.Equal(t, "sk-test-key-1234", cfg.APIKey)
+		assert.False(t, cfg.AllowPrivateURLs)
+		return []string{"gpt-4o", "gpt-4o-mini"}, nil
+	}
+
+	svc := service.NewProviderService(repo, cipher, false, service.WithListModels(customList))
+	models, err := svc.ListModels(ctx, provID)
+	require.NoError(t, err)
+	assert.True(t, listCalled)
+	assert.Equal(t, []string{"gpt-4o", "gpt-4o-mini"}, models)
+}
+
+func TestProviderService_ListModels_SecretKeyMissing(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockProviderRepository(ctrl)
+	svc := service.NewProviderService(repo, nil, false)
+	ctx := newContextWithUserWorkspace(1, 42)
+
+	_, err := svc.ListModels(ctx, 1)
+	require.ErrorIs(t, err, domain.ErrSecretKeyMissing)
+}
+
+func TestProviderService_ListModels_NotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockProviderRepository(ctrl)
+	cipher := newTestCipher(t)
+
+	ctx := newContextWithUserWorkspace(1, 42)
+	provID := int64(999)
+	repo.EXPECT().Get(ctx, provID).Return(nil, domain.ErrProviderNotFound)
+
+	svc := service.NewProviderService(repo, cipher, false)
+	_, err := svc.ListModels(ctx, provID)
+	require.ErrorIs(t, err, domain.ErrProviderNotFound)
+}
+
+func TestProviderService_ListModels_UnreadableKey(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockProviderRepository(ctrl)
+	cipher := newTestCipher(t)
+
+	ctx := newContextWithUserWorkspace(1, 42)
+	provID := int64(10)
+	repo.EXPECT().Get(ctx, provID).Return(&ent.AgentProvider{
+		ID:          10,
+		WorkspaceID: 42,
+		Name:        "Test Provider",
+		Kind:        agentprovider.Kind(llmx.KindOpenAICompat),
+		BaseURL:     "https://api.openai.com/v1",
+		Model:       "gpt-4o",
+		APIKeyEnc:   "corrupt-key",
+	}, nil)
+
+	svc := service.NewProviderService(repo, cipher, false)
+	_, err := svc.ListModels(ctx, provID)
+	require.ErrorIs(t, err, domain.ErrProviderKeyUnreadable)
+}
+
+func TestProviderService_ListModelsConfig_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockProviderRepository(ctrl)
+	cipher := newTestCipher(t)
+
+	listCalled := false
+	customList := func(ctx context.Context, cfg llmx.Config) ([]string, error) {
+		listCalled = true
+		assert.Equal(t, llmx.KindOpenAICompat, cfg.Kind)
+		assert.Equal(t, "https://api.openai.com/v1", cfg.BaseURL)
+		assert.Equal(t, "sk-test-key", cfg.APIKey)
+		assert.False(t, cfg.AllowPrivateURLs)
+		return []string{"gpt-4o", "gpt-4o-mini"}, nil
+	}
+
+	svc := service.NewProviderService(repo, cipher, false, service.WithListModels(customList))
+	ctx := newContextWithUserWorkspace(1, 42)
+
+	req := model.ListModelsRequest{
+		Kind:    string(llmx.KindOpenAICompat),
+		BaseURL: "  https://api.openai.com/v1  ",
+		APIKey:  "  sk-test-key  ",
+	}
+
+	models, err := svc.ListModelsConfig(ctx, req)
+	require.NoError(t, err)
+	assert.True(t, listCalled)
+	assert.Equal(t, []string{"gpt-4o", "gpt-4o-mini"}, models)
+}
+
+func TestProviderService_ListModelsConfig_SSRF(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockProviderRepository(ctrl)
+	cipher := newTestCipher(t)
+
+	svc := service.NewProviderService(repo, cipher, false)
+	ctx := newContextWithUserWorkspace(1, 42)
+
+	req := model.ListModelsRequest{
+		Kind:    string(llmx.KindOpenAICompat),
+		BaseURL: "http://127.0.0.1:8080/v1",
+		APIKey:  "sk-test-secret",
+	}
+
+	_, err := svc.ListModelsConfig(ctx, req)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, domain.ErrInvalidBaseURL) || errors.Is(err, llmx.ErrBlockedURL))
+}
+
+func TestProviderService_ListModelsConfig_AllowPrivate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockProviderRepository(ctrl)
+	cipher := newTestCipher(t)
+
+	customList := func(ctx context.Context, cfg llmx.Config) ([]string, error) {
+		assert.True(t, cfg.AllowPrivateURLs)
+		assert.Equal(t, "http://127.0.0.1:8080/v1", cfg.BaseURL)
+		return []string{"local-model"}, nil
+	}
+
+	svc := service.NewProviderService(repo, cipher, true, service.WithListModels(customList))
+	ctx := newContextWithUserWorkspace(1, 42)
+
+	models, err := svc.ListModelsConfig(ctx, model.ListModelsRequest{
+		Kind:    string(llmx.KindOpenAICompat),
+		BaseURL: "http://127.0.0.1:8080/v1",
+		APIKey:  "sk-local",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []string{"local-model"}, models)
+}
+
+func TestProviderService_ListModels_RateLimited(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockProviderRepository(ctrl)
+	cipher := newTestCipher(t)
+
+	stubFactory := func(cfg llmx.Config) (llmx.Adapter, error) {
+		return &stubAdapter{}, nil
+	}
+	svc := service.NewProviderService(repo, cipher, false, service.WithAdapterFactory(stubFactory))
+	ctx := newContextWithUserWorkspace(1, 42)
+
+	// Deplete rate limiter tokens (10 capacity)
+	for i := 0; i < 10; i++ {
+		_, _ = svc.TestConfig(ctx, model.TestProviderRequest{
+			Kind:   string(llmx.KindOpenAICompat),
+			Model:  "gpt-4o",
+			APIKey: "sk-test",
+		})
+	}
+
+	// Next calls should fail with ErrTestRateLimited
+	_, err := svc.ListModels(ctx, 1)
+	require.ErrorIs(t, err, domain.ErrTestRateLimited)
+
+	_, err = svc.ListModelsConfig(ctx, model.ListModelsRequest{
+		Kind:   string(llmx.KindOpenAICompat),
+		APIKey: "sk-test",
+	})
+	require.ErrorIs(t, err, domain.ErrTestRateLimited)
+}

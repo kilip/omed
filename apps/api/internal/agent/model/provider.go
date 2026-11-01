@@ -41,6 +41,13 @@ type TestResult struct {
 	LatencyMs int64  `json:"latencyMs"`
 }
 
+// ListModelsRequest defines payload to list models for an ad-hoc configuration.
+type ListModelsRequest struct {
+	Kind    string `json:"kind" validate:"required"`
+	BaseURL string `json:"baseUrl"`
+	APIKey  string `json:"apiKey" validate:"required"`
+}
+
 // ProviderResponse represents API response view of a provider.
 type ProviderResponse struct {
 	ID           int64              `json:"id"`

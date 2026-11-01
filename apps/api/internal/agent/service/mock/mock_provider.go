@@ -232,6 +232,36 @@ func (mr *MockProviderServiceMockRecorder) List(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockProviderService)(nil).List), ctx)
 }
 
+// ListModels mocks base method.
+func (m *MockProviderService) ListModels(ctx context.Context, id int64) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListModels", ctx, id)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListModels indicates an expected call of ListModels.
+func (mr *MockProviderServiceMockRecorder) ListModels(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListModels", reflect.TypeOf((*MockProviderService)(nil).ListModels), ctx, id)
+}
+
+// ListModelsConfig mocks base method.
+func (m *MockProviderService) ListModelsConfig(ctx context.Context, req model.ListModelsRequest) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListModelsConfig", ctx, req)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListModelsConfig indicates an expected call of ListModelsConfig.
+func (mr *MockProviderServiceMockRecorder) ListModelsConfig(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListModelsConfig", reflect.TypeOf((*MockProviderService)(nil).ListModelsConfig), ctx, req)
+}
+
 // ResolveAdapter mocks base method.
 func (m *MockProviderService) ResolveAdapter(ctx context.Context, providerID *int64) (llmx.Adapter, error) {
 	m.ctrl.T.Helper()
