@@ -1,0 +1,15 @@
+{{if eq .Locale "id"}}Kode masuk Omed Anda adalah:
+
+{{.Code}}
+
+Kode ini berlaku selama {{.TTLMinutes}} menit. Jangan berikan kode ini kepada siapa pun.
+
+Jika Anda tidak meminta kode ini, abaikan email ini.
+{{else}}Your Omed sign-in code is:
+
+{{.Code}}
+
+This code is valid for {{.TTLMinutes}} minutes. Do not share this code with anyone.
+
+If you didn't request this code, you can safely ignore this email.
+{{end}}

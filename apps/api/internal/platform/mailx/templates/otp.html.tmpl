@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="{{if eq .Locale "id"}}id{{else}}en{{end}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{if eq .Locale "id"}}Kode Masuk Omed{{else}}Your Omed Sign-in Code{{end}}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f6f8fa;
+      margin: 0;
+      padding: 32px 16px;
+      color: #24292f;
+    }
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #0969da;
+    }
+    .content {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .code-box {
+      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      text-align: center;
+      background-color: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 16px;
+      margin: 24px 0;
+      color: #1f2328;
+    }
+    .footer {
+      font-size: 12px;
+      color: #656d76;
+      margin-top: 32px;
+      border-top: 1px solid #d0d7de;
+      padding-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Omed</div>
+    <div class="content">
+      {{if eq .Locale "id"}}
+      <p>Gunakan kode verifikasi berikut untuk masuk ke akun Omed Anda:</p>
+      <div class="code-box">{{.Code}}</div>
+      <p>Kode ini berlaku selama <strong>{{.TTLMinutes}} menit</strong>. Jangan berikan kode ini kepada siapa pun.</p>
+      <p>Jika Anda tidak meminta kode ini, Anda dapat mengabaikan email ini.</p>
+      {{else}}
+      <p>Use the following verification code to sign in to your Omed account:</p>
+      <div class="code-box">{{.Code}}</div>
+      <p>This code is valid for <strong>{{.TTLMinutes}} minutes</strong>. Do not share this code with anyone.</p>
+      <p>If you didn't request this code, you can safely ignore this email.</p>
+      {{end}}
+    </div>
+    <div class="footer">
+      {{if eq .Locale "id"}}
+      <p>Ini adalah pesan otomatis. Mohon jangan membalas email ini.</p>
+      {{else}}
+      <p>This is an automated message. Please do not reply to this email.</p>
+      {{end}}
+    </div>
+  </div>
+</body>
+</html>
