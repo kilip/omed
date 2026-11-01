@@ -27,8 +27,12 @@ func initRoutes(mod CoreModule, r fiber.Router, az *authz.Authorizer) {
 
 	users := r.Group("/users")
 	ctlU := controller.NewUserController(mod.UserService)
+	ctlT := controller.NewAccessTokenController(mod.AccessTokenService)
 	users.Get("/me", ctlU.GetMe)
 	users.Put("/me", ctlU.UpdateMe)
+	users.Post("/me/access-tokens", ctlT.Create)
+	users.Get("/me/access-tokens", ctlT.List)
+	users.Delete("/me/access-tokens/:id", ctlT.Revoke)
 
 	workspaces := r.Group("/workspaces")
 	ctlW := controller.NewWorkspaceController(mod.WorkspaceService)

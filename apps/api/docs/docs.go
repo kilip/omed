@@ -105,6 +105,23 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-array_model_AccessTokenResponse": {
+                "properties": {
+                    "data": {
+                        "description": "Data contains the response payload.",
+                        "items": {
+                            "$ref": "#/components/schemas/model.AccessTokenResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-array_model_AccountResponse": {
                 "properties": {
                     "data": {
@@ -467,6 +484,19 @@ const docTemplate = `{
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.CashFlowItemResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_CreatedAccessTokenResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.CreatedAccessTokenResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -844,6 +874,29 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.AccessTokenResponse": {
+                "properties": {
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "expiresAt": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "prefix": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.AccountLedgerResponse": {
                 "properties": {
                     "accountId": {
@@ -1120,6 +1173,17 @@ const docTemplate = `{
                     },
                     "unitPrice": {
                         "example": "1000000.00",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.CreateAccessTokenRequest": {
+                "properties": {
+                    "expiresInDays": {
+                        "type": "integer"
+                    },
+                    "name": {
                         "type": "string"
                     }
                 },
@@ -1482,6 +1546,32 @@ const docTemplate = `{
                 "required": [
                     "name"
                 ],
+                "type": "object"
+            },
+            "model.CreatedAccessTokenResponse": {
+                "properties": {
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "expiresAt": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "prefix": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    }
+                },
                 "type": "object"
             },
             "model.CurrencyBreakdownItem": {
@@ -4179,6 +4269,206 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Update current user profile",
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
+        "/users/me/access-tokens": {
+            "get": {
+                "description": "List all personal access tokens owned by the authenticated user",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_AccessTokenResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List access tokens",
+                "tags": [
+                    "Users"
+                ]
+            },
+            "post": {
+                "description": "Create a new personal access token for API/MCP authentication",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreateAccessTokenRequest",
+                                "summary": "request",
+                                "description": "Create access token payload"
+                            }
+                        }
+                    },
+                    "description": "Create access token payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_CreatedAccessTokenResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create access token",
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
+        "/users/me/access-tokens/{id}": {
+            "delete": {
+                "description": "Revoke an active personal access token owned by the authenticated user",
+                "parameters": [
+                    {
+                        "description": "Access Token ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Revoke access token",
                 "tags": [
                     "Users"
                 ]

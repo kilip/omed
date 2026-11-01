@@ -806,6 +806,205 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/users/me/access-tokens": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List access tokens
+     * @description List all personal access tokens owned by the authenticated user
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-array_model_AccessTokenResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    /**
+     * Create access token
+     * @description Create a new personal access token for API/MCP authentication
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description Create access token payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.CreateAccessTokenRequest"];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_CreatedAccessTokenResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/users/me/access-tokens/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Revoke access token
+     * @description Revoke an active personal access token owned by the authenticated user
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Access Token ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": Record<string, never>;
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces": {
     parameters: {
       query?: never;
@@ -9932,6 +10131,12 @@ export interface components {
       /** @description Meta contains request metadata. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-array_model_AccessTokenResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.AccessTokenResponse"][];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-array_model_AccountResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.AccountResponse"][];
@@ -10067,6 +10272,12 @@ export interface components {
     "httpx.WebResponse-model_CashFlowItemResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.CashFlowItemResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-model_CreatedAccessTokenResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.CreatedAccessTokenResponse"];
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
@@ -10238,6 +10449,14 @@ export interface components {
       toolCalling?: boolean;
       vision?: boolean;
     };
+    "model.AccessTokenResponse": {
+      createdAt?: string;
+      expiresAt?: string;
+      id?: number;
+      name?: string;
+      prefix?: string;
+      status?: string;
+    };
     "model.AccountLedgerResponse": {
       accountId?: number;
       /** @example 1000.00 */
@@ -10347,6 +10566,10 @@ export interface components {
       quantity?: string;
       /** @example 1000000.00 */
       unitPrice?: string;
+    };
+    "model.CreateAccessTokenRequest": {
+      expiresInDays?: number;
+      name?: string;
     };
     "model.CreateAccountRequest": {
       code: string;
@@ -10460,6 +10683,15 @@ export interface components {
     "model.CreateWorkspaceRequest": {
       description?: string;
       name: string;
+    };
+    "model.CreatedAccessTokenResponse": {
+      createdAt?: string;
+      expiresAt?: string;
+      id?: number;
+      name?: string;
+      prefix?: string;
+      status?: string;
+      token?: string;
     };
     "model.CurrencyBreakdownItem": {
       /** @example 0.00 */
