@@ -1,7 +1,7 @@
 # Design Spec: Finance (`fin`) Integration with the Omed MCP Server
 
 - **Date:** 2026-11-01
-- **Status:** Draft / Under Review
+- **Status:** Completed
 - **Module:** `fin` (Financial Accounting), with a platform contract towards `platform/mcpx`
 - **Author:** Claude (pair programming with the repository owner)
 - **Related:** [`2026-10-30-agent-provider-design.md`](./2026-10-30-agent-provider-design.md) lists "MCP server" as out of scope for the `agent` module. This document does not change that: the MCP server described here belongs to `platform/mcpx` and the modules, not to `agent`.

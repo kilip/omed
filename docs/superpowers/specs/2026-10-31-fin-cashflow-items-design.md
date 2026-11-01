@@ -1,7 +1,7 @@
 # Design Spec: Multi-Item Income & Expense with Posting / Draft Workflow
 
 - **Date:** 2026-10-31
-- **Status:** Draft / Under Review
+- **Status:** Completed
 - **Module:** `fin` (Financial Accounting)
 - **Author:** Claude (pair programming with the repository owner)
 - **Supersedes:** the "strictly 1-to-1" non-goal (§2) and the single-category request/response contract (§5.2) of [`2026-10-30-fin-cash-income-expense-design.md`](./2026-10-30-fin-cash-income-expense-design.md). Everything else in that spec (launcher, `/fin/overview`, payment account grouping, attachment upload flow) stays in force unless this document says otherwise.

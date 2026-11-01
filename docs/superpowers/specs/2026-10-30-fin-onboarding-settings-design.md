@@ -1,7 +1,7 @@
 # Design Spec: Finance Onboarding Wizard (`/fin/onboarding`) & Finance Settings (`/fin/settings`)
 
 - **Date:** 2026-10-30
-- **Status:** Draft / Under Review
+- **Status:** Completed
 - **Module:** `fin` (Financial Accounting)
 - **Author:** Antigravity (Pair Programming with Pak Bos)
 

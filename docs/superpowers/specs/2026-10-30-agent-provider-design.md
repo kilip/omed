@@ -1,6 +1,6 @@
 # Design: `agent` module, LLM adapter and workspace BYOK providers
 
-Status: revised draft for review (workspace-scoped providers, own `agent:*` roles). Date: 2026-10-30. Target branch: `main` of `kilip/omed`.
+Status: Completed. Date: 2026-10-30. Target branch: `main` of `kilip/omed`.
 
 ## 1. Purpose
 
