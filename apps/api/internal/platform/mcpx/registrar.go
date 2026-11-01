@@ -169,6 +169,10 @@ func AddTool[In WorkspaceScoped, Out any](r *Registrar, spec ToolSpec, h func(ct
 			return nil, zero, formatToolError(ctx, ErrResultTooLarge, r.cfg.Logger)
 		}
 
-		return nil, out, nil
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: string(data)},
+			},
+		}, out, nil
 	})
 }
