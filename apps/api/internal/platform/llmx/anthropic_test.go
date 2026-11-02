@@ -23,6 +23,7 @@ func TestAnthropic(t *testing.T) {
 	t.Run("TestCapabilitiesOverride", testAnthropicCapabilitiesOverride)
 	t.Run("TestListModels", testAnthropicListModels)
 	t.Run("TestListModelsError", testAnthropicListModelsError)
+	t.Run("TestDocumentPart", testAnthropicDocumentPart)
 }
 
 func testAnthropicChatMapsRequestAndResponse(t *testing.T) {
@@ -498,5 +499,97 @@ func testAnthropicListModelsError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "[REDACTED]") {
 		t.Errorf("error missing [REDACTED]: %v", err)
+	}
+}
+
+func testAnthropicDocumentPart(t *testing.T) {
+	var gotBody map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("read body: %v", err)
+		}
+		if err := json.Unmarshal(b, &gotBody); err != nil {
+			t.Fatalf("unmarshal body: %v", err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"id": "msg-doc",
+			"type": "message",
+			"role": "assistant",
+			"model": "claude-3-5-sonnet-20241022",
+			"content": [
+				{
+					"type": "text",
+					"text": "Document analyzed"
+				}
+			],
+			"stop_reason": "end_turn",
+			"usage": {
+				"input_tokens": 100,
+				"output_tokens": 10
+			}
+		}`))
+	}))
+	defer srv.Close()
+
+	adapter, err := New(Config{
+		Kind:             KindAnthropic,
+		BaseURL:          srv.URL,
+		Model:            "claude-3-5-sonnet-20241022",
+		APIKey:           "sk-test-anthropic-key",
+		AllowPrivateURLs: true,
+	})
+	if err != nil {
+		t.Fatalf("New error: %v", err)
+	}
+
+	pdfData := []byte("%PDF-1.4 dummy content")
+	_, err = adapter.Chat(context.Background(), Request{
+		Model: "claude-3-5-sonnet-20241022",
+		Messages: []Message{
+			{
+				Role: RoleUser,
+				Parts: []Part{
+					{Text: "Please read this document"},
+					{Document: &Document{MIME: "application/pdf", Data: pdfData}},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("Chat error: %v", err)
+	}
+
+	msgs, ok := gotBody["messages"].([]any)
+	if !ok || len(msgs) != 1 {
+		t.Fatalf("messages = %#v, want len 1", gotBody["messages"])
+	}
+	userMsg := msgs[0].(map[string]any)
+	parts, ok := userMsg["content"].([]any)
+	if !ok || len(parts) != 2 {
+		t.Fatalf("user content parts = %#v, want len 2", userMsg["content"])
+	}
+
+	docPart, ok := parts[1].(map[string]any)
+	if !ok {
+		t.Fatalf("docPart not a map: %#v", parts[1])
+	}
+	if docPart["type"] != "document" {
+		t.Errorf("docPart type = %v, want document", docPart["type"])
+	}
+	source, ok := docPart["source"].(map[string]any)
+	if !ok {
+		t.Fatalf("docPart source not a map: %#v", docPart["source"])
+	}
+	if source["type"] != "base64" {
+		t.Errorf("source type = %v, want base64", source["type"])
+	}
+	if source["media_type"] != "application/pdf" {
+		t.Errorf("source media_type = %v, want application/pdf", source["media_type"])
+	}
+	expectedB64 := "JVBERi0xLjQgZHVtbXkgY29udGVudA=="
+	if source["data"] != expectedB64 {
+		t.Errorf("source data = %v, want %v", source["data"], expectedB64)
 	}
 }

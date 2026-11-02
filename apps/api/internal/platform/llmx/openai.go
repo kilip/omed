@@ -236,6 +236,14 @@ func (a *openAIAdapter) buildParams(req Request) openai.ChatCompletionNewParams 
 }
 
 func (a *openAIAdapter) Chat(ctx context.Context, req Request) (*Response, error) {
+	for _, m := range req.Messages {
+		for _, p := range m.Parts {
+			if p.Document != nil {
+				return nil, fmt.Errorf("%w: document parts", ErrUnsupportedContent)
+			}
+		}
+	}
+
 	params := a.buildParams(req)
 	cc, err := a.client.Chat.Completions.New(ctx, params)
 	if err != nil {
@@ -271,6 +279,15 @@ func (a *openAIAdapter) Chat(ctx context.Context, req Request) (*Response, error
 
 func (a *openAIAdapter) Stream(ctx context.Context, req Request) iter.Seq2[Event, error] {
 	return func(yield func(Event, error) bool) {
+		for _, m := range req.Messages {
+			for _, p := range m.Parts {
+				if p.Document != nil {
+					yield(Event{}, fmt.Errorf("%w: document parts", ErrUnsupportedContent))
+					return
+				}
+			}
+		}
+
 		params := a.buildParams(req)
 		params.StreamOptions = openai.ChatCompletionStreamOptionsParam{
 			IncludeUsage: openai.Bool(true),

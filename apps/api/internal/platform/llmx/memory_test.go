@@ -123,6 +123,38 @@ func TestMemoryCapabilities(t *testing.T) {
 	assert.Equal(t, expected, mem.Capabilities())
 }
 
+func TestMemory_AcceptsDocument(t *testing.T) {
+	ctx := context.Background()
+	mem := llmx.NewMemory()
+
+	doc := &llmx.Document{
+		MIME: "application/pdf",
+		Data: []byte("%PDF-1.4 sample document"),
+	}
+	req := llmx.Request{
+		Model: "memory-default",
+		Messages: []llmx.Message{
+			{
+				Role: llmx.RoleUser,
+				Parts: []llmx.Part{
+					{Text: "Analyze this document"},
+					{Document: doc},
+				},
+			},
+		},
+	}
+
+	_, err := mem.Chat(ctx, req)
+	require.NoError(t, err)
+
+	reqs := mem.Requests()
+	require.Len(t, reqs, 1)
+	require.Len(t, reqs[0].Messages, 1)
+	require.Len(t, reqs[0].Messages[0].Parts, 2)
+	assert.Equal(t, "Analyze this document", reqs[0].Messages[0].Parts[0].Text)
+	assert.Equal(t, doc, reqs[0].Messages[0].Parts[1].Document)
+}
+
 func TestMemoryListModels(t *testing.T) {
 	mem := llmx.NewMemory()
 

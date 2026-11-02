@@ -23,6 +23,7 @@ func TestOpenAI(t *testing.T) {
 	t.Run("TestCapabilitiesOverride", testOpenAICapabilitiesOverride)
 	t.Run("TestListModels", testOpenAIListModels)
 	t.Run("TestListModelsError", testOpenAIListModelsError)
+	t.Run("TestDocumentPartRejected", testOpenAIDocumentPartRejected)
 }
 
 func testOpenAIChatMapsRequestAndResponse(t *testing.T) {
@@ -447,5 +448,50 @@ func testOpenAIListModelsError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "[REDACTED]") {
 		t.Errorf("error missing [REDACTED]: %v", err)
+	}
+}
+
+func testOpenAIDocumentPartRejected(t *testing.T) {
+	TestOpenAI_DocumentPartRejected(t)
+}
+
+func TestOpenAI_DocumentPartRejected(t *testing.T) {
+	called := false
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		t.Fatalf("unexpected HTTP call to server: %s %s", r.Method, r.URL.Path)
+	}))
+	defer srv.Close()
+
+	adapter, err := New(Config{
+		Kind:             KindOpenAICompat,
+		BaseURL:          srv.URL,
+		Model:            "gpt-4o-mini",
+		APIKey:           "sk-test-openai-key",
+		AllowPrivateURLs: true,
+	})
+	if err != nil {
+		t.Fatalf("New error: %v", err)
+	}
+
+	_, err = adapter.Chat(context.Background(), Request{
+		Model: "gpt-4o-mini",
+		Messages: []Message{
+			{
+				Role: RoleUser,
+				Parts: []Part{
+					{Document: &Document{MIME: "application/pdf", Data: []byte("test")}},
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !errors.Is(err, ErrUnsupportedContent) {
+		t.Errorf("errors.Is(err, ErrUnsupportedContent) = false, got %v", err)
+	}
+	if called {
+		t.Errorf("expected no HTTP call, but HTTP server was called")
 	}
 }

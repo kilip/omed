@@ -7,13 +7,14 @@ import (
 )
 
 var (
-	ErrAuth            = errors.New("llmx: authentication failed")
-	ErrRateLimit       = errors.New("llmx: rate limited")
-	ErrModelNotFound   = errors.New("llmx: model not found")
-	ErrBadRequest      = errors.New("llmx: bad request")
-	ErrUnavailable     = errors.New("llmx: service unavailable")
-	ErrBlockedURL      = errors.New("llmx: blocked url")
-	ErrUnsupportedKind = errors.New("llmx: unsupported kind")
+	ErrAuth               = errors.New("llmx: authentication failed")
+	ErrRateLimit          = errors.New("llmx: rate limited")
+	ErrModelNotFound      = errors.New("llmx: model not found")
+	ErrBadRequest         = errors.New("llmx: bad request")
+	ErrUnavailable        = errors.New("llmx: service unavailable")
+	ErrBlockedURL         = errors.New("llmx: blocked url")
+	ErrUnsupportedKind    = errors.New("llmx: unsupported kind")
+	ErrUnsupportedContent = errors.New("llmx: unsupported content")
 )
 
 // MapHTTPError maps an HTTP status code and response body to a sanitized error wrapping a sentinel.

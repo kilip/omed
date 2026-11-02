@@ -23,6 +23,7 @@ func TestGemini(t *testing.T) {
 	t.Run("TestCapabilitiesOverride", testGeminiCapabilitiesOverride)
 	t.Run("TestListModels", testGeminiListModels)
 	t.Run("TestListModelsError", testGeminiListModelsError)
+	t.Run("TestDocumentPart", testGeminiDocumentPart)
 }
 
 func testGeminiChatMapsRequestAndResponse(t *testing.T) {
@@ -487,5 +488,90 @@ func testGeminiListModelsError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "[REDACTED]") {
 		t.Errorf("error missing [REDACTED]: %v", err)
+	}
+}
+
+func testGeminiDocumentPart(t *testing.T) {
+	var gotBody map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("read body: %v", err)
+		}
+		if err := json.Unmarshal(b, &gotBody); err != nil {
+			t.Fatalf("unmarshal body: %v", err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"candidates": [{
+				"content": {
+					"role": "model",
+					"parts": [
+						{"text": "Document received"}
+					]
+				},
+				"finishReason": "STOP"
+			}],
+			"usageMetadata": {
+				"promptTokenCount": 50,
+				"candidatesTokenCount": 5,
+				"totalTokenCount": 55
+			}
+		}`))
+	}))
+	defer srv.Close()
+
+	adapter, err := New(Config{
+		Kind:             KindGemini,
+		BaseURL:          srv.URL,
+		Model:            "gemini-2.5-flash",
+		APIKey:           "sk-test-gemini-key",
+		AllowPrivateURLs: true,
+	})
+	if err != nil {
+		t.Fatalf("New error: %v", err)
+	}
+
+	pdfData := []byte("%PDF-1.4 gemini document test")
+	_, err = adapter.Chat(context.Background(), Request{
+		Model: "gemini-2.5-flash",
+		Messages: []Message{
+			{
+				Role: RoleUser,
+				Parts: []Part{
+					{Text: "Please analyze this doc"},
+					{Document: &Document{MIME: "application/pdf", Data: pdfData}},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("Chat error: %v", err)
+	}
+
+	contents, ok := gotBody["contents"].([]any)
+	if !ok || len(contents) != 1 {
+		t.Fatalf("contents = %#v, want len 1", gotBody["contents"])
+	}
+	userContent := contents[0].(map[string]any)
+	userParts, ok := userContent["parts"].([]any)
+	if !ok || len(userParts) != 2 {
+		t.Fatalf("user parts = %#v, want len 2", userContent["parts"])
+	}
+
+	docPart, ok := userParts[1].(map[string]any)
+	if !ok {
+		t.Fatalf("docPart not a map: %#v", userParts[1])
+	}
+	inlineData, ok := docPart["inlineData"].(map[string]any)
+	if !ok {
+		t.Fatalf("inlineData missing or not map: %#v", docPart)
+	}
+	if inlineData["mimeType"] != "application/pdf" {
+		t.Errorf("mimeType = %v, want application/pdf", inlineData["mimeType"])
+	}
+	expectedB64 := "JVBERi0xLjQgZ2VtaW5pIGRvY3VtZW50IHRlc3Q="
+	if inlineData["data"] != expectedB64 {
+		t.Errorf("data = %v, want %v", inlineData["data"], expectedB64)
 	}
 }

@@ -142,6 +142,12 @@ func (a *anthropicAdapter) buildParams(req Request) anthropic.MessageNewParams {
 					b64 := base64.StdEncoding.EncodeToString(p.Image.Data)
 					blocks = append(blocks, anthropic.NewImageBlockBase64(p.Image.MIME, b64))
 				}
+				if p.Document != nil {
+					b64 := base64.StdEncoding.EncodeToString(p.Document.Data)
+					blocks = append(blocks, anthropic.NewDocumentBlock(anthropic.Base64PDFSourceParam{
+						Data: b64,
+					}))
+				}
 			}
 			params.Messages = append(params.Messages, anthropic.NewUserMessage(blocks...))
 

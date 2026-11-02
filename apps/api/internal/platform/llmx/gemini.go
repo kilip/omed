@@ -174,6 +174,9 @@ func (a *geminiAdapter) buildParams(req Request) (string, []*genai.Content, *gen
 				if p.Image != nil {
 					parts = append(parts, genai.NewPartFromBytes(p.Image.Data, p.Image.MIME))
 				}
+				if p.Document != nil {
+					parts = append(parts, genai.NewPartFromBytes(p.Document.Data, p.Document.MIME))
+				}
 			}
 			if len(parts) > 0 {
 				contents = append(contents, &genai.Content{

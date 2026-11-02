@@ -8,18 +8,33 @@ import (
 )
 
 func TestDefaultCapabilities(t *testing.T) {
-	expectedAllTrue := llmx.Capabilities{
+	expectedOpenAI := llmx.Capabilities{
 		Vision:           true,
 		ToolCalling:      true,
 		StructuredOutput: true,
 		Streaming:        true,
+		Documents:        false,
+	}
+	expectedAnthropicGemini := llmx.Capabilities{
+		Vision:           true,
+		ToolCalling:      true,
+		StructuredOutput: true,
+		Streaming:        true,
+		Documents:        true,
 	}
 
-	assert.Equal(t, expectedAllTrue, llmx.DefaultCapabilities(llmx.KindOpenAICompat))
-	assert.Equal(t, expectedAllTrue, llmx.DefaultCapabilities(llmx.KindAnthropic))
-	assert.Equal(t, expectedAllTrue, llmx.DefaultCapabilities(llmx.KindGemini))
+	assert.Equal(t, expectedOpenAI, llmx.DefaultCapabilities(llmx.KindOpenAICompat))
+	assert.Equal(t, expectedAnthropicGemini, llmx.DefaultCapabilities(llmx.KindAnthropic))
+	assert.Equal(t, expectedAnthropicGemini, llmx.DefaultCapabilities(llmx.KindGemini))
 
 	assert.Equal(t, llmx.Capabilities{}, llmx.DefaultCapabilities("unknown_kind"))
+}
+
+func TestDefaultCapabilities_Documents(t *testing.T) {
+	assert.True(t, llmx.DefaultCapabilities(llmx.KindAnthropic).Documents)
+	assert.True(t, llmx.DefaultCapabilities(llmx.KindGemini).Documents)
+	assert.False(t, llmx.DefaultCapabilities(llmx.KindOpenAICompat).Documents)
+	assert.False(t, llmx.DefaultCapabilities(llmx.KindMemory).Documents)
 }
 
 func TestMergeCapabilities(t *testing.T) {

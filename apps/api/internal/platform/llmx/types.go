@@ -33,10 +33,17 @@ type Image struct {
 	Data []byte
 }
 
-// Part is a chunk of content in a message (text or image).
+// Document represents binary document data with a MIME type.
+type Document struct {
+	MIME string
+	Data []byte
+}
+
+// Part is a chunk of content in a message (text, image, or document).
 type Part struct {
-	Text  string
-	Image *Image
+	Text     string
+	Image    *Image
+	Document *Document
 }
 
 // ToolCall represents a tool invocation produced by the model.
@@ -107,6 +114,7 @@ type Capabilities struct {
 	ToolCalling      bool
 	StructuredOutput bool
 	Streaming        bool
+	Documents        bool
 }
 
 // Adapter defines the uniform interface for LLM drivers.
