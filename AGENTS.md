@@ -11,10 +11,12 @@ Read [README.md](./README.md) for product overview, [docs/architecture.md](./doc
 - Formatting follows `.editorconfig`. Use Biome for TypeScript, JSON, and CSS (`bun run lint`, `bun run format`) and `gofmt` for Go.
 - Write documentation in English, in Markdown.
 - Never commit secrets. `.env` files are git-ignored; use `.env.example` for documented defaults.
+- Toolchains and runtimes (Go, Bun, Node, Atlas, Air, etc.) are managed in `mise.toml`. Outside the devcontainer, run `mise install` to install or sync local tool versions.
 
 ### Common commands
 
 ```bash
+mise install         # install project toolchains (Go, Bun, Node, Atlas, etc.)
 bun run dev          # all apps, watch mode
 bun run build        # build packages/apps that define a build script
 bun run typecheck    # TypeScript typecheck
