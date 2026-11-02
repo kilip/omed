@@ -151,11 +151,14 @@ func New(state State) Omed {
 	}
 
 	agentMod := agent.New(agent.Config{
-		FiberApp:         state.FiberApp,
-		Logger:           state.Logger,
-		EntCli:           state.EntCli,
-		Cipher:           cipher,
-		AllowPrivateURLs: state.Config.LLMAllowPrivateURLs,
+		FiberApp:               state.FiberApp,
+		Logger:                 state.Logger,
+		EntCli:                 state.EntCli,
+		Cipher:                 cipher,
+		AllowPrivateURLs:       state.Config.LLMAllowPrivateURLs,
+		FinanceContext:         newFinanceContext(finMod),
+		AttachmentMaxSizeMB:    int(state.Config.AttachmentMaxSizeMB),
+		AttachmentAllowedTypes: state.Config.AttachmentAllowedTypes,
 	})
 	agentMod.SetAuthorizer(az)
 

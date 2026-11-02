@@ -27,4 +27,10 @@ func initRoutes(mod AgentModule, r fiber.Router, az *authz.Authorizer) {
 
 	settings.Get("/", az.Require(domain.ObjSetting, "read"), settingCtl.Get)
 	settings.Patch("/", az.Require(domain.ObjSetting, "update"), settingCtl.Update)
+
+	financial := r.Group("/workspaces/:wid/agent/financial")
+	financialCtl := controller.NewFinancialController(mod.FinancialService, mod.cfg.AttachmentMaxSizeMB, mod.cfg.AttachmentAllowedTypes)
+
+	financial.Get("/status", az.Require(domain.ObjFinancial, "use"), az.Require("fin:transaction", "create"), financialCtl.Status)
+	financial.Post("/analyze", az.Require(domain.ObjFinancial, "use"), az.Require("fin:transaction", "create"), financialCtl.Analyze)
 }

@@ -15,19 +15,23 @@ import (
 
 // Config encapsulates configuration and dependencies for AgentModule.
 type Config struct {
-	FiberApp         *fiber.App
-	Logger           *slog.Logger
-	EntCli           *ent.Client
-	Cipher           *secretx.Cipher
-	AllowPrivateURLs bool
+	FiberApp               *fiber.App
+	Logger                 *slog.Logger
+	EntCli                 *ent.Client
+	Cipher                 *secretx.Cipher
+	AllowPrivateURLs       bool
+	FinanceContext         service.FinanceContext
+	AttachmentMaxSizeMB    int
+	AttachmentAllowedTypes []string
 }
 
 // AgentModule represents the agent module implementing config.Module.
 type AgentModule struct {
-	cfg             Config
-	Authorizer      *authz.Authorizer
-	ProviderService service.ProviderService
-	SettingService  service.SettingService
+	cfg              Config
+	Authorizer       *authz.Authorizer
+	ProviderService  service.ProviderService
+	SettingService   service.SettingService
+	FinancialService service.FinancialService
 }
 
 // New constructs a new AgentModule instance.
@@ -36,11 +40,13 @@ func New(cfg Config) *AgentModule {
 	providerSvc := service.NewProviderService(repo, cfg.Cipher, cfg.AllowPrivateURLs)
 	settingRepo := repository.NewSettingRepository(cfg.EntCli)
 	settingSvc := service.NewSettingService(settingRepo, providerSvc)
+	financialSvc := service.NewFinancialService(settingRepo, providerSvc, cfg.FinanceContext)
 
 	return &AgentModule{
-		cfg:             cfg,
-		ProviderService: providerSvc,
-		SettingService:  settingSvc,
+		cfg:              cfg,
+		ProviderService:  providerSvc,
+		SettingService:   settingSvc,
+		FinancialService: financialSvc,
 	}
 }
 
