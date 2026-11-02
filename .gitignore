@@ -3,7 +3,7 @@ devcontainer-lock.json
 notes
 kubeconfig
 .superpowers
-
+mise.local.toml
 # Dependencies
 node_modules/
 
