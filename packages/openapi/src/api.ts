@@ -1496,6 +1496,214 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/agent/financial/analyze": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Analyze financial document
+     * @description Analyze an uploaded invoice, receipt, or payment proof and extract suggested transaction data
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Document file to analyze (.png, .jpg, .jpeg, .webp, .pdf) */
+      requestBody: {
+        content: {
+          "multipart/form-data": {
+            /**
+             * Format: binary
+             * @description Document file to analyze (.png, .jpg, .jpeg, .webp, .pdf)
+             */
+            file: string;
+            /**
+             * @description Transaction flow (INCOME or EXPENSE)
+             * @enum {string}
+             */
+            flow: "INCOME" | "EXPENSE";
+          };
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_FinancialSuggestion"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Bad Gateway */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Gateway Timeout */
+        504: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/agent/financial/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get financial agent status
+     * @description Retrieve availability and readiness of the financial agent for the workspace
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_FinancialStatus"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/agent/providers": {
     parameters: {
       query?: never;
@@ -2411,6 +2619,160 @@ export interface paths {
     options?: never;
     head?: never;
     patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/agent/settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get agent settings
+     * @description Retrieve agent configuration for the workspace
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_SettingResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Update agent settings
+     * @description Update agent configuration for the workspace
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Setting update payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.UpdateSettingRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_SettingResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
     trace?: never;
   };
   "/workspaces/{wid}/cms/media": {
@@ -10670,6 +11032,18 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_FinancialStatus": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.FinancialStatus"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-model_FinancialSuggestion": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.FinancialSuggestion"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_FinancialSummaryResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.FinancialSummaryResponse"];
@@ -10754,6 +11128,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_SettingResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.SettingResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_TestResult": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.TestResult"];
@@ -10791,6 +11171,7 @@ export interface components {
       meta?: components["schemas"]["httpx.Meta"];
     };
     "llmx.Capabilities": {
+      documents?: boolean;
       streaming?: boolean;
       structuredOutput?: boolean;
       toolCalling?: boolean;
@@ -11151,6 +11532,34 @@ export interface components {
       fxUnrealizedLossAccountId?: number;
       onboarding?: boolean;
     };
+    "model.FinancialStatus": {
+      /** @example true */
+      available?: boolean;
+      /** @example true */
+      enabled?: boolean;
+      /** @example NO_PROVIDER */
+      reason?: string;
+    };
+    "model.FinancialSuggestion": {
+      /** @example IDR */
+      currency?: string;
+      /** @example Office supplies purchase */
+      description?: string;
+      /** @example 100000.00 */
+      documentTotal?: string;
+      /** @example receipt */
+      documentType?: string;
+      /** @example 1.00000000 */
+      exchangeRate?: string;
+      items?: components["schemas"]["model.SuggestedItem"][];
+      /** @example 1 */
+      paymentAccountId?: number;
+      /** @example INV-001 */
+      reference?: string;
+      /** @example 2026-01-01 */
+      transactionDate?: string;
+      warnings?: components["schemas"]["model.FinancialWarning"][];
+    };
     "model.FinancialSummaryResponse": {
       /** @example IDR */
       baseCurrency?: string;
@@ -11170,6 +11579,12 @@ export interface components {
       netIncome?: string;
       /** @example 85000000.00 */
       revenue?: string;
+    };
+    "model.FinancialWarning": {
+      /** @example CATEGORY_UNRESOLVED */
+      code?: string;
+      /** @example 0 */
+      itemIndex?: number;
     };
     "model.InvitationResponse": {
       createdAt?: string;
@@ -11529,6 +11944,12 @@ export interface components {
       session?: components["schemas"]["model.SessionData"];
       user?: components["schemas"]["model.UserData"];
     };
+    "model.SettingResponse": {
+      /** @example true */
+      financialEnabled?: boolean;
+      /** @example 1 */
+      financialProviderId?: number;
+    };
     "model.SignInSocialRequest": {
       callbackURL?: string;
       errorCallbackURL?: string;
@@ -11539,6 +11960,16 @@ export interface components {
     "model.SignInSocialResponse": {
       redirect?: boolean;
       url?: string;
+    };
+    "model.SuggestedItem": {
+      /** @example 40130 */
+      accountId?: number;
+      /** @example Office supplies */
+      description?: string;
+      /** @example 1 */
+      quantity?: string;
+      /** @example 100000.00 */
+      unitPrice?: string;
     };
     "model.TestProviderRequest": {
       apiKey: string;
@@ -11691,6 +12122,12 @@ export interface components {
       capabilities?: components["schemas"]["llmx.Capabilities"];
       model?: string;
       name?: string;
+    };
+    "model.UpdateSettingRequest": {
+      /** @example true */
+      financialEnabled: boolean;
+      /** @example 1 */
+      financialProviderId?: number;
     };
     "model.UpdateTransactionRequest": {
       description?: string;

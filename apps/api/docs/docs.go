@@ -614,6 +614,32 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_FinancialStatus": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.FinancialStatus",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_FinancialSuggestion": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.FinancialSuggestion",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_FinancialSummaryResponse": {
                 "properties": {
                     "data": {
@@ -796,6 +822,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_SettingResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.SettingResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_TestResult": {
                 "properties": {
                     "data": {
@@ -876,6 +915,9 @@ const docTemplate = `{
             },
             "llmx.Capabilities": {
                 "properties": {
+                    "documents": {
+                        "type": "boolean"
+                    },
                     "streaming": {
                         "type": "boolean"
                     },
@@ -1867,6 +1909,74 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.FinancialStatus": {
+                "properties": {
+                    "available": {
+                        "example": true,
+                        "type": "boolean"
+                    },
+                    "enabled": {
+                        "example": true,
+                        "type": "boolean"
+                    },
+                    "reason": {
+                        "example": "NO_PROVIDER",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.FinancialSuggestion": {
+                "properties": {
+                    "currency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "description": {
+                        "example": "Office supplies purchase",
+                        "type": "string"
+                    },
+                    "documentTotal": {
+                        "example": "100000.00",
+                        "type": "string"
+                    },
+                    "documentType": {
+                        "example": "receipt",
+                        "type": "string"
+                    },
+                    "exchangeRate": {
+                        "example": "1.00000000",
+                        "type": "string"
+                    },
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.SuggestedItem"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "paymentAccountId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "reference": {
+                        "example": "INV-001",
+                        "type": "string"
+                    },
+                    "transactionDate": {
+                        "example": "2026-01-01",
+                        "type": "string"
+                    },
+                    "warnings": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.FinancialWarning"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "type": "object"
+            },
             "model.FinancialSummaryResponse": {
                 "properties": {
                     "baseCurrency": {
@@ -1911,6 +2021,19 @@ const docTemplate = `{
                     "revenue": {
                         "example": "85000000.00",
                         "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.FinancialWarning": {
+                "properties": {
+                    "code": {
+                        "example": "CATEGORY_UNRESOLVED",
+                        "type": "string"
+                    },
+                    "itemIndex": {
+                        "example": 0,
+                        "type": "integer"
                     }
                 },
                 "type": "object"
@@ -2933,6 +3056,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.SettingResponse": {
+                "properties": {
+                    "financialEnabled": {
+                        "example": true,
+                        "type": "boolean"
+                    },
+                    "financialProviderId": {
+                        "example": 1,
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.SignInSocialRequest": {
                 "properties": {
                     "callbackURL": {
@@ -2962,6 +3098,27 @@ const docTemplate = `{
                         "type": "boolean"
                     },
                     "url": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SuggestedItem": {
+                "properties": {
+                    "accountId": {
+                        "example": 40130,
+                        "type": "integer"
+                    },
+                    "description": {
+                        "example": "Office supplies",
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "example": "1",
+                        "type": "string"
+                    },
+                    "unitPrice": {
+                        "example": "100000.00",
                         "type": "string"
                     }
                 },
@@ -3414,6 +3571,22 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "type": "object"
+            },
+            "model.UpdateSettingRequest": {
+                "properties": {
+                    "financialEnabled": {
+                        "example": true,
+                        "type": "boolean"
+                    },
+                    "financialProviderId": {
+                        "example": 1,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "financialEnabled"
+                ],
                 "type": "object"
             },
             "model.UpdateTransactionRequest": {
@@ -5066,6 +5239,230 @@ const docTemplate = `{
                 ]
             }
         },
+        "/workspaces/{wid}/agent/financial/analyze": {
+            "post": {
+                "description": "Analyze an uploaded invoice, receipt, or payment proof and extract suggested transaction data",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "description": "Document file to analyze (.png, .jpg, .jpeg, .webp, .pdf)",
+                                        "format": "binary",
+                                        "type": "string"
+                                    },
+                                    "flow": {
+                                        "description": "Transaction flow (INCOME or EXPENSE)",
+                                        "enum": [
+                                            "INCOME",
+                                            "EXPENSE"
+                                        ],
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "file",
+                                    "flow"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "description": "Document file to analyze (.png, .jpg, .jpeg, .webp, .pdf)",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FinancialSuggestion"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    },
+                    "502": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Gateway"
+                    },
+                    "504": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Gateway Timeout"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Analyze financial document",
+                "tags": [
+                    "Agent Financial"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/financial/status": {
+            "get": {
+                "description": "Retrieve availability and readiness of the financial agent for the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_FinancialStatus"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get financial agent status",
+                "tags": [
+                    "Agent Financial"
+                ]
+            }
+        },
         "/workspaces/{wid}/agent/providers": {
             "get": {
                 "description": "List all configured LLM providers in the workspace",
@@ -6103,6 +6500,181 @@ const docTemplate = `{
                 "summary": "Test existing provider",
                 "tags": [
                     "Agent Providers"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/settings": {
+            "get": {
+                "description": "Retrieve agent configuration for the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_SettingResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get agent settings",
+                "tags": [
+                    "Agent Settings"
+                ]
+            },
+            "patch": {
+                "description": "Update agent configuration for the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateSettingRequest",
+                                "summary": "request",
+                                "description": "Setting update payload"
+                            }
+                        }
+                    },
+                    "description": "Setting update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_SettingResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update agent settings",
+                "tags": [
+                    "Agent Settings"
                 ]
             }
         },
