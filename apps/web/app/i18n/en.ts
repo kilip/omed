@@ -824,6 +824,32 @@ export const en = {
     description: "AI model providers and agent configuration",
     menu: {
       providers: "Providers",
+      settings: "Settings",
+    },
+    launcher: {
+      title: "AI Agent",
+      subtitle: "AI model providers and agent configuration",
+    },
+    settings: {
+      title: "Agent Settings",
+    },
+    financial: {
+      title: "Financial Agent",
+      description: "Automated transaction document analysis and prefill",
+      enabled: "Enable Financial Agent",
+      enabledHelp:
+        "Automatically analyze transaction attachments and prefill forms",
+      provider: "Provider",
+      defaultProvider: "Provider default",
+      privacyNotice:
+        "Every uploaded document is sent to the configured LLM provider for analysis.",
+      save: "Save Settings",
+      saved: "Settings saved successfully",
+      errors: {
+        noProvider:
+          "Cannot enable Financial Agent: no capable provider found. Ensure the default or selected provider supports Vision and Structured Output.",
+        generic: "Failed to save settings",
+      },
     },
     providers: {
       title: "Providers",
@@ -866,6 +892,7 @@ export const en = {
         structuredOutput: "Structured Output",
         toolCalling: "Tool Calling",
         vision: "Vision",
+        documents: "Documents (PDF)",
       },
       drawer: {
         createTitle: "Add Provider",

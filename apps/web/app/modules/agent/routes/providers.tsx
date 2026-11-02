@@ -169,6 +169,9 @@ export default function AgentProvidersPage({
             {caps?.vision && (
               <Tag>{t("agent.providers.capabilities.vision")}</Tag>
             )}
+            {caps?.documents && (
+              <Tag>{t("agent.providers.capabilities.documents")}</Tag>
+            )}
           </Space>
         ),
       },

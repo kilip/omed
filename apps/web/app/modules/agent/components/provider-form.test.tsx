@@ -6,6 +6,7 @@ import {
   buildUpdateProviderPayload,
   clearFormKeyAfterSuccess,
   DEFAULT_BASE_URLS_BY_KIND,
+  DEFAULT_CAPABILITIES_BY_KIND,
   mapProviderError,
   ProviderForm,
   resolveBaseUrlOnKindChange,
@@ -227,6 +228,37 @@ describe("Provider form logic", () => {
     expect(mapped.field).toBeUndefined();
     expect(mapped.code).toBe("PROVIDER_NOT_FOUND");
     expect(mapped.message).toBe("agent.providers.errors.notFound");
+  });
+
+  describe("Capabilities and Documents Toggle", () => {
+    it("defines DEFAULT_CAPABILITIES_BY_KIND with documents capability", () => {
+      expect(DEFAULT_CAPABILITIES_BY_KIND.openai_compat.documents).toBe(false);
+      expect(DEFAULT_CAPABILITIES_BY_KIND.anthropic.documents).toBe(true);
+      expect(DEFAULT_CAPABILITIES_BY_KIND.gemini.documents).toBe(true);
+    });
+
+    it("submits documents capability in buildCreateProviderPayload", () => {
+      const payload = buildCreateProviderPayload({
+        name: "Anthropic Provider",
+        kind: "anthropic",
+        baseUrl: "https://api.anthropic.com",
+        model: "claude-3-7-sonnet",
+        apiKey: "sk-ant-test",
+        capabilities: {
+          streaming: true,
+          structuredOutput: true,
+          toolCalling: true,
+          vision: true,
+          documents: true,
+        },
+      });
+      expect(payload.capabilities?.documents).toBe(true);
+    });
+
+    it("renders Documents (PDF) capability toggle in ProviderForm", () => {
+      const html = renderToString(<ProviderForm />);
+      expect(html).toContain("agent.providers.capabilities.documents");
+    });
   });
 
   describe("Default Base URLs and Kind Change", () => {

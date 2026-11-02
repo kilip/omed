@@ -829,6 +829,32 @@ export const id: Translation = {
     description: "Penyedia model AI dan konfigurasi agen",
     menu: {
       providers: "Penyedia",
+      settings: "Pengaturan",
+    },
+    launcher: {
+      title: "AI Agent",
+      subtitle: "Penyedia model AI dan konfigurasi agen",
+    },
+    settings: {
+      title: "Pengaturan Agen",
+    },
+    financial: {
+      title: "Agen Finansial",
+      description: "Analisa otomatis dokumen transaksi dan pengisian formulir",
+      enabled: "Aktifkan Agen Finansial",
+      enabledHelp:
+        "Analisis lampiran transaksi secara otomatis dan isi formulir",
+      provider: "Penyedia",
+      defaultProvider: "Provider default",
+      privacyNotice:
+        "Setiap dokumen yang diunggah dikirim ke penyedia LLM yang dikonfigurasi untuk dianalisis.",
+      save: "Simpan Pengaturan",
+      saved: "Pengaturan berhasil disimpan",
+      errors: {
+        noProvider:
+          "Tidak dapat mengaktifkan Agen Finansial: penyedia yang mampu tidak ditemukan. Pastikan penyedia default atau yang dipilih mendukung Vision dan Structured Output.",
+        generic: "Gagal menyimpan pengaturan",
+      },
     },
     providers: {
       title: "Penyedia Model",
@@ -871,6 +897,7 @@ export const id: Translation = {
         structuredOutput: "Output Terstruktur",
         toolCalling: "Pemanggilan Alat",
         vision: "Visual (Vision)",
+        documents: "Dokumen (PDF)",
       },
       drawer: {
         createTitle: "Tambah Penyedia",

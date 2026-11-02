@@ -20,8 +20,12 @@ export type ListModelsRequest =
 export type TestResult = components["schemas"]["model.TestResult"];
 export type Capabilities = components["schemas"]["llmx.Capabilities"];
 export type AgentSetting = components["schemas"]["model.SettingResponse"];
-export type UpdateSettingRequest =
-  components["schemas"]["model.UpdateSettingRequest"];
+export type UpdateSettingRequest = Omit<
+  components["schemas"]["model.UpdateSettingRequest"],
+  "financialProviderId"
+> & {
+  financialProviderId?: number | null;
+};
 export type FinancialStatus = components["schemas"]["model.FinancialStatus"];
 export type FinancialSuggestion =
   components["schemas"]["model.FinancialSuggestion"];
@@ -98,6 +102,14 @@ export const financialStatusQueryOptions = (wid: number) =>
 
 function useResolvedWid(wid?: number): number {
   return wid ?? getStoredWorkspaceId() ?? 0;
+}
+
+export function useSettings(wid?: number) {
+  const resolvedWid = useResolvedWid(wid);
+  return useQuery({
+    ...settingsQueryOptions(resolvedWid),
+    enabled: Boolean(resolvedWid),
+  });
 }
 
 export function useProviders(wid?: number) {
@@ -252,7 +264,7 @@ export function useUpdateSettings(wid?: number) {
       unwrapOne(
         api.PATCH("/workspaces/{wid}/agent/settings", {
           params: { path: { wid: resolvedWid } },
-          body,
+          body: body as unknown as components["schemas"]["model.UpdateSettingRequest"],
         }),
       ),
     onSuccess: () => {

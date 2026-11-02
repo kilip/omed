@@ -1,4 +1,4 @@
-import { ApiOutlined, RobotOutlined } from "@ant-design/icons";
+import { ApiOutlined, RobotOutlined, SettingOutlined } from "@ant-design/icons";
 import { defineModule } from "~/lib/modules";
 
 export default defineModule({
@@ -13,6 +13,12 @@ export default defineModule({
       path: "providers",
       labelKey: "agent.menu.providers",
       icon: ApiOutlined,
+    },
+    {
+      key: "settings",
+      path: "settings",
+      labelKey: "agent.menu.settings",
+      icon: SettingOutlined,
     },
   ],
 });

@@ -10,4 +10,5 @@ export default prefix("agent", [
   route("providers", "modules/agent/routes/providers.tsx"),
   route("providers/new", "modules/agent/routes/provider-new.tsx"),
   route("providers/:id/edit", "modules/agent/routes/provider-edit.tsx"),
+  route("settings", "modules/agent/routes/settings.tsx"),
 ]) satisfies RouteConfigEntry[];

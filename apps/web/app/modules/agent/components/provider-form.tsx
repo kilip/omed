@@ -50,18 +50,21 @@ export const DEFAULT_CAPABILITIES_BY_KIND: Record<string, Capabilities> = {
     structuredOutput: true,
     toolCalling: true,
     vision: true,
+    documents: false,
   },
   anthropic: {
     streaming: true,
     structuredOutput: true,
     toolCalling: true,
     vision: true,
+    documents: true,
   },
   gemini: {
     streaming: true,
     structuredOutput: true,
     toolCalling: true,
     vision: true,
+    documents: true,
   },
 };
 
@@ -272,6 +275,10 @@ export function ProviderForm({
           structuredOutput: provider.capabilities?.structuredOutput ?? true,
           toolCalling: provider.capabilities?.toolCalling ?? true,
           vision: provider.capabilities?.vision ?? true,
+          documents:
+            provider.capabilities?.documents ??
+            DEFAULT_CAPABILITIES_BY_KIND[k]?.documents ??
+            false,
         },
         isDefault: provider.isDefault ?? false,
       });
@@ -334,6 +341,12 @@ export function ProviderForm({
     );
     form.setFieldValue("baseUrl", next.baseUrl);
     setIsBaseUrlCustomized(next.isCustomized);
+    if (!provider) {
+      form.setFieldValue(
+        ["capabilities", "documents"],
+        DEFAULT_CAPABILITIES_BY_KIND[newKind]?.documents ?? false,
+      );
+    }
     setCurrentKind(newKind);
     setProbedModels(null);
     setProbeError(null);
@@ -607,6 +620,14 @@ export function ProviderForm({
         <Form.Item
           name={["capabilities", "vision"]}
           label={t("agent.providers.capabilities.vision")}
+          valuePropName="checked"
+        >
+          <Switch />
+        </Form.Item>
+
+        <Form.Item
+          name={["capabilities", "documents"]}
+          label={t("agent.providers.capabilities.documents")}
           valuePropName="checked"
         >
           <Switch />
