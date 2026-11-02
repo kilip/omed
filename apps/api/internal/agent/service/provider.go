@@ -106,7 +106,7 @@ func NewProviderService(repo repository.ProviderRepository, cipher *secretx.Ciph
 	for _, opt := range opts {
 		opt(s)
 	}
-	s.limiter = NewRateLimiter(s.now)
+	s.limiter = NewRateLimiter(s.now, 10, time.Minute)
 	return s
 }
 

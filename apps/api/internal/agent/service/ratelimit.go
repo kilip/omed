@@ -7,23 +7,33 @@ import (
 
 // RateLimiter manages per-user rate limiting for test operations.
 type RateLimiter struct {
-	mu      sync.Mutex
-	now     func() time.Time
-	buckets map[int64]*userBucket
+	mu       sync.Mutex
+	now      func() time.Time
+	capacity int
+	per      time.Duration
+	buckets  map[int64]*userBucket
 }
 
 // NewRateLimiter creates a new RateLimiter.
-func NewRateLimiter(now func() time.Time) *RateLimiter {
+func NewRateLimiter(now func() time.Time, capacity int, per time.Duration) *RateLimiter {
 	if now == nil {
 		now = time.Now
 	}
-	return &RateLimiter{now: now}
+	return &RateLimiter{
+		now:      now,
+		capacity: capacity,
+		per:      per,
+	}
 }
 
 // Allow reports whether a test operation is permitted for the given user ID.
 func (r *RateLimiter) Allow(userID int64) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	if r.capacity <= 0 {
+		return false
+	}
 
 	if r.buckets == nil {
 		r.buckets = make(map[int64]*userBucket)
@@ -33,19 +43,19 @@ func (r *RateLimiter) Allow(userID int64) bool {
 	b, ok := r.buckets[userID]
 	if !ok {
 		r.buckets[userID] = &userBucket{
-			tokens:     9.0, // consume 1 immediately from capacity 10
+			tokens:     float64(r.capacity) - 1.0, // consume 1 immediately from capacity
 			lastRefill: now,
 		}
 		return true
 	}
 
-	// Refill tokens: 10 per minute = 10 / 60 = 1/6 tokens per second
+	// Refill tokens evenly over per duration
 	elapsed := now.Sub(b.lastRefill)
-	if elapsed > 0 {
-		refill := elapsed.Seconds() * (10.0 / 60.0)
+	if elapsed > 0 && r.per > 0 {
+		refill := elapsed.Seconds() * (float64(r.capacity) / r.per.Seconds())
 		b.tokens += refill
-		if b.tokens > 10.0 {
-			b.tokens = 10.0
+		if b.tokens > float64(r.capacity) {
+			b.tokens = float64(r.capacity)
 		}
 		b.lastRefill = now
 	}
