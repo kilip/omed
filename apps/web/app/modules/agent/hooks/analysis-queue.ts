@@ -119,21 +119,27 @@ export function createAnalysisQueue({
     nextJob.controller = controller;
     onChange();
 
+    let completedThisRun = false;
+
     try {
       const suggestion = await run(nextJob.file, controller.signal);
 
       // Verify that this job was not canceled or aborted in-flight
-      if (activeJobId !== jobId) {
+      if (controller.signal.aborted || activeJobId !== jobId) {
         return;
       }
       const currentJob = jobs.find((j) => j.id === jobId);
-      if (currentJob?.status !== "analyzing") {
+      if (
+        currentJob?.status !== "analyzing" ||
+        currentJob?.controller !== controller
+      ) {
         return;
       }
 
       currentJob.status = "done";
       currentJob.controller = undefined;
       activeJobId = null;
+      completedThisRun = true;
       onChange();
 
       const callback = currentJob.onResult ?? onResult;
@@ -147,20 +153,20 @@ export function createAnalysisQueue({
         suggestion,
       );
     } catch (error) {
-      if (activeJobId !== jobId) {
+      if (controller.signal.aborted || activeJobId !== jobId) {
         return;
       }
       const currentJob = jobs.find((j) => j.id === jobId);
-      if (currentJob?.status !== "analyzing") {
+      if (
+        currentJob?.status !== "analyzing" ||
+        currentJob?.controller !== controller
+      ) {
         return;
       }
 
       currentJob.controller = undefined;
       activeJobId = null;
-
-      if (controller.signal.aborted) {
-        return;
-      }
+      completedThisRun = true;
 
       if (isRateLimitedError(error)) {
         currentJob.status = "failed";
@@ -198,7 +204,7 @@ export function createAnalysisQueue({
         );
       }
     } finally {
-      if (activeJobId === null && !isPaused) {
+      if (completedThisRun && activeJobId === null && !isPaused) {
         processQueue();
       }
     }

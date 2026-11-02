@@ -437,6 +437,104 @@ describe("AnalysisQueue", () => {
     expect(defaultOnResult).toHaveBeenCalledTimes(1);
   });
 
+  it("calling reanalyze on an in-flight (analyzing) job aborts the first run and completes the second run without race condition", async () => {
+    const d1 = deferred<FinancialSuggestion>();
+    const d2 = deferred<FinancialSuggestion>();
+    const d3 = deferred<FinancialSuggestion>();
+
+    let runCount = 0;
+    const runSignals: AbortSignal[] = [];
+    const run = vi.fn((file: File, signal: AbortSignal) => {
+      runCount++;
+      runSignals.push(signal);
+      if (file.name === "file1.png" && runCount === 1) return d1.promise;
+      if (file.name === "file1.png" && runCount === 2) return d2.promise;
+      if (file.name === "file2.png") return d3.promise;
+      return Promise.reject(new Error("unexpected run"));
+    });
+
+    const defaultOnResult = vi.fn();
+    const customOnResult = vi.fn();
+    const file2OnResult = vi.fn();
+    const queue = createAnalysisQueue({
+      run,
+      onResult: (job, s) => {
+        if (job.file.name === "file2.png") {
+          file2OnResult(job, s);
+        } else {
+          defaultOnResult(job, s);
+        }
+      },
+      onChange: vi.fn(),
+    });
+
+    const file1 = makeFile("file1.png", 100);
+    const file2 = makeFile("file2.png", 200);
+
+    // Enqueue file1 (starts Run 1) and file2 (queued)
+    queue.add(file1);
+    queue.add(file2);
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(runSignals[0]?.aborted).toBe(false);
+    expect(queue.jobs()[0]?.status).toBe("analyzing");
+    expect(queue.jobs()[1]?.status).toBe("queued");
+
+    // Call reanalyze on file1 while it is currently in-flight
+    queue.reanalyze(file1, customOnResult);
+
+    // First run signal should be aborted
+    expect(runSignals[0]?.aborted).toBe(true);
+
+    // Second run for file1 should now have started
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(runSignals[1]?.aborted).toBe(false);
+
+    // Concurrency check: file2 must NOT have started yet!
+    expect(queue.jobs().find((j) => j.file.name === "file2.png")?.status).toBe(
+      "queued",
+    );
+
+    // Settle Run 1 late (reject with AbortError)
+    d1.reject(new Error("Aborted"));
+    await Promise.resolve();
+
+    // Verify Run 1's settlement was ignored:
+    // 1. file1 is STILL analyzing (Run 2 is still active)
+    expect(queue.jobs().find((j) => j.file.name === "file1.png")?.status).toBe(
+      "analyzing",
+    );
+    // 2. file2 has NOT started yet (concurrency 1 maintained!)
+    expect(run).toHaveBeenCalledTimes(2);
+
+    // Now resolve Run 2 for file1
+    const s2: FinancialSuggestion = { description: "Reanalyzed file 1" };
+    d2.resolve(s2);
+
+    await vi.waitFor(() => {
+      expect(customOnResult).toHaveBeenCalledWith(
+        expect.objectContaining({ file: file1, status: "done" }),
+        s2,
+      );
+    });
+
+    // Default onResult should not be called for file1
+    expect(defaultOnResult).not.toHaveBeenCalled();
+
+    // Now that file1 Run 2 settled, file2 should start (concurrency 1)
+    await vi.waitFor(() => {
+      expect(run).toHaveBeenCalledTimes(3);
+    });
+
+    d3.resolve({ description: "File 2 done" });
+    await vi.waitFor(() => {
+      expect(file2OnResult).toHaveBeenCalledTimes(1);
+    });
+
+    expect(queue.jobs()[0]?.status).toBe("done");
+    expect(queue.jobs()[1]?.status).toBe("done");
+  });
+
   it("statusOf returns the status of a file or undefined", () => {
     const run = vi.fn(() => new Promise<FinancialSuggestion>(() => {}));
     const queue = createAnalysisQueue({
