@@ -1,1 +1,13 @@
+export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$HOME/go/bin:$PATH"
+
 bunx biome check --staged --no-errors-on-unmatched
+
+if git diff --cached --name-only | grep -q '\.go$'; then
+  (cd apps/api && go vet ./...)
+  if command -v golangci-lint >/dev/null 2>&1; then
+    (cd apps/api && golangci-lint run)
+  else
+    echo "error: golangci-lint not found in PATH. Install it to commit Go files (e.g. mise use -g golangci-lint@latest)." >&2
+    exit 1
+  fi
+fi
