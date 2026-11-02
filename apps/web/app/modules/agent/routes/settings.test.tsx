@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { useAgentPermissions } from "../hooks/use-agent-permissions";
-import { useProviders, useSettings } from "../queries";
+import { useProviders } from "../queries";
 import AgentSettingsPage, {
   buildProviderOptions,
   buildUpdateSettingsPayload,
@@ -39,10 +40,17 @@ vi.mock("react-i18next", async (importOriginal) => {
   };
 });
 
+vi.mock("@tanstack/react-query", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@tanstack/react-query")>();
+  return {
+    ...actual,
+    useQuery: vi.fn(),
+  };
+});
+
 const mockMutateAsync = vi.fn();
 
 vi.mock("../queries", () => ({
-  useSettings: vi.fn(),
   useUpdateSettings: vi.fn(() => ({
     mutateAsync: mockMutateAsync,
     isPending: false,
@@ -97,6 +105,10 @@ describe("AgentSettingsPage", () => {
       isViewer: true,
       isOwner: true,
     });
+    vi.mocked(useQuery).mockReturnValue({
+      data: { financialEnabled: true, financialProviderId: 1 },
+      isLoading: false,
+    } as never);
   });
 
   it("clientLoader resolves workspace ID via requireWorkspaceId", async () => {
@@ -164,12 +176,58 @@ describe("AgentSettingsPage", () => {
     });
   });
 
+  describe("Permission gating for settings query", () => {
+    it("enables settings query when wid and canManageSettings are present", () => {
+      vi.mocked(useAgentPermissions).mockReturnValue({
+        canManageSettings: true,
+        canUseFinancial: false,
+        canManage: false,
+        canRead: true,
+        isAdmin: false,
+        isViewer: false,
+        isOwner: false,
+      });
+
+      renderToString(
+        <AgentSettingsPage loaderData={{ wid }} matches={[] as never} />,
+      );
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: true,
+        }),
+      );
+    });
+
+    it("disables settings query when user lacks canManageSettings", () => {
+      vi.mocked(useAgentPermissions).mockReturnValue({
+        canManageSettings: false,
+        canUseFinancial: false,
+        canManage: false,
+        canRead: true,
+        isAdmin: false,
+        isViewer: true,
+        isOwner: false,
+      });
+
+      renderToString(
+        <AgentSettingsPage loaderData={{ wid }} matches={[] as never} />,
+      );
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: false,
+        }),
+      );
+    });
+  });
+
   describe("Rendering", () => {
     it("renders Switch reflecting financialEnabled true", () => {
-      vi.mocked(useSettings).mockReturnValue({
+      vi.mocked(useQuery).mockReturnValue({
         data: { financialEnabled: true, financialProviderId: 1 },
         isLoading: false,
-      } as unknown as ReturnType<typeof useSettings>);
+      } as never);
 
       const html = renderToString(
         <AgentSettingsPage loaderData={{ wid }} matches={[] as never} />,
@@ -180,10 +238,10 @@ describe("AgentSettingsPage", () => {
     });
 
     it("renders Switch reflecting financialEnabled false", () => {
-      vi.mocked(useSettings).mockReturnValue({
+      vi.mocked(useQuery).mockReturnValue({
         data: { financialEnabled: false, financialProviderId: null },
         isLoading: false,
-      } as unknown as ReturnType<typeof useSettings>);
+      } as never);
 
       const html = renderToString(
         <AgentSettingsPage loaderData={{ wid }} matches={[] as never} />,
@@ -193,10 +251,10 @@ describe("AgentSettingsPage", () => {
     });
 
     it("renders Select with Provider default plus every workspace provider", () => {
-      vi.mocked(useSettings).mockReturnValue({
+      vi.mocked(useQuery).mockReturnValue({
         data: { financialEnabled: true, financialProviderId: null },
         isLoading: false,
-      } as unknown as ReturnType<typeof useSettings>);
+      } as never);
 
       const html = renderToString(
         <AgentSettingsPage loaderData={{ wid }} matches={[] as never} />,
@@ -205,10 +263,10 @@ describe("AgentSettingsPage", () => {
       expect(html).toContain("agent.financial.defaultProvider");
 
       // When a provider is selected
-      vi.mocked(useSettings).mockReturnValue({
+      vi.mocked(useQuery).mockReturnValue({
         data: { financialEnabled: true, financialProviderId: 1 },
         isLoading: false,
-      } as unknown as ReturnType<typeof useSettings>);
+      } as never);
 
       const htmlSelected = renderToString(
         <AgentSettingsPage loaderData={{ wid }} matches={[] as never} />,
@@ -218,10 +276,10 @@ describe("AgentSettingsPage", () => {
     });
 
     it("displays privacy notice that uploaded documents are sent to the configured LLM provider", () => {
-      vi.mocked(useSettings).mockReturnValue({
+      vi.mocked(useQuery).mockReturnValue({
         data: { financialEnabled: true, financialProviderId: 1 },
         isLoading: false,
-      } as unknown as ReturnType<typeof useSettings>);
+      } as never);
 
       const html = renderToString(
         <AgentSettingsPage loaderData={{ wid }} matches={[] as never} />,
@@ -241,15 +299,18 @@ describe("AgentSettingsPage", () => {
         isOwner: false,
       });
 
-      vi.mocked(useSettings).mockReturnValue({
+      vi.mocked(useQuery).mockReturnValue({
         data: { financialEnabled: true, financialProviderId: 1 },
         isLoading: false,
-      } as unknown as ReturnType<typeof useSettings>);
+      } as never);
 
       const html = renderToString(
         <AgentSettingsPage loaderData={{ wid }} matches={[] as never} />,
       );
 
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
       expect(html).toContain("ant-switch-disabled");
       expect(html).toContain("ant-select-disabled");
       expect(html).not.toContain("agent.financial.save");

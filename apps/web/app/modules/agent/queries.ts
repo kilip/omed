@@ -104,14 +104,6 @@ function useResolvedWid(wid?: number): number {
   return wid ?? getStoredWorkspaceId() ?? 0;
 }
 
-export function useSettings(wid?: number) {
-  const resolvedWid = useResolvedWid(wid);
-  return useQuery({
-    ...settingsQueryOptions(resolvedWid),
-    enabled: Boolean(resolvedWid),
-  });
-}
-
 export function useProviders(wid?: number) {
   const resolvedWid = useResolvedWid(wid);
   return useQuery({

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Alert, App, Button, Form, Select, Switch } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,9 +7,9 @@ import { Panel } from "~/components/Panel";
 import { requireWorkspaceId } from "~/lib/workspace";
 import { useAgentPermissions } from "../hooks/use-agent-permissions";
 import {
+  settingsQueryOptions,
   type UpdateSettingRequest,
   useProviders,
-  useSettings,
   useUpdateSettings,
 } from "../queries";
 import type { Route } from "./+types/settings";
@@ -98,7 +99,10 @@ export default function AgentSettingsPage({
   const wid = loaderData?.wid ?? 0;
   const permissions = useAgentPermissions(wid);
 
-  const { data: settings } = useSettings(wid);
+  const { data: settings } = useQuery({
+    ...settingsQueryOptions(wid),
+    enabled: Boolean(wid) && permissions.canManageSettings,
+  });
   const { data: providers } = useProviders(wid);
   const updateMutation = useUpdateSettings(wid);
 
