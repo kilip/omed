@@ -4,13 +4,16 @@ import "github.com/kilip/omed/api/internal/platform/authz"
 
 // Agent module permission objects.
 const (
-	ObjProvider = "agent:provider"
+	ObjProvider  = "agent:provider"
+	ObjSetting   = "agent:setting"
+	ObjFinancial = "agent:financial"
 )
 
 // Built-in agent role IDs assignable per workspace.
 const (
-	RoleViewer = "agent:viewer"
-	RoleAdmin  = "agent:admin"
+	RoleViewer        = "agent:viewer"
+	RoleFinancialUser = "agent:financial-user"
+	RoleAdmin         = "agent:admin"
 )
 
 func init() {
@@ -20,6 +23,15 @@ func init() {
 		Description: "View agent providers and configurations",
 		Permissions: []authz.Permission{
 			{Object: ObjProvider, Action: "read"},
+			{Object: ObjSetting, Action: "read"},
+		},
+	})
+	authz.AddRole(authz.Role{
+		ID:          RoleFinancialUser,
+		Name:        "Agent Financial User",
+		Description: "Use financial agent analysis features",
+		Permissions: []authz.Permission{
+			{Object: ObjFinancial, Action: "use"},
 		},
 	})
 	authz.AddRole(authz.Role{

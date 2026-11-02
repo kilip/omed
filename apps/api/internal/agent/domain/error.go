@@ -30,6 +30,19 @@ var (
 	ErrInvalidModel = errors.New("INVALID_MODEL")
 	// ErrInvalidProviderKind indicates the provider kind is not supported.
 	ErrInvalidProviderKind = errors.New("INVALID_PROVIDER_KIND")
+
+	// ErrFinancialAgentDisabled indicates the financial agent is disabled for the workspace.
+	ErrFinancialAgentDisabled = errors.New("FINANCIAL_AGENT_DISABLED")
+	// ErrFinancialAgentNoProvider indicates no suitable provider is configured for the financial agent.
+	ErrFinancialAgentNoProvider = errors.New("FINANCIAL_AGENT_NO_PROVIDER")
+	// ErrUnsupportedDocument indicates the document format is not supported by the configured provider.
+	ErrUnsupportedDocument = errors.New("UNSUPPORTED_DOCUMENT")
+	// ErrAnalysisRateLimited indicates the financial analysis rate limit was exceeded.
+	ErrAnalysisRateLimited = errors.New("RATE_LIMITED")
+	// ErrAnalysisFailed indicates provider error or malformed model output during analysis.
+	ErrAnalysisFailed = errors.New("FINANCIAL_ANALYSIS_FAILED")
+	// ErrAnalysisTimeout indicates the financial analysis timed out.
+	ErrAnalysisTimeout = errors.New("FINANCIAL_ANALYSIS_TIMEOUT")
 )
 
 func init() {
@@ -44,4 +57,11 @@ func init() {
 	base.AddToErrorMap(ErrInvalidProviderName, fiber.StatusUnprocessableEntity, "name must be between 1 and 100 characters")
 	base.AddToErrorMap(ErrInvalidModel, fiber.StatusUnprocessableEntity, "model must be between 1 and 200 characters")
 	base.AddToErrorMap(ErrInvalidProviderKind, fiber.StatusUnprocessableEntity, "invalid provider kind")
+
+	base.AddToErrorMap(ErrFinancialAgentDisabled, fiber.StatusConflict, "financial agent is disabled for this workspace")
+	base.AddToErrorMap(ErrFinancialAgentNoProvider, fiber.StatusUnprocessableEntity, "no suitable provider configured for financial agent")
+	base.AddToErrorMap(ErrUnsupportedDocument, fiber.StatusUnprocessableEntity, "unsupported document format for this provider")
+	base.AddToErrorMap(ErrAnalysisRateLimited, fiber.StatusTooManyRequests, "financial analysis rate limit exceeded")
+	base.AddToErrorMap(ErrAnalysisFailed, fiber.StatusBadGateway, "financial analysis failed")
+	base.AddToErrorMap(ErrAnalysisTimeout, fiber.StatusGatewayTimeout, "financial analysis timed out")
 }

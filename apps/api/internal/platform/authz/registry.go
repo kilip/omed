@@ -28,8 +28,8 @@ import (
 const Wildcard = "*"
 
 var (
-	roleIDPattern = regexp.MustCompile(`^[a-z][a-z0-9]*:[a-z][a-z0-9_]*$`)
-	objectPattern = regexp.MustCompile(`^[a-z][a-z0-9]*:([a-z][a-z0-9_]*|\*)$`)
+	roleIDPattern = regexp.MustCompile(`^[a-z][a-z0-9]*:[a-z][a-z0-9_-]*$`)
+	objectPattern = regexp.MustCompile(`^[a-z][a-z0-9]*:([a-z][a-z0-9_-]*|\*)$`)
 	actionPattern = regexp.MustCompile(`^([a-z][a-z0-9_]*|\*)$`)
 )
 

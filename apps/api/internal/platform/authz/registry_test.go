@@ -68,6 +68,15 @@ func TestRegistry_Add_AllowsWildcards(t *testing.T) {
 	assert.NoError(t, reg.Add(authz.Role{ID: "fin:uploader", Name: "Uploader", Permissions: []authz.Permission{{Object: "core:file", Action: "write"}}}))
 }
 
+func TestRegistry_Add_AllowsHyphens(t *testing.T) {
+	reg := authz.NewRegistry()
+	assert.NoError(t, reg.Add(authz.Role{
+		ID:          "agent:financial-user",
+		Name:        "Financial User",
+		Permissions: []authz.Permission{{Object: "agent:financial-item", Action: "use"}},
+	}))
+}
+
 func TestRegistry_Add_Duplicate(t *testing.T) {
 	reg := authz.NewRegistry()
 	require.NoError(t, reg.Add(authz.Role{ID: "fin:viewer", Name: "Viewer"}))
