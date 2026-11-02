@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/agentsetting"
@@ -152,3 +153,24 @@ func TestSetting_ProviderDeleteSetsNull(t *testing.T) {
 	assert.True(t, reloaded.FinancialEnabled)
 	assert.Nil(t, reloaded.FinancialProviderID, "deleting referenced provider must set financial_provider_id to null")
 }
+
+func TestSetting_UpsertWithoutUserContextAndRefreshesUpdatedAt(t *testing.T) {
+	_, repo, _, ctxWs1, _, ws1ID, _ := setupSettingRepo(t)
+
+	s1, err := repo.Upsert(ctxWs1, true, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s1)
+	assert.True(t, s1.FinancialEnabled)
+
+	time.Sleep(10 * time.Millisecond)
+
+	// Context with workspace but without UserContext
+	ctxNoUser := base.WithSkipAuditMutator(base.WithWorkspaceID(context.Background(), ws1ID))
+	s2, err := repo.Upsert(ctxNoUser, false, nil)
+	require.NoError(t, err, "upsert without user context must not panic or error")
+	require.NotNil(t, s2)
+	assert.False(t, s2.FinancialEnabled)
+	assert.Equal(t, s1.CreatedBy, s2.CreatedBy, "created_by must be preserved")
+	assert.True(t, s2.UpdatedAt.After(s1.UpdatedAt), "updated_at must be refreshed on conflict update")
+}
+

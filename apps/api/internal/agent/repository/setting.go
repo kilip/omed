@@ -51,10 +51,17 @@ func (r *settingRepository) Upsert(ctx context.Context, enabled bool, providerID
 		builder.SetFinancialProviderID(*providerID)
 	}
 
+	if userID := base.UserIDFromContext(ctx); userID > 0 {
+		builder.SetCreatedBy(userID).SetUpdatedBy(userID)
+	} else {
+		builder.SetCreatedBy(0).SetUpdatedBy(0)
+	}
+
 	upsert := builder.OnConflict(
 		sql.ConflictColumns(agentsetting.FieldWorkspaceID),
 	).
-		SetFinancialEnabled(enabled)
+		SetFinancialEnabled(enabled).
+		UpdateUpdatedAt()
 
 	if providerID != nil {
 		upsert.SetFinancialProviderID(*providerID)
@@ -62,8 +69,7 @@ func (r *settingRepository) Upsert(ctx context.Context, enabled bool, providerID
 		upsert.ClearFinancialProviderID()
 	}
 
-	userID := base.UserFromContext(ctx).ID
-	if userID > 0 {
+	if userID := base.UserIDFromContext(ctx); userID > 0 {
 		upsert.SetUpdatedBy(userID)
 	}
 
