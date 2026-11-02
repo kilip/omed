@@ -9,6 +9,7 @@ import "context"
 type SchemaConfig struct {
 	Account             string // Account table.
 	AgentProvider       string // AgentProvider table.
+	AgentSetting        string // AgentSetting table.
 	CmsMedia            string // CmsMedia table.
 	CmsPage             string // CmsPage table.
 	CmsPost             string // CmsPost table.

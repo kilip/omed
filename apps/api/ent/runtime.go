@@ -7,6 +7,7 @@ import (
 
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/agentprovider"
+	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
@@ -118,6 +119,25 @@ func init() {
 	agentproviderDescIsDefault := agentproviderFields[7].Descriptor()
 	// agentprovider.DefaultIsDefault holds the default value on creation for the is_default field.
 	agentprovider.DefaultIsDefault = agentproviderDescIsDefault.Default.(bool)
+	agentsettingMixin := schema.AgentSetting{}.Mixin()
+	agentsettingMixinFields1 := agentsettingMixin[1].Fields()
+	_ = agentsettingMixinFields1
+	agentsettingFields := schema.AgentSetting{}.Fields()
+	_ = agentsettingFields
+	// agentsettingDescCreatedAt is the schema descriptor for created_at field.
+	agentsettingDescCreatedAt := agentsettingMixinFields1[2].Descriptor()
+	// agentsetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentsetting.DefaultCreatedAt = agentsettingDescCreatedAt.Default.(func() time.Time)
+	// agentsettingDescUpdatedAt is the schema descriptor for updated_at field.
+	agentsettingDescUpdatedAt := agentsettingMixinFields1[3].Descriptor()
+	// agentsetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentsetting.DefaultUpdatedAt = agentsettingDescUpdatedAt.Default.(func() time.Time)
+	// agentsetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentsetting.UpdateDefaultUpdatedAt = agentsettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// agentsettingDescFinancialEnabled is the schema descriptor for financial_enabled field.
+	agentsettingDescFinancialEnabled := agentsettingFields[1].Descriptor()
+	// agentsetting.DefaultFinancialEnabled holds the default value on creation for the financial_enabled field.
+	agentsetting.DefaultFinancialEnabled = agentsettingDescFinancialEnabled.Default.(bool)
 	cmsmediaMixin := schema.CmsMedia{}.Mixin()
 	cmsmediaMixinFields1 := cmsmediaMixin[1].Fields()
 	_ = cmsmediaMixinFields1

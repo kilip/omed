@@ -7,6 +7,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/agentprovider"
+	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
@@ -71,7 +72,8 @@ func isWorkspaceScopedType(typ string) bool {
 		ent.TypeCmsPost,
 		ent.TypeCmsPage,
 		ent.TypeCmsMedia,
-		ent.TypeAgentProvider:
+		ent.TypeAgentProvider,
+		ent.TypeAgentSetting:
 		return true
 	default:
 		return false
@@ -152,6 +154,8 @@ func (workspaceInterceptor) filter(ctx context.Context, q intercept.Query) error
 		q.WhereP(sql.FieldEQ(cmsmedia.FieldWorkspaceID, wsID))
 	case ent.TypeAgentProvider:
 		q.WhereP(sql.FieldEQ(agentprovider.FieldWorkspaceID, wsID))
+	case ent.TypeAgentSetting:
+		q.WhereP(sql.FieldEQ(agentsetting.FieldWorkspaceID, wsID))
 	}
 	return nil
 }

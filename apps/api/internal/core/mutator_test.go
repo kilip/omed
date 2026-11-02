@@ -36,6 +36,7 @@ func (s *MutatorSuite) TearDownSuite() {
 
 func (s *MutatorSuite) SetupTest() {
 	ctx := base.WithSkipAuditMutator(base.WithSkipWorkspaceFilter(context.Background()))
+	_, _ = s.client.AgentSetting.Delete().Exec(ctx)
 	_, _ = s.client.AgentProvider.Delete().Exec(ctx)
 	_, _ = s.client.CmsPost.Delete().Exec(ctx)
 	_, _ = s.client.CmsPage.Delete().Exec(ctx)
@@ -512,3 +513,58 @@ func (s *MutatorSuite) TestAgentProviderCreateGetsWorkspaceID() {
 	s.Require().ErrorIs(err, base.ErrWorkspaceRequired)
 }
 
+func (s *MutatorSuite) TestAgentSettingIsWorkspaceFiltered() {
+	wsA, err := s.client.Workspace.Create().SetName("WS Setting A").SetOwnerID(s.user.ID).Save(s.ctx)
+	s.Require().NoError(err)
+	wsB, err := s.client.Workspace.Create().SetName("WS Setting B").SetOwnerID(s.user.ID).Save(s.ctx)
+	s.Require().NoError(err)
+
+	ctxA := base.WithWorkspaceID(s.ctx, wsA.ID)
+	ctxB := base.WithWorkspaceID(s.ctx, wsB.ID)
+
+	_, err = s.client.AgentSetting.Create().
+		SetFinancialEnabled(true).
+		Save(ctxA)
+	s.Require().NoError(err)
+
+	_, err = s.client.AgentSetting.Create().
+		SetFinancialEnabled(false).
+		Save(ctxB)
+	s.Require().NoError(err)
+
+	// Query with ctxA -> should only see WS A's setting
+	settingsA, err := s.client.AgentSetting.Query().All(ctxA)
+	s.Require().NoError(err)
+	s.Require().Len(settingsA, 1)
+	s.True(settingsA[0].FinancialEnabled)
+
+	// Query with ctxB -> should only see WS B's setting
+	settingsB, err := s.client.AgentSetting.Query().All(ctxB)
+	s.Require().NoError(err)
+	s.Require().Len(settingsB, 1)
+	s.False(settingsB[0].FinancialEnabled)
+
+	// Query without workspace in context -> should fail closed with ErrWorkspaceRequired
+	_, err = s.client.AgentSetting.Query().All(s.ctx)
+	s.Require().ErrorIs(err, base.ErrWorkspaceRequired)
+}
+
+func (s *MutatorSuite) TestAgentSettingCreateGetsWorkspaceID() {
+	ws, err := s.client.Workspace.Create().SetName("Tenant Setting WS").SetOwnerID(s.user.ID).Save(s.ctx)
+	s.Require().NoError(err)
+
+	ctxWithWS := base.WithWorkspaceID(s.ctx, ws.ID)
+
+	// Creating under ctxWithWS without calling SetWorkspaceID auto-injects workspace ID
+	setting, err := s.client.AgentSetting.Create().
+		SetFinancialEnabled(true).
+		Save(ctxWithWS)
+	s.Require().NoError(err)
+	s.Equal(ws.ID, setting.WorkspaceID)
+
+	// Creating without workspace in context fails with ErrWorkspaceRequired
+	_, err = s.client.AgentSetting.Create().
+		SetFinancialEnabled(true).
+		Save(s.ctx)
+	s.Require().ErrorIs(err, base.ErrWorkspaceRequired)
+}

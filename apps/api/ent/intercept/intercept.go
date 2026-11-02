@@ -10,6 +10,7 @@ import (
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/agentprovider"
+	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
@@ -140,6 +141,33 @@ func (f TraverseAgentProvider) Traverse(ctx context.Context, q ent.Query) error 
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.AgentProviderQuery", q)
+}
+
+// The AgentSettingFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AgentSettingFunc func(context.Context, *ent.AgentSettingQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f AgentSettingFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.AgentSettingQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.AgentSettingQuery", q)
+}
+
+// The TraverseAgentSetting type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAgentSetting func(context.Context, *ent.AgentSettingQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAgentSetting) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAgentSetting) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AgentSettingQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.AgentSettingQuery", q)
 }
 
 // The CmsMediaFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -662,6 +690,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.AccountQuery, predicate.Account, account.OrderOption]{typ: ent.TypeAccount, tq: q}, nil
 	case *ent.AgentProviderQuery:
 		return &query[*ent.AgentProviderQuery, predicate.AgentProvider, agentprovider.OrderOption]{typ: ent.TypeAgentProvider, tq: q}, nil
+	case *ent.AgentSettingQuery:
+		return &query[*ent.AgentSettingQuery, predicate.AgentSetting, agentsetting.OrderOption]{typ: ent.TypeAgentSetting, tq: q}, nil
 	case *ent.CmsMediaQuery:
 		return &query[*ent.CmsMediaQuery, predicate.CmsMedia, cmsmedia.OrderOption]{typ: ent.TypeCmsMedia, tq: q}, nil
 	case *ent.CmsPageQuery:

@@ -33,6 +33,18 @@ func (f AgentProviderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AgentProviderMutation", m)
 }
 
+// The AgentSettingFunc type is an adapter to allow the use of ordinary
+// function as AgentSetting mutator.
+type AgentSettingFunc func(context.Context, *ent.AgentSettingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AgentSettingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AgentSettingMutation", m)
+}
+
 // The CmsMediaFunc type is an adapter to allow the use of ordinary
 // function as CmsMedia mutator.
 type CmsMediaFunc func(context.Context, *ent.CmsMediaMutation) (ent.Value, error)

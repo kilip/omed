@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/agentprovider"
+	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
@@ -48,6 +49,7 @@ const (
 	// Node types.
 	TypeAccount             = "Account"
 	TypeAgentProvider       = "AgentProvider"
+	TypeAgentSetting        = "AgentSetting"
 	TypeCmsMedia            = "CmsMedia"
 	TypeCmsPage             = "CmsPage"
 	TypeCmsPost             = "CmsPost"
@@ -2868,6 +2870,905 @@ func (m *AgentProviderMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown AgentProvider edge %s", name)
+}
+
+// AgentSettingMutation represents an operation that mutates the AgentSetting nodes in the graph.
+type AgentSettingMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *int64
+	created_at                *time.Time
+	updated_at                *time.Time
+	financial_enabled         *bool
+	clearedFields             map[string]struct{}
+	workspace                 *int64
+	clearedworkspace          bool
+	creator                   *int64
+	clearedcreator            bool
+	updater                   *int64
+	clearedupdater            bool
+	financial_provider        *int64
+	clearedfinancial_provider bool
+	done                      bool
+	oldValue                  func(context.Context) (*AgentSetting, error)
+	predicates                []predicate.AgentSetting
+}
+
+var _ ent.Mutation = (*AgentSettingMutation)(nil)
+
+// agentsettingOption allows management of the mutation configuration using functional options.
+type agentsettingOption func(*AgentSettingMutation)
+
+// newAgentSettingMutation creates new mutation for the AgentSetting entity.
+func newAgentSettingMutation(c config, op Op, opts ...agentsettingOption) *AgentSettingMutation {
+	m := &AgentSettingMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAgentSetting,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAgentSettingID sets the ID field of the mutation.
+func withAgentSettingID(id int64) agentsettingOption {
+	return func(m *AgentSettingMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AgentSetting
+		)
+		m.oldValue = func(ctx context.Context) (*AgentSetting, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AgentSetting.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAgentSetting sets the old AgentSetting of the mutation.
+func withAgentSetting(node *AgentSetting) agentsettingOption {
+	return func(m *AgentSettingMutation) {
+		m.oldValue = func(context.Context) (*AgentSetting, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AgentSettingMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AgentSettingMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AgentSetting entities.
+func (m *AgentSettingMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AgentSettingMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AgentSettingMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AgentSetting.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *AgentSettingMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *AgentSettingMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the AgentSetting entity.
+// If the AgentSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSettingMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *AgentSettingMutation) ResetWorkspaceID() {
+	m.workspace = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *AgentSettingMutation) SetCreatedBy(i int64) {
+	m.creator = &i
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *AgentSettingMutation) CreatedBy() (r int64, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the AgentSetting entity.
+// If the AgentSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSettingMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *AgentSettingMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *AgentSettingMutation) SetUpdatedBy(i int64) {
+	m.updater = &i
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *AgentSettingMutation) UpdatedBy() (r int64, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the AgentSetting entity.
+// If the AgentSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSettingMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *AgentSettingMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AgentSettingMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AgentSettingMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AgentSetting entity.
+// If the AgentSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSettingMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AgentSettingMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AgentSettingMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AgentSettingMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AgentSetting entity.
+// If the AgentSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSettingMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AgentSettingMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetFinancialEnabled sets the "financial_enabled" field.
+func (m *AgentSettingMutation) SetFinancialEnabled(b bool) {
+	m.financial_enabled = &b
+}
+
+// FinancialEnabled returns the value of the "financial_enabled" field in the mutation.
+func (m *AgentSettingMutation) FinancialEnabled() (r bool, exists bool) {
+	v := m.financial_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinancialEnabled returns the old "financial_enabled" field's value of the AgentSetting entity.
+// If the AgentSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSettingMutation) OldFinancialEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinancialEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinancialEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinancialEnabled: %w", err)
+	}
+	return oldValue.FinancialEnabled, nil
+}
+
+// ResetFinancialEnabled resets all changes to the "financial_enabled" field.
+func (m *AgentSettingMutation) ResetFinancialEnabled() {
+	m.financial_enabled = nil
+}
+
+// SetFinancialProviderID sets the "financial_provider_id" field.
+func (m *AgentSettingMutation) SetFinancialProviderID(i int64) {
+	m.financial_provider = &i
+}
+
+// FinancialProviderID returns the value of the "financial_provider_id" field in the mutation.
+func (m *AgentSettingMutation) FinancialProviderID() (r int64, exists bool) {
+	v := m.financial_provider
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinancialProviderID returns the old "financial_provider_id" field's value of the AgentSetting entity.
+// If the AgentSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSettingMutation) OldFinancialProviderID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinancialProviderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinancialProviderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinancialProviderID: %w", err)
+	}
+	return oldValue.FinancialProviderID, nil
+}
+
+// ClearFinancialProviderID clears the value of the "financial_provider_id" field.
+func (m *AgentSettingMutation) ClearFinancialProviderID() {
+	m.financial_provider = nil
+	m.clearedFields[agentsetting.FieldFinancialProviderID] = struct{}{}
+}
+
+// FinancialProviderIDCleared returns if the "financial_provider_id" field was cleared in this mutation.
+func (m *AgentSettingMutation) FinancialProviderIDCleared() bool {
+	_, ok := m.clearedFields[agentsetting.FieldFinancialProviderID]
+	return ok
+}
+
+// ResetFinancialProviderID resets all changes to the "financial_provider_id" field.
+func (m *AgentSettingMutation) ResetFinancialProviderID() {
+	m.financial_provider = nil
+	delete(m.clearedFields, agentsetting.FieldFinancialProviderID)
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *AgentSettingMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[agentsetting.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *AgentSettingMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *AgentSettingMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *AgentSettingMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *AgentSettingMutation) SetCreatorID(id int64) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *AgentSettingMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[agentsetting.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *AgentSettingMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *AgentSettingMutation) CreatorID() (id int64, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *AgentSettingMutation) CreatorIDs() (ids []int64) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *AgentSettingMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *AgentSettingMutation) SetUpdaterID(id int64) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *AgentSettingMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[agentsetting.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *AgentSettingMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *AgentSettingMutation) UpdaterID() (id int64, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *AgentSettingMutation) UpdaterIDs() (ids []int64) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *AgentSettingMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// ClearFinancialProvider clears the "financial_provider" edge to the AgentProvider entity.
+func (m *AgentSettingMutation) ClearFinancialProvider() {
+	m.clearedfinancial_provider = true
+	m.clearedFields[agentsetting.FieldFinancialProviderID] = struct{}{}
+}
+
+// FinancialProviderCleared reports if the "financial_provider" edge to the AgentProvider entity was cleared.
+func (m *AgentSettingMutation) FinancialProviderCleared() bool {
+	return m.FinancialProviderIDCleared() || m.clearedfinancial_provider
+}
+
+// FinancialProviderIDs returns the "financial_provider" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FinancialProviderID instead. It exists only for internal usage by the builders.
+func (m *AgentSettingMutation) FinancialProviderIDs() (ids []int64) {
+	if id := m.financial_provider; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFinancialProvider resets all changes to the "financial_provider" edge.
+func (m *AgentSettingMutation) ResetFinancialProvider() {
+	m.financial_provider = nil
+	m.clearedfinancial_provider = false
+}
+
+// Where appends a list predicates to the AgentSettingMutation builder.
+func (m *AgentSettingMutation) Where(ps ...predicate.AgentSetting) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AgentSettingMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AgentSettingMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AgentSetting, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AgentSettingMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AgentSettingMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AgentSetting).
+func (m *AgentSettingMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AgentSettingMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.workspace != nil {
+		fields = append(fields, agentsetting.FieldWorkspaceID)
+	}
+	if m.creator != nil {
+		fields = append(fields, agentsetting.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, agentsetting.FieldUpdatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, agentsetting.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, agentsetting.FieldUpdatedAt)
+	}
+	if m.financial_enabled != nil {
+		fields = append(fields, agentsetting.FieldFinancialEnabled)
+	}
+	if m.financial_provider != nil {
+		fields = append(fields, agentsetting.FieldFinancialProviderID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AgentSettingMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case agentsetting.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case agentsetting.FieldCreatedBy:
+		return m.CreatedBy()
+	case agentsetting.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case agentsetting.FieldCreatedAt:
+		return m.CreatedAt()
+	case agentsetting.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case agentsetting.FieldFinancialEnabled:
+		return m.FinancialEnabled()
+	case agentsetting.FieldFinancialProviderID:
+		return m.FinancialProviderID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AgentSettingMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case agentsetting.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case agentsetting.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case agentsetting.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case agentsetting.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case agentsetting.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case agentsetting.FieldFinancialEnabled:
+		return m.OldFinancialEnabled(ctx)
+	case agentsetting.FieldFinancialProviderID:
+		return m.OldFinancialProviderID(ctx)
+	}
+	return nil, fmt.Errorf("unknown AgentSetting field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentSettingMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case agentsetting.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case agentsetting.FieldCreatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case agentsetting.FieldUpdatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case agentsetting.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case agentsetting.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case agentsetting.FieldFinancialEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinancialEnabled(v)
+		return nil
+	case agentsetting.FieldFinancialProviderID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinancialProviderID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSetting field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AgentSettingMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AgentSettingMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentSettingMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AgentSetting numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AgentSettingMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(agentsetting.FieldFinancialProviderID) {
+		fields = append(fields, agentsetting.FieldFinancialProviderID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AgentSettingMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AgentSettingMutation) ClearField(name string) error {
+	switch name {
+	case agentsetting.FieldFinancialProviderID:
+		m.ClearFinancialProviderID()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSetting nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AgentSettingMutation) ResetField(name string) error {
+	switch name {
+	case agentsetting.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case agentsetting.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case agentsetting.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case agentsetting.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case agentsetting.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case agentsetting.FieldFinancialEnabled:
+		m.ResetFinancialEnabled()
+		return nil
+	case agentsetting.FieldFinancialProviderID:
+		m.ResetFinancialProviderID()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSetting field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AgentSettingMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.workspace != nil {
+		edges = append(edges, agentsetting.EdgeWorkspace)
+	}
+	if m.creator != nil {
+		edges = append(edges, agentsetting.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, agentsetting.EdgeUpdater)
+	}
+	if m.financial_provider != nil {
+		edges = append(edges, agentsetting.EdgeFinancialProvider)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AgentSettingMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case agentsetting.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
+	case agentsetting.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case agentsetting.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case agentsetting.EdgeFinancialProvider:
+		if id := m.financial_provider; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AgentSettingMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AgentSettingMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AgentSettingMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedworkspace {
+		edges = append(edges, agentsetting.EdgeWorkspace)
+	}
+	if m.clearedcreator {
+		edges = append(edges, agentsetting.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, agentsetting.EdgeUpdater)
+	}
+	if m.clearedfinancial_provider {
+		edges = append(edges, agentsetting.EdgeFinancialProvider)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AgentSettingMutation) EdgeCleared(name string) bool {
+	switch name {
+	case agentsetting.EdgeWorkspace:
+		return m.clearedworkspace
+	case agentsetting.EdgeCreator:
+		return m.clearedcreator
+	case agentsetting.EdgeUpdater:
+		return m.clearedupdater
+	case agentsetting.EdgeFinancialProvider:
+		return m.clearedfinancial_provider
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AgentSettingMutation) ClearEdge(name string) error {
+	switch name {
+	case agentsetting.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
+	case agentsetting.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case agentsetting.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	case agentsetting.EdgeFinancialProvider:
+		m.ClearFinancialProvider()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSetting unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AgentSettingMutation) ResetEdge(name string) error {
+	switch name {
+	case agentsetting.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case agentsetting.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case agentsetting.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	case agentsetting.EdgeFinancialProvider:
+		m.ResetFinancialProvider()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSetting edge %s", name)
 }
 
 // CmsMediaMutation represents an operation that mutates the CmsMedia nodes in the graph.

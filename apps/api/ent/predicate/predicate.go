@@ -12,6 +12,9 @@ type Account func(*sql.Selector)
 // AgentProvider is the predicate function for agentprovider builders.
 type AgentProvider func(*sql.Selector)
 
+// AgentSetting is the predicate function for agentsetting builders.
+type AgentSetting func(*sql.Selector)
+
 // CmsMedia is the predicate function for cmsmedia builders.
 type CmsMedia func(*sql.Selector)
 

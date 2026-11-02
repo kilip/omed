@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/api/ent/account"
 	"github.com/kilip/omed/api/ent/agentprovider"
+	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
 	"github.com/kilip/omed/api/ent/cmspost"
@@ -95,6 +96,7 @@ func checkColumn(t, c string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			account.Table:             account.ValidColumn,
 			agentprovider.Table:       agentprovider.ValidColumn,
+			agentsetting.Table:        agentsetting.ValidColumn,
 			cmsmedia.Table:            cmsmedia.ValidColumn,
 			cmspage.Table:             cmspage.ValidColumn,
 			cmspost.Table:             cmspost.ValidColumn,
