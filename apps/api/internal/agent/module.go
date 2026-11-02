@@ -27,16 +27,20 @@ type AgentModule struct {
 	cfg             Config
 	Authorizer      *authz.Authorizer
 	ProviderService service.ProviderService
+	SettingService  service.SettingService
 }
 
 // New constructs a new AgentModule instance.
 func New(cfg Config) *AgentModule {
 	repo := repository.NewProviderRepository(cfg.EntCli)
 	providerSvc := service.NewProviderService(repo, cfg.Cipher, cfg.AllowPrivateURLs)
+	settingRepo := repository.NewSettingRepository(cfg.EntCli)
+	settingSvc := service.NewSettingService(settingRepo, providerSvc)
 
 	return &AgentModule{
 		cfg:             cfg,
 		ProviderService: providerSvc,
+		SettingService:  settingSvc,
 	}
 }
 
