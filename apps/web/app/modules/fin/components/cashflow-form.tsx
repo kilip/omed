@@ -3,22 +3,26 @@ import type { components } from "@omed/openapi";
 import type { QueryClient } from "@tanstack/react-query";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
+  Alert,
   App,
   Button,
   DatePicker,
   Form,
+  type FormInstance,
   Input,
   InputNumber,
   Select,
 } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { useMemo, useState } from "react";
+import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { FormView } from "~/components/FormView";
 import { Page } from "~/components/Page";
 import { api, unwrapOne } from "~/lib/api";
+import { type Job, useFinancialAnalysis } from "~/modules/agent/hooks";
+import type { FinancialSuggestion } from "~/modules/agent/queries";
 import {
   accountsQueryOptions,
   currenciesQueryOptions,
@@ -28,8 +32,13 @@ import {
   transactionKeys,
 } from "../queries";
 import {
+  applyAnalysis,
   type CashflowItemValue,
+  checkTotalMismatch,
+  computeTotal,
   groupPaymentAccounts,
+  type PrefillMode,
+  type PrefillScalar,
   uploadWorkspaceFile,
 } from "./cashflow-helpers";
 import { CurrencySelect } from "./currency-select";
@@ -189,6 +198,12 @@ export async function submitCashflowForm({
   navigate(flow === "INCOME" ? "/fin/income" : "/fin/expense");
 }
 
+export interface AnalysisSuccessInfo {
+  fileName: string;
+  filledCount: number;
+  warnings?: components["schemas"]["model.FinancialWarning"][];
+}
+
 export interface CashflowFormProps {
   wid: number;
   flow: "INCOME" | "EXPENSE";
@@ -197,6 +212,18 @@ export interface CashflowFormProps {
   initialValues?:
     | Partial<CashflowFormValues>
     | components["schemas"]["model.CashFlowItemResponse"];
+  form?: FormInstance<CashflowFormValues>;
+  analysis?: ReturnType<typeof useFinancialAnalysis>;
+  aiFilled?: Set<string>;
+  onAiFilledChange?: Dispatch<SetStateAction<Set<string>>>;
+  analysisSuccess?: AnalysisSuccessInfo | null;
+  onAnalysisSuccessChange?: Dispatch<
+    SetStateAction<AnalysisSuccessInfo | null>
+  >;
+  pendingFiles?: File[];
+  onPendingFilesChange?: Dispatch<SetStateAction<File[]>>;
+  userTouched?: Set<string>;
+  onUserTouchedChange?: Dispatch<SetStateAction<Set<string>>>;
 }
 
 export function CashflowForm({
@@ -205,6 +232,16 @@ export function CashflowForm({
   documentId,
   transactionId,
   initialValues,
+  form: formProp,
+  analysis: analysisProp,
+  aiFilled: aiFilledProp,
+  onAiFilledChange,
+  analysisSuccess: analysisSuccessProp,
+  onAnalysisSuccessChange,
+  pendingFiles: pendingFilesProp,
+  onPendingFilesChange,
+  userTouched: userTouchedProp,
+  onUserTouchedChange,
 }: CashflowFormProps) {
   const activeDocumentId = documentId ?? transactionId;
   const { t } = useTranslation();
@@ -212,11 +249,157 @@ export function CashflowForm({
   const queryClient = useQueryClient();
   const { message } = App.useApp();
 
-  const [form] = Form.useForm<CashflowFormValues>();
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [fallbackForm] = Form.useForm<CashflowFormValues>();
+  const form = formProp ?? fallbackForm;
+
+  const [internalPendingFiles, setInternalPendingFiles] = useState<File[]>([]);
+  const pendingFiles = pendingFilesProp ?? internalPendingFiles;
+  const setPendingFiles = onPendingFilesChange ?? setInternalPendingFiles;
+
   const [pendingStatus, setPendingStatus] = useState<CashflowStatus | null>(
     null,
   );
+
+  const [internalAiFilled, setInternalAiFilled] = useState<Set<string>>(
+    new Set(),
+  );
+  const aiFilled = aiFilledProp ?? internalAiFilled;
+  const setAiFilled = onAiFilledChange ?? setInternalAiFilled;
+
+  const [internalSuccess, setInternalSuccess] =
+    useState<AnalysisSuccessInfo | null>(null);
+  const analysisSuccess = analysisSuccessProp ?? internalSuccess;
+  const setAnalysisSuccess = onAnalysisSuccessChange ?? setInternalSuccess;
+
+  const [internalUserTouched, setInternalUserTouched] = useState<Set<string>>(
+    new Set(),
+  );
+  const setUserTouched = onUserTouchedChange ?? setInternalUserTouched;
+  const activeUserTouched = userTouchedProp ?? internalUserTouched;
+
+  const handleResult = (
+    job: Job,
+    suggestion: FinancialSuggestion,
+    mode: PrefillMode,
+  ) => {
+    const current = form.getFieldsValue(true);
+    const { values, filledFields } = applyAnalysis({
+      current: {
+        ...current,
+        items: current.items || [],
+      },
+      isTouched: (field: PrefillScalar) =>
+        form.isFieldTouched(field) || activeUserTouched.has(field),
+      suggestion,
+      mode,
+    });
+
+    if (filledFields.length === 0) {
+      message.info(
+        t(
+          "fin.cashflow.ai.emptyResult",
+          "Tidak ada data yang dapat diekstrak dari dokumen ini.",
+        ),
+      );
+      return;
+    }
+
+    form.setFieldsValue(values);
+
+    if (mode === "overwrite") {
+      setAiFilled(new Set(filledFields));
+    } else {
+      setAiFilled((prev) => new Set([...prev, ...filledFields]));
+    }
+
+    setAnalysisSuccess({
+      fileName: job.file.name,
+      filledCount: filledFields.length,
+      warnings: suggestion.warnings,
+    });
+
+    const currentItems =
+      (values.items as CashflowItemValue[] | undefined) ||
+      (form.getFieldValue("items") as CashflowItemValue[]) ||
+      [];
+    const formTotal = computeTotal(currentItems);
+    const formCurrency =
+      (values.currency as string | undefined) ||
+      (form.getFieldValue("currency") as string) ||
+      "IDR";
+
+    const mismatch = checkTotalMismatch({
+      suggestion,
+      formTotal,
+      formCurrency,
+    });
+
+    if (mismatch) {
+      message.warning(
+        t(
+          "fin.cashflow.ai.totalMismatch",
+          "Perbedaan total pada {{file}}: berkas {{fileTotal}}, formulir {{compared}}",
+          {
+            file: job.file.name,
+            fileTotal: mismatch.fileTotal,
+            compared: mismatch.compared,
+          },
+        ),
+      );
+    }
+  };
+
+  const handleError = (job: Job, error: unknown) => {
+    const err = error as Record<string, unknown> | undefined;
+    const status = typeof err?.status === "number" ? err.status : undefined;
+    const code =
+      job.errorCode ||
+      (typeof err?.code === "string" ? err.code : undefined) ||
+      (typeof err?.errorCode === "string" ? err.errorCode : undefined);
+
+    if (code === "RATE_LIMITED" || status === 429) {
+      message.warning(
+        t(
+          "fin.cashflow.ai.rateLimited",
+          "Batas kuota analisa AI tercapai. Anda tetap dapat mengisi secara manual.",
+        ),
+      );
+      return;
+    }
+
+    if (code === "UNSUPPORTED_DOCUMENT" || status === 422) {
+      message.warning(
+        t(
+          "fin.cashflow.ai.unsupportedDocument",
+          "Format dokumen tidak didukung untuk analisa AI.",
+        ),
+      );
+      return;
+    }
+
+    if (status === 502 || status === 504 || (status && status >= 500)) {
+      message.error(
+        t("fin.cashflow.ai.analysisFailed", "Analisa gagal, isi manual"),
+      );
+      return;
+    }
+
+    message.error(
+      t("fin.cashflow.ai.analysisFailed", "Analisa gagal, isi manual"),
+    );
+  };
+
+  const hookAnalysis = useFinancialAnalysis({
+    wid,
+    flow,
+    onResult: (job, suggestion) => handleResult(job, suggestion, "default"),
+    onError: (job, error) => handleError(job, error),
+  });
+
+  const { available, jobs, enqueue, reanalyze, cancel, cancelAll, statusOf } =
+    analysisProp ?? hookAnalysis;
+
+  const activeJob = jobs.find((j) => j.status === "analyzing");
 
   const { data: accounts = [] } = useSuspenseQuery(accountsQueryOptions(wid));
   const { data: currencies = [] } = useSuspenseQuery(
@@ -289,6 +472,8 @@ export function CashflowForm({
   }, [itemLines]);
 
   const handleSubmit = async (status: CashflowStatus) => {
+    cancelAll();
+    setAnalysisSuccess(null);
     try {
       const values = await form.validateFields();
       setPendingStatus(status);
@@ -326,6 +511,45 @@ export function CashflowForm({
       message.error(msg);
     }
   };
+
+  const handleValuesChange = (changedValues: Partial<CashflowFormValues>) => {
+    setUserTouched((prev) => {
+      const next = new Set(prev);
+      for (const key of Object.keys(changedValues)) {
+        next.add(key);
+      }
+      return next;
+    });
+    setAiFilled((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Set(prev);
+      for (const key of Object.keys(changedValues)) {
+        next.delete(key);
+      }
+      return next;
+    });
+  };
+
+  const handleFilesChange = (nextFiles: File[]) => {
+    for (const prev of pendingFiles) {
+      if (!nextFiles.includes(prev)) {
+        cancel(prev);
+        if (analysisSuccess?.fileName === prev.name) {
+          setAnalysisSuccess(null);
+        }
+      }
+    }
+    setPendingFiles(nextFiles);
+  };
+
+  const handleRemoveFile = (file: File) => {
+    cancel(file);
+    if (analysisSuccess?.fileName === file.name) {
+      setAnalysisSuccess(null);
+    }
+  };
+
+  const isAiFilled = (field: string) => aiFilled.has(field);
 
   const pageTitle =
     flow === "INCOME"
@@ -415,7 +639,60 @@ export function CashflowForm({
           size="small"
           initialValues={normalizedInitialValues}
           className="w-full max-w-5xl"
+          onValuesChange={handleValuesChange}
         >
+          {/* Active Job Alert */}
+          {available && activeJob && (
+            <Alert
+              type="info"
+              showIcon
+              className="mb-4"
+              title={t(
+                "fin.cashflow.ai.analyzingAlert",
+                "Menganalisa {{file}}...",
+                { file: activeJob.file.name },
+              )}
+            />
+          )}
+
+          {/* Success Alert */}
+          {available && analysisSuccess && !activeJob && (
+            <Alert
+              type="success"
+              showIcon
+              closable
+              onClose={() => setAnalysisSuccess(null)}
+              className="mb-4"
+              title={t(
+                "fin.cashflow.ai.successAlert",
+                "Agent mengisi {{count}} field dari {{file}}. Periksa sebelum posting.",
+                {
+                  count: analysisSuccess.filledCount,
+                  file: analysisSuccess.fileName,
+                },
+              )}
+              description={
+                analysisSuccess.warnings &&
+                analysisSuccess.warnings.length > 0 ? (
+                  <ul className="m-0 pl-4 list-disc text-xs">
+                    {analysisSuccess.warnings.map((w) => (
+                      <li key={`${w.code ?? "warn"}-${w.itemIndex ?? "item"}`}>
+                        {w.code
+                          ? t(`fin.cashflow.ai.warnings.${w.code}`, w.code)
+                          : typeof w === "string"
+                            ? w
+                            : JSON.stringify(w)}
+                        {w.itemIndex !== undefined
+                          ? ` (#${w.itemIndex + 1})`
+                          : ""}
+                      </li>
+                    ))}
+                  </ul>
+                ) : undefined
+              }
+            />
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4">
             <Form.Item
               name="paymentAccountId"
@@ -441,6 +718,11 @@ export function CashflowForm({
                 }
                 optionFilterProp="label"
                 options={paymentGroups}
+                style={
+                  isAiFilled("paymentAccountId")
+                    ? { borderColor: "var(--omed-info)" }
+                    : undefined
+                }
               />
             </Form.Item>
 
@@ -453,14 +735,28 @@ export function CashflowForm({
               }
               rules={[{ required: true, message: t("common.required") }]}
             >
-              <DatePicker className="w-full" />
+              <DatePicker
+                className="w-full"
+                style={
+                  isAiFilled("transactionDate")
+                    ? { borderColor: "var(--omed-info)" }
+                    : undefined
+                }
+              />
             </Form.Item>
 
             <Form.Item
               name="currency"
               label={t("fin.cashflow.currency", "Currency")}
             >
-              <CurrencySelect currencies={currencies} />
+              <CurrencySelect
+                currencies={currencies}
+                style={
+                  isAiFilled("currency")
+                    ? { borderColor: "var(--omed-info)" }
+                    : undefined
+                }
+              />
             </Form.Item>
           </div>
 
@@ -482,6 +778,11 @@ export function CashflowForm({
                         "e.g. RCPT-2026-001",
                       )
                 }
+                style={
+                  isAiFilled("reference")
+                    ? { borderColor: "var(--omed-info)" }
+                    : undefined
+                }
               />
             </Form.Item>
 
@@ -498,6 +799,11 @@ export function CashflowForm({
                   "fin.cashflow.descriptionPlaceholder",
                   "e.g. Services, supplies, etc.",
                 )}
+                style={
+                  isAiFilled("description")
+                    ? { borderColor: "var(--omed-info)" }
+                    : undefined
+                }
               />
             </Form.Item>
           </div>
@@ -510,7 +816,14 @@ export function CashflowForm({
             <Form.List name="items">
               {(fields, { add, remove }) => (
                 <div className="flex flex-col gap-2">
-                  <div className="border rounded overflow-hidden">
+                  <div
+                    className="border rounded overflow-hidden"
+                    style={
+                      isAiFilled("items")
+                        ? { borderColor: "var(--omed-info)" }
+                        : undefined
+                    }
+                  >
                     <table className="w-full text-left text-sm">
                       <thead
                         className="border-b text-xs uppercase"
@@ -766,8 +1079,22 @@ export function CashflowForm({
           <div className="mt-4">
             <PendingAttachmentsPicker
               files={pendingFiles}
-              onChange={setPendingFiles}
+              onChange={handleFilesChange}
+              onRemove={available ? handleRemoveFile : undefined}
               disabled={isPending}
+              analysis={
+                available
+                  ? {
+                      statusOf,
+                      onAnalyze: (file) => enqueue(file),
+                      onReanalyze: (file) =>
+                        reanalyze(file, (job, suggestion) =>
+                          handleResult(job, suggestion, "overwrite"),
+                        ),
+                    }
+                  : undefined
+              }
+              onFileAdded={available ? (file) => enqueue(file) : undefined}
             />
           </div>
         </Form>

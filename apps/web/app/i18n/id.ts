@@ -660,6 +660,22 @@ export const id: Translation = {
           failed: "Gagal",
           paused: "Dijeda",
         },
+        analyzingAlert: "Menganalisa {{file}}...",
+        successAlert:
+          "Agent mengisi {{count}} field dari {{file}}. Periksa sebelum posting.",
+        totalMismatch:
+          "Perbedaan total pada {{file}}: berkas {{fileTotal}}, formulir {{compared}}",
+        rateLimited:
+          "Batas kuota analisa AI tercapai. Anda tetap dapat mengisi secara manual.",
+        unsupportedDocument: "Format dokumen tidak didukung untuk analisa AI.",
+        analysisFailed: "Analisa gagal, isi manual",
+        emptyResult: "Tidak ada data yang dapat diekstrak dari dokumen ini.",
+        warnings: {
+          PAYMENT_ACCOUNT_UNRESOLVED: "Akun pembayaran tidak dapat ditentukan",
+          CATEGORY_UNRESOLVED: "Kategori akun tidak dapat ditentukan",
+          ITEM_INVALID: "Item tidak valid diabaikan",
+          ITEMS_TRUNCATED: "Daftar item melebihi batas dan dipotong",
+        },
       },
     },
     errors: {

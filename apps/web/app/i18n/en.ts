@@ -660,6 +660,23 @@ export const en = {
           failed: "Failed",
           paused: "Paused",
         },
+        analyzingAlert: "Analyzing {{file}}...",
+        successAlert:
+          "Agent filled {{count}} fields from {{file}}. Review before posting.",
+        totalMismatch:
+          "Total mismatch in {{file}}: document shows {{fileTotal}}, calculated {{compared}}",
+        rateLimited:
+          "AI analysis rate limit reached. Manual entry is still available.",
+        unsupportedDocument:
+          "Document format is not supported for AI analysis.",
+        analysisFailed: "Analysis failed, please fill manually",
+        emptyResult: "No data could be extracted from this document.",
+        warnings: {
+          PAYMENT_ACCOUNT_UNRESOLVED: "Payment account could not be resolved",
+          CATEGORY_UNRESOLVED: "Category account could not be resolved",
+          ITEM_INVALID: "Invalid item was dropped",
+          ITEMS_TRUNCATED: "Item list exceeded limit and was truncated",
+        },
       },
     },
     errors: {

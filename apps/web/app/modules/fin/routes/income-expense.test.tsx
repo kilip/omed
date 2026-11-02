@@ -311,6 +311,7 @@ vi.mock("@tanstack/react-query", async (importOriginal) => {
     useQueryClient: () => ({
       invalidateQueries: vi.fn(),
     }),
+    useQuery: vi.fn().mockReturnValue({ data: undefined }),
     useSuspenseQuery: vi.fn().mockImplementation((opts: FetchQueryOptions) => {
       const key = opts.queryKey as unknown[];
       if (key?.includes("accounts")) {

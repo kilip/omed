@@ -453,6 +453,7 @@ export type PendingAttachmentsPickerProps = {
     onReanalyze?: (file: File) => void;
   };
   onFileAdded?: (file: File) => void;
+  onRemove?: (file: File) => void;
 };
 
 export function PendingAttachmentsPicker({
@@ -461,6 +462,7 @@ export function PendingAttachmentsPicker({
   disabled,
   analysis,
   onFileAdded,
+  onRemove,
 }: PendingAttachmentsPickerProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -497,6 +499,7 @@ export function PendingAttachmentsPicker({
 
   const handleRemove = (target: File) => {
     onChange(files.filter((f) => f !== target));
+    onRemove?.(target);
   };
 
   return (
