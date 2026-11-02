@@ -1,6 +1,6 @@
 # Design: Financial Agent, AI analysis of income/expense attachments
 
-Status: Draft, awaiting review. Date: 2026-11-02. Target branch: `main` of `kilip/omed`.
+Status: Approved. Date: 2026-11-02. Target branch: `main` of `kilip/omed`.
 
 ## 1. Purpose
 
@@ -76,11 +76,11 @@ Dependency direction follows `AGENTS.md`: `controller -> service -> repository`.
 - `openai.go`: a `Document` part returns a typed error (`ErrUnsupportedContent`), mapped by the service to `UNSUPPORTED_DOCUMENT`.
 - `memory.go`: accept `Document` so tests and e2e can exercise the path.
 
-`agent_provider.capabilities` is a nullable JSON override and `MergeCapabilities` replaces the defaults wholesale. Rows that already carry an explicit override will decode `Documents=false` until edited. The provider form gets a "Documents (PDF)" toggle if it already exposes the other capability toggles (confirm during planning).
+`agent_provider.capabilities` is a nullable JSON override and `MergeCapabilities` replaces the defaults wholesale. Rows that already carry an explicit override will decode `Documents=false` until edited. The provider form gets a "Documents (PDF)" toggle next to the existing capability toggles (see section 11).
 
 ### 4.2 `FinanceContext`
 
-The agent needs, per request and per flow: payment accounts (postable assets), category accounts (`REVENUE` for income, `EXPENSE` for expense, active and postable, same filter the form uses), active currencies, the base currency, and today's date. `agent/service` defines the interface; an adapter in `config/app.go` satisfies it from `fin`'s `AccountService`, `CurrencyService`, and `SettingService`. Exact method names are confirmed during planning. Workspace scoping comes from the request context, as everywhere else.
+The agent needs, per request and per flow: payment accounts (postable assets), category accounts (`REVENUE` for income, `EXPENSE` for expense, active and postable, same filter the form uses), active currencies, the base currency, and today's date. `agent/service` defines the interface; an adapter in `config/app.go` satisfies it from `fin`'s `AccountService`, `CurrencyService`, and `SettingService`. Source methods are listed in section 11. Workspace scoping comes from the request context, as everywhere else.
 
 ### 4.3 Analyze flow (`FinancialService.Analyze`)
 
@@ -122,7 +122,7 @@ The system prompt instructs: extract only what is visible, never invent values, 
 | `transactionDate` | Must parse and fall in a plausible window (proposal: 5 years back to 1 year ahead). Otherwise dropped. |
 | `quantity` / `unitPrice` | Decimal; `quantity > 0`, `unitPrice >= 0`. Otherwise the item is dropped, warning `ITEM_INVALID`. |
 | `items` count | Capped at 100 (the `SaveCashFlowRequest` limit), warning when truncated. |
-| `reference`, `description`, item `description` | Trimmed and truncated to the field limits (confirm during planning). |
+| `reference`, `description`, item `description` | Trimmed and truncated to the field limits (see section 11). |
 | `documentType=payment_proof` | `items` is forced empty regardless of what the model returned. |
 
 The response also carries `documentType` and `documentTotal` (validated decimal or omitted) so the client can compare totals.
@@ -156,7 +156,7 @@ All routes are workspace-scoped under `/workspaces/:wid/agent`. Controllers carr
 
 `status` is deliberately separate from `settings` so a regular `fin` user needs no read access to provider details. `analyze` and `status` require both permissions because the service reads the Chart of Accounts through `fin`; a user without `fin` access must not be able to learn it through the agent. The `fin:transaction` object is written as a literal string in `agent` routes (the same way `fin` already references `core:file`), avoiding an import of `fin/domain`.
 
-Proposed error mapping (final statuses follow the `agent/domain/error.go` pattern during planning): `FINANCIAL_AGENT_DISABLED` 409, `FINANCIAL_AGENT_NO_PROVIDER` 422, `UNSUPPORTED_DOCUMENT` 422, `RATE_LIMITED` 429, provider unavailable 502, timeout 504.
+Proposed error mapping (final statuses follow the `agent/domain/error.go` pattern): `FINANCIAL_AGENT_DISABLED` 409, `FINANCIAL_AGENT_NO_PROVIDER` 422, `UNSUPPORTED_DOCUMENT` 422, `RATE_LIMITED` 429, provider unavailable 502, timeout 504.
 
 ### 6.1 Permissions and roles
 
@@ -203,7 +203,7 @@ Proposed error mapping (final statuses follow the `agent/domain/error.go` patter
 - **Go integration** (`agent/test/`): settings endpoints and the permission matrix (viewer cannot PATCH; `agent:financial-user` without `fin` create gets 403 on `analyze`; both permissions can analyze but cannot read settings).
 - **Web unit (Vitest):** `applyAnalysis` and merge (default vs overwrite, untouched defaults, blank-row replacement, dedupe, payment proof, mismatch warning), queue behaviour (order, abort on removal, pause on 429).
 - **Web component:** `CashflowForm` with the API mocked (auto-analyze on add in create and edit, hidden when unavailable, per-file manual button).
-- **E2E (Cucumber):** one scenario under `e2e/features/agent/` using the `memory` adapter. Whether a `memory` provider can be enabled in test mode is to be verified during planning; if not, this layer is skipped and covered by the layers above.
+- **E2E (Cucumber):** skipped for v1. A `memory` provider cannot be created through the API (see section 11), so the feature is covered by the layers above.
 
 ## 9. Docs and housekeeping
 
@@ -221,10 +221,12 @@ Proposed error mapping (final statuses follow the `agent/domain/error.go` patter
 - **Provider limits:** page and size limits for PDFs vary by provider; an upstream rejection surfaces as `UNSUPPORTED_DOCUMENT` or a generic failure.
 - **Existing providers with explicit capability overrides** may need `Documents` enabled by hand (see 4.1).
 
-## 11. To confirm during planning
+## 11. Resolved during planning
 
-- Exact `fin` service methods behind `FinanceContext`.
-- Final HTTP status codes and error names, following `agent/domain/error.go`.
-- Whether `provider-form.tsx` exposes capability toggles (decides the `Documents` toggle).
-- Whether the `memory` provider kind can be enabled for e2e.
-- The plausible-date window and field-length limits used in 4.5.
+- **`FinanceContext` sources.** Accounts come from `fin` `AccountService.Search(ctx, model.SearchAccountRequest)`, filtered in the adapter by `Type` (`ASSET` for payment accounts, `REVENUE` for income, `EXPENSE` for expense), `IsActive`, and `IsPostable`. Currencies come from `CurrencyService.ListCurrencies`, which is the global reference list, not a per-workspace list. The "active workspace currency" rule in 4.5 therefore means "a currency present in the reference list". The base currency comes from `SettingService.GetSettings` (`FinSettingResponse`) or `CurrencyRepository.GetBaseCurrency`; the adapter uses whichever is already exposed through `fin` services and does not reach into repositories. The exact method set is fixed in the implementation plan.
+- **Errors.** New errors are declared in `agent/domain/error.go` with `base.AddToErrorMap`, using the statuses proposed in section 6: `FINANCIAL_AGENT_DISABLED` 409, `FINANCIAL_AGENT_NO_PROVIDER` 422, `UNSUPPORTED_DOCUMENT` 422, `RATE_LIMITED` 429, provider unavailable 502, timeout 504.
+- **Provider form.** `provider-form.tsx` already exposes capability toggles (`streaming`, `structuredOutput`, `toolCalling`, `vision`) and `DEFAULT_CAPABILITIES_BY_KIND`. A "Documents (PDF)" toggle is added there.
+- **`memory` provider kind for e2e.** `providerService.Create` accepts only `openai_compat`, `anthropic`, and `gemini`, so a `memory` provider cannot be created through the API. The e2e layer is therefore skipped for v1, and the feature is covered by Go unit and integration tests (which construct the `memory` adapter directly) plus web component tests. Revisit if a test-only provider seeding endpoint is added.
+- **Field limits.** `Reference` and `Description` have no length cap in `fin` models or the Ent schema (`field.String`), so the agent applies its own caps: `reference` 100, `description` 500, item `description` 500 characters, after trimming. Item count stays capped at 100 (`SaveCashFlowRequest` `max=100`).
+- **Date window.** The proposal in 4.5 stands: 5 years back to 1 year ahead of the server date.
+- **Rate limiter.** `NewRateLimiter(now)` currently hardcodes its capacity and refill. It becomes `NewRateLimiter(now func() time.Time, capacity int, refill time.Duration)`, and the provider test limiter keeps its present values.
