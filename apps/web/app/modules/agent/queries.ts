@@ -243,22 +243,6 @@ export function useProbeProviderModels(wid?: number) {
   });
 }
 
-export function useSettings(wid?: number) {
-  const resolvedWid = useResolvedWid(wid);
-  return useQuery({
-    ...settingsQueryOptions(resolvedWid),
-    enabled: Boolean(resolvedWid),
-  });
-}
-
-export function useFinancialStatus(wid?: number) {
-  const resolvedWid = useResolvedWid(wid);
-  return useQuery({
-    ...financialStatusQueryOptions(resolvedWid),
-    enabled: Boolean(resolvedWid),
-  });
-}
-
 export function useUpdateSettings(wid?: number) {
   const resolvedWid = useResolvedWid(wid);
   const queryClient = useQueryClient();
