@@ -3,6 +3,7 @@ import { usePermissions } from "~/modules/core/hooks/use-permissions";
 export const AGENT_ROLES = {
   VIEWER: "agent:viewer",
   ADMIN: "agent:admin",
+  FINANCIAL_USER: "agent:financial-user",
 } as const;
 
 export type PermissionsInput = {
@@ -35,6 +36,13 @@ export function evaluateAgentPermissions(permissions: PermissionsInput) {
   const canRead =
     canManage || isViewer || hasPermission("agent:provider", "read");
 
+  const canManageSettings = isAdmin || hasPermission("agent:setting", "update");
+
+  const canUseFinancial =
+    isAdmin ||
+    roles.includes(AGENT_ROLES.FINANCIAL_USER) ||
+    hasPermission("agent:financial", "use");
+
   return {
     ...permissions,
     isOwner,
@@ -42,6 +50,8 @@ export function evaluateAgentPermissions(permissions: PermissionsInput) {
     isViewer,
     canRead,
     canManage,
+    canManageSettings,
+    canUseFinancial,
   };
 }
 

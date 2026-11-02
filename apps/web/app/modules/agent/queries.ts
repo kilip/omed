@@ -19,6 +19,12 @@ export type ListModelsRequest =
   components["schemas"]["model.ListModelsRequest"];
 export type TestResult = components["schemas"]["model.TestResult"];
 export type Capabilities = components["schemas"]["llmx.Capabilities"];
+export type AgentSetting = components["schemas"]["model.SettingResponse"];
+export type UpdateSettingRequest =
+  components["schemas"]["model.UpdateSettingRequest"];
+export type FinancialStatus = components["schemas"]["model.FinancialStatus"];
+export type FinancialSuggestion =
+  components["schemas"]["model.FinancialSuggestion"];
 
 export const agentKeys = {
   all: (wid: number) => ["agent", "workspaces", wid] as const,
@@ -28,6 +34,9 @@ export const agentKeys = {
     ["agent", "workspaces", wid, "providers", id] as const,
   providerModels: (wid: number, id: number) =>
     ["agent", "workspaces", wid, "providers", id, "models"] as const,
+  settings: (wid: number) => ["agent", "workspaces", wid, "settings"] as const,
+  financialStatus: (wid: number) =>
+    ["agent", "workspaces", wid, "financial-status"] as const,
 };
 
 export const providersQueryOptions = (wid: number) =>
@@ -61,6 +70,30 @@ export const providerModelsQueryOptions = (wid: number, id: number) =>
           params: { path: { wid, id } },
         }),
       ),
+  });
+
+export const settingsQueryOptions = (wid: number) =>
+  queryOptions({
+    queryKey: agentKeys.settings(wid),
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/agent/settings", {
+          params: { path: { wid } },
+        }),
+      ),
+    staleTime: 60_000,
+  });
+
+export const financialStatusQueryOptions = (wid: number) =>
+  queryOptions({
+    queryKey: agentKeys.financialStatus(wid),
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/agent/financial/status", {
+          params: { path: { wid } },
+        }),
+      ),
+    staleTime: 60_000,
   });
 
 function useResolvedWid(wid?: number): number {
@@ -208,4 +241,67 @@ export function useProbeProviderModels(wid?: number) {
         }),
       ),
   });
+}
+
+export function useSettings(wid?: number) {
+  const resolvedWid = useResolvedWid(wid);
+  return useQuery({
+    ...settingsQueryOptions(resolvedWid),
+    enabled: Boolean(resolvedWid),
+  });
+}
+
+export function useFinancialStatus(wid?: number) {
+  const resolvedWid = useResolvedWid(wid);
+  return useQuery({
+    ...financialStatusQueryOptions(resolvedWid),
+    enabled: Boolean(resolvedWid),
+  });
+}
+
+export function useUpdateSettings(wid?: number) {
+  const resolvedWid = useResolvedWid(wid);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: UpdateSettingRequest) =>
+      unwrapOne(
+        api.PATCH("/workspaces/{wid}/agent/settings", {
+          params: { path: { wid: resolvedWid } },
+          body,
+        }),
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: agentKeys.settings(resolvedWid),
+      });
+      queryClient.invalidateQueries({
+        queryKey: agentKeys.financialStatus(resolvedWid),
+      });
+    },
+  });
+}
+
+export async function analyzeFinancialDocument(
+  wid: number,
+  flow: "INCOME" | "EXPENSE",
+  file: File,
+  signal?: AbortSignal,
+): Promise<FinancialSuggestion> {
+  signal?.throwIfAborted?.();
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("flow", flow);
+
+  return unwrapOne(
+    api.POST("/workspaces/{wid}/agent/financial/analyze", {
+      params: { path: { wid } },
+      body: formData as unknown as {
+        file: string;
+        flow: "INCOME" | "EXPENSE";
+      },
+      bodySerializer: (body) => body as unknown as BodyInit,
+      signal,
+    }),
+  );
 }
