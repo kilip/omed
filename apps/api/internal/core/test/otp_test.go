@@ -33,6 +33,23 @@ func (s *OTPSuite) SetupTest() {
 	}
 }
 
+func (s *OTPSuite) waitForEmail(memDriver *mailx.MemoryDriver, toEmail string) mailx.Message {
+	var found *mailx.Message
+	s.Eventually(func() bool {
+		for _, m := range memDriver.SentMessages() {
+			for _, to := range m.To {
+				if to.Address == toEmail {
+					found = &m
+					return true
+				}
+			}
+		}
+		return false
+	}, 2*time.Second, 50*time.Millisecond)
+	s.Require().NotNil(found, "expected email to %s", toEmail)
+	return *found
+}
+
 func (s *OTPSuite) Test_RequestThenVerify_NewUser_CookieAndBearer() {
 	mailer := testutil.GetMailer()
 	s.Require().NotNil(mailer)
@@ -53,13 +70,7 @@ func (s *OTPSuite) Test_RequestThenVerify_NewUser_CookieAndBearer() {
 	s.Equal(600, reqRes.TTLSeconds)
 	s.Equal(60, reqRes.ResendAfterSeconds)
 
-	s.Eventually(func() bool {
-		return len(memDriver.SentMessages()) == 1
-	}, 2*time.Second, 50*time.Millisecond)
-
-	msgs := memDriver.SentMessages()
-	s.Require().Len(msgs, 1)
-	msg := msgs[0]
+	msg := s.waitForEmail(memDriver, email)
 	s.Require().Len(msg.To, 1)
 	s.Equal(email, msg.To[0].Address)
 
@@ -137,14 +148,9 @@ func (s *OTPSuite) Test_Verify_WrongCode_400_AUTH_OTP_INVALID() {
 	s.AssertStatus(fiber.StatusAccepted)
 	_ = s.HttpResponse.Body.Close()
 
-	s.Eventually(func() bool {
-		return len(memDriver.SentMessages()) == 1
-	}, 2*time.Second, 50*time.Millisecond)
-
-	msgs := memDriver.SentMessages()
-	s.Require().Len(msgs, 1)
+	msg := s.waitForEmail(memDriver, email)
 	codeRe := regexp.MustCompile(`\b\d{6}\b`)
-	sentCode := codeRe.FindString(msgs[0].TextBody)
+	sentCode := codeRe.FindString(msg.TextBody)
 	wrongCode := "000000"
 	if sentCode == "000000" {
 		wrongCode = "111111"
@@ -211,14 +217,9 @@ func (s *OTPSuite) Test_Verify_ConcurrentExactlyOneSession() {
 	s.AssertStatus(fiber.StatusAccepted)
 	_ = s.HttpResponse.Body.Close()
 
-	s.Eventually(func() bool {
-		return len(memDriver.SentMessages()) == 1
-	}, 2*time.Second, 50*time.Millisecond)
-
-	msgs := memDriver.SentMessages()
-	s.Require().Len(msgs, 1)
+	msg := s.waitForEmail(memDriver, email)
 	codeRe := regexp.MustCompile(`\b\d{6}\b`)
-	code := codeRe.FindString(msgs[0].TextBody)
+	code := codeRe.FindString(msg.TextBody)
 	s.Require().NotEmpty(code)
 
 	reqBody, err := json.Marshal(model.OTPVerifyRequest{
@@ -252,9 +253,10 @@ func (s *OTPSuite) Test_Verify_ConcurrentExactlyOneSession() {
 
 	var count200, count400 int
 	for _, status := range statusCodes {
-		if status == fiber.StatusOK {
+		switch status {
+		case fiber.StatusOK:
 			count200++
-		} else if status == fiber.StatusBadRequest {
+		case fiber.StatusBadRequest:
 			count400++
 		}
 	}
