@@ -39,10 +39,13 @@
 
 The fastest way to run Omed locally is with the included **Devcontainer** (or GitHub Codespaces), which sets up all required tools and services automatically.
 
+For local development outside containers, toolchains (Go, Bun, Node, Atlas, Air, etc.) are pre-configured with [mise](https://mise.jdx.dev/):
+
 ```bash
 git clone https://github.com/kilip/omed.git
 cd omed
 
+mise install                           # install required toolchains (optional)
 bun install                            # install dependencies & git hooks
 cd apps/api && go mod tidy && cd ../.. # sync Go dependencies
 

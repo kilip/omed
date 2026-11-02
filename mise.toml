@@ -1,0 +1,51 @@
+[tools]
+go = "1.27.1"
+bun = "1.4.4"
+node = "22"
+air = "1.67.4"
+swag = "2.0.0-rc6"
+atlas = "latest"
+golangci-lint = "latest"
+helm = "latest"
+kubeconform = "0.8.0"
+
+[tasks.dev]
+description = "Start all applications in watch mode"
+run = "bun run dev"
+
+[tasks.build]
+description = "Build packages and applications"
+run = "bun run build"
+
+[tasks.lint]
+description = "Run Biome check across the repository"
+run = "bun run lint"
+
+[tasks.format]
+description = "Auto-format files with Biome"
+run = "bun run format"
+
+[tasks.typecheck]
+description = "Run TypeScript typechecks"
+run = "bun run typecheck"
+
+[tasks.test]
+description = "Run turbo test suite"
+run = "bun run test"
+
+[tasks."test:api"]
+description = "Run Go unit and integration tests"
+dir = "apps/api"
+run = "go test ./..."
+
+[tasks.e2e]
+description = "Run end-to-end tests (Cucumber + Playwright)"
+run = "bun run e2e"
+
+[tasks."db:migrate"]
+description = "Apply pending Atlas database migrations"
+run = "bun run db:migrate"
+
+[tasks."db:diff"]
+description = "Generate versioned Atlas migration from Ent schemas"
+run = "bun run db:diff"
