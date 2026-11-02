@@ -1091,6 +1091,46 @@ describe("CashflowForm and actions", () => {
         });
       });
 
+      it("manual 'Analyze with AI' button on a failed job retries analysis and fills fields upon success", async () => {
+        const file = makeFile("retry-after-fail.png");
+        vi.mocked(api.POST).mockRejectedValueOnce({
+          status: 502,
+          message: "Bad Gateway",
+        });
+
+        const { form, addFile } = renderForm();
+        addFile(file);
+
+        await vi.waitFor(() => {
+          expect(mockMessage.error).toHaveBeenCalledWith(
+            expect.stringContaining("Analisa gagal, isi manual"),
+          );
+        });
+
+        expect(lastPickerProps.analysis?.statusOf(file)).toBe("failed");
+
+        // Mock successful retry
+        vi.mocked(api.POST).mockResolvedValueOnce({
+          data: {
+            data: {
+              reference: "RETRIED-REF-123",
+              paymentAccountId: 11,
+              items: [],
+            },
+          },
+        } as never);
+
+        // Click manual analyze button
+        lastPickerProps.analysis?.onAnalyze(file);
+
+        await vi.waitFor(() => {
+          expect(lastPickerProps.analysis?.statusOf(file)).toBe("done");
+        });
+
+        expect(form.getFieldValue("reference")).toBe("RETRIED-REF-123");
+        expect(form.getFieldValue("paymentAccountId")).toBe(11);
+      });
+
       it("In every case Posting and Draft submit successfully", async () => {
         const { form } = renderForm();
         form.setFieldsValue({

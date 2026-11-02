@@ -585,16 +585,18 @@ export function PendingAttachmentsPicker({
                     </Tag>
                   )}
 
-                  {analyzable && analysis && (
-                    <Button
-                      size="small"
-                      icon={<RobotOutlined />}
-                      disabled={disabled || status === "analyzing"}
-                      onClick={() => analysis.onAnalyze(file)}
-                    >
-                      {t("fin.cashflow.ai.analyzeButton", "Analyze with AI")}
-                    </Button>
-                  )}
+                  {analyzable &&
+                    analysis &&
+                    !(status === "done" && analysis.onReanalyze) && (
+                      <Button
+                        size="small"
+                        icon={<RobotOutlined />}
+                        disabled={disabled || status === "analyzing"}
+                        onClick={() => analysis.onAnalyze(file)}
+                      >
+                        {t("fin.cashflow.ai.analyzeButton", "Analyze with AI")}
+                      </Button>
+                    )}
 
                   {analyzable && analysis?.onReanalyze && status === "done" && (
                     <Popconfirm

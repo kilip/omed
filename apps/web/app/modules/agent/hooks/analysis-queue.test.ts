@@ -384,6 +384,147 @@ describe("AnalysisQueue", () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
+  it("calling add(file) on a failed job resets status to queued and retries analysis", async () => {
+    const d1 = deferred<FinancialSuggestion>();
+    const d2 = deferred<FinancialSuggestion>();
+
+    let runCount = 0;
+    const run = vi.fn((_file: File) => {
+      runCount++;
+      return runCount === 1 ? d1.promise : d2.promise;
+    });
+
+    const onResult = vi.fn();
+    const onError = vi.fn();
+    const onChange = vi.fn();
+
+    const queue = createAnalysisQueue({
+      run,
+      onResult,
+      onError,
+      onChange,
+    });
+
+    const file = makeFile("invoice.png", 2048);
+    const id = queue.add(file);
+
+    expect(run).toHaveBeenCalledTimes(1);
+
+    // Fail first run
+    d1.reject({ status: 502, message: "Bad Gateway" });
+
+    await vi.waitFor(() => {
+      expect(queue.jobs()[0]?.status).toBe("failed");
+    });
+    expect(queue.jobs()[0]?.errorCode).toBe("502");
+
+    // Calling add(file) again on failed job should retry
+    const retriedId = queue.add(file);
+    expect(retriedId).toBe(id);
+
+    await vi.waitFor(() => {
+      expect(run).toHaveBeenCalledTimes(2);
+    });
+
+    expect(queue.jobs()[0]?.status).toBe("analyzing");
+    expect(queue.jobs()[0]?.errorCode).toBeUndefined();
+
+    // Settle second run
+    const suggestion: FinancialSuggestion = { description: "Retried success" };
+    d2.resolve(suggestion);
+
+    await vi.waitFor(() => {
+      expect(onResult).toHaveBeenCalledWith(
+        expect.objectContaining({ id, status: "done" }),
+        suggestion,
+      );
+    });
+
+    expect(queue.jobs()[0]?.status).toBe("done");
+  });
+
+  it("calling add(file) on a paused job resets status to queued, unpauses queue, and resumes processing", async () => {
+    const d1 = deferred<FinancialSuggestion>();
+    const d2 = deferred<FinancialSuggestion>();
+
+    const run = vi.fn((file: File) => {
+      if (file.name === "file1.png") return d1.promise;
+      return d2.promise;
+    });
+
+    const onResult = vi.fn();
+    const onError = vi.fn();
+    const onChange = vi.fn();
+
+    const queue = createAnalysisQueue({
+      run,
+      onResult,
+      onError,
+      onChange,
+    });
+
+    const file1 = makeFile("file1.png", 100);
+    const file2 = makeFile("file2.png", 200);
+
+    queue.add(file1);
+    const id2 = queue.add(file2);
+
+    // Rate limit file1 so file2 becomes paused
+    d1.reject({ errorCode: "RATE_LIMITED" });
+
+    await vi.waitFor(() => {
+      expect(queue.jobs().find((j) => j.id === id2)?.status).toBe("paused");
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+
+    // Calling add(file2) on paused job resumes processing
+    const retriedId2 = queue.add(file2);
+    expect(retriedId2).toBe(id2);
+
+    await vi.waitFor(() => {
+      expect(run).toHaveBeenCalledTimes(2);
+    });
+
+    expect(queue.jobs().find((j) => j.id === id2)?.status).toBe("analyzing");
+
+    d2.resolve({ description: "Success after pause" });
+
+    await vi.waitFor(() => {
+      expect(onResult).toHaveBeenCalledWith(
+        expect.objectContaining({ id: id2, status: "done" }),
+        expect.anything(),
+      );
+    });
+  });
+
+  it("calling add(file) on a done job is a no-op returning existing id", async () => {
+    const d1 = deferred<FinancialSuggestion>();
+    const run = vi.fn(() => d1.promise);
+
+    const queue = createAnalysisQueue({
+      run,
+      onResult: vi.fn(),
+      onChange: vi.fn(),
+    });
+
+    const file = makeFile("invoice.png", 2048);
+    const id = queue.add(file);
+
+    d1.resolve({ description: "Done" });
+    await vi.waitFor(() => {
+      expect(queue.jobs()[0]?.status).toBe("done");
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+
+    // Call add on done file
+    const secondId = queue.add(file);
+    expect(secondId).toBe(id);
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(queue.jobs()[0]?.status).toBe("done");
+  });
+
   it("reanalyze re-runs analysis for a file even if done/failed and invokes the custom onResult", async () => {
     const d1 = deferred<FinancialSuggestion>();
     const d2 = deferred<FinancialSuggestion>();

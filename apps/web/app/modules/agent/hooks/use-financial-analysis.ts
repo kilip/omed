@@ -54,6 +54,7 @@ export function useFinancialAnalysis({
   );
 
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
+  const isMountedRef = useRef(true);
 
   const argsRef = useRef({ wid, flow, onResult, onError });
   argsRef.current = { wid, flow, onResult, onError };
@@ -70,14 +71,20 @@ export function useFinancialAnalysis({
         ),
       onResult: (job, suggestion) => argsRef.current.onResult(job, suggestion),
       onError: (job, error) => argsRef.current.onError?.(job, error),
-      onChange: () => forceUpdate(),
+      onChange: () => {
+        if (isMountedRef.current) {
+          forceUpdate();
+        }
+      },
     });
   }
 
   const queue = queueRef.current;
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       queue.cancelAll();
     };
   }, [queue]);

@@ -356,7 +356,7 @@ describe("transaction-attachments helpers", () => {
       }
     });
 
-    it("renders 'Re-analyze' button wrapped in Popconfirm when onReanalyze is provided and status is done", () => {
+    it("renders 'Re-analyze' button wrapped in Popconfirm (and no redundant 'Analyze with AI' button) when onReanalyze is provided and status is done", () => {
       const onAnalyze = vi.fn();
       const onReanalyze = vi.fn();
 
@@ -373,6 +373,12 @@ describe("transaction-attachments helpers", () => {
       );
 
       expect(html).toContain("Re-analyze");
+      expect(html).not.toContain("Analyze with AI");
+
+      const aiBtn = buttonPropsList.find((p) =>
+        String(p.children).includes("Analyze with AI"),
+      );
+      expect(aiBtn).toBeUndefined();
 
       // Popconfirm check
       expect(popconfirmPropsList).toHaveLength(1);

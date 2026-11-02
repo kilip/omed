@@ -214,6 +214,14 @@ export function createAnalysisQueue({
     add(file: File): string {
       const existing = findJobByFile(file);
       if (existing) {
+        if (existing.status === "failed" || existing.status === "paused") {
+          existing.status = "queued";
+          existing.errorCode = undefined;
+          existing.onResult = undefined;
+          isPaused = false;
+          onChange();
+          processQueue();
+        }
         return existing.id;
       }
 
