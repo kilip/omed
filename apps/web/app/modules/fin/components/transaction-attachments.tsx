@@ -6,16 +6,18 @@ import {
   FileImageOutlined,
   FilePdfOutlined,
   PaperClipOutlined,
+  RobotOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import type { components } from "@omed/openapi";
 import { useQueryClient } from "@tanstack/react-query";
-import { App, Button, Modal, Popconfirm, Spin, Upload } from "antd";
+import { App, Button, Modal, Popconfirm, Spin, Tag, Upload } from "antd";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiError, api, unwrapOne, unwrapVoid } from "~/lib/api";
 import { env } from "~/lib/env";
 import { useAction } from "~/lib/use-action";
+import type { JobStatus } from "~/modules/agent/hooks/analysis-queue";
 import { transactionKeys } from "../queries";
 
 export type AttachmentFile = components["schemas"]["model.FileResponse"];
@@ -422,16 +424,43 @@ export function TransactionAttachmentsSection({
   );
 }
 
+const ANALYSIS_STATUS_COLOR: Record<
+  JobStatus,
+  "default" | "processing" | "success" | "error" | "warning"
+> = {
+  queued: "default",
+  analyzing: "processing",
+  done: "success",
+  failed: "error",
+  paused: "warning",
+};
+
+const ANALYSIS_STATUS_FALLBACK: Record<JobStatus, string> = {
+  queued: "Queued",
+  analyzing: "Analyzing...",
+  done: "Analyzed",
+  failed: "Failed",
+  paused: "Paused",
+};
+
 export type PendingAttachmentsPickerProps = {
   files: File[];
   onChange: (files: File[]) => void;
   disabled?: boolean;
+  analysis?: {
+    statusOf: (file: File) => JobStatus | undefined;
+    onAnalyze: (file: File) => void;
+    onReanalyze?: (file: File) => void;
+  };
+  onFileAdded?: (file: File) => void;
 };
 
 export function PendingAttachmentsPicker({
   files,
   onChange,
   disabled,
+  analysis,
+  onFileAdded,
 }: PendingAttachmentsPickerProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -463,6 +492,7 @@ export function PendingAttachmentsPicker({
       return;
     }
     onChange([...files, file]);
+    onFileAdded?.(file);
   };
 
   const handleRemove = (target: File) => {
@@ -508,40 +538,89 @@ export function PendingAttachmentsPicker({
 
       {files.length > 0 && (
         <ul className="m-0 p-0 list-none flex flex-col gap-1.5">
-          {files.map((file) => (
-            <li
-              key={`${file.name}-${file.size}`}
-              data-testid="pending-attachment-item"
-              className="flex items-center justify-between gap-2 px-3 py-1.5 rounded"
-              style={{
-                border: "1px solid var(--omed-border)",
-                background: "var(--omed-surface-muted)",
-              }}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <AttachmentIcon
-                  file={{ name: file.name, mimeType: file.type }}
-                />
-                <span className="text-sm truncate">{file.name}</span>
-                <span
-                  className="text-xs shrink-0"
-                  style={{ color: "var(--omed-text-secondary)" }}
-                >
-                  ({formatFileSize(file.size)})
-                </span>
-              </div>
+          {files.map((file) => {
+            const analyzable = Boolean(
+              analysis &&
+                isPreviewableAttachment({
+                  name: file.name,
+                  mimeType: file.type,
+                }),
+            );
+            const status =
+              analyzable && analysis ? analysis.statusOf(file) : undefined;
 
-              <Button
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                disabled={disabled}
-                onClick={() => handleRemove(file)}
+            return (
+              <li
+                key={`${file.name}-${file.size}`}
+                data-testid="pending-attachment-item"
+                className="flex items-center justify-between gap-2 px-3 py-1.5 rounded"
+                style={{
+                  border: "1px solid var(--omed-border)",
+                  background: "var(--omed-surface-muted)",
+                }}
               >
-                {t("common.delete", "Delete")}
-              </Button>
-            </li>
-          ))}
+                <div className="flex items-center gap-2 min-w-0">
+                  <AttachmentIcon
+                    file={{ name: file.name, mimeType: file.type }}
+                  />
+                  <span className="text-sm truncate">{file.name}</span>
+                  <span
+                    className="text-xs shrink-0"
+                    style={{ color: "var(--omed-text-secondary)" }}
+                  >
+                    ({formatFileSize(file.size)})
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {analyzable && status && (
+                    <Tag color={ANALYSIS_STATUS_COLOR[status]}>
+                      {t(
+                        `fin.cashflow.ai.status.${status}`,
+                        ANALYSIS_STATUS_FALLBACK[status],
+                      )}
+                    </Tag>
+                  )}
+
+                  {analyzable && analysis && (
+                    <Button
+                      size="small"
+                      icon={<RobotOutlined />}
+                      disabled={disabled || status === "analyzing"}
+                      onClick={() => analysis.onAnalyze(file)}
+                    >
+                      {t("fin.cashflow.ai.analyzeButton", "Analyze with AI")}
+                    </Button>
+                  )}
+
+                  {analyzable && analysis?.onReanalyze && status === "done" && (
+                    <Popconfirm
+                      title={t(
+                        "fin.cashflow.ai.reanalyzeConfirm",
+                        "Re-analyzing will overwrite existing fields and replace line items with this file's items. Continue?",
+                      )}
+                      onConfirm={() => analysis.onReanalyze?.(file)}
+                      disabled={disabled}
+                    >
+                      <Button size="small" disabled={disabled}>
+                        {t("fin.cashflow.ai.reanalyzeButton", "Re-analyze")}
+                      </Button>
+                    </Popconfirm>
+                  )}
+
+                  <Button
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    disabled={disabled}
+                    onClick={() => handleRemove(file)}
+                  >
+                    {t("common.delete", "Delete")}
+                  </Button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -648,6 +648,19 @@ export const en = {
       statusDraft: "Draft",
       statusPosted: "Posted",
       total: "Total",
+      ai: {
+        analyzeButton: "Analyze with AI",
+        reanalyzeButton: "Re-analyze",
+        reanalyzeConfirm:
+          "Re-analyzing will overwrite existing fields and replace line items with this file's items. Continue?",
+        status: {
+          queued: "Queued",
+          analyzing: "Analyzing...",
+          done: "Analyzed",
+          failed: "Failed",
+          paused: "Paused",
+        },
+      },
     },
     errors: {
       ENTRY_NOT_BALANCED: "Debit and credit amounts must be equal.",

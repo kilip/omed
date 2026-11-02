@@ -648,6 +648,19 @@ export const id: Translation = {
       statusDraft: "Draf",
       statusPosted: "Diposting",
       total: "Total",
+      ai: {
+        analyzeButton: "Analisa dengan AI",
+        reanalyzeButton: "Analisa ulang",
+        reanalyzeConfirm:
+          "Menganalisa ulang akan menimpa bidang yang ada dan mengganti item baris dengan item dari berkas ini. Lanjutkan?",
+        status: {
+          queued: "Menunggu",
+          analyzing: "Menganalisa...",
+          done: "Selesai",
+          failed: "Gagal",
+          paused: "Dijeda",
+        },
+      },
     },
     errors: {
       ENTRY_NOT_BALANCED: "Jumlah debit dan kredit harus seimbang.",
