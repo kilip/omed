@@ -58,7 +58,7 @@ services:
       retries: 10
 
   rustfs:
-    image: rustfs/rustfs:1.0.1
+    image: rustfs/rustfs:1.0.4
     restart: unless-stopped
     environment:
       RUSTFS_ACCESS_KEY: rustfsadmin
@@ -71,7 +71,7 @@ services:
     command: /data
 
   kafka:
-    image: apache/kafka:3.9.0
+    image: apache/kafka:3.9.2
     restart: unless-stopped
     # No host port publish: the workspace reaches Kafka over the compose network.
     environment:
