@@ -19,7 +19,7 @@
 ### 💰 Finance & Accounting (`Fin`)
 - **Guided Financial Onboarding:** Step-by-step setup wizard for base currency, fiscal periods, and starter Chart of Accounts templates.
 - **Chart of Accounts & Fiscal Periods:** Organize accounts in a hierarchical tree, configure opening balances, and manage fiscal periods.
-- **Income & Expense Tracking:** Record multi-item income and expense documents with file attachments, search, and draft-or-post workflows.
+- **Income & Expense Tracking:** Record multi-item income and expense documents with file attachments, AI-assisted receipt analysis, search, and draft-or-post workflows.
 - **Double-Entry Bookkeeping:** Create balanced journal vouchers and business transactions with support for posting, reversing, and voiding entries.
 - **General Ledger & Trial Balance:** Inspect account-level running balances with direct links back to journal entries and generate trial balance summaries.
 
@@ -30,6 +30,7 @@
 - **Public Content API:** Built-in read-only public endpoints for serving published posts, pages, and media to external websites or frontends.
 
 ### 🤖 AI & Agent Integration (`Agent` & `MCP`)
+- **Financial Document Analysis:** Automatically analyze receipt and invoice attachments (images and PDFs) with AI vision models to extract dates, document totals, line items, and smart Chart of Accounts suggestions directly into income and expense vouchers.
 - **LLM Provider Management:** Configure workspace AI providers—including **Anthropic**, **OpenAI**, **DeepSeek**, **Ollama**, and custom OpenAI-compatible endpoints—with encrypted API credentials, default model selection, and live connection testing.
 - **Built-In MCP Server:** Connect AI clients (such as Claude Desktop or other Model Context Protocol tools) directly to Omed using a Personal Access Token to query monthly financial overviews, inspect account balances, and search cashflow records.
 

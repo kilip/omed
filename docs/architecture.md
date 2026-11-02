@@ -78,8 +78,33 @@ omed/
 ### Agent (`agent`)
 
 - `/agent`, `/agent/providers`, `/agent/providers/new`, `/agent/providers/:id/edit`: LLM provider directory and configuration supporting Anthropic, OpenAI, DeepSeek, Ollama, and custom OpenAI-compatible endpoints with AES-256-GCM credential encryption, default provider and model selection, and live connection testing.
-- **Roles:** `agent:admin` (full management access) and `agent:viewer` (view providers and configurations).
-- **API Endpoints:** authenticated workspace-scoped CRUD, model listing, and connection testing endpoints under `/workspaces/:wid/agent/providers*`.
+- `/agent/settings`: Workspace agent settings configuring financial agent enablement and provider assignment.
+- **Permission Objects:**
+  - `agent:provider`: Provider configurations (`create`, `read`, `update`, `delete`, `use`).
+  - `agent:setting`: Workspace agent settings (`read`, `update`).
+  - `agent:financial`: Financial agent analysis features (`use`).
+- **Roles:**
+  - `agent:admin`: Full administrative access to the agent module (`agent:*`).
+  - `agent:viewer`: Read-only access to view providers and workspace agent settings (`agent:provider` `read`, `agent:setting` `read`).
+  - `agent:financial-user`: Permission to use financial agent analysis features (`agent:financial` `use`). Following least-privilege principles, financial document analysis requires both `agent:financial` `use` and `fin:transaction` `create`.
+- **API Endpoints:**
+  - Providers: Authenticated workspace-scoped CRUD, model listing, and connection testing endpoints under `/workspaces/:wid/agent/providers*`.
+  - Settings: `GET /workspaces/:wid/agent/settings` (requires `agent:setting` `read`) and `PATCH /workspaces/:wid/agent/settings` (requires `agent:setting` `update`) to manage workspace agent configuration and the active financial analysis provider.
+  - Financial Agent:
+    - `GET /workspaces/:wid/agent/financial/status`: Check financial agent availability and readiness (`enabled`, `available`, and reason when unavailable). Requires `agent:financial` `use` and `fin:transaction` `create`.
+    - `POST /workspaces/:wid/agent/financial/analyze`: Analyze an uploaded receipt, invoice, or financial document (PNG, JPEG, WebP, PDF) with structured extraction of suggested transaction date, amount, items, and accounts. Requires `agent:financial` `use` and `fin:transaction` `create`.
+
+## LLM Drivers & Capabilities (`llmx`)
+
+The platform layer in `internal/platform/llmx` provides a driver interface for interacting with LLM providers (`anthropic`, `gemini`, `openai-compat`). Adapters declare structured `Capabilities`:
+
+- `Vision`: Image input processing (PNG, JPEG, WebP).
+- `ToolCalling`: Function and tool calling.
+- `StructuredOutput`: JSON schema enforcement for structured extraction.
+- `Streaming`: Chunked token streaming for real-time generation.
+- `Documents`: Native document parsing (e.g. PDF attachments). Enabled by default for Anthropic and Gemini, and false by default for OpenAI-compatible endpoints.
+
+Capabilities can be overridden per provider in workspace provider configurations. When the financial agent analyzes documents, it verifies that the assigned provider supports `Vision` and `StructuredOutput` for images, and `Documents` for PDF attachments.
 
 ## OAuth Provider Drivers
 
