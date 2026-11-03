@@ -44,7 +44,8 @@ bun run typecheck    # TypeScript typecheck
 bun run lint         # Biome check (lint + format)
 bun run format       # Biome auto-fix (check --write)
 bun run test         # run frontend/package unit tests via turbo
-bun run e2e          # run end-to-end tests (Cucumber + Playwright)
+mise run e2e         # run end-to-end tests (Cucumber + Playwright)
+mise run e2e:local   # start postgres + rustfs from compose, then run e2e (see Testing)
 bun run db:diff      # generate a versioned migration from Ent schemas
 bun run db:migrate   # apply pending Atlas database migrations
 cd apps/api && go mod tidy     # sync Go dependencies
@@ -89,9 +90,23 @@ Commit `apps/api/docs/*` and `packages/openapi/src/api.ts` whenever controller a
   ```bash
   bun run test
   ```
-- **End-to-End (Cucumber + Playwright):**
+- **End-to-End (Cucumber + Playwright):** run through mise so the env vars from `mise.toml` and `mise.local.toml` are loaded.
   ```bash
-  bunx playwright install chromium # once beforehand
-  bun run e2e
+  mise run e2e:setup                                   # once: install the Playwright chromium browser
+  mise run e2e                                         # run every feature (postgres + rustfs must already be reachable, as in the devcontainer)
+  mise run e2e:local                                   # outside the devcontainer: start postgres + rustfs from compose, then run every feature
+  mise run e2e:local -- --name "financial agent"       # run scenarios whose name matches the pattern
+  mise run e2e:infra:down                              # stop postgres + rustfs (volumes are kept)
+  ```
+  `e2e:local` starts the compose services with their ports published to the host (`.devcontainer/compose.yaml` plus `.github/compose.e2e.yaml`) through `e2e:infra:up` and waits until they are healthy before running the tests. Extra arguments after `--` go to `cucumber-js`. `--name` filters by scenario name, not feature name. Feature paths are merged with the paths in `e2e/cucumber.json`, so they do not narrow the run.
+
+  The e2e defaults in `e2e/support/config.ts` already point at `localhost`. To override them, put the variables in `mise.local.toml` (git-ignored, env vars only; tasks live in `mise.toml`):
+  ```toml
+  [env]
+  OMED_DB_URL = "postgres://omed:omed@localhost:5432/omed?sslmode=disable"
+  OMED_S3_DRIVER = "s3"
+  OMED_S3_ENDPOINT = "http://localhost:9000"
+  OMED_S3_ACCESS_KEY = "rustfsadmin"
+  OMED_S3_SECRET_KEY = "rustfsadmin"
   ```
   The runner starts `api` and `web` automatically if they are not already running (disable with `E2E_AUTO_START=false`). Pass `HEADED=true` to watch the browser.

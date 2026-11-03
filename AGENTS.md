@@ -8,7 +8,7 @@ Read [README.md](./README.md) for product overview, [docs/architecture.md](./doc
 
 - Many paths in the README describe planned structure and may not exist yet. Check the filesystem before assuming a file, package, or script exists.
 - The root `package.json` is the source of truth for root scripts. Do not document or call scripts that are not defined there.
-- Formatting follows `.editorconfig`. Use Biome for TypeScript, JSON, and CSS (`bun run lint`, `bun run format`) and `gofmt` for Go.
+- Formatting follows `.editorconfig`. Use Biome for TypeScript, JSON, and CSS (`mise run lint`, `mise run format`) and `gofmt` for Go.
 - Write documentation in English, in Markdown.
 - Never commit secrets. `.env` files are git-ignored; use `.env.example` for documented defaults.
 - Toolchains and runtimes (Go, Bun, Node, Atlas, Air, etc.) are managed in `mise.toml`. Outside the devcontainer, run `mise install` to install or sync local tool versions.
@@ -17,17 +17,19 @@ Read [README.md](./README.md) for product overview, [docs/architecture.md](./doc
 
 ```bash
 mise install         # install project toolchains (Go, Bun, Node, Atlas, etc.)
-bun run dev          # all apps, watch mode
-bun run build        # build packages/apps that define a build script
-bun run typecheck    # TypeScript typecheck
-bun run lint         # Biome check (lint + format)
-bun run format       # Biome auto-fix
-bun run test         # tests via turbo
-bun run e2e          # end-to-end tests
-bun run db:diff      # generate versioned Atlas migration from Ent schemas
-bun run db:migrate   # apply pending Atlas migrations
-cd apps/api && go mod tidy     # sync Go dependencies
-cd apps/api && go test ./...   # Go unit + integration tests
+mise run dev         # all apps, watch mode
+mise run build       # build packages/apps that define a build script
+mise run typecheck   # TypeScript typecheck
+mise run lint        # Biome check (lint + format)
+mise run format      # Biome auto-fix
+mise run test        # tests via turbo
+mise run test:api    # Go unit + integration tests
+mise run e2e         # end-to-end tests
+mise run e2e:local   # start postgres + rustfs from compose, then run e2e (outside the devcontainer)
+mise run gen:api     # regenerate Ent code (go generate ./ent)
+mise run db:diff -- <migration_name>   # generate versioned Atlas migration from Ent schemas
+mise run db:migrate  # apply pending Atlas migrations
+mise run tidy:api    # sync Go dependencies (go mod tidy)
 ```
 
 ## 2. Commit convention
@@ -103,7 +105,7 @@ Controllers carry the Swaggo annotations. After changing annotations or response
 ### Database schemas & migrations
 
 - PostgreSQL uses multi-schema isolation per module: `core`, `fin`, `cms`, `agent`. Every Ent schema in `apps/api/ent/schema/` must set `entsql.Schema("<module>")` matching its module prefix (`core_*.go`, `fin_*.go`, `cms_*.go`, `agent_*.go`).
-- After modifying `apps/api/ent/schema/*`, run `cd apps/api && go generate ./ent` and generate a versioned migration in `apps/api/migrations/` using `cd apps/api && go run ./cmd/migrate <migration_name>` (or `bun run db:diff`), then commit `apps/api/ent/*` and `apps/api/migrations/*`.
+- After modifying `apps/api/ent/schema/*`, run `mise run gen:api` and generate a versioned migration in `apps/api/migrations/` using `mise run db:diff -- <migration_name>`, then commit `apps/api/ent/*` and `apps/api/migrations/*`.
 
 ## 4. TypeScript (React Router)
 
@@ -132,10 +134,12 @@ apps/web/app/modules/{module_name}/
 
 End-to-end tests live under `e2e/` (Cucumber + Playwright).
 
-- Run tests with `bun run e2e`.
+- Run tests with `mise run e2e` so the env vars from `mise.toml` and `mise.local.toml` are loaded. Outside the devcontainer, run `mise run e2e:local` instead: it starts postgres and rustfs from the compose files, then runs the tests. Run `mise run e2e:infra:down` to stop the containers.
+- Filter scenarios with `mise run e2e:local -- --name "<scenario name regex>"`. `--name` matches scenario names, not feature names, and feature paths do not narrow the run.
+- Local env overrides go in `mise.local.toml` (git-ignored, env vars only). Tasks live in `mise.toml`.
 - The runner starts `api` and `web` automatically if they are not already running (disable with `E2E_AUTO_START=false`).
 - Add `HEADED=true` to watch the browser.
-- Run `bunx playwright install chromium` once beforehand.
+- Run `mise run e2e:setup` once beforehand to install chromium.
 
 ### Structure
 
