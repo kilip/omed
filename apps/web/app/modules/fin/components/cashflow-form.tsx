@@ -21,6 +21,7 @@ import { useNavigate } from "react-router";
 import { FormView } from "~/components/FormView";
 import { Page } from "~/components/Page";
 import { api, unwrapOne } from "~/lib/api";
+import { formatMoney } from "~/lib/format";
 import { type Job, useFinancialAnalysis } from "~/modules/agent/hooks";
 import type { FinancialSuggestion } from "~/modules/agent/queries";
 import {
@@ -244,7 +245,7 @@ export function CashflowForm({
   onUserTouchedChange,
 }: CashflowFormProps) {
   const activeDocumentId = documentId ?? transactionId;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { message } = App.useApp();
@@ -470,6 +471,9 @@ export function CashflowForm({
   const grandTotal = useMemo(() => {
     return itemLines.reduce((acc, curr) => acc + curr.total, 0);
   }, [itemLines]);
+
+  const formatAmount = (amount: number) =>
+    formatMoney(amount, watchedCurrency, i18n.language);
 
   const handleSubmit = async (status: CashflowStatus) => {
     cancelAll();
@@ -945,7 +949,7 @@ export function CashflowForm({
                                 </Form.Item>
                               </td>
                               <td className="p-2 align-middle text-right font-mono text-sm">
-                                {watchedCurrency} {lineTotal.toLocaleString()}
+                                {formatAmount(lineTotal)}
                               </td>
                               <td className="p-2 align-middle text-center">
                                 <Button
@@ -980,9 +984,7 @@ export function CashflowForm({
           {/* Document Grand Total */}
           <div className="flex justify-end items-center gap-2 p-3 my-2 text-base font-semibold border-t">
             <span>{t("fin.cashflow.total", "Total")}:</span>
-            <span className="font-mono">
-              {watchedCurrency} {grandTotal.toLocaleString()}
-            </span>
+            <span className="font-mono">{formatAmount(grandTotal)}</span>
           </div>
 
           {/* Live Double-Entry Preview */}
@@ -1012,9 +1014,7 @@ export function CashflowForm({
                         : t("fin.cashflow.paymentAccount", "Payment")}
                     </span>
                     <span>
-                      {grandTotal > 0
-                        ? `${watchedCurrency} ${grandTotal.toLocaleString()}`
-                        : "-"}
+                      {grandTotal > 0 ? formatAmount(grandTotal) : "-"}
                     </span>
                   </div>
                   {/* Credit revenue items */}
@@ -1031,9 +1031,7 @@ export function CashflowForm({
                         {line.description ? ` (${line.description})` : ""}
                       </span>
                       <span>
-                        {line.total > 0
-                          ? `${watchedCurrency} ${line.total.toLocaleString()}`
-                          : "-"}
+                        {line.total > 0 ? formatAmount(line.total) : "-"}
                       </span>
                     </div>
                   ))}
@@ -1056,9 +1054,7 @@ export function CashflowForm({
                         {line.description ? ` (${line.description})` : ""}
                       </span>
                       <span>
-                        {line.total > 0
-                          ? `${watchedCurrency} ${line.total.toLocaleString()}`
-                          : "-"}
+                        {line.total > 0 ? formatAmount(line.total) : "-"}
                       </span>
                     </div>
                   ))}
@@ -1071,9 +1067,7 @@ export function CashflowForm({
                         : t("fin.cashflow.paymentAccount", "Payment")}
                     </span>
                     <span>
-                      {grandTotal > 0
-                        ? `${watchedCurrency} ${grandTotal.toLocaleString()}`
-                        : "-"}
+                      {grandTotal > 0 ? formatAmount(grandTotal) : "-"}
                     </span>
                   </div>
                 </>

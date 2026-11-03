@@ -5,6 +5,7 @@ import type { SetStateAction } from "react";
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "~/lib/api";
+import { setActiveDecimalStyle } from "~/lib/format";
 import {
   entryKeys,
   expenseKeys,
@@ -1223,6 +1224,39 @@ describe("CashflowForm and actions", () => {
 
       const htmlWithMarkers = rerender();
       expect(htmlWithMarkers).toContain("var(--omed-info)");
+    });
+
+    it("formats Total and Accounting Preview according to active fin decimal style setting", () => {
+      const initialValues = {
+        paymentAccountId: 11,
+        currency: "IDR",
+        items: [
+          {
+            accountId: 51,
+            description: "Jasa Konsultasi",
+            quantity: 2,
+            unitPrice: 1250000,
+          },
+        ],
+      };
+
+      setActiveDecimalStyle("comma");
+      const commaHtml = renderForm({
+        flow: "INCOME",
+        initialValues,
+      }).html;
+      expect(commaHtml).toContain("2.500.000");
+      expect(commaHtml).not.toContain("2,500,000");
+
+      setActiveDecimalStyle("dot");
+      const dotHtml = renderForm({
+        flow: "INCOME",
+        initialValues,
+      }).html;
+      expect(dotHtml).toContain("2,500,000");
+      expect(dotHtml).not.toContain("2.500.000");
+
+      setActiveDecimalStyle(null);
     });
   });
 });
