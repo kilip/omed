@@ -38,8 +38,36 @@ description = "Run Go unit and integration tests"
 dir = "apps/api"
 run = "go test ./..."
 
+[tasks."tidy:api"]
+description = "Sync Go dependencies (go mod tidy)"
+dir = "apps/api"
+run = "go mod tidy"
+
+[tasks."gen:api"]
+description = "Regenerate Ent code (go generate ./ent)"
+dir = "apps/api"
+run = "go generate ./ent"
+
 [tasks.e2e]
 description = "Run end-to-end tests (Cucumber + Playwright)"
+run = "bun run e2e"
+
+[tasks."e2e:setup"]
+description = "Install the Playwright chromium browser for e2e"
+run = "bunx playwright install chromium"
+
+[tasks."e2e:infra:up"]
+description = "Start postgres and rustfs for e2e and wait until healthy"
+run = "docker compose -f .devcontainer/compose.yaml -f .github/compose.e2e.yaml up -d --wait postgres rustfs"
+
+[tasks."e2e:infra:down"]
+description = "Stop the e2e postgres and rustfs containers (keeps volumes)"
+run = "docker compose -f .devcontainer/compose.yaml -f .github/compose.e2e.yaml stop postgres rustfs"
+
+[tasks."e2e:local"]
+description = "Start e2e infra, then run e2e tests (filter: -- --name \"scenario name\")"
+depends = ["e2e:infra:up"]
+dir = "e2e"
 run = "bun run e2e"
 
 [tasks."db:migrate"]
@@ -47,5 +75,6 @@ description = "Apply pending Atlas database migrations"
 run = "bun run db:migrate"
 
 [tasks."db:diff"]
-description = "Generate versioned Atlas migration from Ent schemas"
-run = "bun run db:diff"
+description = "Generate versioned Atlas migration from Ent schemas (pass the name after --)"
+dir = "apps/api"
+run = "go run ./cmd/migrate"
