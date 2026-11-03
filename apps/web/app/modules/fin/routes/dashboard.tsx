@@ -1,9 +1,8 @@
-import { RocketOutlined } from "@ant-design/icons";
 import type { components } from "@omed/openapi";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Button, Progress, Statistic, Table, type TableProps } from "antd";
+import { Statistic, Table, type TableProps } from "antd";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { Page } from "~/components/Page";
 import { Panel } from "~/components/Panel";
 import { formatDate, formatMoney } from "~/lib/format";
@@ -12,22 +11,17 @@ import { requireWorkspaceId } from "~/lib/workspace";
 import { EntryStatusTag } from "../components/entry-status-tag";
 import { RevenueChart, type RevenuePoint } from "../components/revenue-chart";
 import {
-  accountsQueryOptions,
   financialSummaryQueryOptions,
   recentEntriesQueryOptions,
 } from "../queries";
 import type { Route } from "./+types/dashboard";
 
-type Account = components["schemas"]["model.AccountResponse"];
 type Entry = components["schemas"]["model.EntryResponse"];
-
-const types = ["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"] as const;
 
 export async function clientLoader() {
   const wid = await requireWorkspaceId();
   const queryClient = getQueryClient();
   await Promise.all([
-    queryClient.ensureQueryData(accountsQueryOptions(wid)),
     queryClient.ensureQueryData(financialSummaryQueryOptions(wid, 6)),
     queryClient.ensureQueryData(recentEntriesQueryOptions(wid, 5)),
   ]);
@@ -39,7 +33,6 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
-  const { data: accounts = [] } = useSuspenseQuery(accountsQueryOptions(wid));
   const { data: summary } = useSuspenseQuery(
     financialSummaryQueryOptions(wid, 6),
   );
@@ -70,9 +63,6 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
         ? Number.parseFloat(m.expense) || 0
         : (m.expense ?? 0),
   }));
-
-  const countByType = (type: string) =>
-    accounts.filter((a: Account) => a.type === type).length;
 
   const columns: TableProps<Entry>["columns"] = [
     {
@@ -120,39 +110,6 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page title={t("fin.menu.overview")}>
-      {accounts.length === 0 && (
-        <div
-          className="surface flex flex-wrap items-center justify-between gap-4 p-4"
-          style={{
-            borderRadius: "var(--omed-radius-lg)",
-            borderLeft: "4px solid var(--omed-primary)",
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <RocketOutlined
-              style={{ fontSize: 24, color: "var(--omed-primary)" }}
-            />
-            <div>
-              <div
-                className="font-semibold"
-                style={{ color: "var(--omed-text)" }}
-              >
-                {t("fin.dashboard.setupBannerTitle")}
-              </div>
-              <div
-                className="text-xs"
-                style={{ color: "var(--omed-text-secondary)" }}
-              >
-                {t("fin.dashboard.setupBannerDesc")}
-              </div>
-            </div>
-          </div>
-          <Link to="/fin/onboarding">
-            <Button type="primary">{t("fin.dashboard.setupAction")}</Button>
-          </Link>
-        </div>
-      )}
-
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
         <Panel>
           <Statistic
@@ -175,49 +132,11 @@ export default function FinDashboard({ loaderData }: Route.ComponentProps) {
             formatter={(v) => money(Number(v))}
           />
         </Panel>
-        <Panel>
-          <Statistic
-            title={t("fin.dashboard.accounts")}
-            value={accounts.length}
-          />
-        </Panel>
       </div>
 
-      <div className="flex flex-wrap items-start gap-3">
-        <Panel
-          strong
-          title={t("fin.dashboard.revenueVsExpense")}
-          className="flex-[3_1_460px]"
-        >
-          <RevenueChart data={series} />
-        </Panel>
-
-        <Panel
-          strong
-          title={t("fin.dashboard.accountsByType")}
-          className="flex-[2_1_280px]"
-        >
-          <div className="flex flex-col gap-3">
-            {types.map((type) => (
-              <div key={type}>
-                <div className="flex justify-between text-[13px]">
-                  <span>{t(`fin.types.${type}`)}</span>
-                  <span className="num">{countByType(type)}</span>
-                </div>
-                <Progress
-                  percent={
-                    accounts.length
-                      ? Math.round((countByType(type) / accounts.length) * 100)
-                      : 0
-                  }
-                  showInfo={false}
-                  size="small"
-                />
-              </div>
-            ))}
-          </div>
-        </Panel>
-      </div>
+      <Panel strong title={t("fin.dashboard.revenueVsExpense")}>
+        <RevenueChart data={series} />
+      </Panel>
 
       <Panel strong title={t("fin.dashboard.recentEntries")}>
         <Table<Entry>
