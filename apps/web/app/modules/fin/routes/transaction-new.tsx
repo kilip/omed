@@ -300,7 +300,10 @@ export default function TransactionNewRoute({
                 ]}
               >
                 <InputNumber
-                  className="w-full"
+                  controls={false}
+                  className="w-full text-right font-mono"
+                  classNames={{ input: "text-right" }}
+                  styles={{ input: { textAlign: "right" } }}
                   min={0.000001}
                   step={0.01}
                   disabled={selectedCurrency === "IDR"}

@@ -847,10 +847,10 @@ export function CashflowForm({
                           <th className="p-2">
                             {t("fin.cashflow.itemDescription", "Description")}
                           </th>
-                          <th className="p-2 w-24">
+                          <th className="p-2 w-24 text-right">
                             {t("fin.cashflow.quantity", "Qty")}
                           </th>
-                          <th className="p-2 w-36">
+                          <th className="p-2 w-36 text-right">
                             {t("fin.cashflow.unitPrice", "Unit Price")}
                           </th>
                           <th className="p-2 w-36 text-right">
@@ -917,7 +917,13 @@ export function CashflowForm({
                                   ]}
                                   className="mb-0"
                                 >
-                                  <InputNumber min={1} className="w-full" />
+                                  <InputNumber
+                                    min={1}
+                                    controls={false}
+                                    className="w-full text-right font-mono"
+                                    classNames={{ input: "text-right" }}
+                                    styles={{ input: { textAlign: "right" } }}
+                                  />
                                 </Form.Item>
                               </td>
                               <td className="p-2 align-top">

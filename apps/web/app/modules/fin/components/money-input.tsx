@@ -137,14 +137,43 @@ export interface MoneyInputProps
   currency?: string;
 }
 
-export function MoneyInput({ currency, style, ...props }: MoneyInputProps) {
+export function MoneyInput({
+  currency,
+  style,
+  styles,
+  className,
+  classNames,
+  controls = false,
+  ...props
+}: MoneyInputProps) {
   const decimalStyle = getActiveDecimalStyle() ?? "dot";
   const decimals = getCurrencyDecimals(currency);
+  const resolvedStyles =
+    typeof styles === "function"
+      ? styles
+      : {
+          ...styles,
+          input: {
+            textAlign: "right" as const,
+            ...styles?.input,
+          },
+        };
+  const resolvedClassNames =
+    typeof classNames === "function"
+      ? classNames
+      : {
+          ...classNames,
+          input: ["text-right", classNames?.input].filter(Boolean).join(" "),
+        };
 
   return (
     <InputNumber<number>
       {...props}
+      controls={controls}
+      className={["text-right font-mono", className].filter(Boolean).join(" ")}
+      classNames={resolvedClassNames}
       style={{ minWidth: MONEY_INPUT_MIN_WIDTH, ...style }}
+      styles={resolvedStyles}
       formatter={(value) =>
         value !== undefined && value !== null
           ? formatMoneyInputValue(value, decimalStyle, decimals)

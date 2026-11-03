@@ -29,9 +29,12 @@ describe("money-input", () => {
     expect(parseMoneyInputValue("abc", "comma")).toBeNull();
   });
 
-  it("renders MoneyInput with minimum width of 168px", () => {
+  it("renders MoneyInput right-aligned without stepper controls and with minimum width of 168px", () => {
     expect(MONEY_INPUT_MIN_WIDTH).toBe(168);
     const html = renderToString(<MoneyInput value={999999999} />);
     expect(html).toContain("min-width:168px");
+    expect(html).toContain("ant-input-number-without-controls");
+    expect(html).not.toContain("ant-input-number-actions");
+    expect(html).toContain("text-align:right");
   });
 });

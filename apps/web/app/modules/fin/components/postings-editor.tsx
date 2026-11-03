@@ -4,6 +4,7 @@ import { Alert, Button, Form, Input, InputNumber } from "antd";
 import { useTranslation } from "react-i18next";
 import { formatMoney, isBalanced, roundToCurrency } from "~/lib/format";
 import { AccountSelect } from "./account-select";
+import { MoneyInput } from "./money-input";
 
 type Account = components["schemas"]["model.AccountResponse"];
 type CreatePostingRequest = components["schemas"]["model.CreatePostingRequest"];
@@ -313,6 +314,8 @@ export function PostingsEditor({
                           disabled={disabled}
                           placeholder={t("fin.journal.quantity", "Qty")}
                           className="w-full text-right font-mono"
+                          classNames={{ input: "text-right" }}
+                          styles={{ input: { textAlign: "right" } }}
                           onChange={(val) =>
                             handleQtyOrPriceChange(field.name, val, undefined)
                           }
@@ -325,12 +328,13 @@ export function PostingsEditor({
                         name={[field.name, "unitPrice"]}
                         className="m-0"
                       >
-                        <InputNumber
+                        <MoneyInput
                           min={0}
-                          controls={false}
+                          currency={currency}
                           disabled={disabled}
                           placeholder={t("fin.journal.unitPrice", "Unit price")}
-                          className="w-full text-right font-mono"
+                          className="w-full"
+                          style={{ minWidth: 0 }}
                           onChange={(val) =>
                             handleQtyOrPriceChange(field.name, undefined, val)
                           }
@@ -340,12 +344,13 @@ export function PostingsEditor({
 
                     <div>
                       <Form.Item name={[field.name, "debit"]} className="m-0">
-                        <InputNumber
+                        <MoneyInput
                           min={0}
-                          controls={false}
+                          currency={currency}
                           disabled={disabled || credit > 0}
                           placeholder="0"
-                          className="w-full text-right font-mono"
+                          className="w-full"
+                          style={{ minWidth: 0 }}
                           onChange={() => {
                             if (form && (lines[field.name]?.credit ?? 0) > 0) {
                               form.setFieldValue(
@@ -360,12 +365,13 @@ export function PostingsEditor({
 
                     <div>
                       <Form.Item name={[field.name, "credit"]} className="m-0">
-                        <InputNumber
+                        <MoneyInput
                           min={0}
-                          controls={false}
+                          currency={currency}
                           disabled={disabled || debit > 0}
                           placeholder="0"
-                          className="w-full text-right font-mono"
+                          className="w-full"
+                          style={{ minWidth: 0 }}
                           onChange={() => {
                             if (form && (lines[field.name]?.debit ?? 0) > 0) {
                               form.setFieldValue(

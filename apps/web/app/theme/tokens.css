@@ -129,6 +129,10 @@ a {
   text-align: right;
 }
 
+.ant-input-number.text-right .ant-input-number-input {
+  text-align: right;
+}
+
 /* Launcher backdrop: a pale dotted grid, the only decorative element. */
 .home-backdrop {
   background-color: var(--omed-bg);
