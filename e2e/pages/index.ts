@@ -20,6 +20,7 @@ import { FinIncomeExpensePage } from "./fin/income-expense.page";
 import { FinLedgerPage } from "./fin/ledger.page";
 import { FinOpeningBalancePage } from "./fin/opening-balance.page";
 import { FinPeriodsPage } from "./fin/periods.page";
+import { FinSettingsPage } from "./fin/settings.page";
 import { FinSetupPage } from "./fin/setup.page";
 import { FinTransactionDetailPage } from "./fin/transaction-detail.page";
 import { FinTransactionsPage } from "./fin/transactions.page";
@@ -43,6 +44,7 @@ export const createPages = (page: Page) => ({
     setup: new FinSetupPage(page),
     accounts: new FinAccountsPage(page),
     periods: new FinPeriodsPage(page),
+    settings: new FinSettingsPage(page),
     openingBalance: new FinOpeningBalancePage(page),
     incomeExpense: new FinIncomeExpensePage(page),
     entries: new FinEntriesPage(page),

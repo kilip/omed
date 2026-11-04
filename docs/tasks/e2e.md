@@ -23,9 +23,9 @@ Routes with no E2E test.
 - [x] 2. `/agent` (`modules/agent/routes/index.tsx`)
   - Covered by `e2e/features/agent/launcher.feature`: open `/agent` and navigate to `/agent/providers` and `/agent/settings` from the launcher tiles.
   - Page object: `e2e/pages/agent/launcher.page.ts`. Steps: `e2e/steps/agent/launcher.steps.ts`.
-- [ ] 3. `/fin/settings` (`modules/fin/routes/settings.tsx`)
-  - No UI test. `e2e/steps/fin/permissions.steps.ts` only calls the `fin/settings` API for setup.
-  - Suggested feature: `e2e/features/fin/settings.feature`.
+- [x] 3. `/fin/settings` (`modules/fin/routes/settings.tsx`)
+  - Covered by `e2e/features/fin/settings.feature`: update base currency, decimal format, and FX account mappings and persist after reload, plus create a fiscal period from finance settings.
+  - Page object: `e2e/pages/fin/settings.page.ts`. Steps: `e2e/steps/fin/settings.steps.ts`.
 - [ ] 4. `/cms` (`modules/cms/routes/index.tsx`)
   - CMS launcher page. Every CMS feature opens `/cms/posts`, `/cms/pages`, or `/cms/media` directly.
   - Suggested scenario: open `/cms` and navigate to posts, pages, and media from the tiles.
@@ -80,3 +80,4 @@ Routes with some coverage that is missing important flows.
 | `/fin/journal`, `/fin/journal/new`, `/fin/journal/:id` | `fin/entries.feature`, `fin/permissions.feature` |
 | `/fin/ledger` | `fin/ledger.feature` |
 | `/fin/trial-balance` | `fin/trial-balance.feature` |
+| `/fin/settings` | `fin/settings.feature` |
