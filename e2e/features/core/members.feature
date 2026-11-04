@@ -24,6 +24,19 @@ Feature: Workspace Member Roles
     Then I am on "/core/members"
     And "newmember@omed.test" should be listed with role "Admin"
     And "newmember@omed.test" should be listed with role "Accountant"
+    When I click edit on the member "newmember@omed.test"
+    Then the role "core:admin" should be selected
+    And the role "fin:accountant" should be selected
+    When I select the role "core:member"
+    And I select the role "fin:viewer"
+    And I save the member roles
+    Then I am on "/core/members"
+    And "newmember@omed.test" should be listed with role "Member"
+    And "newmember@omed.test" should be listed with role "Viewer"
+    And "newmember@omed.test" should not be listed with role "Admin"
+    And "newmember@omed.test" should not be listed with role "Accountant"
+    When I remove the member "newmember@omed.test"
+    Then "newmember@omed.test" should not be listed in members
 
   Scenario: Personal workspace hides members navigation and shows notice
     Given I have a personal workspace

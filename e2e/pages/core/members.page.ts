@@ -21,6 +21,10 @@ export class MembersPage extends BasePage {
     return this.page.locator(".ant-table-tbody .ant-table-row");
   }
 
+  rowFor(email: string): Locator {
+    return this.tableRows.filter({ hasText: email });
+  }
+
   roleRadio(roleId: string): Locator {
     return this.page
       .locator(".ant-radio-wrapper")
@@ -65,12 +69,52 @@ export class MembersPage extends BasePage {
   }
 
   async expectMemberWithRole(email: string, roleName: string): Promise<void> {
-    const row = this.tableRows.filter({ hasText: email });
+    const row = this.rowFor(email);
     await row.waitFor({ state: "visible" });
     const text = await row.innerText();
     assert.ok(
       text.includes(roleName),
       `Expected member ${email} to have role containing "${roleName}", got "${text}"`,
+    );
+  }
+
+  async expectMemberWithoutRole(
+    email: string,
+    roleName: string,
+  ): Promise<void> {
+    const row = this.rowFor(email);
+    await row.waitFor({ state: "visible" });
+    const text = await row.innerText();
+    assert.ok(
+      !text.includes(roleName),
+      `Expected member ${email} not to have role "${roleName}", got "${text}"`,
+    );
+  }
+
+  async clickEditMember(email: string): Promise<void> {
+    const row = this.rowFor(email);
+    await row.waitFor({ state: "visible" });
+    await row.getByRole("button", { name: "Edit roles" }).click();
+  }
+
+  async removeMember(email: string): Promise<void> {
+    const row = this.rowFor(email);
+    await row.waitFor({ state: "visible" });
+    await row.getByRole("button", { name: "Remove" }).click();
+    const confirmBtn = this.page
+      .locator(".ant-popconfirm")
+      .getByRole("button", { name: "Remove" });
+    await confirmBtn.waitFor({ state: "visible" });
+    await confirmBtn.click();
+  }
+
+  async expectMemberNotListed(email: string): Promise<void> {
+    const row = this.rowFor(email);
+    await row.waitFor({ state: "hidden" });
+    assert.equal(
+      await row.count(),
+      0,
+      `Expected member ${email} not to be listed in the table`,
     );
   }
 

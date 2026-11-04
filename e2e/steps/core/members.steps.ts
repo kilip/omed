@@ -48,10 +48,42 @@ When("I submit the member invitation form", async function (this: OmedWorld) {
   await this.pages.core.members.submit();
 });
 
+When(
+  "I click edit on the member {string}",
+  async function (this: OmedWorld, email: string) {
+    await this.pages.core.members.clickEditMember(email);
+  },
+);
+
+When("I save the member roles", async function (this: OmedWorld) {
+  await this.pages.core.members.submit();
+});
+
+When(
+  "I remove the member {string}",
+  async function (this: OmedWorld, email: string) {
+    await this.pages.core.members.removeMember(email);
+  },
+);
+
 Then(
   "{string} should be listed with role {string}",
   async function (this: OmedWorld, email: string, roleName: string) {
     await this.pages.core.members.expectMemberWithRole(email, roleName);
+  },
+);
+
+Then(
+  "{string} should not be listed with role {string}",
+  async function (this: OmedWorld, email: string, roleName: string) {
+    await this.pages.core.members.expectMemberWithoutRole(email, roleName);
+  },
+);
+
+Then(
+  "{string} should not be listed in members",
+  async function (this: OmedWorld, email: string) {
+    await this.pages.core.members.expectMemberNotListed(email);
   },
 );
 

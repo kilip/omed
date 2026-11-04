@@ -38,9 +38,10 @@ Routes with some coverage that is missing important flows.
   - Covered by `e2e/features/agent/providers.feature`: an admin edits a provider (name, model, rotate API key) and sees the change in the table.
   - Page object: `e2e/pages/agent/providers.page.ts`. Steps: `e2e/steps/agent/providers.steps.ts`.
   - Verified against a live stack (`mise run e2e:local`).
-- [ ] 6. `/core/members/:id` (`modules/core/routes/member-edit.tsx`)
-  - `core/members.feature` covers `/core/members/new` and the members list only.
-  - Missing: open an existing member, change roles, save, and see the updated roles in the list. Also member removal, if the page supports it.
+- [x] 6. `/core/members/:id` (`modules/core/routes/member-edit.tsx`)
+  - Covered by `e2e/features/core/members.feature`: open an existing member, change roles, save, see the updated roles in the list, and remove the member.
+  - Page object: `e2e/pages/core/members.page.ts`. Steps: `e2e/steps/core/members.steps.ts`.
+  - Verified against a live stack (`mise run e2e:local`).
 - [ ] 7. `/fin/income/:id` and `/fin/income/:id/edit` (`income-detail.tsx`, `income-edit.tsx`)
   - `fin/income-expense.feature` creates and posts an income. Only the expense scenario opens the detail page and edits it.
   - Missing: open an income draft, edit it, post it. Add a scenario next to the expense one.
@@ -60,7 +61,7 @@ Routes with some coverage that is missing important flows.
 | `/core` | `core/workspaces.feature`, `core/members.feature` |
 | `/core/workspaces/new` | `core/workspaces.feature` |
 | `/core/workspaces/:id` | `core/workspaces.feature` |
-| `/core/members`, `/core/members/new` | `core/members.feature` |
+| `/core/members`, `/core/members/new`, `/core/members/:id` | `core/members.feature` |
 | `/core/invitations` | `core/invitations.feature` |
 | `/core/access-tokens` | `core/access-tokens.feature` |
 | `/agent` (launcher) | `agent/launcher.feature` |
