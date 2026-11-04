@@ -739,6 +739,10 @@ export const id: Translation = {
   cms: {
     label: "Konten",
     description: "Artikel, halaman, dan pustaka media",
+    launcher: {
+      title: "Konten",
+      subtitle: "Artikel, halaman, dan pustaka media",
+    },
     menu: {
       posts: "Artikel",
       pages: "Halaman",

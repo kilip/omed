@@ -738,6 +738,10 @@ export const en = {
   cms: {
     label: "Content",
     description: "Posts, pages, and media library",
+    launcher: {
+      title: "Content",
+      subtitle: "Posts, pages, and media library",
+    },
     menu: {
       posts: "Posts",
       pages: "Pages",
