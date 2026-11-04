@@ -26,9 +26,9 @@ Routes with no E2E test.
 - [x] 3. `/fin/settings` (`modules/fin/routes/settings.tsx`)
   - Covered by `e2e/features/fin/settings.feature`: update base currency, decimal format, and FX account mappings and persist after reload, plus create a fiscal period from finance settings.
   - Page object: `e2e/pages/fin/settings.page.ts`. Steps: `e2e/steps/fin/settings.steps.ts`.
-- [ ] 4. `/cms` (`modules/cms/routes/index.tsx`)
-  - CMS launcher page. Every CMS feature opens `/cms/posts`, `/cms/pages`, or `/cms/media` directly.
-  - Suggested scenario: open `/cms` and navigate to posts, pages, and media from the tiles.
+- [x] 4. `/cms` (`modules/cms/routes/index.tsx`)
+  - Covered by `e2e/features/cms/launcher.feature`: open `/cms` and navigate to `/cms/posts`, `/cms/pages`, and `/cms/media` from the launcher tiles.
+  - Page object: `e2e/pages/cms/launcher.page.ts`. Steps: `e2e/steps/cms/launcher.steps.ts`.
 
 ## Partial coverage
 
@@ -66,6 +66,7 @@ Routes with some coverage that is missing important flows.
 | `/agent` (launcher) | `agent/launcher.feature` |
 | `/agent/providers`, `/agent/providers/new` | `agent/providers.feature`, `agent/permissions.feature` |
 | `/agent/settings` | `agent/settings.feature` |
+| `/cms` (launcher) | `cms/launcher.feature` |
 | `/cms/posts`, `/cms/posts/new`, `/cms/posts/:id` | `cms/posts.feature`, `cms/publishing.feature`, `cms/permissions.feature` |
 | `/cms/pages`, `/cms/pages/new`, `/cms/pages/:id` | `cms/pages.feature`, `cms/permissions.feature` |
 | `/cms/media` | `cms/media.feature`, `cms/permissions.feature` |

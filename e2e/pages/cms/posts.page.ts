@@ -88,6 +88,13 @@ export class CmsPostsPage extends BasePage {
     await this.page.waitForLoadState("networkidle");
   }
 
+  async expectLoaded(): Promise<void> {
+    await this.page.waitForSelector(".ant-table", {
+      state: "visible",
+      timeout: 10_000,
+    });
+  }
+
   async clickNewPost(): Promise<void> {
     await this.newPostButton.waitFor({ state: "visible" });
     await this.newPostButton.click();

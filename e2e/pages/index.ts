@@ -2,6 +2,7 @@ import type { Page } from "playwright";
 import { AgentLauncherPage } from "./agent/launcher.page";
 import { AgentProvidersPage } from "./agent/providers.page";
 import { AgentSettingsPage } from "./agent/settings.page";
+import { CmsLauncherPage } from "./cms/launcher.page";
 import { CmsMediaPage } from "./cms/media.page";
 import { CmsPagesPage } from "./cms/pages.page";
 import { CmsPostsPage } from "./cms/posts.page";
@@ -55,6 +56,7 @@ export const createPages = (page: Page) => ({
     trialBalance: new FinTrialBalancePage(page),
   },
   cms: {
+    launcher: new CmsLauncherPage(page),
     posts: new CmsPostsPage(page),
     pages: new CmsPagesPage(page),
     media: new CmsMediaPage(page),

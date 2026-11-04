@@ -44,6 +44,14 @@ export class CmsMediaPage extends BasePage {
     await this.page.waitForLoadState("networkidle");
   }
 
+  async expectLoaded(): Promise<void> {
+    await this.page
+      .getByPlaceholder(
+        /^(Search media by name or title\.\.\.|Cari media berdasarkan nama atau judul\.\.\.)$/i,
+      )
+      .waitFor({ state: "visible", timeout: 10_000 });
+  }
+
   async uploadMedia(
     filename: string,
     content = "sample content",
