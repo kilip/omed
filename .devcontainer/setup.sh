@@ -3,9 +3,12 @@ set -euo pipefail
 
 # --- Shell setup first, so a failed tool install below never skips it ---
 
-# Persistent bash history (named volume mounted at /commandhistory)
+# Persistent bash history and mise data (named volumes)
 sudo chown "$(id -u):$(id -g)" /commandhistory
 sudo chown "$(id -u):$(id -g)" /home/vscode/.gemini
+if [ -d /mnt/mise-data ]; then
+  sudo chown -R "$(id -u):$(id -g)" /mnt/mise-data
+fi
 touch /commandhistory/.bash_history
 
 # Idempotent block: drop any previous version, then append the current one
@@ -16,23 +19,19 @@ if [ -w /commandhistory ]; then
   export HISTFILE=/commandhistory/.bash_history
   export PROMPT_COMMAND='history -a'
 fi
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate bash)"
+fi
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init bash)"
 fi
 # <<< omed shell <<<
 BASHRC
 
-# --- Tools ---
+# --- Tools via mise ---
 
-# Starship: official installer (direct release download, no GitHub API rate limit)
-curl -sS https://starship.rs/install.sh | sudo sh -s -- -y -v v1.26.0
-
-# swag version must match github.com/swaggo/swag in apps/api/go.mod
-go install github.com/air-verse/air@v1.67.4
-go install github.com/swaggo/swag/v2/cmd/swag@latest
-
-# Atlas CLI for database migrations
-curl -sSf https://atlasgo.sh | sh -s -- --yes
+mise trust --yes || true
+mise install
 
 # Playwright: Chromium only (version follows the one installed by bun install)
-bunx playwright install --with-deps chromium
+mise exec -- bunx playwright install --with-deps chromium

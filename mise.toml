@@ -1,13 +1,15 @@
 [tools]
 go = "1.27.1"
 bun = "1.4.4"
-node = "22"
+node = "26"
 air = "1.67.4"
 swag = "2.0.0-rc6"
 atlas = "latest"
 golangci-lint = "latest"
 helm = "latest"
 kubeconform = "0.8.0"
+gh = "latest"
+starship = "1.26.0"
 
 [tasks.dev]
 description = "Start all applications in watch mode"

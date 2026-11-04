@@ -7,7 +7,9 @@ services:
       - ../..:/workspaces:cached
       - bash-history:/commandhistory
       - gemini:/home/vscode/.gemini
+      - mise-data:/mnt/mise-data
     environment:
+      MISE_DATA_DIR: /mnt/mise-data
       OMED_API_URL: http://localhost:8001
       OMED_WEB_URL: http://localhost:3000
       OMED_DB_URL: postgres://omed:omed@postgres:5432/omed?sslmode=disable
@@ -114,3 +116,4 @@ volumes:
   kafka-data:
   bash-history:
   gemini:
+  mise-data:

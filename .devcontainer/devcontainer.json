@@ -6,12 +6,8 @@
   "hostRequirements": { "cpus": 4, "memory": "16gb" },
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {},
-    // Keep in sync with the go directive in apps/api/go.mod
-    "ghcr.io/devcontainers/features/go:1": { "version": "1.27" },
-    "ghcr.io/devcontainers/features/node:2": { "version": "lts" },
-    "ghcr.io/shyim/devcontainers-features/bun:0": {},
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers-extra/features/mise:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
   "forwardPorts": [3000, 8001, 9001, 8080, 5432, 4983],
   "portsAttributes": {
@@ -22,14 +18,22 @@
     "5432": { "label": "postgres" },
     "4983": { "label": "drizzle studio" }
   },
+  "containerEnv": {
+    "MISE_DATA_DIR": "/mnt/mise-data"
+  },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/mnt/mise-data/shims"
+  },
+  "onCreateCommand": "sudo mkdir -p /mnt/mise-data && sudo chown -R \"$(id -u):$(id -g)\" /mnt/mise-data /commandhistory",
   // Runs in Codespaces prebuilds, so dependencies are cached
-  "updateContentCommand": "bun install",
+  "updateContentCommand": "mise install && bun install",
   "postCreateCommand": "bash .devcontainer/setup.sh",
   // Runs on every start: the named volume can come back root-owned
-  "postStartCommand": "sudo chown \"$(id -u):$(id -g)\" /commandhistory && touch /commandhistory/.bash_history",
+  "postStartCommand": "sudo chown \"$(id -u):$(id -g)\" /commandhistory && sudo chown -R \"$(id -u):$(id -g)\" /mnt/mise-data && touch /commandhistory/.bash_history",
   "customizations": {
     "vscode": {
       "extensions": [
+        "hverlin.mise-vscode",
         "golang.go",
         "biomejs.biome",
         "bradlc.vscode-tailwindcss",
