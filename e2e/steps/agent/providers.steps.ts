@@ -81,6 +81,28 @@ When("I submit the provider form", async function (this: OmedWorld) {
   await this.pages.agent.providers.submitForm();
 });
 
+When(
+  "I click edit on the provider {string}",
+  async function (this: OmedWorld, name: string) {
+    await this.pages.agent.providers.clickEdit(name);
+  },
+);
+
+Then(
+  "I see {string} in the providers table with model {string} and key hint {string}",
+  async function (
+    this: OmedWorld,
+    name: string,
+    model: string,
+    keyHint: string,
+  ) {
+    await this.pages.agent.providers.expectProviderRowDetails(name, {
+      model,
+      keyHint,
+    });
+  },
+);
+
 Then(
   "I see {string} in the providers table",
   async function (this: OmedWorld, name: string) {

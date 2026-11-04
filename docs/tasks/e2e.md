@@ -34,10 +34,10 @@ Routes with no E2E test.
 
 Routes with some coverage that is missing important flows.
 
-- [ ] 5. `/agent/providers/:id/edit` (`modules/agent/routes/provider-edit.tsx`)
-  - `agent/permissions.feature` only checks that the edit button is hidden for a viewer.
-  - Missing: an admin edits a provider (name, model, rotate API key) and sees the change in the table.
-  - Add to `e2e/features/agent/providers.feature`.
+- [x] 5. `/agent/providers/:id/edit` (`modules/agent/routes/provider-edit.tsx`)
+  - Covered by `e2e/features/agent/providers.feature`: an admin edits a provider (name, model, rotate API key) and sees the change in the table.
+  - Page object: `e2e/pages/agent/providers.page.ts`. Steps: `e2e/steps/agent/providers.steps.ts`.
+  - Verified against a live stack (`mise run e2e:local`).
 - [ ] 6. `/core/members/:id` (`modules/core/routes/member-edit.tsx`)
   - `core/members.feature` covers `/core/members/new` and the members list only.
   - Missing: open an existing member, change roles, save, and see the updated roles in the list. Also member removal, if the page supports it.

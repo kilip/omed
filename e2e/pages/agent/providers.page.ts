@@ -107,6 +107,39 @@ export class AgentProvidersPage extends BasePage {
     await this.expectProvidersPageLoaded();
   }
 
+  async clickEdit(name: string): Promise<void> {
+    const row = this.rowFor(name);
+    await row.first().waitFor({ state: "visible" });
+    const btn = row.first().getByRole("button", { name: /edit/i });
+    await btn.click();
+    await this.nameInput.waitFor({ state: "visible" });
+  }
+
+  async expectProviderRowDetails(
+    name: string,
+    details: { model?: string; keyHint?: string },
+  ): Promise<void> {
+    const row = this.rowFor(name);
+    await row.first().waitFor({ state: "visible", timeout: 5000 });
+    const text = await row.first().innerText();
+    assert.ok(
+      text.includes(name),
+      `Expected provider "${name}" to be in table, got "${text}"`,
+    );
+    if (details.model) {
+      assert.ok(
+        text.includes(details.model),
+        `Expected provider "${name}" to have model "${details.model}", got "${text}"`,
+      );
+    }
+    if (details.keyHint) {
+      assert.ok(
+        text.includes(details.keyHint),
+        `Expected provider "${name}" to have key hint "${details.keyHint}", got "${text}"`,
+      );
+    }
+  }
+
   async expectProviderInTable(name: string): Promise<void> {
     const row = this.rowFor(name);
     await row.first().waitFor({ state: "visible", timeout: 5000 });
