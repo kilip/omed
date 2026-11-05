@@ -10,6 +10,7 @@ import {
   Space,
   Table,
   type TableProps,
+  Tag,
   Tooltip,
 } from "antd";
 import { useMemo, useState } from "react";
@@ -174,6 +175,18 @@ export default function PostsRoute({ loaderData }: Route.ComponentProps) {
           status={record.status}
           effectiveStatus={record.effectiveStatus}
         />
+      ),
+    },
+    {
+      title: t("cms.translations.locales", "Languages"),
+      key: "locales",
+      width: 140,
+      render: (_, record) => (
+        <Space size={4} wrap>
+          {record.translations?.map((tr) => (
+            <Tag key={tr.locale ?? ""}>{(tr.locale ?? "").toUpperCase()}</Tag>
+          ))}
+        </Space>
       ),
     },
     {

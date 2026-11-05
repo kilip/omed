@@ -14,4 +14,5 @@ export default prefix("cms", [
   route("pages/new", "modules/cms/routes/page-new.tsx"),
   route("pages/:id", "modules/cms/routes/page.tsx"),
   route("media", "modules/cms/routes/media.tsx"),
+  route("settings", "modules/cms/routes/settings.tsx"),
 ]) satisfies RouteConfigEntry[];

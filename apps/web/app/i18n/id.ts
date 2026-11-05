@@ -747,6 +747,7 @@ export const id: Translation = {
       posts: "Artikel",
       pages: "Halaman",
       media: "Media",
+      settings: "Pengaturan",
     },
     status: {
       DRAFT: "Draf",
@@ -855,6 +856,56 @@ export const id: Translation = {
       TITLE_REQUIRED: "Judul wajib diisi.",
       PUBLISH_AT_REQUIRED: "Tanggal publikasi wajib diisi.",
       INVALID_CURSOR: "Kursor pagination tidak valid.",
+      DEFAULT_TRANSLATION_REQUIRED:
+        "Terjemahan bahasa default wajib ada dan tidak dapat dihapus selama terjemahan lain masih ada.",
+      DEFAULT_LOCALE_CHANGE_BLOCKED:
+        "Tidak dapat mengubah bahasa default karena ada konten yang belum memiliki terjemahan dalam bahasa default baru.",
+      LOCALE_IN_USE:
+        "Tidak dapat menghapus bahasa karena masih ada konten yang menggunakan bahasa tersebut.",
+      LOCALE_NOT_SUPPORTED:
+        "Bahasa yang diminta tidak didukung di ruang kerja ini.",
+    },
+    settings: {
+      title: "Pengaturan CMS",
+      subtitle: "Kelola pengaturan bahasa dan pelokalan konten",
+      panelTitle: "Pelokalan",
+      description:
+        "Atur bahasa default dan bahasa yang didukung untuk artikel dan halaman di ruang kerja ini.",
+      defaultLocaleLabel: "Bahasa Default",
+      defaultLocaleHelp: "Bahasa utama untuk konten dan resolusi URL fallback.",
+      defaultLocaleRequired: "Bahasa default wajib diisi",
+      defaultLocalePlaceholder: "Pilih bahasa default",
+      supportedLocalesLabel: "Bahasa yang Didukung",
+      supportedLocalesHelp:
+        "Bahasa yang tersedia untuk terjemahan artikel dan halaman.",
+      supportedLocalesRequired:
+        "Minimal satu bahasa yang didukung harus dipilih",
+      supportedLocalesPlaceholder:
+        "Pilih atau masukkan tag bahasa (contoh: en, id)",
+      savedSuccess: "Pengaturan CMS berhasil disimpan",
+      errors: {
+        defaultLocaleChangeBlocked:
+          "Tidak dapat mengubah bahasa default karena ada konten yang belum memiliki terjemahan dalam bahasa default baru.",
+        localeInUse:
+          "Tidak dapat menghapus bahasa karena masih ada konten yang menggunakan bahasa tersebut.",
+        saveFailed: "Gagal menyimpan pengaturan CMS",
+      },
+    },
+    translations: {
+      locales: "Bahasa",
+      addTranslation: "Tambah Terjemahan",
+      copyFromDefault: "Salin dari bahasa default",
+      notCreated: "Belum dibuat",
+      deleteTranslation: "Hapus terjemahan",
+      deleteTranslationConfirm:
+        "Apakah Anda yakin ingin menghapus terjemahan ini?",
+      cannotDeleteDefault:
+        "Terjemahan bahasa default tidak dapat dihapus selama terjemahan bahasa lain masih ada.",
+      noTranslationPrompt: "Belum ada terjemahan untuk bahasa ini.",
+      copiedFromDefault: "Disalin dari bahasa default",
+      unsavedChangesTitle: "Perubahan belum disimpan",
+      unsavedChangesMessage:
+        "Anda memiliki perubahan yang belum disimpan pada bahasa saat ini. Apakah Anda yakin ingin berpindah bahasa dan membatalkan perubahan?",
     },
   },
   agent: {

@@ -746,6 +746,7 @@ export const en = {
       posts: "Posts",
       pages: "Pages",
       media: "Media",
+      settings: "Settings",
     },
     status: {
       DRAFT: "Draft",
@@ -851,6 +852,56 @@ export const en = {
       TITLE_REQUIRED: "Title is required.",
       PUBLISH_AT_REQUIRED: "Publish date is required.",
       INVALID_CURSOR: "Invalid pagination cursor.",
+      DEFAULT_TRANSLATION_REQUIRED:
+        "Default language translation is required and cannot be deleted while other translations exist.",
+      DEFAULT_LOCALE_CHANGE_BLOCKED:
+        "Cannot change default language because existing content is missing translations in the new default language.",
+      LOCALE_IN_USE:
+        "Cannot remove language because content translations exist for it.",
+      LOCALE_NOT_SUPPORTED:
+        "The specified language is not supported in this workspace.",
+    },
+    settings: {
+      title: "CMS Settings",
+      subtitle: "Manage content language and localization settings",
+      panelTitle: "Localization",
+      description:
+        "Configure default and supported languages for posts and pages in this workspace.",
+      defaultLocaleLabel: "Default Language",
+      defaultLocaleHelp:
+        "Primary language for content and fallback URL resolution.",
+      defaultLocaleRequired: "Default language is required",
+      defaultLocalePlaceholder: "Select default language",
+      supportedLocalesLabel: "Supported Languages",
+      supportedLocalesHelp:
+        "Languages available for post and page translations.",
+      supportedLocalesRequired: "At least one supported language is required",
+      supportedLocalesPlaceholder:
+        "Select or enter language tags (e.g. en, id)",
+      savedSuccess: "CMS settings saved successfully",
+      errors: {
+        defaultLocaleChangeBlocked:
+          "Cannot change default language because existing content is missing translations in the new default language.",
+        localeInUse:
+          "Cannot remove language because content translations exist for it.",
+        saveFailed: "Failed to save CMS settings",
+      },
+    },
+    translations: {
+      locales: "Languages",
+      addTranslation: "Add Translation",
+      copyFromDefault: "Copy from default",
+      notCreated: "Not created",
+      deleteTranslation: "Delete translation",
+      deleteTranslationConfirm:
+        "Are you sure you want to delete this translation?",
+      cannotDeleteDefault:
+        "Default language translation cannot be deleted while other translations exist.",
+      noTranslationPrompt: "No translation created yet for this language.",
+      copiedFromDefault: "Copied from default language",
+      unsavedChangesTitle: "Unsaved changes",
+      unsavedChangesMessage:
+        "You have unsaved changes in the current language. Are you sure you want to switch languages and discard changes?",
     },
   },
   agent: {

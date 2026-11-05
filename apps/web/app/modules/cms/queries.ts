@@ -14,6 +14,10 @@ type SearchPageFilters = NonNullable<
   paths["/workspaces/{wid}/cms/pages/search"]["post"]["requestBody"]
 >["content"]["application/json"];
 
+export const settingKeys = {
+  all: (wid: number) => ["cms", "workspaces", wid, "settings"] as const,
+};
+
 export const mediaKeys = {
   all: (wid: number) => ["cms", "workspaces", wid, "media"] as const,
   infinite: (wid: number, filters?: SearchMediaFilters) =>
@@ -37,6 +41,18 @@ export const pageKeys = {
   detail: (wid: number, id: number) =>
     [...pageKeys.all(wid), "detail", id] as const,
 };
+
+/** Query options for CMS workspace settings. */
+export const cmsSettingQueryOptions = (wid: number) =>
+  queryOptions({
+    queryKey: settingKeys.all(wid),
+    queryFn: () =>
+      unwrapOne(
+        api.GET("/workspaces/{wid}/cms/settings", {
+          params: { path: { wid } },
+        }),
+      ),
+  });
 
 /** Infinite query options for media library. */
 export const mediaInfiniteQueryOptions = (
@@ -96,14 +112,17 @@ export const postsInfiniteQueryOptions = (
     getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
   });
 
-/** Single post by ID. */
-export const postQueryOptions = (wid: number, id: number) =>
+/** Single post by ID, optionally scoped to a locale. */
+export const postQueryOptions = (wid: number, id: number, locale?: string) =>
   queryOptions({
-    queryKey: postKeys.detail(wid, id),
+    queryKey: [...postKeys.detail(wid, id), locale] as const,
     queryFn: () =>
       unwrapOne(
         api.GET("/workspaces/{wid}/cms/posts/{id}", {
-          params: { path: { wid, id } },
+          params: {
+            path: { wid, id },
+            query: locale ? { locale } : undefined,
+          },
         }),
       ),
   });
@@ -131,14 +150,17 @@ export const pagesInfiniteQueryOptions = (
     getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
   });
 
-/** Single page by ID. */
-export const pageQueryOptions = (wid: number, id: number) =>
+/** Single page by ID, optionally scoped to a locale. */
+export const pageQueryOptions = (wid: number, id: number, locale?: string) =>
   queryOptions({
-    queryKey: pageKeys.detail(wid, id),
+    queryKey: [...pageKeys.detail(wid, id), locale] as const,
     queryFn: () =>
       unwrapOne(
         api.GET("/workspaces/{wid}/cms/pages/{id}", {
-          params: { path: { wid, id } },
+          params: {
+            path: { wid, id },
+            query: locale ? { locale } : undefined,
+          },
         }),
       ),
   });

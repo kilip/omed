@@ -66,6 +66,17 @@ describe("CMS Posts logic, slugify, and permission gating", () => {
       expect(en.cms.errors.PUBLISH_AT_IN_PAST).toBeDefined();
       expect(id.cms.errors.PUBLISH_AT_IN_PAST).toBeDefined();
     });
+
+    it("identifies default translation required error and provides translation", () => {
+      expect(en.cms.errors.DEFAULT_TRANSLATION_REQUIRED).toBeDefined();
+      expect(id.cms.errors.DEFAULT_TRANSLATION_REQUIRED).toBeDefined();
+      expect(en.cms.translations.cannotDeleteDefault).toBeDefined();
+      expect(id.cms.translations.cannotDeleteDefault).toBeDefined();
+      expect(en.cms.translations.noTranslationPrompt).toBeDefined();
+      expect(id.cms.translations.noTranslationPrompt).toBeDefined();
+      expect(en.cms.translations.copiedFromDefault).toBeDefined();
+      expect(id.cms.translations.copiedFromDefault).toBeDefined();
+    });
   });
 
   describe("create, edit, publish, schedule, delete payload shapes", () => {

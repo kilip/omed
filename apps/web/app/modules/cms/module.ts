@@ -3,6 +3,7 @@ import {
   FileTextOutlined,
   PictureOutlined,
   ReadOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { defineModule } from "~/lib/modules";
 
@@ -30,6 +31,12 @@ export default defineModule({
       path: "media",
       labelKey: "cms.menu.media",
       icon: PictureOutlined,
+    },
+    {
+      key: "settings",
+      path: "settings",
+      labelKey: "cms.menu.settings",
+      icon: SettingOutlined,
     },
   ],
 });
