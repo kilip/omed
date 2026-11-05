@@ -6,6 +6,7 @@ import { CmsLauncherPage } from "./cms/launcher.page";
 import { CmsMediaPage } from "./cms/media.page";
 import { CmsPagesPage } from "./cms/pages.page";
 import { CmsPostsPage } from "./cms/posts.page";
+import { CmsSettingsPage } from "./cms/settings.page";
 import { AccessTokensPage } from "./core/access-tokens.page";
 import { HomePage } from "./core/home.page";
 import { InvitationsPage } from "./core/invitations.page";
@@ -60,6 +61,7 @@ export const createPages = (page: Page) => ({
     posts: new CmsPostsPage(page),
     pages: new CmsPagesPage(page),
     media: new CmsMediaPage(page),
+    settings: new CmsSettingsPage(page),
   },
   agent: {
     launcher: new AgentLauncherPage(page),

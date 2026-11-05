@@ -44,6 +44,21 @@ When("I open post {string}", async function (this: OmedWorld, title: string) {
   await this.pages.cms.posts.openPost(title);
 });
 
+When(
+  "I switch to translation tab {string}",
+  async function (this: OmedWorld, locale: string) {
+    if (this.page.url().includes("/cms/pages")) {
+      await this.pages.cms.pages.switchTranslationTab(locale);
+    } else {
+      await this.pages.cms.posts.switchTranslationTab(locale);
+    }
+  },
+);
+
+Then("the CMS settings page is displayed", async function (this: OmedWorld) {
+  await this.pages.cms.settings.expectLoaded();
+});
+
 When("I delete the post", async function (this: OmedWorld) {
   await this.pages.cms.posts.deletePost();
 });
@@ -357,6 +372,291 @@ Then(
     assert.ok(
       !titles.includes(this.scheduledPostTitle),
       `Did not expect future-scheduled post "${this.scheduledPostTitle}" in public list: ${JSON.stringify(titles)}`,
+    );
+  },
+);
+
+// --- Translation & Settings Steps ---
+
+Then(
+  "the post title is {string}",
+  async function (this: OmedWorld, title: string) {
+    await this.pages.cms.posts.expectTitleValue(title);
+  },
+);
+
+Then(
+  "the page title is {string}",
+  async function (this: OmedWorld, title: string) {
+    await this.pages.cms.pages.expectTitleValue(title);
+  },
+);
+
+Then(
+  "the title value is {string}",
+  async function (this: OmedWorld, title: string) {
+    if (this.page.url().includes("/cms/pages")) {
+      await this.pages.cms.pages.expectTitleValue(title);
+    } else {
+      await this.pages.cms.posts.expectTitleValue(title);
+    }
+  },
+);
+
+When("I delete the translation", async function (this: OmedWorld) {
+  if (this.page.url().includes("/cms/pages")) {
+    await this.pages.cms.pages.deleteTranslation();
+  } else {
+    await this.pages.cms.posts.deleteTranslation();
+  }
+});
+
+When("I attempt to delete the translation", async function (this: OmedWorld) {
+  if (this.page.url().includes("/cms/pages")) {
+    await this.pages.cms.pages.attemptDeleteTranslation();
+  } else {
+    await this.pages.cms.posts.attemptDeleteTranslation();
+  }
+});
+
+Then(
+  "the delete translation button is hidden",
+  async function (this: OmedWorld) {
+    if (this.page.url().includes("/cms/pages")) {
+      await this.pages.cms.pages.expectDeleteTranslationHidden();
+    } else {
+      await this.pages.cms.posts.expectDeleteTranslationHidden();
+    }
+  },
+);
+
+Then(
+  "the delete translation button is visible",
+  async function (this: OmedWorld) {
+    if (this.page.url().includes("/cms/pages")) {
+      await this.pages.cms.pages.expectDeleteTranslationVisible();
+    } else {
+      await this.pages.cms.posts.expectDeleteTranslationVisible();
+    }
+  },
+);
+
+When(
+  "I select the default locale {string}",
+  async function (this: OmedWorld, locale: string) {
+    await this.pages.cms.settings.selectDefaultLocale(locale);
+  },
+);
+
+When(
+  "I add supported locale {string}",
+  async function (this: OmedWorld, locale: string) {
+    await this.pages.cms.settings.addSupportedLocale(locale);
+  },
+);
+
+When("I save the CMS settings", async function (this: OmedWorld) {
+  await this.pages.cms.settings.save();
+});
+
+Then(
+  "the CMS settings are saved successfully",
+  async function (this: OmedWorld) {
+    await this.pages.cms.settings.expectSuccess();
+  },
+);
+
+Then(
+  "I see a CMS settings error matching {string}",
+  async function (this: OmedWorld, pattern: string) {
+    await this.pages.cms.settings.expectError(new RegExp(pattern, "i"));
+  },
+);
+
+// --- Localized Public API Steps ---
+
+Given(
+  "a workspace exists with a post published in {string} with slug {string} and translation in {string} with slug {string}",
+  async function (
+    this: OmedWorld,
+    defaultLocale: string,
+    defaultSlug: string,
+    transLocale: string,
+    transSlug: string,
+  ) {
+    assert.ok(this.user, "Tag the scenario with @authenticated");
+    assert.ok(this.sessionToken, "Expected sessionToken");
+
+    const ws = await this.client.createWorkspace({
+      name: "Public API Translations Workspace",
+      slug: `pub-trans-ws-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      ownerId: this.user.id,
+      personal: true,
+    });
+    this.workspace = ws;
+    const wid = ws.id;
+
+    const pubRes = await this.client.authenticatedRequest<{
+      data?: { id: number };
+    }>(this.sessionToken, `/workspaces/${wid}/cms/posts`, {
+      method: "POST",
+      body: JSON.stringify({
+        title: "Default Post Title",
+        slug: defaultSlug,
+        body: "# Default Post Content",
+      }),
+    });
+    const pubId = pubRes.data?.id;
+    assert.ok(pubId, "Expected created post id");
+
+    await this.client.authenticatedRequest(
+      this.sessionToken,
+      `/workspaces/${wid}/cms/posts/${pubId}/publish?locale=${defaultLocale}`,
+      { method: "POST" },
+    );
+
+    await this.client.authenticatedRequest(
+      this.sessionToken,
+      `/workspaces/${wid}/cms/posts/${pubId}/translations/${transLocale}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          title: "Translated Post Title",
+          slug: transSlug,
+          body: "# Translated Content",
+        }),
+      },
+    );
+
+    await this.client.authenticatedRequest(
+      this.sessionToken,
+      `/workspaces/${wid}/cms/posts/${pubId}/publish?locale=${transLocale}`,
+      { method: "POST" },
+    );
+  },
+);
+
+Given(
+  "a workspace exists with a post published only in {string} with slug {string}",
+  async function (this: OmedWorld, locale: string, slug: string) {
+    assert.ok(this.user, "Tag the scenario with @authenticated");
+    assert.ok(this.sessionToken, "Expected sessionToken");
+
+    const ws = await this.client.createWorkspace({
+      name: "Public API Single Locale Workspace",
+      slug: `pub-single-ws-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      ownerId: this.user.id,
+      personal: true,
+    });
+    this.workspace = ws;
+    const wid = ws.id;
+
+    const pubRes = await this.client.authenticatedRequest<{
+      data?: { id: number };
+    }>(this.sessionToken, `/workspaces/${wid}/cms/posts`, {
+      method: "POST",
+      body: JSON.stringify({
+        title: "Single Locale Post Title",
+        slug,
+        body: "# Single Locale Content",
+      }),
+    });
+    const pubId = pubRes.data?.id;
+    assert.ok(pubId, "Expected created post id");
+
+    await this.client.authenticatedRequest(
+      this.sessionToken,
+      `/workspaces/${wid}/cms/posts/${pubId}/publish?locale=${locale}`,
+      { method: "POST" },
+    );
+  },
+);
+
+When(
+  "an unauthenticated request is made for post {string} in locale {string}",
+  async function (this: OmedWorld, slug: string, locale: string) {
+    assert.ok(this.workspace, "Expected workspace");
+    const wid = this.workspace.id;
+
+    const res = await this.client.publicGet(
+      `/public/workspaces/${wid}/cms/${locale}/posts/${slug}`,
+    );
+    this.publicApiResponse = res;
+  },
+);
+
+Then(
+  "the public response status is {int}",
+  async function (this: OmedWorld, status: number) {
+    assert.ok(this.publicApiResponse, "Expected publicApiResponse");
+    assert.equal(
+      this.publicApiResponse.status,
+      status,
+      `Expected status ${status}, got ${this.publicApiResponse.status}`,
+    );
+  },
+);
+
+Then(
+  "the public post response has locale {string} and fallback {word}",
+  async function (
+    this: OmedWorld,
+    expectedLocale: string,
+    fallbackStr: string,
+  ) {
+    assert.ok(this.publicApiResponse, "Expected publicApiResponse");
+    const expectedFallback = fallbackStr === "true";
+    const data = (
+      this.publicApiResponse.data as {
+        data?: { locale?: string; fallback?: boolean };
+      }
+    )?.data;
+    assert.ok(data, "Expected response data");
+    assert.equal(
+      data.locale,
+      expectedLocale,
+      `Expected locale ${expectedLocale}, got ${data.locale}`,
+    );
+    assert.equal(
+      data.fallback,
+      expectedFallback,
+      `Expected fallback ${expectedFallback}, got ${data.fallback}`,
+    );
+  },
+);
+
+Then(
+  "the public post response has fallback {word}",
+  async function (this: OmedWorld, fallbackStr: string) {
+    assert.ok(this.publicApiResponse, "Expected publicApiResponse");
+    const expectedFallback = fallbackStr === "true";
+    const data = (
+      this.publicApiResponse.data as { data?: { fallback?: boolean } }
+    )?.data;
+    assert.ok(data, "Expected response data");
+    assert.equal(
+      data.fallback,
+      expectedFallback,
+      `Expected fallback ${expectedFallback}, got ${data.fallback}`,
+    );
+  },
+);
+
+Then(
+  "the public post alternates contains locale {string}",
+  async function (this: OmedWorld, expectedLocale: string) {
+    assert.ok(this.publicApiResponse, "Expected publicApiResponse");
+    const data = (
+      this.publicApiResponse.data as {
+        data?: { alternates?: Array<{ locale?: string }> };
+      }
+    )?.data;
+    assert.ok(data, "Expected response data");
+    const alternates = data.alternates ?? [];
+    const locales = alternates.map((a) => a.locale);
+    assert.ok(
+      locales.includes(expectedLocale),
+      `Expected alternates to include ${expectedLocale}, got: ${JSON.stringify(locales)}`,
     );
   },
 );

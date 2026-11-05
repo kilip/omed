@@ -35,6 +35,10 @@ export class CmsPostsPage extends BasePage {
     return this.page.getByRole("button", { name: /delete/i });
   }
 
+  get deleteTranslationButton(): Locator {
+    return this.page.getByRole("button", { name: /delete translation/i });
+  }
+
   get popconfirmOkButton(): Locator {
     return this.page.locator(
       ".ant-popconfirm .ant-btn-primary, .ant-popover .ant-btn-primary",
@@ -203,6 +207,60 @@ export class CmsPostsPage extends BasePage {
     await link.waitFor({ state: "visible" });
     await link.click();
     await this.titleInput.waitFor({ state: "visible" });
+  }
+
+  async switchTranslationTab(locale: string): Promise<void> {
+    const tab = this.page
+      .locator(".ant-tabs-tab")
+      .filter({ hasText: new RegExp(locale, "i") });
+    await tab.first().waitFor({ state: "visible", timeout: 5000 });
+    await tab.first().click();
+    const activeTab = this.page
+      .locator(".ant-tabs-tab-active")
+      .filter({ hasText: new RegExp(locale, "i") });
+    await activeTab.first().waitFor({ state: "visible", timeout: 5000 });
+    await this.page.waitForLoadState("networkidle");
+  }
+
+  async expectTitleValue(title: string): Promise<void> {
+    await this.page.waitForFunction(
+      "(expected) => document.querySelector('#title')?.value === expected",
+      title,
+      { timeout: 5000 },
+    );
+    const value = await this.titleInput.inputValue();
+    assert.strictEqual(
+      value,
+      title,
+      `Expected title to be "${title}", got "${value}"`,
+    );
+  }
+
+  async deleteTranslation(): Promise<void> {
+    await this.deleteTranslationButton.waitFor({ state: "visible" });
+    await this.deleteTranslationButton.click();
+    await this.popconfirmOkButton.waitFor({ state: "visible" });
+    await this.popconfirmOkButton.click();
+    await this.page
+      .locator(".ant-message-success")
+      .first()
+      .waitFor({ state: "visible" });
+  }
+
+  async attemptDeleteTranslation(): Promise<void> {
+    if (await this.deleteTranslationButton.isVisible()) {
+      await this.deleteTranslationButton.click();
+      await this.popconfirmOkButton.waitFor({ state: "visible" });
+      await this.popconfirmOkButton.click();
+    }
+  }
+
+  async expectDeleteTranslationHidden(): Promise<void> {
+    await this.deleteTranslationButton.waitFor({ state: "hidden" });
+  }
+
+  async expectDeleteTranslationVisible(): Promise<void> {
+    await this.deleteTranslationButton.waitFor({ state: "visible" });
   }
 
   async expectStatus(statusText: string): Promise<void> {
