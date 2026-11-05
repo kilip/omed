@@ -557,10 +557,10 @@ export function CashflowForm({
 
   const pageTitle =
     flow === "INCOME"
-      ? documentId
+      ? activeDocumentId
         ? t("fin.income.edit", "Edit Income")
         : t("fin.income.new", "New Income")
-      : documentId
+      : activeDocumentId
         ? t("fin.expense.edit", "Edit Expense")
         : t("fin.expense.new", "New Expense");
 
