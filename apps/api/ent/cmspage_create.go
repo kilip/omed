@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
 )
@@ -98,60 +99,6 @@ func (_c *CmsPageCreate) SetNillableDeletedByID(v *int64) *CmsPageCreate {
 	return _c
 }
 
-// SetStatus sets the "status" field.
-func (_c *CmsPageCreate) SetStatus(v cmspage.Status) *CmsPageCreate {
-	_c.mutation.SetStatus(v)
-	return _c
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_c *CmsPageCreate) SetNillableStatus(v *cmspage.Status) *CmsPageCreate {
-	if v != nil {
-		_c.SetStatus(*v)
-	}
-	return _c
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (_c *CmsPageCreate) SetPublishAt(v time.Time) *CmsPageCreate {
-	_c.mutation.SetPublishAt(v)
-	return _c
-}
-
-// SetNillablePublishAt sets the "publish_at" field if the given value is not nil.
-func (_c *CmsPageCreate) SetNillablePublishAt(v *time.Time) *CmsPageCreate {
-	if v != nil {
-		_c.SetPublishAt(*v)
-	}
-	return _c
-}
-
-// SetTitle sets the "title" field.
-func (_c *CmsPageCreate) SetTitle(v string) *CmsPageCreate {
-	_c.mutation.SetTitle(v)
-	return _c
-}
-
-// SetSlug sets the "slug" field.
-func (_c *CmsPageCreate) SetSlug(v string) *CmsPageCreate {
-	_c.mutation.SetSlug(v)
-	return _c
-}
-
-// SetBody sets the "body" field.
-func (_c *CmsPageCreate) SetBody(v string) *CmsPageCreate {
-	_c.mutation.SetBody(v)
-	return _c
-}
-
-// SetNillableBody sets the "body" field if the given value is not nil.
-func (_c *CmsPageCreate) SetNillableBody(v *string) *CmsPageCreate {
-	if v != nil {
-		_c.SetBody(*v)
-	}
-	return _c
-}
-
 // SetID sets the "id" field.
 func (_c *CmsPageCreate) SetID(v int64) *CmsPageCreate {
 	_c.mutation.SetID(v)
@@ -204,6 +151,21 @@ func (_c *CmsPageCreate) SetDeleter(v *User) *CmsPageCreate {
 	return _c.SetDeleterID(v.ID)
 }
 
+// AddTranslationIDs adds the "translations" edge to the CmsPageTranslation entity by IDs.
+func (_c *CmsPageCreate) AddTranslationIDs(ids ...int64) *CmsPageCreate {
+	_c.mutation.AddTranslationIDs(ids...)
+	return _c
+}
+
+// AddTranslations adds the "translations" edges to the CmsPageTranslation entity.
+func (_c *CmsPageCreate) AddTranslations(v ...*CmsPageTranslation) *CmsPageCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the CmsPageMutation object of the builder.
 func (_c *CmsPageCreate) Mutation() *CmsPageMutation {
 	return _c.mutation
@@ -247,14 +209,6 @@ func (_c *CmsPageCreate) defaults() {
 		v := cmspage.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := _c.mutation.Status(); !ok {
-		v := cmspage.DefaultStatus
-		_c.mutation.SetStatus(v)
-	}
-	if _, ok := _c.mutation.Body(); !ok {
-		v := cmspage.DefaultBody
-		_c.mutation.SetBody(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -273,33 +227,6 @@ func (_c *CmsPageCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "CmsPage.updated_at"`)}
-	}
-	if _, ok := _c.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "CmsPage.status"`)}
-	}
-	if v, ok := _c.mutation.Status(); ok {
-		if err := cmspage.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CmsPage.status": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Title(); !ok {
-		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "CmsPage.title"`)}
-	}
-	if v, ok := _c.mutation.Title(); ok {
-		if err := cmspage.TitleValidator(v); err != nil {
-			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CmsPage.title": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Slug(); !ok {
-		return &ValidationError{Name: "slug", err: errors.New(`ent: missing required field "CmsPage.slug"`)}
-	}
-	if v, ok := _c.mutation.Slug(); ok {
-		if err := cmspage.SlugValidator(v); err != nil {
-			return &ValidationError{Name: "slug", err: fmt.Errorf(`ent: validator failed for field "CmsPage.slug": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Body(); !ok {
-		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "CmsPage.body"`)}
 	}
 	if len(_c.mutation.WorkspaceIDs()) == 0 {
 		return &ValidationError{Name: "workspace", err: errors.New(`ent: missing required edge "CmsPage.workspace"`)}
@@ -355,26 +282,6 @@ func (_c *CmsPageCreate) createSpec() (*CmsPage, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DeletedAt(); ok {
 		_spec.SetField(cmspage.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = &value
-	}
-	if value, ok := _c.mutation.Status(); ok {
-		_spec.SetField(cmspage.FieldStatus, field.TypeEnum, value)
-		_node.Status = value
-	}
-	if value, ok := _c.mutation.PublishAt(); ok {
-		_spec.SetField(cmspage.FieldPublishAt, field.TypeTime, value)
-		_node.PublishAt = &value
-	}
-	if value, ok := _c.mutation.Title(); ok {
-		_spec.SetField(cmspage.FieldTitle, field.TypeString, value)
-		_node.Title = value
-	}
-	if value, ok := _c.mutation.Slug(); ok {
-		_spec.SetField(cmspage.FieldSlug, field.TypeString, value)
-		_node.Slug = value
-	}
-	if value, ok := _c.mutation.Body(); ok {
-		_spec.SetField(cmspage.FieldBody, field.TypeString, value)
-		_node.Body = value
 	}
 	if nodes := _c.mutation.WorkspaceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -446,6 +353,23 @@ func (_c *CmsPageCreate) createSpec() (*CmsPage, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.DeletedByID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cmspage.TranslationsTable,
+			Columns: []string{cmspage.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cmspagetranslation.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _c.schemaConfig.CmsPageTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -569,72 +493,6 @@ func (u *CmsPageUpsert) UpdateDeletedByID() *CmsPageUpsert {
 // ClearDeletedByID clears the value of the "deleted_by_id" field.
 func (u *CmsPageUpsert) ClearDeletedByID() *CmsPageUpsert {
 	u.SetNull(cmspage.FieldDeletedByID)
-	return u
-}
-
-// SetStatus sets the "status" field.
-func (u *CmsPageUpsert) SetStatus(v cmspage.Status) *CmsPageUpsert {
-	u.Set(cmspage.FieldStatus, v)
-	return u
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *CmsPageUpsert) UpdateStatus() *CmsPageUpsert {
-	u.SetExcluded(cmspage.FieldStatus)
-	return u
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (u *CmsPageUpsert) SetPublishAt(v time.Time) *CmsPageUpsert {
-	u.Set(cmspage.FieldPublishAt, v)
-	return u
-}
-
-// UpdatePublishAt sets the "publish_at" field to the value that was provided on create.
-func (u *CmsPageUpsert) UpdatePublishAt() *CmsPageUpsert {
-	u.SetExcluded(cmspage.FieldPublishAt)
-	return u
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (u *CmsPageUpsert) ClearPublishAt() *CmsPageUpsert {
-	u.SetNull(cmspage.FieldPublishAt)
-	return u
-}
-
-// SetTitle sets the "title" field.
-func (u *CmsPageUpsert) SetTitle(v string) *CmsPageUpsert {
-	u.Set(cmspage.FieldTitle, v)
-	return u
-}
-
-// UpdateTitle sets the "title" field to the value that was provided on create.
-func (u *CmsPageUpsert) UpdateTitle() *CmsPageUpsert {
-	u.SetExcluded(cmspage.FieldTitle)
-	return u
-}
-
-// SetSlug sets the "slug" field.
-func (u *CmsPageUpsert) SetSlug(v string) *CmsPageUpsert {
-	u.Set(cmspage.FieldSlug, v)
-	return u
-}
-
-// UpdateSlug sets the "slug" field to the value that was provided on create.
-func (u *CmsPageUpsert) UpdateSlug() *CmsPageUpsert {
-	u.SetExcluded(cmspage.FieldSlug)
-	return u
-}
-
-// SetBody sets the "body" field.
-func (u *CmsPageUpsert) SetBody(v string) *CmsPageUpsert {
-	u.Set(cmspage.FieldBody, v)
-	return u
-}
-
-// UpdateBody sets the "body" field to the value that was provided on create.
-func (u *CmsPageUpsert) UpdateBody() *CmsPageUpsert {
-	u.SetExcluded(cmspage.FieldBody)
 	return u
 }
 
@@ -773,83 +631,6 @@ func (u *CmsPageUpsertOne) UpdateDeletedByID() *CmsPageUpsertOne {
 func (u *CmsPageUpsertOne) ClearDeletedByID() *CmsPageUpsertOne {
 	return u.Update(func(s *CmsPageUpsert) {
 		s.ClearDeletedByID()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *CmsPageUpsertOne) SetStatus(v cmspage.Status) *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *CmsPageUpsertOne) UpdateStatus() *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (u *CmsPageUpsertOne) SetPublishAt(v time.Time) *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetPublishAt(v)
-	})
-}
-
-// UpdatePublishAt sets the "publish_at" field to the value that was provided on create.
-func (u *CmsPageUpsertOne) UpdatePublishAt() *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdatePublishAt()
-	})
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (u *CmsPageUpsertOne) ClearPublishAt() *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.ClearPublishAt()
-	})
-}
-
-// SetTitle sets the "title" field.
-func (u *CmsPageUpsertOne) SetTitle(v string) *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetTitle(v)
-	})
-}
-
-// UpdateTitle sets the "title" field to the value that was provided on create.
-func (u *CmsPageUpsertOne) UpdateTitle() *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdateTitle()
-	})
-}
-
-// SetSlug sets the "slug" field.
-func (u *CmsPageUpsertOne) SetSlug(v string) *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetSlug(v)
-	})
-}
-
-// UpdateSlug sets the "slug" field to the value that was provided on create.
-func (u *CmsPageUpsertOne) UpdateSlug() *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdateSlug()
-	})
-}
-
-// SetBody sets the "body" field.
-func (u *CmsPageUpsertOne) SetBody(v string) *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetBody(v)
-	})
-}
-
-// UpdateBody sets the "body" field to the value that was provided on create.
-func (u *CmsPageUpsertOne) UpdateBody() *CmsPageUpsertOne {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdateBody()
 	})
 }
 
@@ -1154,83 +935,6 @@ func (u *CmsPageUpsertBulk) UpdateDeletedByID() *CmsPageUpsertBulk {
 func (u *CmsPageUpsertBulk) ClearDeletedByID() *CmsPageUpsertBulk {
 	return u.Update(func(s *CmsPageUpsert) {
 		s.ClearDeletedByID()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *CmsPageUpsertBulk) SetStatus(v cmspage.Status) *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *CmsPageUpsertBulk) UpdateStatus() *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (u *CmsPageUpsertBulk) SetPublishAt(v time.Time) *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetPublishAt(v)
-	})
-}
-
-// UpdatePublishAt sets the "publish_at" field to the value that was provided on create.
-func (u *CmsPageUpsertBulk) UpdatePublishAt() *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdatePublishAt()
-	})
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (u *CmsPageUpsertBulk) ClearPublishAt() *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.ClearPublishAt()
-	})
-}
-
-// SetTitle sets the "title" field.
-func (u *CmsPageUpsertBulk) SetTitle(v string) *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetTitle(v)
-	})
-}
-
-// UpdateTitle sets the "title" field to the value that was provided on create.
-func (u *CmsPageUpsertBulk) UpdateTitle() *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdateTitle()
-	})
-}
-
-// SetSlug sets the "slug" field.
-func (u *CmsPageUpsertBulk) SetSlug(v string) *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetSlug(v)
-	})
-}
-
-// UpdateSlug sets the "slug" field to the value that was provided on create.
-func (u *CmsPageUpsertBulk) UpdateSlug() *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdateSlug()
-	})
-}
-
-// SetBody sets the "body" field.
-func (u *CmsPageUpsertBulk) SetBody(v string) *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.SetBody(v)
-	})
-}
-
-// UpdateBody sets the "body" field to the value that was provided on create.
-func (u *CmsPageUpsertBulk) UpdateBody() *CmsPageUpsertBulk {
-	return u.Update(func(s *CmsPageUpsert) {
-		s.UpdateBody()
 	})
 }
 

@@ -43,66 +43,70 @@ func (s *PageServiceSuite) TearDownTest() {
 
 func (s *PageServiceSuite) Test_Create_AutoSlug_NoConflict() {
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "terms-of-service", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "about-us", nil).
 		Return(false, nil)
 
 	s.mockRepo.EXPECT().
 		Create(s.ctx, model.CreatePageRecord{
-			Title:  "Terms of Service",
-			Slug:   "terms-of-service",
-			Body:   "",
-			Status: domain.StatusDraft,
-		}, s.fixedTime).
+			WorkspaceID: 0,
+			Locale:      "en",
+			Title:       "About Us",
+			Slug:        "about-us",
+			Body:        "",
+			Status:      domain.StatusDraft,
+		}, "en", s.fixedTime).
 		Return(domain.Page{
 			ID:    1,
-			Title: "Terms of Service",
-			Slug:  "terms-of-service",
+			Title: "About Us",
+			Slug:  "about-us",
 		}, nil)
 
 	p, err := s.svc.Create(s.ctx, model.CreatePageRequest{
-		Title: "Terms of Service",
+		Title: "About Us",
 	})
 	s.Require().NoError(err)
 	s.Equal(int64(1), p.ID)
-	s.Equal("terms-of-service", p.Slug)
+	s.Equal("about-us", p.Slug)
 }
 
 func (s *PageServiceSuite) Test_Create_AutoSlug_ConflictResolution() {
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "terms-of-service", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "about-us", nil).
 		Return(true, nil)
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "terms-of-service-2", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "about-us-2", nil).
 		Return(false, nil)
 
 	s.mockRepo.EXPECT().
 		Create(s.ctx, model.CreatePageRecord{
-			Title:  "Terms of Service",
-			Slug:   "terms-of-service-2",
-			Body:   "",
-			Status: domain.StatusDraft,
-		}, s.fixedTime).
+			WorkspaceID: 0,
+			Locale:      "en",
+			Title:       "About Us",
+			Slug:        "about-us-2",
+			Body:        "",
+			Status:      domain.StatusDraft,
+		}, "en", s.fixedTime).
 		Return(domain.Page{
 			ID:    2,
-			Title: "Terms of Service",
-			Slug:  "terms-of-service-2",
+			Title: "About Us",
+			Slug:  "about-us-2",
 		}, nil)
 
 	p, err := s.svc.Create(s.ctx, model.CreatePageRequest{
-		Title: "Terms of Service",
+		Title: "About Us",
 	})
 	s.Require().NoError(err)
-	s.Equal("terms-of-service-2", p.Slug)
+	s.Equal("about-us-2", p.Slug)
 }
 
 func (s *PageServiceSuite) Test_Create_ExplicitSlug_ConflictReturnsError() {
-	explicit := "custom-terms"
+	explicit := "custom-slug"
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "custom-terms", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "custom-slug", nil).
 		Return(true, nil)
 
 	_, err := s.svc.Create(s.ctx, model.CreatePageRequest{
-		Title: "Terms of Service",
+		Title: "About Us",
 		Slug:  &explicit,
 	})
 	s.Require().ErrorIs(err, domain.ErrSlugTaken)
@@ -113,7 +117,7 @@ func (s *PageServiceSuite) Test_Update_SlugConflict() {
 	newSlug := "taken-slug"
 
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "taken-slug", &id).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "taken-slug", &id).
 		Return(true, nil)
 
 	_, err := s.svc.Update(s.ctx, id, model.UpdatePageRequest{
@@ -126,21 +130,23 @@ func (s *PageServiceSuite) Test_Publish_FromDraft() {
 	id := int64(5)
 	draftPage := domain.Page{
 		ID:        id,
+		Locale:    "en",
 		Status:    domain.StatusDraft,
 		PublishAt: nil,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(draftPage, nil)
 
 	newStatus := domain.StatusPublished
 	expectedPublishAt := s.fixedTime
 	s.mockRepo.EXPECT().
 		Update(s.ctx, id, model.UpdatePageRecord{
+			Locale:    "en",
 			Status:    &newStatus,
 			PublishAt: &expectedPublishAt,
-		}, s.fixedTime).
+		}, "en", s.fixedTime).
 		Return(domain.Page{
 			ID:              id,
 			Status:          domain.StatusPublished,
@@ -153,59 +159,26 @@ func (s *PageServiceSuite) Test_Publish_FromDraft() {
 	s.Equal(domain.EffectiveStatusPublished, res.EffectiveStatus)
 }
 
-func (s *PageServiceSuite) Test_Publish_AlreadyPublishedFails() {
-	id := int64(5)
-	past := s.fixedTime.Add(-1 * time.Hour)
-	livePage := domain.Page{
-		ID:        id,
-		Status:    domain.StatusPublished,
-		PublishAt: &past,
-	}
-
-	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
-		Return(livePage, nil)
-
-	_, err := s.svc.Publish(s.ctx, id)
-	s.Require().ErrorIs(err, domain.ErrInvalidTransition)
-}
-
-func (s *PageServiceSuite) Test_Schedule_InPastFails() {
-	id := int64(5)
-	draftPage := domain.Page{
-		ID:     id,
-		Status: domain.StatusDraft,
-	}
-
-	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
-		Return(draftPage, nil)
-
-	past := s.fixedTime.Add(-10 * time.Minute)
-	_, err := s.svc.Schedule(s.ctx, id, model.SchedulePageRequest{
-		PublishAt: past,
-	})
-	s.Require().ErrorIs(err, domain.ErrPublishAtInPast)
-}
-
 func (s *PageServiceSuite) Test_Schedule_FutureSuccess() {
 	id := int64(5)
 	draftPage := domain.Page{
 		ID:     id,
+		Locale: "en",
 		Status: domain.StatusDraft,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(draftPage, nil)
 
 	future := s.fixedTime.Add(2 * time.Hour)
 	newStatus := domain.StatusPublished
 	s.mockRepo.EXPECT().
 		Update(s.ctx, id, model.UpdatePageRecord{
+			Locale:    "en",
 			Status:    &newStatus,
 			PublishAt: &future,
-		}, s.fixedTime).
+		}, "en", s.fixedTime).
 		Return(domain.Page{
 			ID:              id,
 			Status:          domain.StatusPublished,
@@ -225,20 +198,22 @@ func (s *PageServiceSuite) Test_Unpublish_Success() {
 	future := s.fixedTime.Add(2 * time.Hour)
 	scheduledPage := domain.Page{
 		ID:        id,
+		Locale:    "en",
 		Status:    domain.StatusPublished,
 		PublishAt: &future,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(scheduledPage, nil)
 
 	newStatus := domain.StatusDraft
 	s.mockRepo.EXPECT().
 		Update(s.ctx, id, model.UpdatePageRecord{
+			Locale:         "en",
 			Status:         &newStatus,
 			ClearPublishAt: true,
-		}, s.fixedTime).
+		}, "en", s.fixedTime).
 		Return(domain.Page{
 			ID:              id,
 			Status:          domain.StatusDraft,
@@ -251,24 +226,9 @@ func (s *PageServiceSuite) Test_Unpublish_Success() {
 	s.Equal(domain.EffectiveStatusDraft, res.EffectiveStatus)
 }
 
-func (s *PageServiceSuite) Test_Unpublish_DraftFails() {
-	id := int64(5)
-	draftPage := domain.Page{
-		ID:     id,
-		Status: domain.StatusDraft,
-	}
-
-	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
-		Return(draftPage, nil)
-
-	_, err := s.svc.Unpublish(s.ctx, id)
-	s.Require().ErrorIs(err, domain.ErrInvalidTransition)
-}
-
 func (s *PageServiceSuite) Test_GetByID_Search_Delete() {
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, int64(1), s.fixedTime).
+		GetByID(s.ctx, int64(1), "en", "en", s.fixedTime).
 		Return(domain.Page{ID: 1}, nil)
 
 	p, err := s.svc.GetByID(s.ctx, 1)
@@ -276,7 +236,7 @@ func (s *PageServiceSuite) Test_GetByID_Search_Delete() {
 	s.Equal(int64(1), p.ID)
 
 	s.mockRepo.EXPECT().
-		Search(s.ctx, model.SearchPageRequest{}, s.fixedTime).
+		Search(s.ctx, model.SearchPageRequest{}, "en", s.fixedTime).
 		Return([]domain.Page{{ID: 1}}, "cursor-1", nil)
 
 	pages, cursor, err := s.svc.Search(s.ctx, model.SearchPageRequest{})

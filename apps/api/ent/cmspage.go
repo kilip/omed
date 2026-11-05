@@ -33,16 +33,6 @@ type CmsPage struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// DeletedByID holds the value of the "deleted_by_id" field.
 	DeletedByID *int64 `json:"deleted_by_id,omitempty"`
-	// Status holds the value of the "status" field.
-	Status cmspage.Status `json:"status,omitempty"`
-	// PublishAt holds the value of the "publish_at" field.
-	PublishAt *time.Time `json:"publish_at,omitempty"`
-	// Title holds the value of the "title" field.
-	Title string `json:"title,omitempty"`
-	// Slug holds the value of the "slug" field.
-	Slug string `json:"slug,omitempty"`
-	// Body holds the value of the "body" field.
-	Body string `json:"body,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CmsPageQuery when eager-loading is set.
 	Edges        CmsPageEdges `json:"edges"`
@@ -59,9 +49,11 @@ type CmsPageEdges struct {
 	Updater *User `json:"updater,omitempty"`
 	// Deleter holds the value of the deleter edge.
 	Deleter *User `json:"deleter,omitempty"`
+	// Translations holds the value of the translations edge.
+	Translations []*CmsPageTranslation `json:"translations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // WorkspaceOrErr returns the Workspace value or an error if the edge
@@ -108,6 +100,15 @@ func (e CmsPageEdges) DeleterOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "deleter"}
 }
 
+// TranslationsOrErr returns the Translations value or an error if the edge
+// was not loaded in eager-loading.
+func (e CmsPageEdges) TranslationsOrErr() ([]*CmsPageTranslation, error) {
+	if e.loadedTypes[4] {
+		return e.Translations, nil
+	}
+	return nil, &NotLoadedError{edge: "translations"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*CmsPage) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -115,9 +116,7 @@ func (*CmsPage) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case cmspage.FieldID, cmspage.FieldWorkspaceID, cmspage.FieldCreatedBy, cmspage.FieldUpdatedBy, cmspage.FieldDeletedByID:
 			values[i] = new(sql.NullInt64)
-		case cmspage.FieldStatus, cmspage.FieldTitle, cmspage.FieldSlug, cmspage.FieldBody:
-			values[i] = new(sql.NullString)
-		case cmspage.FieldCreatedAt, cmspage.FieldUpdatedAt, cmspage.FieldDeletedAt, cmspage.FieldPublishAt:
+		case cmspage.FieldCreatedAt, cmspage.FieldUpdatedAt, cmspage.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -184,37 +183,6 @@ func (_m *CmsPage) assignValues(columns []string, values []any) error {
 				_m.DeletedByID = new(int64)
 				*_m.DeletedByID = value.Int64
 			}
-		case cmspage.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				_m.Status = cmspage.Status(value.String)
-			}
-		case cmspage.FieldPublishAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field publish_at", values[i])
-			} else if value.Valid {
-				_m.PublishAt = new(time.Time)
-				*_m.PublishAt = value.Time
-			}
-		case cmspage.FieldTitle:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field title", values[i])
-			} else if value.Valid {
-				_m.Title = value.String
-			}
-		case cmspage.FieldSlug:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field slug", values[i])
-			} else if value.Valid {
-				_m.Slug = value.String
-			}
-		case cmspage.FieldBody:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field body", values[i])
-			} else if value.Valid {
-				_m.Body = value.String
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -246,6 +214,11 @@ func (_m *CmsPage) QueryUpdater() *UserQuery {
 // QueryDeleter queries the "deleter" edge of the CmsPage entity.
 func (_m *CmsPage) QueryDeleter() *UserQuery {
 	return NewCmsPageClient(_m.config).QueryDeleter(_m)
+}
+
+// QueryTranslations queries the "translations" edge of the CmsPage entity.
+func (_m *CmsPage) QueryTranslations() *CmsPageTranslationQuery {
+	return NewCmsPageClient(_m.config).QueryTranslations(_m)
 }
 
 // Update returns a builder for updating this CmsPage.
@@ -295,23 +268,6 @@ func (_m *CmsPage) String() string {
 		builder.WriteString("deleted_by_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Status))
-	builder.WriteString(", ")
-	if v := _m.PublishAt; v != nil {
-		builder.WriteString("publish_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("title=")
-	builder.WriteString(_m.Title)
-	builder.WriteString(", ")
-	builder.WriteString("slug=")
-	builder.WriteString(_m.Slug)
-	builder.WriteString(", ")
-	builder.WriteString("body=")
-	builder.WriteString(_m.Body)
 	builder.WriteByte(')')
 	return builder.String()
 }

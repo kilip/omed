@@ -34,18 +34,6 @@ type CmsPost struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// DeletedByID holds the value of the "deleted_by_id" field.
 	DeletedByID *int64 `json:"deleted_by_id,omitempty"`
-	// Status holds the value of the "status" field.
-	Status cmspost.Status `json:"status,omitempty"`
-	// PublishAt holds the value of the "publish_at" field.
-	PublishAt *time.Time `json:"publish_at,omitempty"`
-	// Title holds the value of the "title" field.
-	Title string `json:"title,omitempty"`
-	// Slug holds the value of the "slug" field.
-	Slug string `json:"slug,omitempty"`
-	// Excerpt holds the value of the "excerpt" field.
-	Excerpt string `json:"excerpt,omitempty"`
-	// Body holds the value of the "body" field.
-	Body string `json:"body,omitempty"`
 	// CoverMediaID holds the value of the "cover_media_id" field.
 	CoverMediaID *int64 `json:"cover_media_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -66,9 +54,11 @@ type CmsPostEdges struct {
 	Deleter *User `json:"deleter,omitempty"`
 	// CoverMedia holds the value of the cover_media edge.
 	CoverMedia *CmsMedia `json:"cover_media,omitempty"`
+	// Translations holds the value of the translations edge.
+	Translations []*CmsPostTranslation `json:"translations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // WorkspaceOrErr returns the Workspace value or an error if the edge
@@ -126,6 +116,15 @@ func (e CmsPostEdges) CoverMediaOrErr() (*CmsMedia, error) {
 	return nil, &NotLoadedError{edge: "cover_media"}
 }
 
+// TranslationsOrErr returns the Translations value or an error if the edge
+// was not loaded in eager-loading.
+func (e CmsPostEdges) TranslationsOrErr() ([]*CmsPostTranslation, error) {
+	if e.loadedTypes[5] {
+		return e.Translations, nil
+	}
+	return nil, &NotLoadedError{edge: "translations"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*CmsPost) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -133,9 +132,7 @@ func (*CmsPost) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case cmspost.FieldID, cmspost.FieldWorkspaceID, cmspost.FieldCreatedBy, cmspost.FieldUpdatedBy, cmspost.FieldDeletedByID, cmspost.FieldCoverMediaID:
 			values[i] = new(sql.NullInt64)
-		case cmspost.FieldStatus, cmspost.FieldTitle, cmspost.FieldSlug, cmspost.FieldExcerpt, cmspost.FieldBody:
-			values[i] = new(sql.NullString)
-		case cmspost.FieldCreatedAt, cmspost.FieldUpdatedAt, cmspost.FieldDeletedAt, cmspost.FieldPublishAt:
+		case cmspost.FieldCreatedAt, cmspost.FieldUpdatedAt, cmspost.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -202,43 +199,6 @@ func (_m *CmsPost) assignValues(columns []string, values []any) error {
 				_m.DeletedByID = new(int64)
 				*_m.DeletedByID = value.Int64
 			}
-		case cmspost.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				_m.Status = cmspost.Status(value.String)
-			}
-		case cmspost.FieldPublishAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field publish_at", values[i])
-			} else if value.Valid {
-				_m.PublishAt = new(time.Time)
-				*_m.PublishAt = value.Time
-			}
-		case cmspost.FieldTitle:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field title", values[i])
-			} else if value.Valid {
-				_m.Title = value.String
-			}
-		case cmspost.FieldSlug:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field slug", values[i])
-			} else if value.Valid {
-				_m.Slug = value.String
-			}
-		case cmspost.FieldExcerpt:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field excerpt", values[i])
-			} else if value.Valid {
-				_m.Excerpt = value.String
-			}
-		case cmspost.FieldBody:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field body", values[i])
-			} else if value.Valid {
-				_m.Body = value.String
-			}
 		case cmspost.FieldCoverMediaID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field cover_media_id", values[i])
@@ -282,6 +242,11 @@ func (_m *CmsPost) QueryDeleter() *UserQuery {
 // QueryCoverMedia queries the "cover_media" edge of the CmsPost entity.
 func (_m *CmsPost) QueryCoverMedia() *CmsMediaQuery {
 	return NewCmsPostClient(_m.config).QueryCoverMedia(_m)
+}
+
+// QueryTranslations queries the "translations" edge of the CmsPost entity.
+func (_m *CmsPost) QueryTranslations() *CmsPostTranslationQuery {
+	return NewCmsPostClient(_m.config).QueryTranslations(_m)
 }
 
 // Update returns a builder for updating this CmsPost.
@@ -331,26 +296,6 @@ func (_m *CmsPost) String() string {
 		builder.WriteString("deleted_by_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Status))
-	builder.WriteString(", ")
-	if v := _m.PublishAt; v != nil {
-		builder.WriteString("publish_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("title=")
-	builder.WriteString(_m.Title)
-	builder.WriteString(", ")
-	builder.WriteString("slug=")
-	builder.WriteString(_m.Slug)
-	builder.WriteString(", ")
-	builder.WriteString("excerpt=")
-	builder.WriteString(_m.Excerpt)
-	builder.WriteString(", ")
-	builder.WriteString("body=")
-	builder.WriteString(_m.Body)
 	builder.WriteString(", ")
 	if v := _m.CoverMediaID; v != nil {
 		builder.WriteString("cover_media_id=")

@@ -69,6 +69,18 @@ func (f CmsPageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CmsPageMutation", m)
 }
 
+// The CmsPageTranslationFunc type is an adapter to allow the use of ordinary
+// function as CmsPageTranslation mutator.
+type CmsPageTranslationFunc func(context.Context, *ent.CmsPageTranslationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CmsPageTranslationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CmsPageTranslationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CmsPageTranslationMutation", m)
+}
+
 // The CmsPostFunc type is an adapter to allow the use of ordinary
 // function as CmsPost mutator.
 type CmsPostFunc func(context.Context, *ent.CmsPostMutation) (ent.Value, error)
@@ -79,6 +91,30 @@ func (f CmsPostFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CmsPostMutation", m)
+}
+
+// The CmsPostTranslationFunc type is an adapter to allow the use of ordinary
+// function as CmsPostTranslation mutator.
+type CmsPostTranslationFunc func(context.Context, *ent.CmsPostTranslationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CmsPostTranslationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CmsPostTranslationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CmsPostTranslationMutation", m)
+}
+
+// The CmsSettingFunc type is an adapter to allow the use of ordinary
+// function as CmsSetting mutator.
+type CmsSettingFunc func(context.Context, *ent.CmsSettingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CmsSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CmsSettingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CmsSettingMutation", m)
 }
 
 // The CurrencyFunc type is an adapter to allow the use of ordinary

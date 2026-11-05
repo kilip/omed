@@ -2,18 +2,21 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/cms/domain"
 	"github.com/kilip/omed/api/internal/cms/model"
 )
 
-// PageRepository defines persistence operations for CMS pages.
+// PageRepository defines persistence operations for CMS pages and their translations.
 type PageRepository struct {
 	cli *ent.Client
 }
@@ -23,17 +26,17 @@ func NewPageRepository(cli *ent.Client) PageRepository {
 	return PageRepository{cli: cli}
 }
 
-// VisiblePagePredicate returns an Ent predicate matching publicly visible pages at time now.
-func VisiblePagePredicate(now time.Time) predicate.CmsPage {
-	return cmspage.And(
-		cmspage.DeletedAtIsNil(),
-		cmspage.StatusEQ(cmspage.Status(domain.StatusPublished)),
-		cmspage.PublishAtLTE(now.UTC()),
+// VisiblePageTranslationPredicate returns an Ent predicate matching publicly visible page translations at time now.
+func VisiblePageTranslationPredicate(now time.Time) predicate.CmsPageTranslation {
+	return cmspagetranslation.And(
+		cmspagetranslation.DeletedAtIsNil(),
+		cmspagetranslation.StatusEQ(domain.StatusPublished),
+		cmspagetranslation.PublishAtLTE(now.UTC()),
 	)
 }
 
-// GetByID retrieves a page by ID within the caller's workspace context.
-func (r PageRepository) GetByID(c context.Context, id int64, now time.Time) (domain.Page, error) {
+// GetByID retrieves a page by ID within the caller's workspace context with translations.
+func (r PageRepository) GetByID(c context.Context, id int64, requestedLocale, defaultLocale string, now time.Time) (domain.Page, error) {
 	var dom domain.Page
 
 	p, err := r.cli.CmsPage.Query().
@@ -41,6 +44,9 @@ func (r PageRepository) GetByID(c context.Context, id int64, now time.Time) (dom
 			cmspage.ID(id),
 			cmspage.DeletedAtIsNil(),
 		).
+		WithTranslations(func(tq *ent.CmsPageTranslationQuery) {
+			tq.Where(cmspagetranslation.DeletedAtIsNil())
+		}).
 		WithCreator().
 		WithUpdater().
 		WithDeleter().
@@ -52,38 +58,56 @@ func (r PageRepository) GetByID(c context.Context, id int64, now time.Time) (dom
 		return dom, err
 	}
 
-	return toPageDomain(p, now), nil
+	return toPageDomain(p, requestedLocale, defaultLocale, now), nil
 }
 
-// SlugExists checks if an active page with the given slug exists in the workspace.
-func (r PageRepository) SlugExists(c context.Context, slug string, excludeID *int64) (bool, error) {
-	q := r.cli.CmsPage.Query().
+// SlugExistsInLocale checks if an active page translation with the given slug exists in workspace and locale.
+func (r PageRepository) SlugExistsInLocale(c context.Context, workspaceID int64, locale, slug string, excludePageID *int64) (bool, error) {
+	q := r.cli.CmsPageTranslation.Query().
 		Where(
-			cmspage.SlugEQ(slug),
-			cmspage.DeletedAtIsNil(),
+			cmspagetranslation.WorkspaceIDEQ(workspaceID),
+			cmspagetranslation.LocaleEQ(locale),
+			cmspagetranslation.SlugEQ(slug),
+			cmspagetranslation.DeletedAtIsNil(),
 		)
-	if excludeID != nil && *excludeID > 0 {
-		q = q.Where(cmspage.IDNEQ(*excludeID))
+	if excludePageID != nil && *excludePageID > 0 {
+		q = q.Where(cmspagetranslation.PageIDNEQ(*excludePageID))
 	}
 	return q.Exist(c)
 }
 
-// Create inserts a new cms_page record.
-func (r PageRepository) Create(c context.Context, req model.CreatePageRecord, now time.Time) (domain.Page, error) {
-	builder := r.cli.CmsPage.Create().
-		SetTitle(req.Title).
-		SetSlug(req.Slug).
-		SetBody(req.Body).
-		SetStatus(cmspage.Status(req.Status))
+// Create inserts a new cms_page and its initial translation record.
+func (r PageRepository) Create(c context.Context, req model.CreatePageRecord, defaultLocale string, now time.Time) (domain.Page, error) {
+	tx, err := r.cli.Tx(c)
+	if err != nil {
+		return domain.Page{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
 
+	builder := tx.CmsPage.Create()
 	if req.WorkspaceID > 0 {
 		builder.SetWorkspaceID(req.WorkspaceID)
 	}
-	if req.PublishAt != nil {
-		builder.SetPublishAt(req.PublishAt.UTC())
+
+	page, err := builder.Save(c)
+	if err != nil {
+		return domain.Page{}, err
 	}
 
-	created, err := builder.Save(c)
+	tBuilder := tx.CmsPageTranslation.Create().
+		SetPageID(page.ID).
+		SetWorkspaceID(page.WorkspaceID).
+		SetLocale(req.Locale).
+		SetTitle(req.Title).
+		SetSlug(req.Slug).
+		SetBody(req.Body).
+		SetStatus(cmspagetranslation.Status(req.Status))
+
+	if req.PublishAt != nil {
+		tBuilder.SetPublishAt(req.PublishAt.UTC())
+	}
+
+	_, err = tBuilder.Save(c)
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			return domain.Page{}, domain.ErrSlugTaken
@@ -91,57 +115,206 @@ func (r PageRepository) Create(c context.Context, req model.CreatePageRecord, no
 		return domain.Page{}, err
 	}
 
-	return r.GetByID(c, created.ID, now)
+	if err := tx.Commit(); err != nil {
+		return domain.Page{}, err
+	}
+
+	return r.GetByID(c, page.ID, req.Locale, defaultLocale, now)
 }
 
-// Update modifies an existing page record.
-func (r PageRepository) Update(c context.Context, id int64, req model.UpdatePageRecord, now time.Time) (domain.Page, error) {
-	exists, err := r.cli.CmsPage.Query().
+// Update modifies an existing page and/or its translation.
+func (r PageRepository) Update(c context.Context, id int64, req model.UpdatePageRecord, defaultLocale string, now time.Time) (domain.Page, error) {
+	p, err := r.cli.CmsPage.Query().
 		Where(
 			cmspage.ID(id),
 			cmspage.DeletedAtIsNil(),
 		).
-		Exist(c)
+		Only(c)
 	if err != nil {
-		return domain.Page{}, err
-	}
-	if !exists {
-		return domain.Page{}, domain.ErrPageNotFound
-	}
-
-	builder := r.cli.CmsPage.UpdateOneID(id)
-	if req.Title != nil {
-		builder.SetTitle(*req.Title)
-	}
-	if req.Slug != nil {
-		builder.SetSlug(*req.Slug)
-	}
-	if req.Body != nil {
-		builder.SetBody(*req.Body)
-	}
-	if req.Status != nil {
-		builder.SetStatus(cmspage.Status(*req.Status))
-	}
-	if req.ClearPublishAt {
-		builder.ClearPublishAt()
-	} else if req.PublishAt != nil {
-		builder.SetPublishAt(req.PublishAt.UTC())
-	}
-
-	if err := builder.Exec(c); err != nil {
-		if ent.IsConstraintError(err) {
-			return domain.Page{}, domain.ErrSlugTaken
-		}
 		if ent.IsNotFound(err) {
 			return domain.Page{}, domain.ErrPageNotFound
 		}
 		return domain.Page{}, err
 	}
 
-	return r.GetByID(c, id, now)
+	locale := req.Locale
+	if locale == "" {
+		locale = defaultLocale
+	}
+
+	hasTranslationUpdate := req.Title != nil || req.Slug != nil || req.Body != nil || req.Status != nil || req.PublishAt != nil || req.ClearPublishAt
+	if hasTranslationUpdate {
+		t, err := r.cli.CmsPageTranslation.Query().
+			Where(
+				cmspagetranslation.PageIDEQ(id),
+				cmspagetranslation.LocaleEQ(locale),
+				cmspagetranslation.DeletedAtIsNil(),
+			).
+			Only(c)
+
+		if err != nil {
+			if ent.IsNotFound(err) {
+				title := ""
+				if req.Title != nil {
+					title = *req.Title
+				}
+				slug := ""
+				if req.Slug != nil {
+					slug = *req.Slug
+				}
+				body := ""
+				if req.Body != nil {
+					body = *req.Body
+				}
+				status := domain.StatusDraft
+				if req.Status != nil {
+					status = *req.Status
+				}
+
+				tBuilder := r.cli.CmsPageTranslation.Create().
+					SetPageID(id).
+					SetWorkspaceID(p.WorkspaceID).
+					SetLocale(locale).
+					SetTitle(title).
+					SetSlug(slug).
+					SetBody(body).
+					SetStatus(cmspagetranslation.Status(status))
+
+				if req.PublishAt != nil {
+					tBuilder.SetPublishAt(req.PublishAt.UTC())
+				}
+
+				if _, err := tBuilder.Save(c); err != nil {
+					if ent.IsConstraintError(err) {
+						return domain.Page{}, domain.ErrSlugTaken
+					}
+					return domain.Page{}, err
+				}
+			} else {
+				return domain.Page{}, err
+			}
+		} else {
+			tBuilder := r.cli.CmsPageTranslation.UpdateOneID(t.ID)
+			if req.Title != nil {
+				tBuilder.SetTitle(*req.Title)
+			}
+			if req.Slug != nil {
+				tBuilder.SetSlug(*req.Slug)
+			}
+			if req.Body != nil {
+				tBuilder.SetBody(*req.Body)
+			}
+			if req.Status != nil {
+				tBuilder.SetStatus(cmspagetranslation.Status(*req.Status))
+			}
+			if req.ClearPublishAt {
+				tBuilder.ClearPublishAt()
+			} else if req.PublishAt != nil {
+				tBuilder.SetPublishAt(req.PublishAt.UTC())
+			}
+
+			if err := tBuilder.Exec(c); err != nil {
+				if ent.IsConstraintError(err) {
+					return domain.Page{}, domain.ErrSlugTaken
+				}
+				return domain.Page{}, err
+			}
+		}
+	}
+
+	return r.GetByID(c, id, locale, defaultLocale, now)
 }
 
-// Delete marks a page as soft-deleted.
+// SaveTranslation creates or updates a translation for a page.
+func (r PageRepository) SaveTranslation(c context.Context, req model.SavePageTranslationRecord, defaultLocale string, now time.Time) (domain.Page, error) {
+	p, err := r.cli.CmsPage.Query().
+		Where(
+			cmspage.ID(req.PageID),
+			cmspage.DeletedAtIsNil(),
+		).
+		Only(c)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return domain.Page{}, domain.ErrPageNotFound
+		}
+		return domain.Page{}, err
+	}
+
+	t, err := r.cli.CmsPageTranslation.Query().
+		Where(
+			cmspagetranslation.PageIDEQ(req.PageID),
+			cmspagetranslation.LocaleEQ(req.Locale),
+			cmspagetranslation.DeletedAtIsNil(),
+		).
+		Only(c)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			status := req.Status
+			if status == "" {
+				status = domain.StatusDraft
+			}
+			builder := r.cli.CmsPageTranslation.Create().
+				SetPageID(req.PageID).
+				SetWorkspaceID(p.WorkspaceID).
+				SetLocale(req.Locale).
+				SetTitle(req.Title).
+				SetSlug(req.Slug).
+				SetBody(req.Body).
+				SetStatus(cmspagetranslation.Status(status))
+
+			if req.PublishAt != nil {
+				builder.SetPublishAt(req.PublishAt.UTC())
+			}
+
+			if _, err := builder.Save(c); err != nil {
+				if ent.IsConstraintError(err) {
+					return domain.Page{}, domain.ErrSlugTaken
+				}
+				return domain.Page{}, err
+			}
+		} else {
+			return domain.Page{}, err
+		}
+	} else {
+		builder := r.cli.CmsPageTranslation.UpdateOneID(t.ID).
+			SetTitle(req.Title).
+			SetSlug(req.Slug).
+			SetBody(req.Body)
+
+		if err := builder.Exec(c); err != nil {
+			if ent.IsConstraintError(err) {
+				return domain.Page{}, domain.ErrSlugTaken
+			}
+			return domain.Page{}, err
+		}
+	}
+
+	return r.GetByID(c, req.PageID, req.Locale, defaultLocale, now)
+}
+
+// DeleteTranslation soft-deletes a single translation for a page.
+func (r PageRepository) DeleteTranslation(c context.Context, pageID int64, locale string) error {
+	t, err := r.cli.CmsPageTranslation.Query().
+		Where(
+			cmspagetranslation.PageIDEQ(pageID),
+			cmspagetranslation.LocaleEQ(locale),
+			cmspagetranslation.DeletedAtIsNil(),
+		).
+		Only(c)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return domain.ErrTranslationNotFound
+		}
+		return err
+	}
+
+	return r.cli.CmsPageTranslation.UpdateOneID(t.ID).
+		SetDeletedAt(time.Now()).
+		Exec(c)
+}
+
+// Delete marks a page and all its translations as soft-deleted.
 func (r PageRepository) Delete(c context.Context, id int64) error {
 	exists, err := r.cli.CmsPage.Query().
 		Where(
@@ -156,13 +329,33 @@ func (r PageRepository) Delete(c context.Context, id int64) error {
 		return domain.ErrPageNotFound
 	}
 
-	return r.cli.CmsPage.UpdateOneID(id).
-		SetDeletedAt(time.Now()).
-		Exec(c)
+	tx, err := r.cli.Tx(c)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	now := time.Now()
+	if err := tx.CmsPage.UpdateOneID(id).SetDeletedAt(now).Exec(c); err != nil {
+		return err
+	}
+
+	_, err = tx.CmsPageTranslation.Update().
+		Where(
+			cmspagetranslation.PageIDEQ(id),
+			cmspagetranslation.DeletedAtIsNil(),
+		).
+		SetDeletedAt(now).
+		Save(c)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // Search searches active pages matching the criteria with admin cursor pagination.
-func (r PageRepository) Search(c context.Context, req model.SearchPageRequest, now time.Time) ([]domain.Page, string, error) {
+func (r PageRepository) Search(c context.Context, req model.SearchPageRequest, defaultLocale string, now time.Time) ([]domain.Page, string, error) {
 	limit := 20
 	if req.Limit != nil && *req.Limit > 0 {
 		limit = *req.Limit
@@ -174,27 +367,44 @@ func (r PageRepository) Search(c context.Context, req model.SearchPageRequest, n
 	q := r.cli.CmsPage.Query().
 		Where(cmspage.DeletedAtIsNil())
 
+	targetLocale := defaultLocale
+	if req.Locale != nil && *req.Locale != "" {
+		targetLocale = *req.Locale
+	}
+
 	if req.Query != nil && *req.Query != "" {
-		q = q.Where(cmspage.Or(
-			cmspage.TitleContainsFold(*req.Query),
-			cmspage.SlugContainsFold(*req.Query),
+		q = q.Where(cmspage.HasTranslationsWith(
+			cmspagetranslation.LocaleEQ(targetLocale),
+			cmspagetranslation.DeletedAtIsNil(),
+			cmspagetranslation.Or(
+				cmspagetranslation.TitleContainsFold(*req.Query),
+				cmspagetranslation.SlugContainsFold(*req.Query),
+			),
 		))
 	}
 
 	if req.Status != nil && *req.Status != "" {
 		switch *req.Status {
 		case domain.EffectiveStatusDraft:
-			q = q.Where(cmspage.StatusEQ(cmspage.Status(domain.StatusDraft)))
+			q = q.Where(cmspage.HasTranslationsWith(
+				cmspagetranslation.LocaleEQ(targetLocale),
+				cmspagetranslation.DeletedAtIsNil(),
+				cmspagetranslation.StatusEQ(domain.StatusDraft),
+			))
 		case domain.EffectiveStatusScheduled:
-			q = q.Where(
-				cmspage.StatusEQ(cmspage.Status(domain.StatusPublished)),
-				cmspage.PublishAtGT(now.UTC()),
-			)
+			q = q.Where(cmspage.HasTranslationsWith(
+				cmspagetranslation.LocaleEQ(targetLocale),
+				cmspagetranslation.DeletedAtIsNil(),
+				cmspagetranslation.StatusEQ(domain.StatusPublished),
+				cmspagetranslation.PublishAtGT(now.UTC()),
+			))
 		case domain.EffectiveStatusPublished:
-			q = q.Where(
-				cmspage.StatusEQ(cmspage.Status(domain.StatusPublished)),
-				cmspage.PublishAtLTE(now.UTC()),
-			)
+			q = q.Where(cmspage.HasTranslationsWith(
+				cmspagetranslation.LocaleEQ(targetLocale),
+				cmspagetranslation.DeletedAtIsNil(),
+				cmspagetranslation.StatusEQ(domain.StatusPublished),
+				cmspagetranslation.PublishAtLTE(now.UTC()),
+			))
 		}
 	}
 
@@ -209,6 +419,9 @@ func (r PageRepository) Search(c context.Context, req model.SearchPageRequest, n
 	items, err := q.
 		Order(ent.Desc(cmspage.FieldID)).
 		Limit(limit + 1).
+		WithTranslations(func(tq *ent.CmsPageTranslationQuery) {
+			tq.Where(cmspagetranslation.DeletedAtIsNil())
+		}).
 		WithCreator().
 		WithUpdater().
 		WithDeleter().
@@ -225,14 +438,14 @@ func (r PageRepository) Search(c context.Context, req model.SearchPageRequest, n
 
 	res := make([]domain.Page, len(items))
 	for i, it := range items {
-		res[i] = toPageDomain(it, now)
+		res[i] = toPageDomain(it, targetLocale, defaultLocale, now)
 	}
 
 	return res, nextCursor, nil
 }
 
-// PublicList retrieves publicly visible pages for a workspace with composite cursor pagination.
-func (r PageRepository) PublicList(c context.Context, workspaceID int64, cursor *string, limit int, now time.Time) ([]domain.Page, string, error) {
+// PublicList retrieves publicly visible pages for a workspace with cursor pagination.
+func (r PageRepository) PublicList(c context.Context, workspaceID int64, locale, defaultLocale string, cursor *string, limit int, now time.Time) ([]domain.Page, string, error) {
 	if base.WorkspaceIDFromContext(c) <= 0 && workspaceID > 0 {
 		c = base.WithWorkspaceID(c, workspaceID)
 	}
@@ -245,26 +458,33 @@ func (r PageRepository) PublicList(c context.Context, workspaceID int64, cursor 
 	q := r.cli.CmsPage.Query().
 		Where(
 			cmspage.WorkspaceIDEQ(workspaceID),
-			VisiblePagePredicate(now),
+			cmspage.DeletedAtIsNil(),
+			cmspage.Or(
+				cmspage.HasTranslationsWith(
+					cmspagetranslation.LocaleEQ(locale),
+					VisiblePageTranslationPredicate(now),
+				),
+				cmspage.HasTranslationsWith(
+					cmspagetranslation.LocaleEQ(defaultLocale),
+					VisiblePageTranslationPredicate(now),
+				),
+			),
 		)
 
 	if cursor != nil && *cursor != "" {
-		curTime, curID, err := ParsePublicCursor(*cursor)
-		if err != nil {
+		cursorID, err := strconv.ParseInt(*cursor, 10, 64)
+		if err != nil || cursorID < 0 {
 			return nil, "", base.ErrInvalidCursor
 		}
-		q = q.Where(cmspage.Or(
-			cmspage.PublishAtLT(curTime),
-			cmspage.And(
-				cmspage.PublishAtEQ(curTime),
-				cmspage.IDLT(curID),
-			),
-		))
+		q = q.Where(cmspage.IDLT(cursorID))
 	}
 
 	items, err := q.
-		Order(ent.Desc(cmspage.FieldPublishAt), ent.Desc(cmspage.FieldID)).
+		Order(ent.Desc(cmspage.FieldID)).
 		Limit(limit + 1).
+		WithTranslations(func(tq *ent.CmsPageTranslationQuery) {
+			tq.Where(cmspagetranslation.DeletedAtIsNil())
+		}).
 		WithCreator().
 		WithUpdater().
 		WithDeleter().
@@ -275,58 +495,104 @@ func (r PageRepository) PublicList(c context.Context, workspaceID int64, cursor 
 
 	var nextCursor string
 	if len(items) > limit {
-		last := items[limit-1]
-		if last.PublishAt != nil {
-			nextCursor = FormatPublicCursor(*last.PublishAt, last.ID)
-		}
+		nextCursor = strconv.FormatInt(items[limit-1].ID, 10)
 		items = items[:limit]
 	}
 
 	res := make([]domain.Page, len(items))
 	for i, it := range items {
-		res[i] = toPageDomain(it, now)
+		res[i] = toPageDomain(it, locale, defaultLocale, now)
 	}
 
 	return res, nextCursor, nil
 }
 
-// PublicGetBySlug retrieves a publicly visible page by slug for a workspace.
-func (r PageRepository) PublicGetBySlug(c context.Context, workspaceID int64, slug string, now time.Time) (domain.Page, error) {
+// PublicGetBySlug retrieves a publicly visible page by slug for a workspace, returning domain.Page, fallback bool, and alternates.
+func (r PageRepository) PublicGetBySlug(c context.Context, workspaceID int64, locale, defaultLocale, slug string, now time.Time) (domain.Page, bool, []model.PublicAlternate, error) {
 	if base.WorkspaceIDFromContext(c) <= 0 && workspaceID > 0 {
 		c = base.WithWorkspaceID(c, workspaceID)
 	}
 	var dom domain.Page
 
+	// Step 1: Look for published translation in requested locale with slug
 	p, err := r.cli.CmsPage.Query().
 		Where(
 			cmspage.WorkspaceIDEQ(workspaceID),
-			cmspage.SlugEQ(slug),
-			VisiblePagePredicate(now),
+			cmspage.DeletedAtIsNil(),
+			cmspage.HasTranslationsWith(
+				cmspagetranslation.LocaleEQ(locale),
+				cmspagetranslation.SlugEQ(slug),
+				VisiblePageTranslationPredicate(now),
+			),
 		).
+		WithTranslations(func(tq *ent.CmsPageTranslationQuery) {
+			tq.Where(cmspagetranslation.DeletedAtIsNil())
+		}).
 		WithCreator().
 		WithUpdater().
 		WithDeleter().
 		Only(c)
+
+	fallback := false
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return dom, domain.ErrPageNotFound
+		if !ent.IsNotFound(err) {
+			return dom, false, nil, err
 		}
-		return dom, err
+
+		// Step 2: Try resolving slug in defaultLocale
+		p, err = r.cli.CmsPage.Query().
+			Where(
+				cmspage.WorkspaceIDEQ(workspaceID),
+				cmspage.DeletedAtIsNil(),
+				cmspage.HasTranslationsWith(
+					cmspagetranslation.LocaleEQ(defaultLocale),
+					cmspagetranslation.SlugEQ(slug),
+					VisiblePageTranslationPredicate(now),
+				),
+			).
+			WithTranslations(func(tq *ent.CmsPageTranslationQuery) {
+				tq.Where(cmspagetranslation.DeletedAtIsNil())
+			}).
+			WithCreator().
+			WithUpdater().
+			WithDeleter().
+			Only(c)
+
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return dom, false, nil, domain.ErrPageNotFound
+			}
+			return dom, false, nil, err
+		}
+		fallback = true
 	}
 
-	return toPageDomain(p, now), nil
+	resolvedLocale := locale
+	if fallback {
+		resolvedLocale = defaultLocale
+	}
+
+	dom = toPageDomain(p, resolvedLocale, defaultLocale, now)
+
+	// Collect published alternates
+	var alternates []model.PublicAlternate
+	for _, t := range p.Edges.Translations {
+		if t.DeletedAt == nil && t.Status == "PUBLISHED" && (t.PublishAt == nil || !t.PublishAt.After(now.UTC())) {
+			alternates = append(alternates, model.PublicAlternate{
+				Locale: t.Locale,
+				Slug:   t.Slug,
+				Path:   fmt.Sprintf("/%s/%s", t.Locale, t.Slug),
+			})
+		}
+	}
+
+	return dom, fallback, alternates, nil
 }
 
-func toPageDomain(p *ent.CmsPage, now time.Time) domain.Page {
+func toPageDomain(p *ent.CmsPage, requestedLocale, defaultLocale string, now time.Time) domain.Page {
 	dom := domain.Page{
-		ID:              p.ID,
-		WorkspaceID:     p.WorkspaceID,
-		Title:           p.Title,
-		Slug:            p.Slug,
-		Body:            p.Body,
-		Status:          string(p.Status),
-		EffectiveStatus: domain.EffectiveStatus(string(p.Status), p.PublishAt, now),
-		PublishAt:       p.PublishAt,
+		ID:          p.ID,
+		WorkspaceID: p.WorkspaceID,
 		AuditMeta: base.AuditMeta{
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: p.UpdatedAt,
@@ -351,6 +617,55 @@ func toPageDomain(p *ent.CmsPage, now time.Time) domain.Page {
 			Name:   p.Edges.Deleter.Name,
 			Avatar: p.Edges.Deleter.Avatar,
 		}
+	}
+
+	var active []*ent.CmsPageTranslation
+	for _, t := range p.Edges.Translations {
+		if t.DeletedAt == nil {
+			active = append(active, t)
+		}
+	}
+
+	dom.Translations = make([]domain.TranslationSummary, len(active))
+	var matchRequested, matchDefault, fallback *ent.CmsPageTranslation
+
+	for i, t := range active {
+		dom.Translations[i] = domain.TranslationSummary{
+			Locale:          t.Locale,
+			Slug:            t.Slug,
+			Title:           t.Title,
+			Status:          string(t.Status),
+			EffectiveStatus: domain.EffectiveStatus(string(t.Status), t.PublishAt, now),
+			PublishAt:       t.PublishAt,
+		}
+
+		if strings.EqualFold(t.Locale, requestedLocale) {
+			matchRequested = t
+		}
+		if strings.EqualFold(t.Locale, defaultLocale) {
+			matchDefault = t
+		}
+		if fallback == nil {
+			fallback = t
+		}
+	}
+
+	selected := matchRequested
+	if selected == nil {
+		selected = matchDefault
+	}
+	if selected == nil {
+		selected = fallback
+	}
+
+	if selected != nil {
+		dom.Locale = selected.Locale
+		dom.Title = selected.Title
+		dom.Slug = selected.Slug
+		dom.Body = selected.Body
+		dom.Status = string(selected.Status)
+		dom.EffectiveStatus = domain.EffectiveStatus(string(selected.Status), selected.PublishAt, now)
+		dom.PublishAt = selected.PublishAt
 	}
 
 	return dom

@@ -91,31 +91,6 @@ func DeletedByID(v int64) predicate.CmsPost {
 	return predicate.CmsPost(sql.FieldEQ(FieldDeletedByID, v))
 }
 
-// PublishAt applies equality check predicate on the "publish_at" field. It's identical to PublishAtEQ.
-func PublishAt(v time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldPublishAt, v))
-}
-
-// Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
-func Title(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldTitle, v))
-}
-
-// Slug applies equality check predicate on the "slug" field. It's identical to SlugEQ.
-func Slug(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldSlug, v))
-}
-
-// Excerpt applies equality check predicate on the "excerpt" field. It's identical to ExcerptEQ.
-func Excerpt(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldExcerpt, v))
-}
-
-// Body applies equality check predicate on the "body" field. It's identical to BodyEQ.
-func Body(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldBody, v))
-}
-
 // CoverMediaID applies equality check predicate on the "cover_media_id" field. It's identical to CoverMediaIDEQ.
 func CoverMediaID(v int64) predicate.CmsPost {
 	return predicate.CmsPost(sql.FieldEQ(FieldCoverMediaID, v))
@@ -341,346 +316,6 @@ func DeletedByIDNotNil() predicate.CmsPost {
 	return predicate.CmsPost(sql.FieldNotNull(FieldDeletedByID))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v Status) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v Status) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNEQ(FieldStatus, v))
-}
-
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...Status) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldIn(FieldStatus, vs...))
-}
-
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...Status) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNotIn(FieldStatus, vs...))
-}
-
-// PublishAtEQ applies the EQ predicate on the "publish_at" field.
-func PublishAtEQ(v time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldPublishAt, v))
-}
-
-// PublishAtNEQ applies the NEQ predicate on the "publish_at" field.
-func PublishAtNEQ(v time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNEQ(FieldPublishAt, v))
-}
-
-// PublishAtIn applies the In predicate on the "publish_at" field.
-func PublishAtIn(vs ...time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldIn(FieldPublishAt, vs...))
-}
-
-// PublishAtNotIn applies the NotIn predicate on the "publish_at" field.
-func PublishAtNotIn(vs ...time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNotIn(FieldPublishAt, vs...))
-}
-
-// PublishAtGT applies the GT predicate on the "publish_at" field.
-func PublishAtGT(v time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGT(FieldPublishAt, v))
-}
-
-// PublishAtGTE applies the GTE predicate on the "publish_at" field.
-func PublishAtGTE(v time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGTE(FieldPublishAt, v))
-}
-
-// PublishAtLT applies the LT predicate on the "publish_at" field.
-func PublishAtLT(v time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLT(FieldPublishAt, v))
-}
-
-// PublishAtLTE applies the LTE predicate on the "publish_at" field.
-func PublishAtLTE(v time.Time) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLTE(FieldPublishAt, v))
-}
-
-// PublishAtIsNil applies the IsNil predicate on the "publish_at" field.
-func PublishAtIsNil() predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldIsNull(FieldPublishAt))
-}
-
-// PublishAtNotNil applies the NotNil predicate on the "publish_at" field.
-func PublishAtNotNil() predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNotNull(FieldPublishAt))
-}
-
-// TitleEQ applies the EQ predicate on the "title" field.
-func TitleEQ(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldTitle, v))
-}
-
-// TitleNEQ applies the NEQ predicate on the "title" field.
-func TitleNEQ(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNEQ(FieldTitle, v))
-}
-
-// TitleIn applies the In predicate on the "title" field.
-func TitleIn(vs ...string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldIn(FieldTitle, vs...))
-}
-
-// TitleNotIn applies the NotIn predicate on the "title" field.
-func TitleNotIn(vs ...string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNotIn(FieldTitle, vs...))
-}
-
-// TitleGT applies the GT predicate on the "title" field.
-func TitleGT(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGT(FieldTitle, v))
-}
-
-// TitleGTE applies the GTE predicate on the "title" field.
-func TitleGTE(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGTE(FieldTitle, v))
-}
-
-// TitleLT applies the LT predicate on the "title" field.
-func TitleLT(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLT(FieldTitle, v))
-}
-
-// TitleLTE applies the LTE predicate on the "title" field.
-func TitleLTE(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLTE(FieldTitle, v))
-}
-
-// TitleContains applies the Contains predicate on the "title" field.
-func TitleContains(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldContains(FieldTitle, v))
-}
-
-// TitleHasPrefix applies the HasPrefix predicate on the "title" field.
-func TitleHasPrefix(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldHasPrefix(FieldTitle, v))
-}
-
-// TitleHasSuffix applies the HasSuffix predicate on the "title" field.
-func TitleHasSuffix(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldHasSuffix(FieldTitle, v))
-}
-
-// TitleEqualFold applies the EqualFold predicate on the "title" field.
-func TitleEqualFold(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEqualFold(FieldTitle, v))
-}
-
-// TitleContainsFold applies the ContainsFold predicate on the "title" field.
-func TitleContainsFold(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldContainsFold(FieldTitle, v))
-}
-
-// SlugEQ applies the EQ predicate on the "slug" field.
-func SlugEQ(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldSlug, v))
-}
-
-// SlugNEQ applies the NEQ predicate on the "slug" field.
-func SlugNEQ(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNEQ(FieldSlug, v))
-}
-
-// SlugIn applies the In predicate on the "slug" field.
-func SlugIn(vs ...string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldIn(FieldSlug, vs...))
-}
-
-// SlugNotIn applies the NotIn predicate on the "slug" field.
-func SlugNotIn(vs ...string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNotIn(FieldSlug, vs...))
-}
-
-// SlugGT applies the GT predicate on the "slug" field.
-func SlugGT(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGT(FieldSlug, v))
-}
-
-// SlugGTE applies the GTE predicate on the "slug" field.
-func SlugGTE(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGTE(FieldSlug, v))
-}
-
-// SlugLT applies the LT predicate on the "slug" field.
-func SlugLT(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLT(FieldSlug, v))
-}
-
-// SlugLTE applies the LTE predicate on the "slug" field.
-func SlugLTE(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLTE(FieldSlug, v))
-}
-
-// SlugContains applies the Contains predicate on the "slug" field.
-func SlugContains(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldContains(FieldSlug, v))
-}
-
-// SlugHasPrefix applies the HasPrefix predicate on the "slug" field.
-func SlugHasPrefix(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldHasPrefix(FieldSlug, v))
-}
-
-// SlugHasSuffix applies the HasSuffix predicate on the "slug" field.
-func SlugHasSuffix(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldHasSuffix(FieldSlug, v))
-}
-
-// SlugEqualFold applies the EqualFold predicate on the "slug" field.
-func SlugEqualFold(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEqualFold(FieldSlug, v))
-}
-
-// SlugContainsFold applies the ContainsFold predicate on the "slug" field.
-func SlugContainsFold(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldContainsFold(FieldSlug, v))
-}
-
-// ExcerptEQ applies the EQ predicate on the "excerpt" field.
-func ExcerptEQ(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldExcerpt, v))
-}
-
-// ExcerptNEQ applies the NEQ predicate on the "excerpt" field.
-func ExcerptNEQ(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNEQ(FieldExcerpt, v))
-}
-
-// ExcerptIn applies the In predicate on the "excerpt" field.
-func ExcerptIn(vs ...string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldIn(FieldExcerpt, vs...))
-}
-
-// ExcerptNotIn applies the NotIn predicate on the "excerpt" field.
-func ExcerptNotIn(vs ...string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNotIn(FieldExcerpt, vs...))
-}
-
-// ExcerptGT applies the GT predicate on the "excerpt" field.
-func ExcerptGT(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGT(FieldExcerpt, v))
-}
-
-// ExcerptGTE applies the GTE predicate on the "excerpt" field.
-func ExcerptGTE(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGTE(FieldExcerpt, v))
-}
-
-// ExcerptLT applies the LT predicate on the "excerpt" field.
-func ExcerptLT(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLT(FieldExcerpt, v))
-}
-
-// ExcerptLTE applies the LTE predicate on the "excerpt" field.
-func ExcerptLTE(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLTE(FieldExcerpt, v))
-}
-
-// ExcerptContains applies the Contains predicate on the "excerpt" field.
-func ExcerptContains(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldContains(FieldExcerpt, v))
-}
-
-// ExcerptHasPrefix applies the HasPrefix predicate on the "excerpt" field.
-func ExcerptHasPrefix(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldHasPrefix(FieldExcerpt, v))
-}
-
-// ExcerptHasSuffix applies the HasSuffix predicate on the "excerpt" field.
-func ExcerptHasSuffix(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldHasSuffix(FieldExcerpt, v))
-}
-
-// ExcerptIsNil applies the IsNil predicate on the "excerpt" field.
-func ExcerptIsNil() predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldIsNull(FieldExcerpt))
-}
-
-// ExcerptNotNil applies the NotNil predicate on the "excerpt" field.
-func ExcerptNotNil() predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNotNull(FieldExcerpt))
-}
-
-// ExcerptEqualFold applies the EqualFold predicate on the "excerpt" field.
-func ExcerptEqualFold(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEqualFold(FieldExcerpt, v))
-}
-
-// ExcerptContainsFold applies the ContainsFold predicate on the "excerpt" field.
-func ExcerptContainsFold(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldContainsFold(FieldExcerpt, v))
-}
-
-// BodyEQ applies the EQ predicate on the "body" field.
-func BodyEQ(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEQ(FieldBody, v))
-}
-
-// BodyNEQ applies the NEQ predicate on the "body" field.
-func BodyNEQ(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNEQ(FieldBody, v))
-}
-
-// BodyIn applies the In predicate on the "body" field.
-func BodyIn(vs ...string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldIn(FieldBody, vs...))
-}
-
-// BodyNotIn applies the NotIn predicate on the "body" field.
-func BodyNotIn(vs ...string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldNotIn(FieldBody, vs...))
-}
-
-// BodyGT applies the GT predicate on the "body" field.
-func BodyGT(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGT(FieldBody, v))
-}
-
-// BodyGTE applies the GTE predicate on the "body" field.
-func BodyGTE(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldGTE(FieldBody, v))
-}
-
-// BodyLT applies the LT predicate on the "body" field.
-func BodyLT(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLT(FieldBody, v))
-}
-
-// BodyLTE applies the LTE predicate on the "body" field.
-func BodyLTE(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldLTE(FieldBody, v))
-}
-
-// BodyContains applies the Contains predicate on the "body" field.
-func BodyContains(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldContains(FieldBody, v))
-}
-
-// BodyHasPrefix applies the HasPrefix predicate on the "body" field.
-func BodyHasPrefix(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldHasPrefix(FieldBody, v))
-}
-
-// BodyHasSuffix applies the HasSuffix predicate on the "body" field.
-func BodyHasSuffix(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldHasSuffix(FieldBody, v))
-}
-
-// BodyEqualFold applies the EqualFold predicate on the "body" field.
-func BodyEqualFold(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldEqualFold(FieldBody, v))
-}
-
-// BodyContainsFold applies the ContainsFold predicate on the "body" field.
-func BodyContainsFold(v string) predicate.CmsPost {
-	return predicate.CmsPost(sql.FieldContainsFold(FieldBody, v))
-}
-
 // CoverMediaIDEQ applies the EQ predicate on the "cover_media_id" field.
 func CoverMediaIDEQ(v int64) predicate.CmsPost {
 	return predicate.CmsPost(sql.FieldEQ(FieldCoverMediaID, v))
@@ -848,6 +483,35 @@ func HasCoverMediaWith(preds ...predicate.CmsMedia) predicate.CmsPost {
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.CmsMedia
 		step.Edge.Schema = schemaConfig.CmsPost
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTranslations applies the HasEdge predicate on the "translations" edge.
+func HasTranslations() predicate.CmsPost {
+	return predicate.CmsPost(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.CmsPostTranslation
+		step.Edge.Schema = schemaConfig.CmsPostTranslation
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTranslationsWith applies the HasEdge predicate on the "translations" edge with a given conditions (other predicates).
+func HasTranslationsWith(preds ...predicate.CmsPostTranslation) predicate.CmsPost {
+	return predicate.CmsPost(func(s *sql.Selector) {
+		step := newTranslationsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.CmsPostTranslation
+		step.Edge.Schema = schemaConfig.CmsPostTranslation
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

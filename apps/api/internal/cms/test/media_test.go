@@ -197,8 +197,6 @@ func (s *MediaSuite) Test_Delete_Conflict_WhenInUse() {
 	wsCtx := base.WithWorkspaceID(s.Context, ws.ID)
 	post, err := client.CmsPost.Create().
 		SetWorkspaceID(ws.ID).
-		SetTitle("Post Using Media").
-		SetSlug("post-using-media").
 		SetCoverMediaID(media.ID).
 		Save(wsCtx)
 	s.Require().NoError(err)

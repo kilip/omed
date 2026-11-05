@@ -91,26 +91,6 @@ func DeletedByID(v int64) predicate.CmsPage {
 	return predicate.CmsPage(sql.FieldEQ(FieldDeletedByID, v))
 }
 
-// PublishAt applies equality check predicate on the "publish_at" field. It's identical to PublishAtEQ.
-func PublishAt(v time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldPublishAt, v))
-}
-
-// Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
-func Title(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldTitle, v))
-}
-
-// Slug applies equality check predicate on the "slug" field. It's identical to SlugEQ.
-func Slug(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldSlug, v))
-}
-
-// Body applies equality check predicate on the "body" field. It's identical to BodyEQ.
-func Body(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldBody, v))
-}
-
 // WorkspaceIDEQ applies the EQ predicate on the "workspace_id" field.
 func WorkspaceIDEQ(v int64) predicate.CmsPage {
 	return predicate.CmsPage(sql.FieldEQ(FieldWorkspaceID, v))
@@ -331,271 +311,6 @@ func DeletedByIDNotNil() predicate.CmsPage {
 	return predicate.CmsPage(sql.FieldNotNull(FieldDeletedByID))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v Status) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v Status) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNEQ(FieldStatus, v))
-}
-
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...Status) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldIn(FieldStatus, vs...))
-}
-
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...Status) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNotIn(FieldStatus, vs...))
-}
-
-// PublishAtEQ applies the EQ predicate on the "publish_at" field.
-func PublishAtEQ(v time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldPublishAt, v))
-}
-
-// PublishAtNEQ applies the NEQ predicate on the "publish_at" field.
-func PublishAtNEQ(v time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNEQ(FieldPublishAt, v))
-}
-
-// PublishAtIn applies the In predicate on the "publish_at" field.
-func PublishAtIn(vs ...time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldIn(FieldPublishAt, vs...))
-}
-
-// PublishAtNotIn applies the NotIn predicate on the "publish_at" field.
-func PublishAtNotIn(vs ...time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNotIn(FieldPublishAt, vs...))
-}
-
-// PublishAtGT applies the GT predicate on the "publish_at" field.
-func PublishAtGT(v time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldGT(FieldPublishAt, v))
-}
-
-// PublishAtGTE applies the GTE predicate on the "publish_at" field.
-func PublishAtGTE(v time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldGTE(FieldPublishAt, v))
-}
-
-// PublishAtLT applies the LT predicate on the "publish_at" field.
-func PublishAtLT(v time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldLT(FieldPublishAt, v))
-}
-
-// PublishAtLTE applies the LTE predicate on the "publish_at" field.
-func PublishAtLTE(v time.Time) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldLTE(FieldPublishAt, v))
-}
-
-// PublishAtIsNil applies the IsNil predicate on the "publish_at" field.
-func PublishAtIsNil() predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldIsNull(FieldPublishAt))
-}
-
-// PublishAtNotNil applies the NotNil predicate on the "publish_at" field.
-func PublishAtNotNil() predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNotNull(FieldPublishAt))
-}
-
-// TitleEQ applies the EQ predicate on the "title" field.
-func TitleEQ(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldTitle, v))
-}
-
-// TitleNEQ applies the NEQ predicate on the "title" field.
-func TitleNEQ(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNEQ(FieldTitle, v))
-}
-
-// TitleIn applies the In predicate on the "title" field.
-func TitleIn(vs ...string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldIn(FieldTitle, vs...))
-}
-
-// TitleNotIn applies the NotIn predicate on the "title" field.
-func TitleNotIn(vs ...string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNotIn(FieldTitle, vs...))
-}
-
-// TitleGT applies the GT predicate on the "title" field.
-func TitleGT(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldGT(FieldTitle, v))
-}
-
-// TitleGTE applies the GTE predicate on the "title" field.
-func TitleGTE(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldGTE(FieldTitle, v))
-}
-
-// TitleLT applies the LT predicate on the "title" field.
-func TitleLT(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldLT(FieldTitle, v))
-}
-
-// TitleLTE applies the LTE predicate on the "title" field.
-func TitleLTE(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldLTE(FieldTitle, v))
-}
-
-// TitleContains applies the Contains predicate on the "title" field.
-func TitleContains(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldContains(FieldTitle, v))
-}
-
-// TitleHasPrefix applies the HasPrefix predicate on the "title" field.
-func TitleHasPrefix(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldHasPrefix(FieldTitle, v))
-}
-
-// TitleHasSuffix applies the HasSuffix predicate on the "title" field.
-func TitleHasSuffix(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldHasSuffix(FieldTitle, v))
-}
-
-// TitleEqualFold applies the EqualFold predicate on the "title" field.
-func TitleEqualFold(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEqualFold(FieldTitle, v))
-}
-
-// TitleContainsFold applies the ContainsFold predicate on the "title" field.
-func TitleContainsFold(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldContainsFold(FieldTitle, v))
-}
-
-// SlugEQ applies the EQ predicate on the "slug" field.
-func SlugEQ(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldSlug, v))
-}
-
-// SlugNEQ applies the NEQ predicate on the "slug" field.
-func SlugNEQ(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNEQ(FieldSlug, v))
-}
-
-// SlugIn applies the In predicate on the "slug" field.
-func SlugIn(vs ...string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldIn(FieldSlug, vs...))
-}
-
-// SlugNotIn applies the NotIn predicate on the "slug" field.
-func SlugNotIn(vs ...string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNotIn(FieldSlug, vs...))
-}
-
-// SlugGT applies the GT predicate on the "slug" field.
-func SlugGT(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldGT(FieldSlug, v))
-}
-
-// SlugGTE applies the GTE predicate on the "slug" field.
-func SlugGTE(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldGTE(FieldSlug, v))
-}
-
-// SlugLT applies the LT predicate on the "slug" field.
-func SlugLT(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldLT(FieldSlug, v))
-}
-
-// SlugLTE applies the LTE predicate on the "slug" field.
-func SlugLTE(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldLTE(FieldSlug, v))
-}
-
-// SlugContains applies the Contains predicate on the "slug" field.
-func SlugContains(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldContains(FieldSlug, v))
-}
-
-// SlugHasPrefix applies the HasPrefix predicate on the "slug" field.
-func SlugHasPrefix(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldHasPrefix(FieldSlug, v))
-}
-
-// SlugHasSuffix applies the HasSuffix predicate on the "slug" field.
-func SlugHasSuffix(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldHasSuffix(FieldSlug, v))
-}
-
-// SlugEqualFold applies the EqualFold predicate on the "slug" field.
-func SlugEqualFold(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEqualFold(FieldSlug, v))
-}
-
-// SlugContainsFold applies the ContainsFold predicate on the "slug" field.
-func SlugContainsFold(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldContainsFold(FieldSlug, v))
-}
-
-// BodyEQ applies the EQ predicate on the "body" field.
-func BodyEQ(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEQ(FieldBody, v))
-}
-
-// BodyNEQ applies the NEQ predicate on the "body" field.
-func BodyNEQ(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNEQ(FieldBody, v))
-}
-
-// BodyIn applies the In predicate on the "body" field.
-func BodyIn(vs ...string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldIn(FieldBody, vs...))
-}
-
-// BodyNotIn applies the NotIn predicate on the "body" field.
-func BodyNotIn(vs ...string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldNotIn(FieldBody, vs...))
-}
-
-// BodyGT applies the GT predicate on the "body" field.
-func BodyGT(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldGT(FieldBody, v))
-}
-
-// BodyGTE applies the GTE predicate on the "body" field.
-func BodyGTE(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldGTE(FieldBody, v))
-}
-
-// BodyLT applies the LT predicate on the "body" field.
-func BodyLT(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldLT(FieldBody, v))
-}
-
-// BodyLTE applies the LTE predicate on the "body" field.
-func BodyLTE(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldLTE(FieldBody, v))
-}
-
-// BodyContains applies the Contains predicate on the "body" field.
-func BodyContains(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldContains(FieldBody, v))
-}
-
-// BodyHasPrefix applies the HasPrefix predicate on the "body" field.
-func BodyHasPrefix(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldHasPrefix(FieldBody, v))
-}
-
-// BodyHasSuffix applies the HasSuffix predicate on the "body" field.
-func BodyHasSuffix(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldHasSuffix(FieldBody, v))
-}
-
-// BodyEqualFold applies the EqualFold predicate on the "body" field.
-func BodyEqualFold(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldEqualFold(FieldBody, v))
-}
-
-// BodyContainsFold applies the ContainsFold predicate on the "body" field.
-func BodyContainsFold(v string) predicate.CmsPage {
-	return predicate.CmsPage(sql.FieldContainsFold(FieldBody, v))
-}
-
 // HasWorkspace applies the HasEdge predicate on the "workspace" edge.
 func HasWorkspace() predicate.CmsPage {
 	return predicate.CmsPage(func(s *sql.Selector) {
@@ -704,6 +419,35 @@ func HasDeleterWith(preds ...predicate.User) predicate.CmsPage {
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.User
 		step.Edge.Schema = schemaConfig.CmsPage
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTranslations applies the HasEdge predicate on the "translations" edge.
+func HasTranslations() predicate.CmsPage {
+	return predicate.CmsPage(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.CmsPageTranslation
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTranslationsWith applies the HasEdge predicate on the "translations" edge with a given conditions (other predicates).
+func HasTranslationsWith(preds ...predicate.CmsPageTranslation) predicate.CmsPage {
+	return predicate.CmsPage(func(s *sql.Selector) {
+		step := newTranslationsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.CmsPageTranslation
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

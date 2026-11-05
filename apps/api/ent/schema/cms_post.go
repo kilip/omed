@@ -28,7 +28,6 @@ func (CmsPost) Mixin() []ent.Mixin {
 		WorkspaceMixin{},
 		AuditMixin{},
 		SoftDeleteMixin{},
-		PublishMixin{},
 	}
 }
 
@@ -36,10 +35,6 @@ func (CmsPost) Mixin() []ent.Mixin {
 func (CmsPost) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id"),
-		field.String("title").NotEmpty(),
-		field.String("slug").NotEmpty(),
-		field.String("excerpt").Optional(),
-		field.Text("body").Default(""),
 		field.Int64("cover_media_id").Optional().Nillable(),
 	}
 }
@@ -50,16 +45,13 @@ func (CmsPost) Edges() []ent.Edge {
 		edge.To("cover_media", CmsMedia.Type).
 			Field("cover_media_id").
 			Unique(),
+		edge.To("translations", CmsPostTranslation.Type),
 	}
 }
 
 // Indexes of the CmsPost entity.
 func (CmsPost) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("workspace_id", "slug").
-			Unique().
-			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
-		index.Fields("workspace_id", "status", "publish_at"),
 		index.Fields("workspace_id", "deleted_at"),
 	}
 }

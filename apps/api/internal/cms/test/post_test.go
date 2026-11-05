@@ -287,6 +287,36 @@ func (s *PostSuite) Test_CrossWorkspace_Isolation() {
 	s.Empty(s.PagedResponse().Data)
 }
 
+func (s *PostSuite) Test_Translations_Endpoints() {
+	ws := s.ensureWorkspace("Post Translations WS", s.User.ID)
+
+	// Create base post
+	s.Request(fmt.Sprintf("/workspaces/%d/cms/posts", ws.ID), fiber.MethodPost, model.CreatePostRequest{
+		Title: "English Base Post",
+	})
+	s.Created()
+	post := s.GetResponse().Data
+
+	// Add translation (ID)
+	s.Request(fmt.Sprintf("/workspaces/%d/cms/posts/%d/translations/id", ws.ID, post.ID), fiber.MethodPut, model.SavePostTranslationRequest{
+		Title: "Judul Bahasa Indonesia",
+	})
+	s.OK()
+	withTrans := s.GetResponse().Data
+	s.Equal("id", withTrans.Locale)
+	s.Equal("Judul Bahasa Indonesia", withTrans.Title)
+	s.Equal("judul-bahasa-indonesia", withTrans.Slug)
+	s.Len(withTrans.Translations, 2)
+
+	// Attempting to delete default EN translation when ID exists -> 422
+	s.Request(fmt.Sprintf("/workspaces/%d/cms/posts/%d/translations/en", ws.ID, post.ID), fiber.MethodDelete, nil)
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	// Deleting ID translation -> 200
+	s.Request(fmt.Sprintf("/workspaces/%d/cms/posts/%d/translations/id", ws.ID, post.ID), fiber.MethodDelete, nil)
+	s.OK()
+}
+
 func ptr[T any](v T) *T {
 	return &v
 }

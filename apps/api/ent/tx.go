@@ -22,8 +22,14 @@ type Tx struct {
 	CmsMedia *CmsMediaClient
 	// CmsPage is the client for interacting with the CmsPage builders.
 	CmsPage *CmsPageClient
+	// CmsPageTranslation is the client for interacting with the CmsPageTranslation builders.
+	CmsPageTranslation *CmsPageTranslationClient
 	// CmsPost is the client for interacting with the CmsPost builders.
 	CmsPost *CmsPostClient
+	// CmsPostTranslation is the client for interacting with the CmsPostTranslation builders.
+	CmsPostTranslation *CmsPostTranslationClient
+	// CmsSetting is the client for interacting with the CmsSetting builders.
+	CmsSetting *CmsSettingClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
 	// Entry is the client for interacting with the Entry builders.
@@ -192,7 +198,10 @@ func (tx *Tx) init() {
 	tx.AgentSetting = NewAgentSettingClient(tx.config)
 	tx.CmsMedia = NewCmsMediaClient(tx.config)
 	tx.CmsPage = NewCmsPageClient(tx.config)
+	tx.CmsPageTranslation = NewCmsPageTranslationClient(tx.config)
 	tx.CmsPost = NewCmsPostClient(tx.config)
+	tx.CmsPostTranslation = NewCmsPostTranslationClient(tx.config)
+	tx.CmsSetting = NewCmsSettingClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
 	tx.Entry = NewEntryClient(tx.config)
 	tx.ExchangeRate = NewExchangeRateClient(tx.config)

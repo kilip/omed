@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -13,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
@@ -22,15 +24,16 @@ import (
 // CmsPageQuery is the builder for querying CmsPage entities.
 type CmsPageQuery struct {
 	config
-	ctx           *QueryContext
-	order         []cmspage.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.CmsPage
-	withWorkspace *WorkspaceQuery
-	withCreator   *UserQuery
-	withUpdater   *UserQuery
-	withDeleter   *UserQuery
-	modifiers     []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []cmspage.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.CmsPage
+	withWorkspace    *WorkspaceQuery
+	withCreator      *UserQuery
+	withUpdater      *UserQuery
+	withDeleter      *UserQuery
+	withTranslations *CmsPageTranslationQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -161,6 +164,31 @@ func (_q *CmsPageQuery) QueryDeleter() *UserQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.User
 		step.Edge.Schema = schemaConfig.CmsPage
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTranslations chains the current query on the "translations" edge.
+func (_q *CmsPageQuery) QueryTranslations() *CmsPageTranslationQuery {
+	query := (&CmsPageTranslationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspage.Table, cmspage.FieldID, selector),
+			sqlgraph.To(cmspagetranslation.Table, cmspagetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cmspage.TranslationsTable, cmspage.TranslationsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.CmsPageTranslation
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -354,15 +382,16 @@ func (_q *CmsPageQuery) Clone() *CmsPageQuery {
 		return nil
 	}
 	return &CmsPageQuery{
-		config:        _q.config,
-		ctx:           _q.ctx.Clone(),
-		order:         append([]cmspage.OrderOption{}, _q.order...),
-		inters:        append([]Interceptor{}, _q.inters...),
-		predicates:    append([]predicate.CmsPage{}, _q.predicates...),
-		withWorkspace: _q.withWorkspace.Clone(),
-		withCreator:   _q.withCreator.Clone(),
-		withUpdater:   _q.withUpdater.Clone(),
-		withDeleter:   _q.withDeleter.Clone(),
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]cmspage.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.CmsPage{}, _q.predicates...),
+		withWorkspace:    _q.withWorkspace.Clone(),
+		withCreator:      _q.withCreator.Clone(),
+		withUpdater:      _q.withUpdater.Clone(),
+		withDeleter:      _q.withDeleter.Clone(),
+		withTranslations: _q.withTranslations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -410,6 +439,17 @@ func (_q *CmsPageQuery) WithDeleter(opts ...func(*UserQuery)) *CmsPageQuery {
 		opt(query)
 	}
 	_q.withDeleter = query
+	return _q
+}
+
+// WithTranslations tells the query-builder to eager-load the nodes that are connected to
+// the "translations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CmsPageQuery) WithTranslations(opts ...func(*CmsPageTranslationQuery)) *CmsPageQuery {
+	query := (&CmsPageTranslationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTranslations = query
 	return _q
 }
 
@@ -491,11 +531,12 @@ func (_q *CmsPageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CmsP
 	var (
 		nodes       = []*CmsPage{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withWorkspace != nil,
 			_q.withCreator != nil,
 			_q.withUpdater != nil,
 			_q.withDeleter != nil,
+			_q.withTranslations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -542,6 +583,13 @@ func (_q *CmsPageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CmsP
 	if query := _q.withDeleter; query != nil {
 		if err := _q.loadDeleter(ctx, query, nodes, nil,
 			func(n *CmsPage, e *User) { n.Edges.Deleter = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTranslations; query != nil {
+		if err := _q.loadTranslations(ctx, query, nodes,
+			func(n *CmsPage) { n.Edges.Translations = []*CmsPageTranslation{} },
+			func(n *CmsPage, e *CmsPageTranslation) { n.Edges.Translations = append(n.Edges.Translations, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -664,6 +712,36 @@ func (_q *CmsPageQuery) loadDeleter(ctx context.Context, query *UserQuery, nodes
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *CmsPageQuery) loadTranslations(ctx context.Context, query *CmsPageTranslationQuery, nodes []*CmsPage, init func(*CmsPage), assign func(*CmsPage, *CmsPageTranslation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*CmsPage)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(cmspagetranslation.FieldPageID)
+	}
+	query.Where(predicate.CmsPageTranslation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(cmspage.TranslationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PageID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "page_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

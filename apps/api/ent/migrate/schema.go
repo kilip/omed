@@ -272,11 +272,6 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "PUBLISHED"}, Default: "DRAFT"},
-		{Name: "publish_at", Type: field.TypeTime, Nullable: true},
-		{Name: "title", Type: field.TypeString},
-		{Name: "slug", Type: field.TypeString},
-		{Name: "body", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "workspace_id", Type: field.TypeInt64},
 		{Name: "created_by", Type: field.TypeInt64},
 		{Name: "updated_by", Type: field.TypeInt64},
@@ -290,47 +285,118 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "cms_pages_workspaces_workspace",
-				Columns:    []*schema.Column{CmsPagesColumns[9]},
+				Columns:    []*schema.Column{CmsPagesColumns[4]},
 				RefColumns: []*schema.Column{WorkspacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "cms_pages_users_creator",
-				Columns:    []*schema.Column{CmsPagesColumns[10]},
+				Columns:    []*schema.Column{CmsPagesColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "cms_pages_users_updater",
-				Columns:    []*schema.Column{CmsPagesColumns[11]},
+				Columns:    []*schema.Column{CmsPagesColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "cms_pages_users_deleter",
-				Columns:    []*schema.Column{CmsPagesColumns[12]},
+				Columns:    []*schema.Column{CmsPagesColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "cmspage_workspace_id_slug",
+				Name:    "cmspage_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsPagesColumns[4], CmsPagesColumns[3]},
+			},
+		},
+	}
+	// CmsPageTranslationsColumns holds the columns for the "cms_page_translations" table.
+	CmsPageTranslationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "PUBLISHED"}, Default: "DRAFT"},
+		{Name: "publish_at", Type: field.TypeTime, Nullable: true},
+		{Name: "locale", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "body", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "page_id", Type: field.TypeInt64},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// CmsPageTranslationsTable holds the schema information for the "cms_page_translations" table.
+	CmsPageTranslationsTable = &schema.Table{
+		Name:       "cms_page_translations",
+		Columns:    CmsPageTranslationsColumns,
+		PrimaryKey: []*schema.Column{CmsPageTranslationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cms_page_translations_cms_pages_translations",
+				Columns:    []*schema.Column{CmsPageTranslationsColumns[10]},
+				RefColumns: []*schema.Column{CmsPagesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_page_translations_workspaces_workspace",
+				Columns:    []*schema.Column{CmsPageTranslationsColumns[11]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_page_translations_users_creator",
+				Columns:    []*schema.Column{CmsPageTranslationsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_page_translations_users_updater",
+				Columns:    []*schema.Column{CmsPageTranslationsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_page_translations_users_deleter",
+				Columns:    []*schema.Column{CmsPageTranslationsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "cmspagetranslation_page_id_locale",
 				Unique:  true,
-				Columns: []*schema.Column{CmsPagesColumns[9], CmsPagesColumns[7]},
+				Columns: []*schema.Column{CmsPageTranslationsColumns[10], CmsPageTranslationsColumns[6]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
 			},
 			{
-				Name:    "cmspage_workspace_id_status_publish_at",
-				Unique:  false,
-				Columns: []*schema.Column{CmsPagesColumns[9], CmsPagesColumns[4], CmsPagesColumns[5]},
+				Name:    "cmspagetranslation_workspace_id_locale_slug",
+				Unique:  true,
+				Columns: []*schema.Column{CmsPageTranslationsColumns[11], CmsPageTranslationsColumns[6], CmsPageTranslationsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
 			},
 			{
-				Name:    "cmspage_workspace_id_deleted_at",
+				Name:    "cmspagetranslation_workspace_id_locale_status_publish_at",
 				Unique:  false,
-				Columns: []*schema.Column{CmsPagesColumns[9], CmsPagesColumns[3]},
+				Columns: []*schema.Column{CmsPageTranslationsColumns[11], CmsPageTranslationsColumns[6], CmsPageTranslationsColumns[4], CmsPageTranslationsColumns[5]},
+			},
+			{
+				Name:    "cmspagetranslation_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsPageTranslationsColumns[11], CmsPageTranslationsColumns[3]},
 			},
 		},
 	}
@@ -340,12 +406,6 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "PUBLISHED"}, Default: "DRAFT"},
-		{Name: "publish_at", Type: field.TypeTime, Nullable: true},
-		{Name: "title", Type: field.TypeString},
-		{Name: "slug", Type: field.TypeString},
-		{Name: "excerpt", Type: field.TypeString, Nullable: true},
-		{Name: "body", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "workspace_id", Type: field.TypeInt64},
 		{Name: "created_by", Type: field.TypeInt64},
 		{Name: "updated_by", Type: field.TypeInt64},
@@ -360,53 +420,169 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "cms_posts_workspaces_workspace",
-				Columns:    []*schema.Column{CmsPostsColumns[10]},
+				Columns:    []*schema.Column{CmsPostsColumns[4]},
 				RefColumns: []*schema.Column{WorkspacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "cms_posts_users_creator",
-				Columns:    []*schema.Column{CmsPostsColumns[11]},
+				Columns:    []*schema.Column{CmsPostsColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "cms_posts_users_updater",
-				Columns:    []*schema.Column{CmsPostsColumns[12]},
+				Columns:    []*schema.Column{CmsPostsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "cms_posts_users_deleter",
-				Columns:    []*schema.Column{CmsPostsColumns[13]},
+				Columns:    []*schema.Column{CmsPostsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "cms_posts_cms_media_cover_media",
-				Columns:    []*schema.Column{CmsPostsColumns[14]},
+				Columns:    []*schema.Column{CmsPostsColumns[8]},
 				RefColumns: []*schema.Column{CmsMediaColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "cmspost_workspace_id_slug",
+				Name:    "cmspost_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsPostsColumns[4], CmsPostsColumns[3]},
+			},
+		},
+	}
+	// CmsPostTranslationsColumns holds the columns for the "cms_post_translations" table.
+	CmsPostTranslationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "PUBLISHED"}, Default: "DRAFT"},
+		{Name: "publish_at", Type: field.TypeTime, Nullable: true},
+		{Name: "locale", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "excerpt", Type: field.TypeString, Nullable: true},
+		{Name: "body", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "post_id", Type: field.TypeInt64},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// CmsPostTranslationsTable holds the schema information for the "cms_post_translations" table.
+	CmsPostTranslationsTable = &schema.Table{
+		Name:       "cms_post_translations",
+		Columns:    CmsPostTranslationsColumns,
+		PrimaryKey: []*schema.Column{CmsPostTranslationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cms_post_translations_cms_posts_translations",
+				Columns:    []*schema.Column{CmsPostTranslationsColumns[11]},
+				RefColumns: []*schema.Column{CmsPostsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_post_translations_workspaces_workspace",
+				Columns:    []*schema.Column{CmsPostTranslationsColumns[12]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_post_translations_users_creator",
+				Columns:    []*schema.Column{CmsPostTranslationsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_post_translations_users_updater",
+				Columns:    []*schema.Column{CmsPostTranslationsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_post_translations_users_deleter",
+				Columns:    []*schema.Column{CmsPostTranslationsColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "cmsposttranslation_post_id_locale",
 				Unique:  true,
-				Columns: []*schema.Column{CmsPostsColumns[10], CmsPostsColumns[7]},
+				Columns: []*schema.Column{CmsPostTranslationsColumns[11], CmsPostTranslationsColumns[6]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
 			},
 			{
-				Name:    "cmspost_workspace_id_status_publish_at",
-				Unique:  false,
-				Columns: []*schema.Column{CmsPostsColumns[10], CmsPostsColumns[4], CmsPostsColumns[5]},
+				Name:    "cmsposttranslation_workspace_id_locale_slug",
+				Unique:  true,
+				Columns: []*schema.Column{CmsPostTranslationsColumns[12], CmsPostTranslationsColumns[6], CmsPostTranslationsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
 			},
 			{
-				Name:    "cmspost_workspace_id_deleted_at",
+				Name:    "cmsposttranslation_workspace_id_locale_status_publish_at",
 				Unique:  false,
-				Columns: []*schema.Column{CmsPostsColumns[10], CmsPostsColumns[3]},
+				Columns: []*schema.Column{CmsPostTranslationsColumns[12], CmsPostTranslationsColumns[6], CmsPostTranslationsColumns[4], CmsPostTranslationsColumns[5]},
+			},
+			{
+				Name:    "cmsposttranslation_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{CmsPostTranslationsColumns[12], CmsPostTranslationsColumns[3]},
+			},
+		},
+	}
+	// CmsSettingsColumns holds the columns for the "cms_settings" table.
+	CmsSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "default_locale", Type: field.TypeString, Default: "en"},
+		{Name: "supported_locales", Type: field.TypeJSON},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+	}
+	// CmsSettingsTable holds the schema information for the "cms_settings" table.
+	CmsSettingsTable = &schema.Table{
+		Name:       "cms_settings",
+		Columns:    CmsSettingsColumns,
+		PrimaryKey: []*schema.Column{CmsSettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cms_settings_workspaces_workspace",
+				Columns:    []*schema.Column{CmsSettingsColumns[5]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_settings_users_creator",
+				Columns:    []*schema.Column{CmsSettingsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cms_settings_users_updater",
+				Columns:    []*schema.Column{CmsSettingsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "cmssetting_workspace_id",
+				Unique:  true,
+				Columns: []*schema.Column{CmsSettingsColumns[5]},
 			},
 		},
 	}
@@ -1277,7 +1453,10 @@ var (
 		AgentSettingsTable,
 		CmsMediaTable,
 		CmsPagesTable,
+		CmsPageTranslationsTable,
 		CmsPostsTable,
+		CmsPostTranslationsTable,
+		CmsSettingsTable,
 		CurrenciesTable,
 		EntriesTable,
 		ExchangeRatesTable,
@@ -1319,11 +1498,24 @@ func init() {
 	CmsPagesTable.ForeignKeys[1].RefTable = UsersTable
 	CmsPagesTable.ForeignKeys[2].RefTable = UsersTable
 	CmsPagesTable.ForeignKeys[3].RefTable = UsersTable
+	CmsPageTranslationsTable.ForeignKeys[0].RefTable = CmsPagesTable
+	CmsPageTranslationsTable.ForeignKeys[1].RefTable = WorkspacesTable
+	CmsPageTranslationsTable.ForeignKeys[2].RefTable = UsersTable
+	CmsPageTranslationsTable.ForeignKeys[3].RefTable = UsersTable
+	CmsPageTranslationsTable.ForeignKeys[4].RefTable = UsersTable
 	CmsPostsTable.ForeignKeys[0].RefTable = WorkspacesTable
 	CmsPostsTable.ForeignKeys[1].RefTable = UsersTable
 	CmsPostsTable.ForeignKeys[2].RefTable = UsersTable
 	CmsPostsTable.ForeignKeys[3].RefTable = UsersTable
 	CmsPostsTable.ForeignKeys[4].RefTable = CmsMediaTable
+	CmsPostTranslationsTable.ForeignKeys[0].RefTable = CmsPostsTable
+	CmsPostTranslationsTable.ForeignKeys[1].RefTable = WorkspacesTable
+	CmsPostTranslationsTable.ForeignKeys[2].RefTable = UsersTable
+	CmsPostTranslationsTable.ForeignKeys[3].RefTable = UsersTable
+	CmsPostTranslationsTable.ForeignKeys[4].RefTable = UsersTable
+	CmsSettingsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	CmsSettingsTable.ForeignKeys[1].RefTable = UsersTable
+	CmsSettingsTable.ForeignKeys[2].RefTable = UsersTable
 	EntriesTable.ForeignKeys[0].RefTable = WorkspacesTable
 	EntriesTable.ForeignKeys[1].RefTable = UsersTable
 	EntriesTable.ForeignKeys[2].RefTable = UsersTable

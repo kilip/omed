@@ -17,7 +17,10 @@ import (
 	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/cmspost"
+	"github.com/kilip/omed/api/ent/cmsposttranslation"
+	"github.com/kilip/omed/api/ent/cmssetting"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -99,7 +102,10 @@ func checkColumn(t, c string) error {
 			agentsetting.Table:        agentsetting.ValidColumn,
 			cmsmedia.Table:            cmsmedia.ValidColumn,
 			cmspage.Table:             cmspage.ValidColumn,
+			cmspagetranslation.Table:  cmspagetranslation.ValidColumn,
 			cmspost.Table:             cmspost.ValidColumn,
+			cmsposttranslation.Table:  cmsposttranslation.ValidColumn,
+			cmssetting.Table:          cmssetting.ValidColumn,
 			currency.Table:            currency.ValidColumn,
 			entry.Table:               entry.ValidColumn,
 			exchangerate.Table:        exchangerate.ValidColumn,

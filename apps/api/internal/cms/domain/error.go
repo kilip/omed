@@ -33,6 +33,19 @@ var (
 	ErrTitleRequired = errors.New("TITLE_REQUIRED")
 	// ErrPublishAtRequired indicates the publishAt field is missing or zero.
 	ErrPublishAtRequired = errors.New("PUBLISH_AT_REQUIRED")
+
+	// ErrInvalidLocale indicates the locale is not a valid BCP 47 language tag.
+	ErrInvalidLocale = errors.New("INVALID_LOCALE")
+	// ErrLocaleNotSupported indicates the requested locale is not configured in workspace supported locales.
+	ErrLocaleNotSupported = errors.New("LOCALE_NOT_SUPPORTED")
+	// ErrDefaultTranslationRequired indicates the default locale translation cannot be deleted while others exist.
+	ErrDefaultTranslationRequired = errors.New("DEFAULT_TRANSLATION_REQUIRED")
+	// ErrDefaultLocaleChangeBlocked indicates default locale change is rejected because existing items are missing translations.
+	ErrDefaultLocaleChangeBlocked = errors.New("DEFAULT_LOCALE_CHANGE_BLOCKED")
+	// ErrLocaleInUse indicates a locale cannot be removed from supported locales because translations exist for it.
+	ErrLocaleInUse = errors.New("LOCALE_IN_USE")
+	// ErrTranslationNotFound indicates the translation for the specified locale was not found.
+	ErrTranslationNotFound = errors.New("TRANSLATION_NOT_FOUND")
 )
 
 func init() {
@@ -49,4 +62,11 @@ func init() {
 	base.AddToErrorMap(ErrPostNotFound, fiber.StatusNotFound, "post not found")
 	base.AddToErrorMap(ErrPageNotFound, fiber.StatusNotFound, "page not found")
 	base.AddToErrorMap(ErrMediaNotFound, fiber.StatusNotFound, "media not found")
+
+	base.AddToErrorMap(ErrInvalidLocale, fiber.StatusBadRequest, "invalid BCP 47 locale tag")
+	base.AddToErrorMap(ErrLocaleNotSupported, fiber.StatusBadRequest, "locale is not supported in this workspace")
+	base.AddToErrorMap(ErrDefaultTranslationRequired, fiber.StatusUnprocessableEntity, "default locale translation is required and cannot be deleted while other translations exist")
+	base.AddToErrorMap(ErrDefaultLocaleChangeBlocked, fiber.StatusConflict, "cannot change default locale; existing content is missing translations in new default locale")
+	base.AddToErrorMap(ErrLocaleInUse, fiber.StatusConflict, "cannot remove locale while translations exist for it")
+	base.AddToErrorMap(ErrTranslationNotFound, fiber.StatusNotFound, "translation not found")
 }

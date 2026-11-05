@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/internal"
 	"github.com/kilip/omed/api/ent/predicate"
 	"github.com/kilip/omed/api/ent/user"
@@ -104,82 +105,6 @@ func (_u *CmsPageUpdate) ClearDeletedByID() *CmsPageUpdate {
 	return _u
 }
 
-// SetStatus sets the "status" field.
-func (_u *CmsPageUpdate) SetStatus(v cmspage.Status) *CmsPageUpdate {
-	_u.mutation.SetStatus(v)
-	return _u
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *CmsPageUpdate) SetNillableStatus(v *cmspage.Status) *CmsPageUpdate {
-	if v != nil {
-		_u.SetStatus(*v)
-	}
-	return _u
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (_u *CmsPageUpdate) SetPublishAt(v time.Time) *CmsPageUpdate {
-	_u.mutation.SetPublishAt(v)
-	return _u
-}
-
-// SetNillablePublishAt sets the "publish_at" field if the given value is not nil.
-func (_u *CmsPageUpdate) SetNillablePublishAt(v *time.Time) *CmsPageUpdate {
-	if v != nil {
-		_u.SetPublishAt(*v)
-	}
-	return _u
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (_u *CmsPageUpdate) ClearPublishAt() *CmsPageUpdate {
-	_u.mutation.ClearPublishAt()
-	return _u
-}
-
-// SetTitle sets the "title" field.
-func (_u *CmsPageUpdate) SetTitle(v string) *CmsPageUpdate {
-	_u.mutation.SetTitle(v)
-	return _u
-}
-
-// SetNillableTitle sets the "title" field if the given value is not nil.
-func (_u *CmsPageUpdate) SetNillableTitle(v *string) *CmsPageUpdate {
-	if v != nil {
-		_u.SetTitle(*v)
-	}
-	return _u
-}
-
-// SetSlug sets the "slug" field.
-func (_u *CmsPageUpdate) SetSlug(v string) *CmsPageUpdate {
-	_u.mutation.SetSlug(v)
-	return _u
-}
-
-// SetNillableSlug sets the "slug" field if the given value is not nil.
-func (_u *CmsPageUpdate) SetNillableSlug(v *string) *CmsPageUpdate {
-	if v != nil {
-		_u.SetSlug(*v)
-	}
-	return _u
-}
-
-// SetBody sets the "body" field.
-func (_u *CmsPageUpdate) SetBody(v string) *CmsPageUpdate {
-	_u.mutation.SetBody(v)
-	return _u
-}
-
-// SetNillableBody sets the "body" field if the given value is not nil.
-func (_u *CmsPageUpdate) SetNillableBody(v *string) *CmsPageUpdate {
-	if v != nil {
-		_u.SetBody(*v)
-	}
-	return _u
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_u *CmsPageUpdate) SetCreatorID(id int64) *CmsPageUpdate {
 	_u.mutation.SetCreatorID(id)
@@ -221,6 +146,21 @@ func (_u *CmsPageUpdate) SetDeleter(v *User) *CmsPageUpdate {
 	return _u.SetDeleterID(v.ID)
 }
 
+// AddTranslationIDs adds the "translations" edge to the CmsPageTranslation entity by IDs.
+func (_u *CmsPageUpdate) AddTranslationIDs(ids ...int64) *CmsPageUpdate {
+	_u.mutation.AddTranslationIDs(ids...)
+	return _u
+}
+
+// AddTranslations adds the "translations" edges to the CmsPageTranslation entity.
+func (_u *CmsPageUpdate) AddTranslations(v ...*CmsPageTranslation) *CmsPageUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the CmsPageMutation object of the builder.
 func (_u *CmsPageUpdate) Mutation() *CmsPageMutation {
 	return _u.mutation
@@ -242,6 +182,27 @@ func (_u *CmsPageUpdate) ClearUpdater() *CmsPageUpdate {
 func (_u *CmsPageUpdate) ClearDeleter() *CmsPageUpdate {
 	_u.mutation.ClearDeleter()
 	return _u
+}
+
+// ClearTranslations clears all "translations" edges to the CmsPageTranslation entity.
+func (_u *CmsPageUpdate) ClearTranslations() *CmsPageUpdate {
+	_u.mutation.ClearTranslations()
+	return _u
+}
+
+// RemoveTranslationIDs removes the "translations" edge to CmsPageTranslation entities by IDs.
+func (_u *CmsPageUpdate) RemoveTranslationIDs(ids ...int64) *CmsPageUpdate {
+	_u.mutation.RemoveTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveTranslations removes "translations" edges to CmsPageTranslation entities.
+func (_u *CmsPageUpdate) RemoveTranslations(v ...*CmsPageTranslation) *CmsPageUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTranslationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -282,21 +243,6 @@ func (_u *CmsPageUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *CmsPageUpdate) check() error {
-	if v, ok := _u.mutation.Status(); ok {
-		if err := cmspage.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CmsPage.status": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Title(); ok {
-		if err := cmspage.TitleValidator(v); err != nil {
-			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CmsPage.title": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Slug(); ok {
-		if err := cmspage.SlugValidator(v); err != nil {
-			return &ValidationError{Name: "slug", err: fmt.Errorf(`ent: validator failed for field "CmsPage.slug": %w`, err)}
-		}
-	}
 	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "CmsPage.workspace"`)
 	}
@@ -329,24 +275,6 @@ func (_u *CmsPageUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DeletedAtCleared() {
 		_spec.ClearField(cmspage.FieldDeletedAt, field.TypeTime)
-	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(cmspage.FieldStatus, field.TypeEnum, value)
-	}
-	if value, ok := _u.mutation.PublishAt(); ok {
-		_spec.SetField(cmspage.FieldPublishAt, field.TypeTime, value)
-	}
-	if _u.mutation.PublishAtCleared() {
-		_spec.ClearField(cmspage.FieldPublishAt, field.TypeTime)
-	}
-	if value, ok := _u.mutation.Title(); ok {
-		_spec.SetField(cmspage.FieldTitle, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Slug(); ok {
-		_spec.SetField(cmspage.FieldSlug, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Body(); ok {
-		_spec.SetField(cmspage.FieldBody, field.TypeString, value)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -436,6 +364,54 @@ func (_u *CmsPageUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			},
 		}
 		edge.Schema = _u.schemaConfig.CmsPage
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cmspage.TranslationsTable,
+			Columns: []string{cmspage.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cmspagetranslation.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.CmsPageTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTranslationsIDs(); len(nodes) > 0 && !_u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cmspage.TranslationsTable,
+			Columns: []string{cmspage.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cmspagetranslation.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.CmsPageTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cmspage.TranslationsTable,
+			Columns: []string{cmspage.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cmspagetranslation.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.CmsPageTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -537,82 +513,6 @@ func (_u *CmsPageUpdateOne) ClearDeletedByID() *CmsPageUpdateOne {
 	return _u
 }
 
-// SetStatus sets the "status" field.
-func (_u *CmsPageUpdateOne) SetStatus(v cmspage.Status) *CmsPageUpdateOne {
-	_u.mutation.SetStatus(v)
-	return _u
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *CmsPageUpdateOne) SetNillableStatus(v *cmspage.Status) *CmsPageUpdateOne {
-	if v != nil {
-		_u.SetStatus(*v)
-	}
-	return _u
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (_u *CmsPageUpdateOne) SetPublishAt(v time.Time) *CmsPageUpdateOne {
-	_u.mutation.SetPublishAt(v)
-	return _u
-}
-
-// SetNillablePublishAt sets the "publish_at" field if the given value is not nil.
-func (_u *CmsPageUpdateOne) SetNillablePublishAt(v *time.Time) *CmsPageUpdateOne {
-	if v != nil {
-		_u.SetPublishAt(*v)
-	}
-	return _u
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (_u *CmsPageUpdateOne) ClearPublishAt() *CmsPageUpdateOne {
-	_u.mutation.ClearPublishAt()
-	return _u
-}
-
-// SetTitle sets the "title" field.
-func (_u *CmsPageUpdateOne) SetTitle(v string) *CmsPageUpdateOne {
-	_u.mutation.SetTitle(v)
-	return _u
-}
-
-// SetNillableTitle sets the "title" field if the given value is not nil.
-func (_u *CmsPageUpdateOne) SetNillableTitle(v *string) *CmsPageUpdateOne {
-	if v != nil {
-		_u.SetTitle(*v)
-	}
-	return _u
-}
-
-// SetSlug sets the "slug" field.
-func (_u *CmsPageUpdateOne) SetSlug(v string) *CmsPageUpdateOne {
-	_u.mutation.SetSlug(v)
-	return _u
-}
-
-// SetNillableSlug sets the "slug" field if the given value is not nil.
-func (_u *CmsPageUpdateOne) SetNillableSlug(v *string) *CmsPageUpdateOne {
-	if v != nil {
-		_u.SetSlug(*v)
-	}
-	return _u
-}
-
-// SetBody sets the "body" field.
-func (_u *CmsPageUpdateOne) SetBody(v string) *CmsPageUpdateOne {
-	_u.mutation.SetBody(v)
-	return _u
-}
-
-// SetNillableBody sets the "body" field if the given value is not nil.
-func (_u *CmsPageUpdateOne) SetNillableBody(v *string) *CmsPageUpdateOne {
-	if v != nil {
-		_u.SetBody(*v)
-	}
-	return _u
-}
-
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (_u *CmsPageUpdateOne) SetCreatorID(id int64) *CmsPageUpdateOne {
 	_u.mutation.SetCreatorID(id)
@@ -654,6 +554,21 @@ func (_u *CmsPageUpdateOne) SetDeleter(v *User) *CmsPageUpdateOne {
 	return _u.SetDeleterID(v.ID)
 }
 
+// AddTranslationIDs adds the "translations" edge to the CmsPageTranslation entity by IDs.
+func (_u *CmsPageUpdateOne) AddTranslationIDs(ids ...int64) *CmsPageUpdateOne {
+	_u.mutation.AddTranslationIDs(ids...)
+	return _u
+}
+
+// AddTranslations adds the "translations" edges to the CmsPageTranslation entity.
+func (_u *CmsPageUpdateOne) AddTranslations(v ...*CmsPageTranslation) *CmsPageUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the CmsPageMutation object of the builder.
 func (_u *CmsPageUpdateOne) Mutation() *CmsPageMutation {
 	return _u.mutation
@@ -675,6 +590,27 @@ func (_u *CmsPageUpdateOne) ClearUpdater() *CmsPageUpdateOne {
 func (_u *CmsPageUpdateOne) ClearDeleter() *CmsPageUpdateOne {
 	_u.mutation.ClearDeleter()
 	return _u
+}
+
+// ClearTranslations clears all "translations" edges to the CmsPageTranslation entity.
+func (_u *CmsPageUpdateOne) ClearTranslations() *CmsPageUpdateOne {
+	_u.mutation.ClearTranslations()
+	return _u
+}
+
+// RemoveTranslationIDs removes the "translations" edge to CmsPageTranslation entities by IDs.
+func (_u *CmsPageUpdateOne) RemoveTranslationIDs(ids ...int64) *CmsPageUpdateOne {
+	_u.mutation.RemoveTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveTranslations removes "translations" edges to CmsPageTranslation entities.
+func (_u *CmsPageUpdateOne) RemoveTranslations(v ...*CmsPageTranslation) *CmsPageUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTranslationIDs(ids...)
 }
 
 // Where appends a list predicates to the CmsPageUpdate builder.
@@ -728,21 +664,6 @@ func (_u *CmsPageUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *CmsPageUpdateOne) check() error {
-	if v, ok := _u.mutation.Status(); ok {
-		if err := cmspage.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CmsPage.status": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Title(); ok {
-		if err := cmspage.TitleValidator(v); err != nil {
-			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CmsPage.title": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Slug(); ok {
-		if err := cmspage.SlugValidator(v); err != nil {
-			return &ValidationError{Name: "slug", err: fmt.Errorf(`ent: validator failed for field "CmsPage.slug": %w`, err)}
-		}
-	}
 	if _u.mutation.WorkspaceCleared() && len(_u.mutation.WorkspaceIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "CmsPage.workspace"`)
 	}
@@ -792,24 +713,6 @@ func (_u *CmsPageUpdateOne) sqlSave(ctx context.Context) (_node *CmsPage, err er
 	}
 	if _u.mutation.DeletedAtCleared() {
 		_spec.ClearField(cmspage.FieldDeletedAt, field.TypeTime)
-	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(cmspage.FieldStatus, field.TypeEnum, value)
-	}
-	if value, ok := _u.mutation.PublishAt(); ok {
-		_spec.SetField(cmspage.FieldPublishAt, field.TypeTime, value)
-	}
-	if _u.mutation.PublishAtCleared() {
-		_spec.ClearField(cmspage.FieldPublishAt, field.TypeTime)
-	}
-	if value, ok := _u.mutation.Title(); ok {
-		_spec.SetField(cmspage.FieldTitle, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Slug(); ok {
-		_spec.SetField(cmspage.FieldSlug, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Body(); ok {
-		_spec.SetField(cmspage.FieldBody, field.TypeString, value)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -899,6 +802,54 @@ func (_u *CmsPageUpdateOne) sqlSave(ctx context.Context) (_node *CmsPage, err er
 			},
 		}
 		edge.Schema = _u.schemaConfig.CmsPage
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cmspage.TranslationsTable,
+			Columns: []string{cmspage.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cmspagetranslation.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.CmsPageTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTranslationsIDs(); len(nodes) > 0 && !_u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cmspage.TranslationsTable,
+			Columns: []string{cmspage.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cmspagetranslation.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.CmsPageTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cmspage.TranslationsTable,
+			Columns: []string{cmspage.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cmspagetranslation.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _u.schemaConfig.CmsPageTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

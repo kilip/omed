@@ -329,54 +329,42 @@ func (s *MutatorSuite) Test_WorkspaceInterceptor_QueryFilteringAndBypass() {
 	s.Equal("a.txt", filesA[0].Name)
 
 	// Verify CmsPost entity workspace interceptor
-	_, err = s.client.CmsPost.Create().
-		SetTitle("Post A").
-		SetSlug("post-a").
-		SetBody("Body A").
+	pA, err := s.client.CmsPost.Create().
 		Save(ctxA)
 	s.Require().NoError(err)
 
-	_, err = s.client.CmsPost.Create().
-		SetTitle("Post B").
-		SetSlug("post-b").
-		SetBody("Body B").
+	pB, err := s.client.CmsPost.Create().
 		Save(ctxB)
 	s.Require().NoError(err)
 
 	postsA, err := s.client.CmsPost.Query().All(ctxA)
 	s.Require().NoError(err)
 	s.Len(postsA, 1)
-	s.Equal("Post A", postsA[0].Title)
+	s.Equal(pA.ID, postsA[0].ID)
 
 	postsB, err := s.client.CmsPost.Query().All(ctxB)
 	s.Require().NoError(err)
 	s.Len(postsB, 1)
-	s.Equal("Post B", postsB[0].Title)
+	s.Equal(pB.ID, postsB[0].ID)
 
 	// Verify CmsPage entity workspace interceptor
-	_, err = s.client.CmsPage.Create().
-		SetTitle("Page A").
-		SetSlug("page-a").
-		SetBody("Page body A").
+	pgA, err := s.client.CmsPage.Create().
 		Save(ctxA)
 	s.Require().NoError(err)
 
-	_, err = s.client.CmsPage.Create().
-		SetTitle("Page B").
-		SetSlug("page-b").
-		SetBody("Page body B").
+	pgB, err := s.client.CmsPage.Create().
 		Save(ctxB)
 	s.Require().NoError(err)
 
 	pagesA, err := s.client.CmsPage.Query().All(ctxA)
 	s.Require().NoError(err)
 	s.Len(pagesA, 1)
-	s.Equal("Page A", pagesA[0].Title)
+	s.Equal(pgA.ID, pagesA[0].ID)
 
 	pagesB, err := s.client.CmsPage.Query().All(ctxB)
 	s.Require().NoError(err)
 	s.Len(pagesB, 1)
-	s.Equal("Page B", pagesB[0].Title)
+	s.Equal(pgB.ID, pagesB[0].ID)
 
 	// Verify CmsMedia entity workspace interceptor
 	_, err = s.client.CmsMedia.Create().

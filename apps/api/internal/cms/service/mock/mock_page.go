@@ -44,18 +44,18 @@ func (m *MockPageRepository) EXPECT() *MockPageRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockPageRepository) Create(c context.Context, req model.CreatePageRecord, now time.Time) (domain.Page, error) {
+func (m *MockPageRepository) Create(c context.Context, req model.CreatePageRecord, defaultLocale string, now time.Time) (domain.Page, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", c, req, now)
+	ret := m.ctrl.Call(m, "Create", c, req, defaultLocale, now)
 	ret0, _ := ret[0].(domain.Page)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockPageRepositoryMockRecorder) Create(c, req, now any) *gomock.Call {
+func (mr *MockPageRepositoryMockRecorder) Create(c, req, defaultLocale, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPageRepository)(nil).Create), c, req, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPageRepository)(nil).Create), c, req, defaultLocale, now)
 }
 
 // Delete mocks base method.
@@ -72,40 +72,56 @@ func (mr *MockPageRepositoryMockRecorder) Delete(c, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockPageRepository)(nil).Delete), c, id)
 }
 
-// GetByID mocks base method.
-func (m *MockPageRepository) GetByID(c context.Context, id int64, now time.Time) (domain.Page, error) {
+// DeleteTranslation mocks base method.
+func (m *MockPageRepository) DeleteTranslation(c context.Context, pageID int64, locale string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", c, id, now)
+	ret := m.ctrl.Call(m, "DeleteTranslation", c, pageID, locale)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTranslation indicates an expected call of DeleteTranslation.
+func (mr *MockPageRepositoryMockRecorder) DeleteTranslation(c, pageID, locale any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTranslation", reflect.TypeOf((*MockPageRepository)(nil).DeleteTranslation), c, pageID, locale)
+}
+
+// GetByID mocks base method.
+func (m *MockPageRepository) GetByID(c context.Context, id int64, requestedLocale, defaultLocale string, now time.Time) (domain.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", c, id, requestedLocale, defaultLocale, now)
 	ret0, _ := ret[0].(domain.Page)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockPageRepositoryMockRecorder) GetByID(c, id, now any) *gomock.Call {
+func (mr *MockPageRepositoryMockRecorder) GetByID(c, id, requestedLocale, defaultLocale, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockPageRepository)(nil).GetByID), c, id, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockPageRepository)(nil).GetByID), c, id, requestedLocale, defaultLocale, now)
 }
 
 // PublicGetBySlug mocks base method.
-func (m *MockPageRepository) PublicGetBySlug(c context.Context, workspaceID int64, slug string, now time.Time) (domain.Page, error) {
+func (m *MockPageRepository) PublicGetBySlug(c context.Context, workspaceID int64, locale, defaultLocale, slug string, now time.Time) (domain.Page, bool, []model.PublicAlternate, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PublicGetBySlug", c, workspaceID, slug, now)
+	ret := m.ctrl.Call(m, "PublicGetBySlug", c, workspaceID, locale, defaultLocale, slug, now)
 	ret0, _ := ret[0].(domain.Page)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].([]model.PublicAlternate)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // PublicGetBySlug indicates an expected call of PublicGetBySlug.
-func (mr *MockPageRepositoryMockRecorder) PublicGetBySlug(c, workspaceID, slug, now any) *gomock.Call {
+func (mr *MockPageRepositoryMockRecorder) PublicGetBySlug(c, workspaceID, locale, defaultLocale, slug, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicGetBySlug", reflect.TypeOf((*MockPageRepository)(nil).PublicGetBySlug), c, workspaceID, slug, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicGetBySlug", reflect.TypeOf((*MockPageRepository)(nil).PublicGetBySlug), c, workspaceID, locale, defaultLocale, slug, now)
 }
 
 // PublicList mocks base method.
-func (m *MockPageRepository) PublicList(c context.Context, workspaceID int64, cursor *string, limit int, now time.Time) ([]domain.Page, string, error) {
+func (m *MockPageRepository) PublicList(c context.Context, workspaceID int64, locale, defaultLocale string, cursor *string, limit int, now time.Time) ([]domain.Page, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PublicList", c, workspaceID, cursor, limit, now)
+	ret := m.ctrl.Call(m, "PublicList", c, workspaceID, locale, defaultLocale, cursor, limit, now)
 	ret0, _ := ret[0].([]domain.Page)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -113,15 +129,30 @@ func (m *MockPageRepository) PublicList(c context.Context, workspaceID int64, cu
 }
 
 // PublicList indicates an expected call of PublicList.
-func (mr *MockPageRepositoryMockRecorder) PublicList(c, workspaceID, cursor, limit, now any) *gomock.Call {
+func (mr *MockPageRepositoryMockRecorder) PublicList(c, workspaceID, locale, defaultLocale, cursor, limit, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicList", reflect.TypeOf((*MockPageRepository)(nil).PublicList), c, workspaceID, cursor, limit, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicList", reflect.TypeOf((*MockPageRepository)(nil).PublicList), c, workspaceID, locale, defaultLocale, cursor, limit, now)
+}
+
+// SaveTranslation mocks base method.
+func (m *MockPageRepository) SaveTranslation(c context.Context, req model.SavePageTranslationRecord, defaultLocale string, now time.Time) (domain.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveTranslation", c, req, defaultLocale, now)
+	ret0, _ := ret[0].(domain.Page)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SaveTranslation indicates an expected call of SaveTranslation.
+func (mr *MockPageRepositoryMockRecorder) SaveTranslation(c, req, defaultLocale, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTranslation", reflect.TypeOf((*MockPageRepository)(nil).SaveTranslation), c, req, defaultLocale, now)
 }
 
 // Search mocks base method.
-func (m *MockPageRepository) Search(c context.Context, req model.SearchPageRequest, now time.Time) ([]domain.Page, string, error) {
+func (m *MockPageRepository) Search(c context.Context, req model.SearchPageRequest, defaultLocale string, now time.Time) ([]domain.Page, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", c, req, now)
+	ret := m.ctrl.Call(m, "Search", c, req, defaultLocale, now)
 	ret0, _ := ret[0].([]domain.Page)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -129,37 +160,37 @@ func (m *MockPageRepository) Search(c context.Context, req model.SearchPageReque
 }
 
 // Search indicates an expected call of Search.
-func (mr *MockPageRepositoryMockRecorder) Search(c, req, now any) *gomock.Call {
+func (mr *MockPageRepositoryMockRecorder) Search(c, req, defaultLocale, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockPageRepository)(nil).Search), c, req, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockPageRepository)(nil).Search), c, req, defaultLocale, now)
 }
 
-// SlugExists mocks base method.
-func (m *MockPageRepository) SlugExists(c context.Context, slug string, excludeID *int64) (bool, error) {
+// SlugExistsInLocale mocks base method.
+func (m *MockPageRepository) SlugExistsInLocale(c context.Context, workspaceID int64, locale, slug string, excludePageID *int64) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SlugExists", c, slug, excludeID)
+	ret := m.ctrl.Call(m, "SlugExistsInLocale", c, workspaceID, locale, slug, excludePageID)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SlugExists indicates an expected call of SlugExists.
-func (mr *MockPageRepositoryMockRecorder) SlugExists(c, slug, excludeID any) *gomock.Call {
+// SlugExistsInLocale indicates an expected call of SlugExistsInLocale.
+func (mr *MockPageRepositoryMockRecorder) SlugExistsInLocale(c, workspaceID, locale, slug, excludePageID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SlugExists", reflect.TypeOf((*MockPageRepository)(nil).SlugExists), c, slug, excludeID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SlugExistsInLocale", reflect.TypeOf((*MockPageRepository)(nil).SlugExistsInLocale), c, workspaceID, locale, slug, excludePageID)
 }
 
 // Update mocks base method.
-func (m *MockPageRepository) Update(c context.Context, id int64, req model.UpdatePageRecord, now time.Time) (domain.Page, error) {
+func (m *MockPageRepository) Update(c context.Context, id int64, req model.UpdatePageRecord, defaultLocale string, now time.Time) (domain.Page, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", c, id, req, now)
+	ret := m.ctrl.Call(m, "Update", c, id, req, defaultLocale, now)
 	ret0, _ := ret[0].(domain.Page)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockPageRepositoryMockRecorder) Update(c, id, req, now any) *gomock.Call {
+func (mr *MockPageRepositoryMockRecorder) Update(c, id, req, defaultLocale, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockPageRepository)(nil).Update), c, id, req, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockPageRepository)(nil).Update), c, id, req, defaultLocale, now)
 }

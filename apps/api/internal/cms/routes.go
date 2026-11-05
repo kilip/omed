@@ -8,6 +8,12 @@ import (
 )
 
 func initRoutes(mod CmsModule, r fiber.Router, az *authz.Authorizer) {
+	settings := r.Group("/workspaces/:wid/cms/settings")
+	settingCtl := controller.NewSettingController(mod.SettingService)
+
+	settings.Get("/", az.Require(domain.ObjSetting, "read"), settingCtl.Get)
+	settings.Put("/", az.Require(domain.ObjSetting, "update"), settingCtl.Update)
+
 	media := r.Group("/workspaces/:wid/cms/media")
 	mediaCtl := controller.NewMediaController(mod.MediaService)
 
@@ -24,6 +30,8 @@ func initRoutes(mod CmsModule, r fiber.Router, az *authz.Authorizer) {
 	posts.Post("/", az.Require(domain.ObjPost, "create"), postCtl.Create)
 	posts.Get("/:id", az.Require(domain.ObjPost, "read"), postCtl.GetByID)
 	posts.Put("/:id", az.Require(domain.ObjPost, "update"), postCtl.Update)
+	posts.Put("/:id/translations/:locale", az.Require(domain.ObjPost, "update"), postCtl.SaveTranslation)
+	posts.Delete("/:id/translations/:locale", az.Require(domain.ObjPost, "delete"), postCtl.DeleteTranslation)
 	posts.Delete("/:id", az.Require(domain.ObjPost, "delete"), postCtl.Delete)
 	posts.Post("/:id/publish", az.Require(domain.ObjPost, "update"), postCtl.Publish)
 	posts.Post("/:id/schedule", az.Require(domain.ObjPost, "update"), postCtl.Schedule)
@@ -36,6 +44,8 @@ func initRoutes(mod CmsModule, r fiber.Router, az *authz.Authorizer) {
 	pages.Post("/", az.Require(domain.ObjPage, "create"), pageCtl.Create)
 	pages.Get("/:id", az.Require(domain.ObjPage, "read"), pageCtl.GetByID)
 	pages.Put("/:id", az.Require(domain.ObjPage, "update"), pageCtl.Update)
+	pages.Put("/:id/translations/:locale", az.Require(domain.ObjPage, "update"), pageCtl.SaveTranslation)
+	pages.Delete("/:id/translations/:locale", az.Require(domain.ObjPage, "delete"), pageCtl.DeleteTranslation)
 	pages.Delete("/:id", az.Require(domain.ObjPage, "delete"), pageCtl.Delete)
 	pages.Post("/:id/publish", az.Require(domain.ObjPage, "update"), pageCtl.Publish)
 	pages.Post("/:id/schedule", az.Require(domain.ObjPage, "update"), pageCtl.Schedule)
@@ -44,7 +54,11 @@ func initRoutes(mod CmsModule, r fiber.Router, az *authz.Authorizer) {
 	publicCtl := controller.NewPublicController(mod.PostService, mod.PageService, mod.MediaService, mod.cfg.ApiURL)
 	r.Get("/public/workspaces/:wid/cms/posts", publicCtl.ListPosts)
 	r.Get("/public/workspaces/:wid/cms/posts/:slug", publicCtl.GetPostBySlug)
+	r.Get("/public/workspaces/:wid/cms/:locale/posts", publicCtl.ListPostsWithLocale)
+	r.Get("/public/workspaces/:wid/cms/:locale/posts/:slug", publicCtl.GetPostBySlugWithLocale)
 	r.Get("/public/workspaces/:wid/cms/pages", publicCtl.ListPages)
 	r.Get("/public/workspaces/:wid/cms/pages/:slug", publicCtl.GetPageBySlug)
+	r.Get("/public/workspaces/:wid/cms/:locale/pages", publicCtl.ListPagesWithLocale)
+	r.Get("/public/workspaces/:wid/cms/:locale/pages/:slug", publicCtl.GetPageBySlugWithLocale)
 	r.Get("/public/workspaces/:wid/cms/media/:id", publicCtl.RedirectMedia)
 }

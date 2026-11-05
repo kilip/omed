@@ -182,8 +182,6 @@ func (s *MediaRepoSuite) Test_IsReferenced() {
 	// Create post referencing media as cover_media_id
 	post, err := s.client.CmsPost.Create().
 		SetWorkspaceID(s.workspaceID).
-		SetTitle("My Post").
-		SetSlug("my-post").
 		SetCoverMediaID(media.ID).
 		Save(s.ctx)
 	s.Require().NoError(err)

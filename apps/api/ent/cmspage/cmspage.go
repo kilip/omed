@@ -3,7 +3,6 @@
 package cmspage
 
 import (
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -29,16 +28,6 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldDeletedByID holds the string denoting the deleted_by_id field in the database.
 	FieldDeletedByID = "deleted_by_id"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
-	// FieldPublishAt holds the string denoting the publish_at field in the database.
-	FieldPublishAt = "publish_at"
-	// FieldTitle holds the string denoting the title field in the database.
-	FieldTitle = "title"
-	// FieldSlug holds the string denoting the slug field in the database.
-	FieldSlug = "slug"
-	// FieldBody holds the string denoting the body field in the database.
-	FieldBody = "body"
 	// EdgeWorkspace holds the string denoting the workspace edge name in mutations.
 	EdgeWorkspace = "workspace"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
@@ -47,6 +36,8 @@ const (
 	EdgeUpdater = "updater"
 	// EdgeDeleter holds the string denoting the deleter edge name in mutations.
 	EdgeDeleter = "deleter"
+	// EdgeTranslations holds the string denoting the translations edge name in mutations.
+	EdgeTranslations = "translations"
 	// Table holds the table name of the cmspage in the database.
 	Table = "cms_pages"
 	// WorkspaceTable is the table that holds the workspace relation/edge.
@@ -77,6 +68,13 @@ const (
 	DeleterInverseTable = "users"
 	// DeleterColumn is the table column denoting the deleter relation/edge.
 	DeleterColumn = "deleted_by_id"
+	// TranslationsTable is the table that holds the translations relation/edge.
+	TranslationsTable = "cms_page_translations"
+	// TranslationsInverseTable is the table name for the CmsPageTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "cmspagetranslation" package.
+	TranslationsInverseTable = "cms_page_translations"
+	// TranslationsColumn is the table column denoting the translations relation/edge.
+	TranslationsColumn = "page_id"
 )
 
 // Columns holds all SQL columns for cmspage fields.
@@ -89,11 +87,6 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldDeletedAt,
 	FieldDeletedByID,
-	FieldStatus,
-	FieldPublishAt,
-	FieldTitle,
-	FieldSlug,
-	FieldBody,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -113,39 +106,7 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	TitleValidator func(string) error
-	// SlugValidator is a validator for the "slug" field. It is called by the builders before save.
-	SlugValidator func(string) error
-	// DefaultBody holds the default value on creation for the "body" field.
-	DefaultBody string
 )
-
-// Status defines the type for the "status" enum field.
-type Status string
-
-// StatusDRAFT is the default value of the Status enum.
-const DefaultStatus = StatusDRAFT
-
-// Status values.
-const (
-	StatusDRAFT     Status = "DRAFT"
-	StatusPUBLISHED Status = "PUBLISHED"
-)
-
-func (s Status) String() string {
-	return string(s)
-}
-
-// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
-func StatusValidator(s Status) error {
-	switch s {
-	case StatusDRAFT, StatusPUBLISHED:
-		return nil
-	default:
-		return fmt.Errorf("cmspage: invalid enum value for status field: %q", s)
-	}
-}
 
 // OrderOption defines the ordering options for the CmsPage queries.
 type OrderOption func(*sql.Selector)
@@ -190,31 +151,6 @@ func ByDeletedByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeletedByID, opts...).ToFunc()
 }
 
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
-}
-
-// ByPublishAt orders the results by the publish_at field.
-func ByPublishAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPublishAt, opts...).ToFunc()
-}
-
-// ByTitle orders the results by the title field.
-func ByTitle(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTitle, opts...).ToFunc()
-}
-
-// BySlug orders the results by the slug field.
-func BySlug(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSlug, opts...).ToFunc()
-}
-
-// ByBody orders the results by the body field.
-func ByBody(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBody, opts...).ToFunc()
-}
-
 // ByWorkspaceField orders the results by workspace field.
 func ByWorkspaceField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -240,6 +176,20 @@ func ByUpdaterField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByDeleterField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newDeleterStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByTranslationsCount orders the results by translations count.
+func ByTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTranslationsStep(), opts...)
+	}
+}
+
+// ByTranslations orders the results by translations terms.
+func ByTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newWorkspaceStep() *sqlgraph.Step {
@@ -268,5 +218,12 @@ func newDeleterStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DeleterInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, DeleterTable, DeleterColumn),
+	)
+}
+func newTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TranslationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
 	)
 }

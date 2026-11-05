@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
@@ -27,7 +28,6 @@ func (CmsPage) Mixin() []ent.Mixin {
 		WorkspaceMixin{},
 		AuditMixin{},
 		SoftDeleteMixin{},
-		PublishMixin{},
 	}
 }
 
@@ -35,24 +35,19 @@ func (CmsPage) Mixin() []ent.Mixin {
 func (CmsPage) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id"),
-		field.String("title").NotEmpty(),
-		field.String("slug").NotEmpty(),
-		field.Text("body").Default(""),
 	}
 }
 
 // Edges of the CmsPage entity.
 func (CmsPage) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("translations", CmsPageTranslation.Type),
+	}
 }
 
 // Indexes of the CmsPage entity.
 func (CmsPage) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("workspace_id", "slug").
-			Unique().
-			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
-		index.Fields("workspace_id", "status", "publish_at"),
 		index.Fields("workspace_id", "deleted_at"),
 	}
 }

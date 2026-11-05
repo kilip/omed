@@ -20,7 +20,10 @@ import (
 	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/cmspost"
+	"github.com/kilip/omed/api/ent/cmsposttranslation"
+	"github.com/kilip/omed/api/ent/cmssetting"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -56,8 +59,14 @@ type Client struct {
 	CmsMedia *CmsMediaClient
 	// CmsPage is the client for interacting with the CmsPage builders.
 	CmsPage *CmsPageClient
+	// CmsPageTranslation is the client for interacting with the CmsPageTranslation builders.
+	CmsPageTranslation *CmsPageTranslationClient
 	// CmsPost is the client for interacting with the CmsPost builders.
 	CmsPost *CmsPostClient
+	// CmsPostTranslation is the client for interacting with the CmsPostTranslation builders.
+	CmsPostTranslation *CmsPostTranslationClient
+	// CmsSetting is the client for interacting with the CmsSetting builders.
+	CmsSetting *CmsSettingClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
 	// Entry is the client for interacting with the Entry builders.
@@ -106,7 +115,10 @@ func (c *Client) init() {
 	c.AgentSetting = NewAgentSettingClient(c.config)
 	c.CmsMedia = NewCmsMediaClient(c.config)
 	c.CmsPage = NewCmsPageClient(c.config)
+	c.CmsPageTranslation = NewCmsPageTranslationClient(c.config)
 	c.CmsPost = NewCmsPostClient(c.config)
+	c.CmsPostTranslation = NewCmsPostTranslationClient(c.config)
+	c.CmsSetting = NewCmsSettingClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
 	c.Entry = NewEntryClient(c.config)
 	c.ExchangeRate = NewExchangeRateClient(c.config)
@@ -223,7 +235,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AgentSetting:        NewAgentSettingClient(cfg),
 		CmsMedia:            NewCmsMediaClient(cfg),
 		CmsPage:             NewCmsPageClient(cfg),
+		CmsPageTranslation:  NewCmsPageTranslationClient(cfg),
 		CmsPost:             NewCmsPostClient(cfg),
+		CmsPostTranslation:  NewCmsPostTranslationClient(cfg),
+		CmsSetting:          NewCmsSettingClient(cfg),
 		Currency:            NewCurrencyClient(cfg),
 		Entry:               NewEntryClient(cfg),
 		ExchangeRate:        NewExchangeRateClient(cfg),
@@ -264,7 +279,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AgentSetting:        NewAgentSettingClient(cfg),
 		CmsMedia:            NewCmsMediaClient(cfg),
 		CmsPage:             NewCmsPageClient(cfg),
+		CmsPageTranslation:  NewCmsPageTranslationClient(cfg),
 		CmsPost:             NewCmsPostClient(cfg),
+		CmsPostTranslation:  NewCmsPostTranslationClient(cfg),
+		CmsSetting:          NewCmsSettingClient(cfg),
 		Currency:            NewCurrencyClient(cfg),
 		Entry:               NewEntryClient(cfg),
 		ExchangeRate:        NewExchangeRateClient(cfg),
@@ -310,7 +328,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Account, c.AgentProvider, c.AgentSetting, c.CmsMedia, c.CmsPage, c.CmsPost,
+		c.Account, c.AgentProvider, c.AgentSetting, c.CmsMedia, c.CmsPage,
+		c.CmsPageTranslation, c.CmsPost, c.CmsPostTranslation, c.CmsSetting,
 		c.Currency, c.Entry, c.ExchangeRate, c.File, c.FinSetting, c.LoginOTP,
 		c.Period, c.PersonalAccessToken, c.Posting, c.Session, c.Transaction, c.User,
 		c.UserAccount, c.Workspace, c.WorkspaceInvitation, c.WorkspaceMember,
@@ -323,7 +342,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Account, c.AgentProvider, c.AgentSetting, c.CmsMedia, c.CmsPage, c.CmsPost,
+		c.Account, c.AgentProvider, c.AgentSetting, c.CmsMedia, c.CmsPage,
+		c.CmsPageTranslation, c.CmsPost, c.CmsPostTranslation, c.CmsSetting,
 		c.Currency, c.Entry, c.ExchangeRate, c.File, c.FinSetting, c.LoginOTP,
 		c.Period, c.PersonalAccessToken, c.Posting, c.Session, c.Transaction, c.User,
 		c.UserAccount, c.Workspace, c.WorkspaceInvitation, c.WorkspaceMember,
@@ -345,8 +365,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CmsMedia.mutate(ctx, m)
 	case *CmsPageMutation:
 		return c.CmsPage.mutate(ctx, m)
+	case *CmsPageTranslationMutation:
+		return c.CmsPageTranslation.mutate(ctx, m)
 	case *CmsPostMutation:
 		return c.CmsPost.mutate(ctx, m)
+	case *CmsPostTranslationMutation:
+		return c.CmsPostTranslation.mutate(ctx, m)
+	case *CmsSettingMutation:
+		return c.CmsSetting.mutate(ctx, m)
 	case *CurrencyMutation:
 		return c.Currency.mutate(ctx, m)
 	case *EntryMutation:
@@ -1442,6 +1468,25 @@ func (c *CmsPageClient) QueryDeleter(_m *CmsPage) *UserQuery {
 	return query
 }
 
+// QueryTranslations queries the translations edge of a CmsPage.
+func (c *CmsPageClient) QueryTranslations(_m *CmsPage) *CmsPageTranslationQuery {
+	query := (&CmsPageTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspage.Table, cmspage.FieldID, id),
+			sqlgraph.To(cmspagetranslation.Table, cmspagetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cmspage.TranslationsTable, cmspage.TranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.CmsPageTranslation
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CmsPageClient) Hooks() []Hook {
 	return c.hooks.CmsPage
@@ -1464,6 +1509,234 @@ func (c *CmsPageClient) mutate(ctx context.Context, m *CmsPageMutation) (Value, 
 		return (&CmsPageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown CmsPage mutation op: %q", m.Op())
+	}
+}
+
+// CmsPageTranslationClient is a client for the CmsPageTranslation schema.
+type CmsPageTranslationClient struct {
+	config
+}
+
+// NewCmsPageTranslationClient returns a client for the CmsPageTranslation from the given config.
+func NewCmsPageTranslationClient(c config) *CmsPageTranslationClient {
+	return &CmsPageTranslationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cmspagetranslation.Hooks(f(g(h())))`.
+func (c *CmsPageTranslationClient) Use(hooks ...Hook) {
+	c.hooks.CmsPageTranslation = append(c.hooks.CmsPageTranslation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cmspagetranslation.Intercept(f(g(h())))`.
+func (c *CmsPageTranslationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CmsPageTranslation = append(c.inters.CmsPageTranslation, interceptors...)
+}
+
+// Create returns a builder for creating a CmsPageTranslation entity.
+func (c *CmsPageTranslationClient) Create() *CmsPageTranslationCreate {
+	mutation := newCmsPageTranslationMutation(c.config, OpCreate)
+	return &CmsPageTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CmsPageTranslation entities.
+func (c *CmsPageTranslationClient) CreateBulk(builders ...*CmsPageTranslationCreate) *CmsPageTranslationCreateBulk {
+	return &CmsPageTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CmsPageTranslationClient) MapCreateBulk(slice any, setFunc func(*CmsPageTranslationCreate, int)) *CmsPageTranslationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CmsPageTranslationCreateBulk{err: fmt.Errorf("calling to CmsPageTranslationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CmsPageTranslationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CmsPageTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CmsPageTranslation.
+func (c *CmsPageTranslationClient) Update() *CmsPageTranslationUpdate {
+	mutation := newCmsPageTranslationMutation(c.config, OpUpdate)
+	return &CmsPageTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CmsPageTranslationClient) UpdateOne(_m *CmsPageTranslation) *CmsPageTranslationUpdateOne {
+	mutation := newCmsPageTranslationMutation(c.config, OpUpdateOne, withCmsPageTranslation(_m))
+	return &CmsPageTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CmsPageTranslationClient) UpdateOneID(id int64) *CmsPageTranslationUpdateOne {
+	mutation := newCmsPageTranslationMutation(c.config, OpUpdateOne, withCmsPageTranslationID(id))
+	return &CmsPageTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CmsPageTranslation.
+func (c *CmsPageTranslationClient) Delete() *CmsPageTranslationDelete {
+	mutation := newCmsPageTranslationMutation(c.config, OpDelete)
+	return &CmsPageTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CmsPageTranslationClient) DeleteOne(_m *CmsPageTranslation) *CmsPageTranslationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CmsPageTranslationClient) DeleteOneID(id int64) *CmsPageTranslationDeleteOne {
+	builder := c.Delete().Where(cmspagetranslation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CmsPageTranslationDeleteOne{builder}
+}
+
+// Query returns a query builder for CmsPageTranslation.
+func (c *CmsPageTranslationClient) Query() *CmsPageTranslationQuery {
+	return &CmsPageTranslationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCmsPageTranslation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CmsPageTranslation entity by its id.
+func (c *CmsPageTranslationClient) Get(ctx context.Context, id int64) (*CmsPageTranslation, error) {
+	return c.Query().Where(cmspagetranslation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CmsPageTranslationClient) GetX(ctx context.Context, id int64) *CmsPageTranslation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a CmsPageTranslation.
+func (c *CmsPageTranslationClient) QueryWorkspace(_m *CmsPageTranslation) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspagetranslation.Table, cmspagetranslation.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspagetranslation.WorkspaceTable, cmspagetranslation.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a CmsPageTranslation.
+func (c *CmsPageTranslationClient) QueryCreator(_m *CmsPageTranslation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspagetranslation.Table, cmspagetranslation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspagetranslation.CreatorTable, cmspagetranslation.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a CmsPageTranslation.
+func (c *CmsPageTranslationClient) QueryUpdater(_m *CmsPageTranslation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspagetranslation.Table, cmspagetranslation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspagetranslation.UpdaterTable, cmspagetranslation.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeleter queries the deleter edge of a CmsPageTranslation.
+func (c *CmsPageTranslationClient) QueryDeleter(_m *CmsPageTranslation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspagetranslation.Table, cmspagetranslation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmspagetranslation.DeleterTable, cmspagetranslation.DeleterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPage queries the page edge of a CmsPageTranslation.
+func (c *CmsPageTranslationClient) QueryPage(_m *CmsPageTranslation) *CmsPageQuery {
+	query := (&CmsPageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspagetranslation.Table, cmspagetranslation.FieldID, id),
+			sqlgraph.To(cmspage.Table, cmspage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, cmspagetranslation.PageTable, cmspagetranslation.PageColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.CmsPage
+		step.Edge.Schema = schemaConfig.CmsPageTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CmsPageTranslationClient) Hooks() []Hook {
+	return c.hooks.CmsPageTranslation
+}
+
+// Interceptors returns the client interceptors.
+func (c *CmsPageTranslationClient) Interceptors() []Interceptor {
+	return c.inters.CmsPageTranslation
+}
+
+func (c *CmsPageTranslationClient) mutate(ctx context.Context, m *CmsPageTranslationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CmsPageTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CmsPageTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CmsPageTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CmsPageTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CmsPageTranslation mutation op: %q", m.Op())
 	}
 }
 
@@ -1670,6 +1943,25 @@ func (c *CmsPostClient) QueryCoverMedia(_m *CmsPost) *CmsMediaQuery {
 	return query
 }
 
+// QueryTranslations queries the translations edge of a CmsPost.
+func (c *CmsPostClient) QueryTranslations(_m *CmsPost) *CmsPostTranslationQuery {
+	query := (&CmsPostTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmspost.Table, cmspost.FieldID, id),
+			sqlgraph.To(cmsposttranslation.Table, cmsposttranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cmspost.TranslationsTable, cmspost.TranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.CmsPostTranslation
+		step.Edge.Schema = schemaConfig.CmsPostTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CmsPostClient) Hooks() []Hook {
 	return c.hooks.CmsPost
@@ -1692,6 +1984,424 @@ func (c *CmsPostClient) mutate(ctx context.Context, m *CmsPostMutation) (Value, 
 		return (&CmsPostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown CmsPost mutation op: %q", m.Op())
+	}
+}
+
+// CmsPostTranslationClient is a client for the CmsPostTranslation schema.
+type CmsPostTranslationClient struct {
+	config
+}
+
+// NewCmsPostTranslationClient returns a client for the CmsPostTranslation from the given config.
+func NewCmsPostTranslationClient(c config) *CmsPostTranslationClient {
+	return &CmsPostTranslationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cmsposttranslation.Hooks(f(g(h())))`.
+func (c *CmsPostTranslationClient) Use(hooks ...Hook) {
+	c.hooks.CmsPostTranslation = append(c.hooks.CmsPostTranslation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cmsposttranslation.Intercept(f(g(h())))`.
+func (c *CmsPostTranslationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CmsPostTranslation = append(c.inters.CmsPostTranslation, interceptors...)
+}
+
+// Create returns a builder for creating a CmsPostTranslation entity.
+func (c *CmsPostTranslationClient) Create() *CmsPostTranslationCreate {
+	mutation := newCmsPostTranslationMutation(c.config, OpCreate)
+	return &CmsPostTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CmsPostTranslation entities.
+func (c *CmsPostTranslationClient) CreateBulk(builders ...*CmsPostTranslationCreate) *CmsPostTranslationCreateBulk {
+	return &CmsPostTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CmsPostTranslationClient) MapCreateBulk(slice any, setFunc func(*CmsPostTranslationCreate, int)) *CmsPostTranslationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CmsPostTranslationCreateBulk{err: fmt.Errorf("calling to CmsPostTranslationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CmsPostTranslationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CmsPostTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CmsPostTranslation.
+func (c *CmsPostTranslationClient) Update() *CmsPostTranslationUpdate {
+	mutation := newCmsPostTranslationMutation(c.config, OpUpdate)
+	return &CmsPostTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CmsPostTranslationClient) UpdateOne(_m *CmsPostTranslation) *CmsPostTranslationUpdateOne {
+	mutation := newCmsPostTranslationMutation(c.config, OpUpdateOne, withCmsPostTranslation(_m))
+	return &CmsPostTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CmsPostTranslationClient) UpdateOneID(id int64) *CmsPostTranslationUpdateOne {
+	mutation := newCmsPostTranslationMutation(c.config, OpUpdateOne, withCmsPostTranslationID(id))
+	return &CmsPostTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CmsPostTranslation.
+func (c *CmsPostTranslationClient) Delete() *CmsPostTranslationDelete {
+	mutation := newCmsPostTranslationMutation(c.config, OpDelete)
+	return &CmsPostTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CmsPostTranslationClient) DeleteOne(_m *CmsPostTranslation) *CmsPostTranslationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CmsPostTranslationClient) DeleteOneID(id int64) *CmsPostTranslationDeleteOne {
+	builder := c.Delete().Where(cmsposttranslation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CmsPostTranslationDeleteOne{builder}
+}
+
+// Query returns a query builder for CmsPostTranslation.
+func (c *CmsPostTranslationClient) Query() *CmsPostTranslationQuery {
+	return &CmsPostTranslationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCmsPostTranslation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CmsPostTranslation entity by its id.
+func (c *CmsPostTranslationClient) Get(ctx context.Context, id int64) (*CmsPostTranslation, error) {
+	return c.Query().Where(cmsposttranslation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CmsPostTranslationClient) GetX(ctx context.Context, id int64) *CmsPostTranslation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a CmsPostTranslation.
+func (c *CmsPostTranslationClient) QueryWorkspace(_m *CmsPostTranslation) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsposttranslation.Table, cmsposttranslation.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsposttranslation.WorkspaceTable, cmsposttranslation.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.CmsPostTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a CmsPostTranslation.
+func (c *CmsPostTranslationClient) QueryCreator(_m *CmsPostTranslation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsposttranslation.Table, cmsposttranslation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsposttranslation.CreatorTable, cmsposttranslation.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPostTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a CmsPostTranslation.
+func (c *CmsPostTranslationClient) QueryUpdater(_m *CmsPostTranslation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsposttranslation.Table, cmsposttranslation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsposttranslation.UpdaterTable, cmsposttranslation.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPostTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeleter queries the deleter edge of a CmsPostTranslation.
+func (c *CmsPostTranslationClient) QueryDeleter(_m *CmsPostTranslation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsposttranslation.Table, cmsposttranslation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmsposttranslation.DeleterTable, cmsposttranslation.DeleterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsPostTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPost queries the post edge of a CmsPostTranslation.
+func (c *CmsPostTranslationClient) QueryPost(_m *CmsPostTranslation) *CmsPostQuery {
+	query := (&CmsPostClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmsposttranslation.Table, cmsposttranslation.FieldID, id),
+			sqlgraph.To(cmspost.Table, cmspost.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, cmsposttranslation.PostTable, cmsposttranslation.PostColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.CmsPost
+		step.Edge.Schema = schemaConfig.CmsPostTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CmsPostTranslationClient) Hooks() []Hook {
+	return c.hooks.CmsPostTranslation
+}
+
+// Interceptors returns the client interceptors.
+func (c *CmsPostTranslationClient) Interceptors() []Interceptor {
+	return c.inters.CmsPostTranslation
+}
+
+func (c *CmsPostTranslationClient) mutate(ctx context.Context, m *CmsPostTranslationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CmsPostTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CmsPostTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CmsPostTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CmsPostTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CmsPostTranslation mutation op: %q", m.Op())
+	}
+}
+
+// CmsSettingClient is a client for the CmsSetting schema.
+type CmsSettingClient struct {
+	config
+}
+
+// NewCmsSettingClient returns a client for the CmsSetting from the given config.
+func NewCmsSettingClient(c config) *CmsSettingClient {
+	return &CmsSettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cmssetting.Hooks(f(g(h())))`.
+func (c *CmsSettingClient) Use(hooks ...Hook) {
+	c.hooks.CmsSetting = append(c.hooks.CmsSetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cmssetting.Intercept(f(g(h())))`.
+func (c *CmsSettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CmsSetting = append(c.inters.CmsSetting, interceptors...)
+}
+
+// Create returns a builder for creating a CmsSetting entity.
+func (c *CmsSettingClient) Create() *CmsSettingCreate {
+	mutation := newCmsSettingMutation(c.config, OpCreate)
+	return &CmsSettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CmsSetting entities.
+func (c *CmsSettingClient) CreateBulk(builders ...*CmsSettingCreate) *CmsSettingCreateBulk {
+	return &CmsSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CmsSettingClient) MapCreateBulk(slice any, setFunc func(*CmsSettingCreate, int)) *CmsSettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CmsSettingCreateBulk{err: fmt.Errorf("calling to CmsSettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CmsSettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CmsSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CmsSetting.
+func (c *CmsSettingClient) Update() *CmsSettingUpdate {
+	mutation := newCmsSettingMutation(c.config, OpUpdate)
+	return &CmsSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CmsSettingClient) UpdateOne(_m *CmsSetting) *CmsSettingUpdateOne {
+	mutation := newCmsSettingMutation(c.config, OpUpdateOne, withCmsSetting(_m))
+	return &CmsSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CmsSettingClient) UpdateOneID(id int64) *CmsSettingUpdateOne {
+	mutation := newCmsSettingMutation(c.config, OpUpdateOne, withCmsSettingID(id))
+	return &CmsSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CmsSetting.
+func (c *CmsSettingClient) Delete() *CmsSettingDelete {
+	mutation := newCmsSettingMutation(c.config, OpDelete)
+	return &CmsSettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CmsSettingClient) DeleteOne(_m *CmsSetting) *CmsSettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CmsSettingClient) DeleteOneID(id int64) *CmsSettingDeleteOne {
+	builder := c.Delete().Where(cmssetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CmsSettingDeleteOne{builder}
+}
+
+// Query returns a query builder for CmsSetting.
+func (c *CmsSettingClient) Query() *CmsSettingQuery {
+	return &CmsSettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCmsSetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CmsSetting entity by its id.
+func (c *CmsSettingClient) Get(ctx context.Context, id int64) (*CmsSetting, error) {
+	return c.Query().Where(cmssetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CmsSettingClient) GetX(ctx context.Context, id int64) *CmsSetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkspace queries the workspace edge of a CmsSetting.
+func (c *CmsSettingClient) QueryWorkspace(_m *CmsSetting) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmssetting.Table, cmssetting.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmssetting.WorkspaceTable, cmssetting.WorkspaceColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Workspace
+		step.Edge.Schema = schemaConfig.CmsSetting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a CmsSetting.
+func (c *CmsSettingClient) QueryCreator(_m *CmsSetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmssetting.Table, cmssetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmssetting.CreatorTable, cmssetting.CreatorColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsSetting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a CmsSetting.
+func (c *CmsSettingClient) QueryUpdater(_m *CmsSetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cmssetting.Table, cmssetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cmssetting.UpdaterTable, cmssetting.UpdaterColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.User
+		step.Edge.Schema = schemaConfig.CmsSetting
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CmsSettingClient) Hooks() []Hook {
+	return c.hooks.CmsSetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *CmsSettingClient) Interceptors() []Interceptor {
+	return c.inters.CmsSetting
+}
+
+func (c *CmsSettingClient) mutate(ctx context.Context, m *CmsSettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CmsSettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CmsSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CmsSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CmsSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CmsSetting mutation op: %q", m.Op())
 	}
 }
 
@@ -4795,16 +5505,18 @@ func (c *WorkspaceMemberClient) mutate(ctx context.Context, m *WorkspaceMemberMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, AgentProvider, AgentSetting, CmsMedia, CmsPage, CmsPost, Currency,
-		Entry, ExchangeRate, File, FinSetting, LoginOTP, Period, PersonalAccessToken,
-		Posting, Session, Transaction, User, UserAccount, Workspace,
-		WorkspaceInvitation, WorkspaceMember []ent.Hook
+		Account, AgentProvider, AgentSetting, CmsMedia, CmsPage, CmsPageTranslation,
+		CmsPost, CmsPostTranslation, CmsSetting, Currency, Entry, ExchangeRate, File,
+		FinSetting, LoginOTP, Period, PersonalAccessToken, Posting, Session,
+		Transaction, User, UserAccount, Workspace, WorkspaceInvitation,
+		WorkspaceMember []ent.Hook
 	}
 	inters struct {
-		Account, AgentProvider, AgentSetting, CmsMedia, CmsPage, CmsPost, Currency,
-		Entry, ExchangeRate, File, FinSetting, LoginOTP, Period, PersonalAccessToken,
-		Posting, Session, Transaction, User, UserAccount, Workspace,
-		WorkspaceInvitation, WorkspaceMember []ent.Interceptor
+		Account, AgentProvider, AgentSetting, CmsMedia, CmsPage, CmsPageTranslation,
+		CmsPost, CmsPostTranslation, CmsSetting, Currency, Entry, ExchangeRate, File,
+		FinSetting, LoginOTP, Period, PersonalAccessToken, Posting, Session,
+		Transaction, User, UserAccount, Workspace, WorkspaceInvitation,
+		WorkspaceMember []ent.Interceptor
 	}
 )
 
@@ -4816,7 +5528,10 @@ var (
 		AgentSetting:        tableSchemas[0],
 		CmsMedia:            tableSchemas[1],
 		CmsPage:             tableSchemas[1],
+		CmsPageTranslation:  tableSchemas[1],
 		CmsPost:             tableSchemas[1],
+		CmsPostTranslation:  tableSchemas[1],
+		CmsSetting:          tableSchemas[1],
 		Currency:            tableSchemas[3],
 		Entry:               tableSchemas[3],
 		ExchangeRate:        tableSchemas[3],

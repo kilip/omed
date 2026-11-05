@@ -13,7 +13,10 @@ import (
 	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/cmspost"
+	"github.com/kilip/omed/api/ent/cmsposttranslation"
+	"github.com/kilip/omed/api/ent/cmssetting"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -224,6 +227,33 @@ func (f TraverseCmsPage) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.CmsPageQuery", q)
 }
 
+// The CmsPageTranslationFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CmsPageTranslationFunc func(context.Context, *ent.CmsPageTranslationQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CmsPageTranslationFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CmsPageTranslationQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CmsPageTranslationQuery", q)
+}
+
+// The TraverseCmsPageTranslation type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCmsPageTranslation func(context.Context, *ent.CmsPageTranslationQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCmsPageTranslation) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCmsPageTranslation) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CmsPageTranslationQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CmsPageTranslationQuery", q)
+}
+
 // The CmsPostFunc type is an adapter to allow the use of ordinary function as a Querier.
 type CmsPostFunc func(context.Context, *ent.CmsPostQuery) (ent.Value, error)
 
@@ -249,6 +279,60 @@ func (f TraverseCmsPost) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.CmsPostQuery", q)
+}
+
+// The CmsPostTranslationFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CmsPostTranslationFunc func(context.Context, *ent.CmsPostTranslationQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CmsPostTranslationFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CmsPostTranslationQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CmsPostTranslationQuery", q)
+}
+
+// The TraverseCmsPostTranslation type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCmsPostTranslation func(context.Context, *ent.CmsPostTranslationQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCmsPostTranslation) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCmsPostTranslation) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CmsPostTranslationQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CmsPostTranslationQuery", q)
+}
+
+// The CmsSettingFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CmsSettingFunc func(context.Context, *ent.CmsSettingQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CmsSettingFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CmsSettingQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CmsSettingQuery", q)
+}
+
+// The TraverseCmsSetting type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCmsSetting func(context.Context, *ent.CmsSettingQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCmsSetting) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCmsSetting) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CmsSettingQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CmsSettingQuery", q)
 }
 
 // The CurrencyFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -696,8 +780,14 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.CmsMediaQuery, predicate.CmsMedia, cmsmedia.OrderOption]{typ: ent.TypeCmsMedia, tq: q}, nil
 	case *ent.CmsPageQuery:
 		return &query[*ent.CmsPageQuery, predicate.CmsPage, cmspage.OrderOption]{typ: ent.TypeCmsPage, tq: q}, nil
+	case *ent.CmsPageTranslationQuery:
+		return &query[*ent.CmsPageTranslationQuery, predicate.CmsPageTranslation, cmspagetranslation.OrderOption]{typ: ent.TypeCmsPageTranslation, tq: q}, nil
 	case *ent.CmsPostQuery:
 		return &query[*ent.CmsPostQuery, predicate.CmsPost, cmspost.OrderOption]{typ: ent.TypeCmsPost, tq: q}, nil
+	case *ent.CmsPostTranslationQuery:
+		return &query[*ent.CmsPostTranslationQuery, predicate.CmsPostTranslation, cmsposttranslation.OrderOption]{typ: ent.TypeCmsPostTranslation, tq: q}, nil
+	case *ent.CmsSettingQuery:
+		return &query[*ent.CmsSettingQuery, predicate.CmsSetting, cmssetting.OrderOption]{typ: ent.TypeCmsSetting, tq: q}, nil
 	case *ent.CurrencyQuery:
 		return &query[*ent.CurrencyQuery, predicate.Currency, currency.OrderOption]{typ: ent.TypeCurrency, tq: q}, nil
 	case *ent.EntryQuery:

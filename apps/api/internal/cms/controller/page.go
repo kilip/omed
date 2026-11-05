@@ -12,13 +12,15 @@ import (
 // PageServiceContract defines the operations required by PageController.
 type PageServiceContract interface {
 	Create(c context.Context, req model.CreatePageRequest) (domain.Page, error)
-	GetByID(c context.Context, id int64) (domain.Page, error)
+	GetByID(c context.Context, id int64, requestedLocale ...string) (domain.Page, error)
 	Search(c context.Context, req model.SearchPageRequest) ([]domain.Page, string, error)
-	Update(c context.Context, id int64, req model.UpdatePageRequest) (domain.Page, error)
+	Update(c context.Context, id int64, req model.UpdatePageRequest, locale ...string) (domain.Page, error)
 	Delete(c context.Context, id int64) error
-	Publish(c context.Context, id int64) (domain.Page, error)
-	Schedule(c context.Context, id int64, req model.SchedulePageRequest) (domain.Page, error)
-	Unpublish(c context.Context, id int64) (domain.Page, error)
+	Publish(c context.Context, id int64, locale ...string) (domain.Page, error)
+	Schedule(c context.Context, id int64, req model.SchedulePageRequest, locale ...string) (domain.Page, error)
+	Unpublish(c context.Context, id int64, locale ...string) (domain.Page, error)
+	SaveTranslation(c context.Context, id int64, locale string, req model.SavePageTranslationRequest) (domain.Page, error)
+	DeleteTranslation(c context.Context, id int64, locale string) error
 }
 
 // PageController handles HTTP requests for CMS page management.
@@ -100,17 +102,18 @@ func (ctl PageController) Search(c fiber.Ctx) error {
 // GetByID retrieves a page by ID.
 //
 //	@Summary		Get page by ID
-//	@Description	Get page details by ID
+//	@Description	Get page details by ID for the requested or default locale
 //	@Tags			CMS Pages
 //	@Produce		json
-//	@Param			wid	path		int	true	"Workspace ID"
-//	@Param			id	path		int	true	"Page ID"
-//	@Success		200	{object}	httpx.WebResponse[model.PageResponse]
-//	@Failure		400	{object}	httpx.ErrorResponse
-//	@Failure		401	{object}	httpx.ErrorResponse
-//	@Failure		403	{object}	httpx.ErrorResponse
-//	@Failure		404	{object}	httpx.ErrorResponse
-//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Page ID"
+//	@Param			locale	query		string	false	"BCP 47 locale tag"
+//	@Success		200		{object}	httpx.WebResponse[model.PageResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/cms/pages/{id} [get]
 func (ctl PageController) GetByID(c fiber.Ctx) error {
@@ -118,7 +121,8 @@ func (ctl PageController) GetByID(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	item, err := ctl.svc.GetByID(c, id)
+	locale := c.Query("locale")
+	item, err := ctl.svc.GetByID(c, id, locale)
 	if err != nil {
 		return err
 	}
@@ -134,6 +138,7 @@ func (ctl PageController) GetByID(c fiber.Ctx) error {
 //	@Produce		json
 //	@Param			wid		path		int						true	"Workspace ID"
 //	@Param			id		path		int						true	"Page ID"
+//	@Param			locale	query		string					false	"BCP 47 locale tag"
 //	@Param			request	body		model.UpdatePageRequest	true	"Page update payload"
 //	@Success		200		{object}	httpx.WebResponse[model.PageResponse]
 //	@Failure		400		{object}	httpx.ErrorResponse
@@ -154,11 +159,83 @@ func (ctl PageController) Update(c fiber.Ctx) error {
 	if err := c.Bind().Body(&req); err != nil {
 		return err
 	}
-	item, err := ctl.svc.Update(c, id, req)
+	locale := c.Query("locale")
+	item, err := ctl.svc.Update(c, id, req, locale)
 	if err != nil {
 		return err
 	}
 	return httpx.OK(c, toPageResponse(item))
+}
+
+// SaveTranslation creates or updates a translation for a page.
+//
+//	@Summary		Save page translation
+//	@Description	Create or update localized translation for a page
+//	@Tags			CMS Pages
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int								true	"Workspace ID"
+//	@Param			id		path		int								true	"Page ID"
+//	@Param			locale	path		string							true	"BCP 47 locale tag"
+//	@Param			request	body		model.SavePageTranslationRequest	true	"Translation payload"
+//	@Success		200		{object}	httpx.WebResponse[model.PageResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/cms/pages/{id}/translations/{locale} [put]
+func (ctl PageController) SaveTranslation(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	locale := c.Params("locale")
+	var req model.SavePageTranslationRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	if req.Title == "" {
+		return domain.ErrTitleRequired
+	}
+	item, err := ctl.svc.SaveTranslation(c, id, locale, req)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, toPageResponse(item))
+}
+
+// DeleteTranslation removes a translation for a page.
+//
+//	@Summary		Delete page translation
+//	@Description	Delete a translation for a page by locale
+//	@Tags			CMS Pages
+//	@Produce		json
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Page ID"
+//	@Param			locale	path		string	true	"BCP 47 locale tag"
+//	@Success		200		{object}	httpx.WebResponse[httpx.NoContent]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/cms/pages/{id}/translations/{locale} [delete]
+func (ctl PageController) DeleteTranslation(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	locale := c.Params("locale")
+	if err := ctl.svc.DeleteTranslation(c, id, locale); err != nil {
+		return err
+	}
+	return httpx.OK(c, httpx.NoContent{})
 }
 
 // Delete soft-deletes a page.
@@ -194,15 +271,16 @@ func (ctl PageController) Delete(c fiber.Ctx) error {
 //	@Description	Publish a draft or scheduled page immediately
 //	@Tags			CMS Pages
 //	@Produce		json
-//	@Param			wid	path		int	true	"Workspace ID"
-//	@Param			id	path		int	true	"Page ID"
-//	@Success		200	{object}	httpx.WebResponse[model.PageResponse]
-//	@Failure		400	{object}	httpx.ErrorResponse
-//	@Failure		401	{object}	httpx.ErrorResponse
-//	@Failure		403	{object}	httpx.ErrorResponse
-//	@Failure		404	{object}	httpx.ErrorResponse
-//	@Failure		409	{object}	httpx.ErrorResponse
-//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Page ID"
+//	@Param			locale	query		string	false	"BCP 47 locale tag"
+//	@Success		200		{object}	httpx.WebResponse[model.PageResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/cms/pages/{id}/publish [post]
 func (ctl PageController) Publish(c fiber.Ctx) error {
@@ -210,7 +288,8 @@ func (ctl PageController) Publish(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	item, err := ctl.svc.Publish(c, id)
+	locale := c.Query("locale")
+	item, err := ctl.svc.Publish(c, id, locale)
 	if err != nil {
 		return err
 	}
@@ -226,6 +305,7 @@ func (ctl PageController) Publish(c fiber.Ctx) error {
 //	@Produce		json
 //	@Param			wid		path		int							true	"Workspace ID"
 //	@Param			id		path		int							true	"Page ID"
+//	@Param			locale	query		string						false	"BCP 47 locale tag"
 //	@Param			request	body		model.SchedulePageRequest	true	"Schedule details"
 //	@Success		200		{object}	httpx.WebResponse[model.PageResponse]
 //	@Failure		400		{object}	httpx.ErrorResponse
@@ -249,7 +329,8 @@ func (ctl PageController) Schedule(c fiber.Ctx) error {
 	if req.PublishAt.IsZero() {
 		return domain.ErrPublishAtRequired
 	}
-	item, err := ctl.svc.Schedule(c, id, req)
+	locale := c.Query("locale")
+	item, err := ctl.svc.Schedule(c, id, req, locale)
 	if err != nil {
 		return err
 	}
@@ -262,15 +343,16 @@ func (ctl PageController) Schedule(c fiber.Ctx) error {
 //	@Description	Unpublish a published or scheduled page back to draft
 //	@Tags			CMS Pages
 //	@Produce		json
-//	@Param			wid	path		int	true	"Workspace ID"
-//	@Param			id	path		int	true	"Page ID"
-//	@Success		200	{object}	httpx.WebResponse[model.PageResponse]
-//	@Failure		400	{object}	httpx.ErrorResponse
-//	@Failure		401	{object}	httpx.ErrorResponse
-//	@Failure		403	{object}	httpx.ErrorResponse
-//	@Failure		404	{object}	httpx.ErrorResponse
-//	@Failure		409	{object}	httpx.ErrorResponse
-//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Page ID"
+//	@Param			locale	query		string	false	"BCP 47 locale tag"
+//	@Success		200		{object}	httpx.WebResponse[model.PageResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/cms/pages/{id}/unpublish [post]
 func (ctl PageController) Unpublish(c fiber.Ctx) error {
@@ -278,7 +360,8 @@ func (ctl PageController) Unpublish(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	item, err := ctl.svc.Unpublish(c, id)
+	locale := c.Query("locale")
+	item, err := ctl.svc.Unpublish(c, id, locale)
 	if err != nil {
 		return err
 	}
@@ -289,12 +372,14 @@ func toPageResponse(p domain.Page) model.PageResponse {
 	return model.PageResponse{
 		ID:              p.ID,
 		WorkspaceID:     p.WorkspaceID,
+		Locale:          p.Locale,
 		Title:           p.Title,
 		Slug:            p.Slug,
 		Body:            p.Body,
 		Status:          p.Status,
 		EffectiveStatus: p.EffectiveStatus,
 		PublishAt:       p.PublishAt,
+		Translations:    p.Translations,
 		AuditMeta:       p.AuditMeta,
 	}
 }

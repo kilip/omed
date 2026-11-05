@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspost"
+	"github.com/kilip/omed/api/ent/cmsposttranslation"
 	"github.com/kilip/omed/api/ent/user"
 	"github.com/kilip/omed/api/ent/workspace"
 )
@@ -99,74 +100,6 @@ func (_c *CmsPostCreate) SetNillableDeletedByID(v *int64) *CmsPostCreate {
 	return _c
 }
 
-// SetStatus sets the "status" field.
-func (_c *CmsPostCreate) SetStatus(v cmspost.Status) *CmsPostCreate {
-	_c.mutation.SetStatus(v)
-	return _c
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_c *CmsPostCreate) SetNillableStatus(v *cmspost.Status) *CmsPostCreate {
-	if v != nil {
-		_c.SetStatus(*v)
-	}
-	return _c
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (_c *CmsPostCreate) SetPublishAt(v time.Time) *CmsPostCreate {
-	_c.mutation.SetPublishAt(v)
-	return _c
-}
-
-// SetNillablePublishAt sets the "publish_at" field if the given value is not nil.
-func (_c *CmsPostCreate) SetNillablePublishAt(v *time.Time) *CmsPostCreate {
-	if v != nil {
-		_c.SetPublishAt(*v)
-	}
-	return _c
-}
-
-// SetTitle sets the "title" field.
-func (_c *CmsPostCreate) SetTitle(v string) *CmsPostCreate {
-	_c.mutation.SetTitle(v)
-	return _c
-}
-
-// SetSlug sets the "slug" field.
-func (_c *CmsPostCreate) SetSlug(v string) *CmsPostCreate {
-	_c.mutation.SetSlug(v)
-	return _c
-}
-
-// SetExcerpt sets the "excerpt" field.
-func (_c *CmsPostCreate) SetExcerpt(v string) *CmsPostCreate {
-	_c.mutation.SetExcerpt(v)
-	return _c
-}
-
-// SetNillableExcerpt sets the "excerpt" field if the given value is not nil.
-func (_c *CmsPostCreate) SetNillableExcerpt(v *string) *CmsPostCreate {
-	if v != nil {
-		_c.SetExcerpt(*v)
-	}
-	return _c
-}
-
-// SetBody sets the "body" field.
-func (_c *CmsPostCreate) SetBody(v string) *CmsPostCreate {
-	_c.mutation.SetBody(v)
-	return _c
-}
-
-// SetNillableBody sets the "body" field if the given value is not nil.
-func (_c *CmsPostCreate) SetNillableBody(v *string) *CmsPostCreate {
-	if v != nil {
-		_c.SetBody(*v)
-	}
-	return _c
-}
-
 // SetCoverMediaID sets the "cover_media_id" field.
 func (_c *CmsPostCreate) SetCoverMediaID(v int64) *CmsPostCreate {
 	_c.mutation.SetCoverMediaID(v)
@@ -238,6 +171,21 @@ func (_c *CmsPostCreate) SetCoverMedia(v *CmsMedia) *CmsPostCreate {
 	return _c.SetCoverMediaID(v.ID)
 }
 
+// AddTranslationIDs adds the "translations" edge to the CmsPostTranslation entity by IDs.
+func (_c *CmsPostCreate) AddTranslationIDs(ids ...int64) *CmsPostCreate {
+	_c.mutation.AddTranslationIDs(ids...)
+	return _c
+}
+
+// AddTranslations adds the "translations" edges to the CmsPostTranslation entity.
+func (_c *CmsPostCreate) AddTranslations(v ...*CmsPostTranslation) *CmsPostCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the CmsPostMutation object of the builder.
 func (_c *CmsPostCreate) Mutation() *CmsPostMutation {
 	return _c.mutation
@@ -281,14 +229,6 @@ func (_c *CmsPostCreate) defaults() {
 		v := cmspost.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := _c.mutation.Status(); !ok {
-		v := cmspost.DefaultStatus
-		_c.mutation.SetStatus(v)
-	}
-	if _, ok := _c.mutation.Body(); !ok {
-		v := cmspost.DefaultBody
-		_c.mutation.SetBody(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -307,33 +247,6 @@ func (_c *CmsPostCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "CmsPost.updated_at"`)}
-	}
-	if _, ok := _c.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "CmsPost.status"`)}
-	}
-	if v, ok := _c.mutation.Status(); ok {
-		if err := cmspost.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CmsPost.status": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Title(); !ok {
-		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "CmsPost.title"`)}
-	}
-	if v, ok := _c.mutation.Title(); ok {
-		if err := cmspost.TitleValidator(v); err != nil {
-			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CmsPost.title": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Slug(); !ok {
-		return &ValidationError{Name: "slug", err: errors.New(`ent: missing required field "CmsPost.slug"`)}
-	}
-	if v, ok := _c.mutation.Slug(); ok {
-		if err := cmspost.SlugValidator(v); err != nil {
-			return &ValidationError{Name: "slug", err: fmt.Errorf(`ent: validator failed for field "CmsPost.slug": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Body(); !ok {
-		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "CmsPost.body"`)}
 	}
 	if len(_c.mutation.WorkspaceIDs()) == 0 {
 		return &ValidationError{Name: "workspace", err: errors.New(`ent: missing required edge "CmsPost.workspace"`)}
@@ -389,30 +302,6 @@ func (_c *CmsPostCreate) createSpec() (*CmsPost, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DeletedAt(); ok {
 		_spec.SetField(cmspost.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = &value
-	}
-	if value, ok := _c.mutation.Status(); ok {
-		_spec.SetField(cmspost.FieldStatus, field.TypeEnum, value)
-		_node.Status = value
-	}
-	if value, ok := _c.mutation.PublishAt(); ok {
-		_spec.SetField(cmspost.FieldPublishAt, field.TypeTime, value)
-		_node.PublishAt = &value
-	}
-	if value, ok := _c.mutation.Title(); ok {
-		_spec.SetField(cmspost.FieldTitle, field.TypeString, value)
-		_node.Title = value
-	}
-	if value, ok := _c.mutation.Slug(); ok {
-		_spec.SetField(cmspost.FieldSlug, field.TypeString, value)
-		_node.Slug = value
-	}
-	if value, ok := _c.mutation.Excerpt(); ok {
-		_spec.SetField(cmspost.FieldExcerpt, field.TypeString, value)
-		_node.Excerpt = value
-	}
-	if value, ok := _c.mutation.Body(); ok {
-		_spec.SetField(cmspost.FieldBody, field.TypeString, value)
-		_node.Body = value
 	}
 	if nodes := _c.mutation.WorkspaceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -502,6 +391,23 @@ func (_c *CmsPostCreate) createSpec() (*CmsPost, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CoverMediaID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cmspost.TranslationsTable,
+			Columns: []string{cmspost.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cmsposttranslation.FieldID, field.TypeInt64),
+			},
+		}
+		edge.Schema = _c.schemaConfig.CmsPostTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -625,90 +531,6 @@ func (u *CmsPostUpsert) UpdateDeletedByID() *CmsPostUpsert {
 // ClearDeletedByID clears the value of the "deleted_by_id" field.
 func (u *CmsPostUpsert) ClearDeletedByID() *CmsPostUpsert {
 	u.SetNull(cmspost.FieldDeletedByID)
-	return u
-}
-
-// SetStatus sets the "status" field.
-func (u *CmsPostUpsert) SetStatus(v cmspost.Status) *CmsPostUpsert {
-	u.Set(cmspost.FieldStatus, v)
-	return u
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *CmsPostUpsert) UpdateStatus() *CmsPostUpsert {
-	u.SetExcluded(cmspost.FieldStatus)
-	return u
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (u *CmsPostUpsert) SetPublishAt(v time.Time) *CmsPostUpsert {
-	u.Set(cmspost.FieldPublishAt, v)
-	return u
-}
-
-// UpdatePublishAt sets the "publish_at" field to the value that was provided on create.
-func (u *CmsPostUpsert) UpdatePublishAt() *CmsPostUpsert {
-	u.SetExcluded(cmspost.FieldPublishAt)
-	return u
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (u *CmsPostUpsert) ClearPublishAt() *CmsPostUpsert {
-	u.SetNull(cmspost.FieldPublishAt)
-	return u
-}
-
-// SetTitle sets the "title" field.
-func (u *CmsPostUpsert) SetTitle(v string) *CmsPostUpsert {
-	u.Set(cmspost.FieldTitle, v)
-	return u
-}
-
-// UpdateTitle sets the "title" field to the value that was provided on create.
-func (u *CmsPostUpsert) UpdateTitle() *CmsPostUpsert {
-	u.SetExcluded(cmspost.FieldTitle)
-	return u
-}
-
-// SetSlug sets the "slug" field.
-func (u *CmsPostUpsert) SetSlug(v string) *CmsPostUpsert {
-	u.Set(cmspost.FieldSlug, v)
-	return u
-}
-
-// UpdateSlug sets the "slug" field to the value that was provided on create.
-func (u *CmsPostUpsert) UpdateSlug() *CmsPostUpsert {
-	u.SetExcluded(cmspost.FieldSlug)
-	return u
-}
-
-// SetExcerpt sets the "excerpt" field.
-func (u *CmsPostUpsert) SetExcerpt(v string) *CmsPostUpsert {
-	u.Set(cmspost.FieldExcerpt, v)
-	return u
-}
-
-// UpdateExcerpt sets the "excerpt" field to the value that was provided on create.
-func (u *CmsPostUpsert) UpdateExcerpt() *CmsPostUpsert {
-	u.SetExcluded(cmspost.FieldExcerpt)
-	return u
-}
-
-// ClearExcerpt clears the value of the "excerpt" field.
-func (u *CmsPostUpsert) ClearExcerpt() *CmsPostUpsert {
-	u.SetNull(cmspost.FieldExcerpt)
-	return u
-}
-
-// SetBody sets the "body" field.
-func (u *CmsPostUpsert) SetBody(v string) *CmsPostUpsert {
-	u.Set(cmspost.FieldBody, v)
-	return u
-}
-
-// UpdateBody sets the "body" field to the value that was provided on create.
-func (u *CmsPostUpsert) UpdateBody() *CmsPostUpsert {
-	u.SetExcluded(cmspost.FieldBody)
 	return u
 }
 
@@ -865,104 +687,6 @@ func (u *CmsPostUpsertOne) UpdateDeletedByID() *CmsPostUpsertOne {
 func (u *CmsPostUpsertOne) ClearDeletedByID() *CmsPostUpsertOne {
 	return u.Update(func(s *CmsPostUpsert) {
 		s.ClearDeletedByID()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *CmsPostUpsertOne) SetStatus(v cmspost.Status) *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *CmsPostUpsertOne) UpdateStatus() *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (u *CmsPostUpsertOne) SetPublishAt(v time.Time) *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetPublishAt(v)
-	})
-}
-
-// UpdatePublishAt sets the "publish_at" field to the value that was provided on create.
-func (u *CmsPostUpsertOne) UpdatePublishAt() *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdatePublishAt()
-	})
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (u *CmsPostUpsertOne) ClearPublishAt() *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.ClearPublishAt()
-	})
-}
-
-// SetTitle sets the "title" field.
-func (u *CmsPostUpsertOne) SetTitle(v string) *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetTitle(v)
-	})
-}
-
-// UpdateTitle sets the "title" field to the value that was provided on create.
-func (u *CmsPostUpsertOne) UpdateTitle() *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateTitle()
-	})
-}
-
-// SetSlug sets the "slug" field.
-func (u *CmsPostUpsertOne) SetSlug(v string) *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetSlug(v)
-	})
-}
-
-// UpdateSlug sets the "slug" field to the value that was provided on create.
-func (u *CmsPostUpsertOne) UpdateSlug() *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateSlug()
-	})
-}
-
-// SetExcerpt sets the "excerpt" field.
-func (u *CmsPostUpsertOne) SetExcerpt(v string) *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetExcerpt(v)
-	})
-}
-
-// UpdateExcerpt sets the "excerpt" field to the value that was provided on create.
-func (u *CmsPostUpsertOne) UpdateExcerpt() *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateExcerpt()
-	})
-}
-
-// ClearExcerpt clears the value of the "excerpt" field.
-func (u *CmsPostUpsertOne) ClearExcerpt() *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.ClearExcerpt()
-	})
-}
-
-// SetBody sets the "body" field.
-func (u *CmsPostUpsertOne) SetBody(v string) *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetBody(v)
-	})
-}
-
-// UpdateBody sets the "body" field to the value that was provided on create.
-func (u *CmsPostUpsertOne) UpdateBody() *CmsPostUpsertOne {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateBody()
 	})
 }
 
@@ -1288,104 +1012,6 @@ func (u *CmsPostUpsertBulk) UpdateDeletedByID() *CmsPostUpsertBulk {
 func (u *CmsPostUpsertBulk) ClearDeletedByID() *CmsPostUpsertBulk {
 	return u.Update(func(s *CmsPostUpsert) {
 		s.ClearDeletedByID()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *CmsPostUpsertBulk) SetStatus(v cmspost.Status) *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *CmsPostUpsertBulk) UpdateStatus() *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (u *CmsPostUpsertBulk) SetPublishAt(v time.Time) *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetPublishAt(v)
-	})
-}
-
-// UpdatePublishAt sets the "publish_at" field to the value that was provided on create.
-func (u *CmsPostUpsertBulk) UpdatePublishAt() *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdatePublishAt()
-	})
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (u *CmsPostUpsertBulk) ClearPublishAt() *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.ClearPublishAt()
-	})
-}
-
-// SetTitle sets the "title" field.
-func (u *CmsPostUpsertBulk) SetTitle(v string) *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetTitle(v)
-	})
-}
-
-// UpdateTitle sets the "title" field to the value that was provided on create.
-func (u *CmsPostUpsertBulk) UpdateTitle() *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateTitle()
-	})
-}
-
-// SetSlug sets the "slug" field.
-func (u *CmsPostUpsertBulk) SetSlug(v string) *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetSlug(v)
-	})
-}
-
-// UpdateSlug sets the "slug" field to the value that was provided on create.
-func (u *CmsPostUpsertBulk) UpdateSlug() *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateSlug()
-	})
-}
-
-// SetExcerpt sets the "excerpt" field.
-func (u *CmsPostUpsertBulk) SetExcerpt(v string) *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetExcerpt(v)
-	})
-}
-
-// UpdateExcerpt sets the "excerpt" field to the value that was provided on create.
-func (u *CmsPostUpsertBulk) UpdateExcerpt() *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateExcerpt()
-	})
-}
-
-// ClearExcerpt clears the value of the "excerpt" field.
-func (u *CmsPostUpsertBulk) ClearExcerpt() *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.ClearExcerpt()
-	})
-}
-
-// SetBody sets the "body" field.
-func (u *CmsPostUpsertBulk) SetBody(v string) *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.SetBody(v)
-	})
-}
-
-// UpdateBody sets the "body" field to the value that was provided on create.
-func (u *CmsPostUpsertBulk) UpdateBody() *CmsPostUpsertBulk {
-	return u.Update(func(s *CmsPostUpsert) {
-		s.UpdateBody()
 	})
 }
 

@@ -16,7 +16,10 @@ import (
 	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/cmspost"
+	"github.com/kilip/omed/api/ent/cmsposttranslation"
+	"github.com/kilip/omed/api/ent/cmssetting"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -52,7 +55,10 @@ const (
 	TypeAgentSetting        = "AgentSetting"
 	TypeCmsMedia            = "CmsMedia"
 	TypeCmsPage             = "CmsPage"
+	TypeCmsPageTranslation  = "CmsPageTranslation"
 	TypeCmsPost             = "CmsPost"
+	TypeCmsPostTranslation  = "CmsPostTranslation"
+	TypeCmsSetting          = "CmsSetting"
 	TypeCurrency            = "Currency"
 	TypeEntry               = "Entry"
 	TypeExchangeRate        = "ExchangeRate"
@@ -5078,29 +5084,27 @@ func (m *CmsMediaMutation) ResetEdge(name string) error {
 // CmsPageMutation represents an operation that mutates the CmsPage nodes in the graph.
 type CmsPageMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *int64
-	created_at       *time.Time
-	updated_at       *time.Time
-	deleted_at       *time.Time
-	status           *cmspage.Status
-	publish_at       *time.Time
-	title            *string
-	slug             *string
-	body             *string
-	clearedFields    map[string]struct{}
-	workspace        *int64
-	clearedworkspace bool
-	creator          *int64
-	clearedcreator   bool
-	updater          *int64
-	clearedupdater   bool
-	deleter          *int64
-	cleareddeleter   bool
-	done             bool
-	oldValue         func(context.Context) (*CmsPage, error)
-	predicates       []predicate.CmsPage
+	op                  Op
+	typ                 string
+	id                  *int64
+	created_at          *time.Time
+	updated_at          *time.Time
+	deleted_at          *time.Time
+	clearedFields       map[string]struct{}
+	workspace           *int64
+	clearedworkspace    bool
+	creator             *int64
+	clearedcreator      bool
+	updater             *int64
+	clearedupdater      bool
+	deleter             *int64
+	cleareddeleter      bool
+	translations        map[int64]struct{}
+	removedtranslations map[int64]struct{}
+	clearedtranslations bool
+	done                bool
+	oldValue            func(context.Context) (*CmsPage, error)
+	predicates          []predicate.CmsPage
 }
 
 var _ ent.Mutation = (*CmsPageMutation)(nil)
@@ -5485,199 +5489,6 @@ func (m *CmsPageMutation) ResetDeletedByID() {
 	delete(m.clearedFields, cmspage.FieldDeletedByID)
 }
 
-// SetStatus sets the "status" field.
-func (m *CmsPageMutation) SetStatus(c cmspage.Status) {
-	m.status = &c
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *CmsPageMutation) Status() (r cmspage.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the CmsPage entity.
-// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPageMutation) OldStatus(ctx context.Context) (v cmspage.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *CmsPageMutation) ResetStatus() {
-	m.status = nil
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (m *CmsPageMutation) SetPublishAt(t time.Time) {
-	m.publish_at = &t
-}
-
-// PublishAt returns the value of the "publish_at" field in the mutation.
-func (m *CmsPageMutation) PublishAt() (r time.Time, exists bool) {
-	v := m.publish_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPublishAt returns the old "publish_at" field's value of the CmsPage entity.
-// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPageMutation) OldPublishAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPublishAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPublishAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPublishAt: %w", err)
-	}
-	return oldValue.PublishAt, nil
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (m *CmsPageMutation) ClearPublishAt() {
-	m.publish_at = nil
-	m.clearedFields[cmspage.FieldPublishAt] = struct{}{}
-}
-
-// PublishAtCleared returns if the "publish_at" field was cleared in this mutation.
-func (m *CmsPageMutation) PublishAtCleared() bool {
-	_, ok := m.clearedFields[cmspage.FieldPublishAt]
-	return ok
-}
-
-// ResetPublishAt resets all changes to the "publish_at" field.
-func (m *CmsPageMutation) ResetPublishAt() {
-	m.publish_at = nil
-	delete(m.clearedFields, cmspage.FieldPublishAt)
-}
-
-// SetTitle sets the "title" field.
-func (m *CmsPageMutation) SetTitle(s string) {
-	m.title = &s
-}
-
-// Title returns the value of the "title" field in the mutation.
-func (m *CmsPageMutation) Title() (r string, exists bool) {
-	v := m.title
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTitle returns the old "title" field's value of the CmsPage entity.
-// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPageMutation) OldTitle(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTitle requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
-	}
-	return oldValue.Title, nil
-}
-
-// ResetTitle resets all changes to the "title" field.
-func (m *CmsPageMutation) ResetTitle() {
-	m.title = nil
-}
-
-// SetSlug sets the "slug" field.
-func (m *CmsPageMutation) SetSlug(s string) {
-	m.slug = &s
-}
-
-// Slug returns the value of the "slug" field in the mutation.
-func (m *CmsPageMutation) Slug() (r string, exists bool) {
-	v := m.slug
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSlug returns the old "slug" field's value of the CmsPage entity.
-// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPageMutation) OldSlug(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSlug requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
-	}
-	return oldValue.Slug, nil
-}
-
-// ResetSlug resets all changes to the "slug" field.
-func (m *CmsPageMutation) ResetSlug() {
-	m.slug = nil
-}
-
-// SetBody sets the "body" field.
-func (m *CmsPageMutation) SetBody(s string) {
-	m.body = &s
-}
-
-// Body returns the value of the "body" field in the mutation.
-func (m *CmsPageMutation) Body() (r string, exists bool) {
-	v := m.body
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBody returns the old "body" field's value of the CmsPage entity.
-// If the CmsPage object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPageMutation) OldBody(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBody is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBody requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBody: %w", err)
-	}
-	return oldValue.Body, nil
-}
-
-// ResetBody resets all changes to the "body" field.
-func (m *CmsPageMutation) ResetBody() {
-	m.body = nil
-}
-
 // ClearWorkspace clears the "workspace" edge to the Workspace entity.
 func (m *CmsPageMutation) ClearWorkspace() {
 	m.clearedworkspace = true
@@ -5825,6 +5636,60 @@ func (m *CmsPageMutation) ResetDeleter() {
 	m.cleareddeleter = false
 }
 
+// AddTranslationIDs adds the "translations" edge to the CmsPageTranslation entity by ids.
+func (m *CmsPageMutation) AddTranslationIDs(ids ...int64) {
+	if m.translations == nil {
+		m.translations = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTranslations clears the "translations" edge to the CmsPageTranslation entity.
+func (m *CmsPageMutation) ClearTranslations() {
+	m.clearedtranslations = true
+}
+
+// TranslationsCleared reports if the "translations" edge to the CmsPageTranslation entity was cleared.
+func (m *CmsPageMutation) TranslationsCleared() bool {
+	return m.clearedtranslations
+}
+
+// RemoveTranslationIDs removes the "translations" edge to the CmsPageTranslation entity by IDs.
+func (m *CmsPageMutation) RemoveTranslationIDs(ids ...int64) {
+	if m.removedtranslations == nil {
+		m.removedtranslations = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.translations, ids[i])
+		m.removedtranslations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTranslations returns the removed IDs of the "translations" edge to the CmsPageTranslation entity.
+func (m *CmsPageMutation) RemovedTranslationsIDs() (ids []int64) {
+	for id := range m.removedtranslations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TranslationsIDs returns the "translations" edge IDs in the mutation.
+func (m *CmsPageMutation) TranslationsIDs() (ids []int64) {
+	for id := range m.translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTranslations resets all changes to the "translations" edge.
+func (m *CmsPageMutation) ResetTranslations() {
+	m.translations = nil
+	m.clearedtranslations = false
+	m.removedtranslations = nil
+}
+
 // Where appends a list predicates to the CmsPageMutation builder.
 func (m *CmsPageMutation) Where(ps ...predicate.CmsPage) {
 	m.predicates = append(m.predicates, ps...)
@@ -5859,7 +5724,7 @@ func (m *CmsPageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CmsPageMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 7)
 	if m.workspace != nil {
 		fields = append(fields, cmspage.FieldWorkspaceID)
 	}
@@ -5880,21 +5745,6 @@ func (m *CmsPageMutation) Fields() []string {
 	}
 	if m.deleter != nil {
 		fields = append(fields, cmspage.FieldDeletedByID)
-	}
-	if m.status != nil {
-		fields = append(fields, cmspage.FieldStatus)
-	}
-	if m.publish_at != nil {
-		fields = append(fields, cmspage.FieldPublishAt)
-	}
-	if m.title != nil {
-		fields = append(fields, cmspage.FieldTitle)
-	}
-	if m.slug != nil {
-		fields = append(fields, cmspage.FieldSlug)
-	}
-	if m.body != nil {
-		fields = append(fields, cmspage.FieldBody)
 	}
 	return fields
 }
@@ -5918,16 +5768,6 @@ func (m *CmsPageMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedAt()
 	case cmspage.FieldDeletedByID:
 		return m.DeletedByID()
-	case cmspage.FieldStatus:
-		return m.Status()
-	case cmspage.FieldPublishAt:
-		return m.PublishAt()
-	case cmspage.FieldTitle:
-		return m.Title()
-	case cmspage.FieldSlug:
-		return m.Slug()
-	case cmspage.FieldBody:
-		return m.Body()
 	}
 	return nil, false
 }
@@ -5951,16 +5791,6 @@ func (m *CmsPageMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDeletedAt(ctx)
 	case cmspage.FieldDeletedByID:
 		return m.OldDeletedByID(ctx)
-	case cmspage.FieldStatus:
-		return m.OldStatus(ctx)
-	case cmspage.FieldPublishAt:
-		return m.OldPublishAt(ctx)
-	case cmspage.FieldTitle:
-		return m.OldTitle(ctx)
-	case cmspage.FieldSlug:
-		return m.OldSlug(ctx)
-	case cmspage.FieldBody:
-		return m.OldBody(ctx)
 	}
 	return nil, fmt.Errorf("unknown CmsPage field %s", name)
 }
@@ -6019,41 +5849,6 @@ func (m *CmsPageMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDeletedByID(v)
 		return nil
-	case cmspage.FieldStatus:
-		v, ok := value.(cmspage.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case cmspage.FieldPublishAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPublishAt(v)
-		return nil
-	case cmspage.FieldTitle:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTitle(v)
-		return nil
-	case cmspage.FieldSlug:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSlug(v)
-		return nil
-	case cmspage.FieldBody:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBody(v)
-		return nil
 	}
 	return fmt.Errorf("unknown CmsPage field %s", name)
 }
@@ -6093,9 +5888,6 @@ func (m *CmsPageMutation) ClearedFields() []string {
 	if m.FieldCleared(cmspage.FieldDeletedByID) {
 		fields = append(fields, cmspage.FieldDeletedByID)
 	}
-	if m.FieldCleared(cmspage.FieldPublishAt) {
-		fields = append(fields, cmspage.FieldPublishAt)
-	}
 	return fields
 }
 
@@ -6115,9 +5907,6 @@ func (m *CmsPageMutation) ClearField(name string) error {
 		return nil
 	case cmspage.FieldDeletedByID:
 		m.ClearDeletedByID()
-		return nil
-	case cmspage.FieldPublishAt:
-		m.ClearPublishAt()
 		return nil
 	}
 	return fmt.Errorf("unknown CmsPage nullable field %s", name)
@@ -6148,28 +5937,13 @@ func (m *CmsPageMutation) ResetField(name string) error {
 	case cmspage.FieldDeletedByID:
 		m.ResetDeletedByID()
 		return nil
-	case cmspage.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case cmspage.FieldPublishAt:
-		m.ResetPublishAt()
-		return nil
-	case cmspage.FieldTitle:
-		m.ResetTitle()
-		return nil
-	case cmspage.FieldSlug:
-		m.ResetSlug()
-		return nil
-	case cmspage.FieldBody:
-		m.ResetBody()
-		return nil
 	}
 	return fmt.Errorf("unknown CmsPage field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CmsPageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.workspace != nil {
 		edges = append(edges, cmspage.EdgeWorkspace)
 	}
@@ -6181,6 +5955,9 @@ func (m *CmsPageMutation) AddedEdges() []string {
 	}
 	if m.deleter != nil {
 		edges = append(edges, cmspage.EdgeDeleter)
+	}
+	if m.translations != nil {
+		edges = append(edges, cmspage.EdgeTranslations)
 	}
 	return edges
 }
@@ -6205,25 +5982,42 @@ func (m *CmsPageMutation) AddedIDs(name string) []ent.Value {
 		if id := m.deleter; id != nil {
 			return []ent.Value{*id}
 		}
+	case cmspage.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.translations))
+		for id := range m.translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CmsPageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
+	if m.removedtranslations != nil {
+		edges = append(edges, cmspage.EdgeTranslations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CmsPageMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case cmspage.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.removedtranslations))
+		for id := range m.removedtranslations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CmsPageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedworkspace {
 		edges = append(edges, cmspage.EdgeWorkspace)
 	}
@@ -6235,6 +6029,9 @@ func (m *CmsPageMutation) ClearedEdges() []string {
 	}
 	if m.cleareddeleter {
 		edges = append(edges, cmspage.EdgeDeleter)
+	}
+	if m.clearedtranslations {
+		edges = append(edges, cmspage.EdgeTranslations)
 	}
 	return edges
 }
@@ -6251,6 +6048,8 @@ func (m *CmsPageMutation) EdgeCleared(name string) bool {
 		return m.clearedupdater
 	case cmspage.EdgeDeleter:
 		return m.cleareddeleter
+	case cmspage.EdgeTranslations:
+		return m.clearedtranslations
 	}
 	return false
 }
@@ -6291,39 +6090,1413 @@ func (m *CmsPageMutation) ResetEdge(name string) error {
 	case cmspage.EdgeDeleter:
 		m.ResetDeleter()
 		return nil
+	case cmspage.EdgeTranslations:
+		m.ResetTranslations()
+		return nil
 	}
 	return fmt.Errorf("unknown CmsPage edge %s", name)
+}
+
+// CmsPageTranslationMutation represents an operation that mutates the CmsPageTranslation nodes in the graph.
+type CmsPageTranslationMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int64
+	created_at       *time.Time
+	updated_at       *time.Time
+	deleted_at       *time.Time
+	status           *cmspagetranslation.Status
+	publish_at       *time.Time
+	locale           *string
+	title            *string
+	slug             *string
+	body             *string
+	clearedFields    map[string]struct{}
+	workspace        *int64
+	clearedworkspace bool
+	creator          *int64
+	clearedcreator   bool
+	updater          *int64
+	clearedupdater   bool
+	deleter          *int64
+	cleareddeleter   bool
+	page             *int64
+	clearedpage      bool
+	done             bool
+	oldValue         func(context.Context) (*CmsPageTranslation, error)
+	predicates       []predicate.CmsPageTranslation
+}
+
+var _ ent.Mutation = (*CmsPageTranslationMutation)(nil)
+
+// cmspagetranslationOption allows management of the mutation configuration using functional options.
+type cmspagetranslationOption func(*CmsPageTranslationMutation)
+
+// newCmsPageTranslationMutation creates new mutation for the CmsPageTranslation entity.
+func newCmsPageTranslationMutation(c config, op Op, opts ...cmspagetranslationOption) *CmsPageTranslationMutation {
+	m := &CmsPageTranslationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCmsPageTranslation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCmsPageTranslationID sets the ID field of the mutation.
+func withCmsPageTranslationID(id int64) cmspagetranslationOption {
+	return func(m *CmsPageTranslationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CmsPageTranslation
+		)
+		m.oldValue = func(ctx context.Context) (*CmsPageTranslation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CmsPageTranslation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCmsPageTranslation sets the old CmsPageTranslation of the mutation.
+func withCmsPageTranslation(node *CmsPageTranslation) cmspagetranslationOption {
+	return func(m *CmsPageTranslationMutation) {
+		m.oldValue = func(context.Context) (*CmsPageTranslation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CmsPageTranslationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CmsPageTranslationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CmsPageTranslation entities.
+func (m *CmsPageTranslationMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CmsPageTranslationMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CmsPageTranslationMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CmsPageTranslation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *CmsPageTranslationMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *CmsPageTranslationMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *CmsPageTranslationMutation) ResetWorkspaceID() {
+	m.workspace = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *CmsPageTranslationMutation) SetCreatedBy(i int64) {
+	m.creator = &i
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *CmsPageTranslationMutation) CreatedBy() (r int64, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *CmsPageTranslationMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *CmsPageTranslationMutation) SetUpdatedBy(i int64) {
+	m.updater = &i
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *CmsPageTranslationMutation) UpdatedBy() (r int64, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *CmsPageTranslationMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CmsPageTranslationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CmsPageTranslationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CmsPageTranslationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CmsPageTranslationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CmsPageTranslationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CmsPageTranslationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CmsPageTranslationMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CmsPageTranslationMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CmsPageTranslationMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[cmspagetranslation.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CmsPageTranslationMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[cmspagetranslation.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CmsPageTranslationMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, cmspagetranslation.FieldDeletedAt)
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (m *CmsPageTranslationMutation) SetDeletedByID(i int64) {
+	m.deleter = &i
+}
+
+// DeletedByID returns the value of the "deleted_by_id" field in the mutation.
+func (m *CmsPageTranslationMutation) DeletedByID() (r int64, exists bool) {
+	v := m.deleter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedByID returns the old "deleted_by_id" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldDeletedByID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedByID: %w", err)
+	}
+	return oldValue.DeletedByID, nil
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (m *CmsPageTranslationMutation) ClearDeletedByID() {
+	m.deleter = nil
+	m.clearedFields[cmspagetranslation.FieldDeletedByID] = struct{}{}
+}
+
+// DeletedByIDCleared returns if the "deleted_by_id" field was cleared in this mutation.
+func (m *CmsPageTranslationMutation) DeletedByIDCleared() bool {
+	_, ok := m.clearedFields[cmspagetranslation.FieldDeletedByID]
+	return ok
+}
+
+// ResetDeletedByID resets all changes to the "deleted_by_id" field.
+func (m *CmsPageTranslationMutation) ResetDeletedByID() {
+	m.deleter = nil
+	delete(m.clearedFields, cmspagetranslation.FieldDeletedByID)
+}
+
+// SetStatus sets the "status" field.
+func (m *CmsPageTranslationMutation) SetStatus(c cmspagetranslation.Status) {
+	m.status = &c
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *CmsPageTranslationMutation) Status() (r cmspagetranslation.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldStatus(ctx context.Context) (v cmspagetranslation.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *CmsPageTranslationMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetPublishAt sets the "publish_at" field.
+func (m *CmsPageTranslationMutation) SetPublishAt(t time.Time) {
+	m.publish_at = &t
+}
+
+// PublishAt returns the value of the "publish_at" field in the mutation.
+func (m *CmsPageTranslationMutation) PublishAt() (r time.Time, exists bool) {
+	v := m.publish_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishAt returns the old "publish_at" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldPublishAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishAt: %w", err)
+	}
+	return oldValue.PublishAt, nil
+}
+
+// ClearPublishAt clears the value of the "publish_at" field.
+func (m *CmsPageTranslationMutation) ClearPublishAt() {
+	m.publish_at = nil
+	m.clearedFields[cmspagetranslation.FieldPublishAt] = struct{}{}
+}
+
+// PublishAtCleared returns if the "publish_at" field was cleared in this mutation.
+func (m *CmsPageTranslationMutation) PublishAtCleared() bool {
+	_, ok := m.clearedFields[cmspagetranslation.FieldPublishAt]
+	return ok
+}
+
+// ResetPublishAt resets all changes to the "publish_at" field.
+func (m *CmsPageTranslationMutation) ResetPublishAt() {
+	m.publish_at = nil
+	delete(m.clearedFields, cmspagetranslation.FieldPublishAt)
+}
+
+// SetPageID sets the "page_id" field.
+func (m *CmsPageTranslationMutation) SetPageID(i int64) {
+	m.page = &i
+}
+
+// PageID returns the value of the "page_id" field in the mutation.
+func (m *CmsPageTranslationMutation) PageID() (r int64, exists bool) {
+	v := m.page
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPageID returns the old "page_id" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldPageID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPageID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPageID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPageID: %w", err)
+	}
+	return oldValue.PageID, nil
+}
+
+// ResetPageID resets all changes to the "page_id" field.
+func (m *CmsPageTranslationMutation) ResetPageID() {
+	m.page = nil
+}
+
+// SetLocale sets the "locale" field.
+func (m *CmsPageTranslationMutation) SetLocale(s string) {
+	m.locale = &s
+}
+
+// Locale returns the value of the "locale" field in the mutation.
+func (m *CmsPageTranslationMutation) Locale() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocale returns the old "locale" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocale: %w", err)
+	}
+	return oldValue.Locale, nil
+}
+
+// ResetLocale resets all changes to the "locale" field.
+func (m *CmsPageTranslationMutation) ResetLocale() {
+	m.locale = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *CmsPageTranslationMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *CmsPageTranslationMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *CmsPageTranslationMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetSlug sets the "slug" field.
+func (m *CmsPageTranslationMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *CmsPageTranslationMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *CmsPageTranslationMutation) ResetSlug() {
+	m.slug = nil
+}
+
+// SetBody sets the "body" field.
+func (m *CmsPageTranslationMutation) SetBody(s string) {
+	m.body = &s
+}
+
+// Body returns the value of the "body" field in the mutation.
+func (m *CmsPageTranslationMutation) Body() (r string, exists bool) {
+	v := m.body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBody returns the old "body" field's value of the CmsPageTranslation entity.
+// If the CmsPageTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPageTranslationMutation) OldBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBody: %w", err)
+	}
+	return oldValue.Body, nil
+}
+
+// ResetBody resets all changes to the "body" field.
+func (m *CmsPageTranslationMutation) ResetBody() {
+	m.body = nil
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *CmsPageTranslationMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[cmspagetranslation.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *CmsPageTranslationMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *CmsPageTranslationMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *CmsPageTranslationMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *CmsPageTranslationMutation) SetCreatorID(id int64) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *CmsPageTranslationMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[cmspagetranslation.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *CmsPageTranslationMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *CmsPageTranslationMutation) CreatorID() (id int64, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *CmsPageTranslationMutation) CreatorIDs() (ids []int64) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *CmsPageTranslationMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *CmsPageTranslationMutation) SetUpdaterID(id int64) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *CmsPageTranslationMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[cmspagetranslation.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *CmsPageTranslationMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *CmsPageTranslationMutation) UpdaterID() (id int64, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *CmsPageTranslationMutation) UpdaterIDs() (ids []int64) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *CmsPageTranslationMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// SetDeleterID sets the "deleter" edge to the User entity by id.
+func (m *CmsPageTranslationMutation) SetDeleterID(id int64) {
+	m.deleter = &id
+}
+
+// ClearDeleter clears the "deleter" edge to the User entity.
+func (m *CmsPageTranslationMutation) ClearDeleter() {
+	m.cleareddeleter = true
+	m.clearedFields[cmspagetranslation.FieldDeletedByID] = struct{}{}
+}
+
+// DeleterCleared reports if the "deleter" edge to the User entity was cleared.
+func (m *CmsPageTranslationMutation) DeleterCleared() bool {
+	return m.DeletedByIDCleared() || m.cleareddeleter
+}
+
+// DeleterID returns the "deleter" edge ID in the mutation.
+func (m *CmsPageTranslationMutation) DeleterID() (id int64, exists bool) {
+	if m.deleter != nil {
+		return *m.deleter, true
+	}
+	return
+}
+
+// DeleterIDs returns the "deleter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeleterID instead. It exists only for internal usage by the builders.
+func (m *CmsPageTranslationMutation) DeleterIDs() (ids []int64) {
+	if id := m.deleter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeleter resets all changes to the "deleter" edge.
+func (m *CmsPageTranslationMutation) ResetDeleter() {
+	m.deleter = nil
+	m.cleareddeleter = false
+}
+
+// ClearPage clears the "page" edge to the CmsPage entity.
+func (m *CmsPageTranslationMutation) ClearPage() {
+	m.clearedpage = true
+	m.clearedFields[cmspagetranslation.FieldPageID] = struct{}{}
+}
+
+// PageCleared reports if the "page" edge to the CmsPage entity was cleared.
+func (m *CmsPageTranslationMutation) PageCleared() bool {
+	return m.clearedpage
+}
+
+// PageIDs returns the "page" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PageID instead. It exists only for internal usage by the builders.
+func (m *CmsPageTranslationMutation) PageIDs() (ids []int64) {
+	if id := m.page; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPage resets all changes to the "page" edge.
+func (m *CmsPageTranslationMutation) ResetPage() {
+	m.page = nil
+	m.clearedpage = false
+}
+
+// Where appends a list predicates to the CmsPageTranslationMutation builder.
+func (m *CmsPageTranslationMutation) Where(ps ...predicate.CmsPageTranslation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CmsPageTranslationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CmsPageTranslationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CmsPageTranslation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CmsPageTranslationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CmsPageTranslationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CmsPageTranslation).
+func (m *CmsPageTranslationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CmsPageTranslationMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.workspace != nil {
+		fields = append(fields, cmspagetranslation.FieldWorkspaceID)
+	}
+	if m.creator != nil {
+		fields = append(fields, cmspagetranslation.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, cmspagetranslation.FieldUpdatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, cmspagetranslation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, cmspagetranslation.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, cmspagetranslation.FieldDeletedAt)
+	}
+	if m.deleter != nil {
+		fields = append(fields, cmspagetranslation.FieldDeletedByID)
+	}
+	if m.status != nil {
+		fields = append(fields, cmspagetranslation.FieldStatus)
+	}
+	if m.publish_at != nil {
+		fields = append(fields, cmspagetranslation.FieldPublishAt)
+	}
+	if m.page != nil {
+		fields = append(fields, cmspagetranslation.FieldPageID)
+	}
+	if m.locale != nil {
+		fields = append(fields, cmspagetranslation.FieldLocale)
+	}
+	if m.title != nil {
+		fields = append(fields, cmspagetranslation.FieldTitle)
+	}
+	if m.slug != nil {
+		fields = append(fields, cmspagetranslation.FieldSlug)
+	}
+	if m.body != nil {
+		fields = append(fields, cmspagetranslation.FieldBody)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CmsPageTranslationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case cmspagetranslation.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case cmspagetranslation.FieldCreatedBy:
+		return m.CreatedBy()
+	case cmspagetranslation.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case cmspagetranslation.FieldCreatedAt:
+		return m.CreatedAt()
+	case cmspagetranslation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case cmspagetranslation.FieldDeletedAt:
+		return m.DeletedAt()
+	case cmspagetranslation.FieldDeletedByID:
+		return m.DeletedByID()
+	case cmspagetranslation.FieldStatus:
+		return m.Status()
+	case cmspagetranslation.FieldPublishAt:
+		return m.PublishAt()
+	case cmspagetranslation.FieldPageID:
+		return m.PageID()
+	case cmspagetranslation.FieldLocale:
+		return m.Locale()
+	case cmspagetranslation.FieldTitle:
+		return m.Title()
+	case cmspagetranslation.FieldSlug:
+		return m.Slug()
+	case cmspagetranslation.FieldBody:
+		return m.Body()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CmsPageTranslationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case cmspagetranslation.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case cmspagetranslation.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case cmspagetranslation.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case cmspagetranslation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case cmspagetranslation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case cmspagetranslation.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case cmspagetranslation.FieldDeletedByID:
+		return m.OldDeletedByID(ctx)
+	case cmspagetranslation.FieldStatus:
+		return m.OldStatus(ctx)
+	case cmspagetranslation.FieldPublishAt:
+		return m.OldPublishAt(ctx)
+	case cmspagetranslation.FieldPageID:
+		return m.OldPageID(ctx)
+	case cmspagetranslation.FieldLocale:
+		return m.OldLocale(ctx)
+	case cmspagetranslation.FieldTitle:
+		return m.OldTitle(ctx)
+	case cmspagetranslation.FieldSlug:
+		return m.OldSlug(ctx)
+	case cmspagetranslation.FieldBody:
+		return m.OldBody(ctx)
+	}
+	return nil, fmt.Errorf("unknown CmsPageTranslation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsPageTranslationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case cmspagetranslation.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case cmspagetranslation.FieldCreatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case cmspagetranslation.FieldUpdatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case cmspagetranslation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case cmspagetranslation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case cmspagetranslation.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case cmspagetranslation.FieldDeletedByID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedByID(v)
+		return nil
+	case cmspagetranslation.FieldStatus:
+		v, ok := value.(cmspagetranslation.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case cmspagetranslation.FieldPublishAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishAt(v)
+		return nil
+	case cmspagetranslation.FieldPageID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPageID(v)
+		return nil
+	case cmspagetranslation.FieldLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocale(v)
+		return nil
+	case cmspagetranslation.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case cmspagetranslation.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case cmspagetranslation.FieldBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBody(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPageTranslation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CmsPageTranslationMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CmsPageTranslationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsPageTranslationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CmsPageTranslation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CmsPageTranslationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(cmspagetranslation.FieldDeletedAt) {
+		fields = append(fields, cmspagetranslation.FieldDeletedAt)
+	}
+	if m.FieldCleared(cmspagetranslation.FieldDeletedByID) {
+		fields = append(fields, cmspagetranslation.FieldDeletedByID)
+	}
+	if m.FieldCleared(cmspagetranslation.FieldPublishAt) {
+		fields = append(fields, cmspagetranslation.FieldPublishAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CmsPageTranslationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CmsPageTranslationMutation) ClearField(name string) error {
+	switch name {
+	case cmspagetranslation.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case cmspagetranslation.FieldDeletedByID:
+		m.ClearDeletedByID()
+		return nil
+	case cmspagetranslation.FieldPublishAt:
+		m.ClearPublishAt()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPageTranslation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CmsPageTranslationMutation) ResetField(name string) error {
+	switch name {
+	case cmspagetranslation.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case cmspagetranslation.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case cmspagetranslation.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case cmspagetranslation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case cmspagetranslation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case cmspagetranslation.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case cmspagetranslation.FieldDeletedByID:
+		m.ResetDeletedByID()
+		return nil
+	case cmspagetranslation.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case cmspagetranslation.FieldPublishAt:
+		m.ResetPublishAt()
+		return nil
+	case cmspagetranslation.FieldPageID:
+		m.ResetPageID()
+		return nil
+	case cmspagetranslation.FieldLocale:
+		m.ResetLocale()
+		return nil
+	case cmspagetranslation.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case cmspagetranslation.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case cmspagetranslation.FieldBody:
+		m.ResetBody()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPageTranslation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CmsPageTranslationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.workspace != nil {
+		edges = append(edges, cmspagetranslation.EdgeWorkspace)
+	}
+	if m.creator != nil {
+		edges = append(edges, cmspagetranslation.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, cmspagetranslation.EdgeUpdater)
+	}
+	if m.deleter != nil {
+		edges = append(edges, cmspagetranslation.EdgeDeleter)
+	}
+	if m.page != nil {
+		edges = append(edges, cmspagetranslation.EdgePage)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CmsPageTranslationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case cmspagetranslation.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspagetranslation.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspagetranslation.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspagetranslation.EdgeDeleter:
+		if id := m.deleter; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmspagetranslation.EdgePage:
+		if id := m.page; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CmsPageTranslationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 5)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CmsPageTranslationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CmsPageTranslationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.clearedworkspace {
+		edges = append(edges, cmspagetranslation.EdgeWorkspace)
+	}
+	if m.clearedcreator {
+		edges = append(edges, cmspagetranslation.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, cmspagetranslation.EdgeUpdater)
+	}
+	if m.cleareddeleter {
+		edges = append(edges, cmspagetranslation.EdgeDeleter)
+	}
+	if m.clearedpage {
+		edges = append(edges, cmspagetranslation.EdgePage)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CmsPageTranslationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case cmspagetranslation.EdgeWorkspace:
+		return m.clearedworkspace
+	case cmspagetranslation.EdgeCreator:
+		return m.clearedcreator
+	case cmspagetranslation.EdgeUpdater:
+		return m.clearedupdater
+	case cmspagetranslation.EdgeDeleter:
+		return m.cleareddeleter
+	case cmspagetranslation.EdgePage:
+		return m.clearedpage
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CmsPageTranslationMutation) ClearEdge(name string) error {
+	switch name {
+	case cmspagetranslation.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
+	case cmspagetranslation.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case cmspagetranslation.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	case cmspagetranslation.EdgeDeleter:
+		m.ClearDeleter()
+		return nil
+	case cmspagetranslation.EdgePage:
+		m.ClearPage()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPageTranslation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CmsPageTranslationMutation) ResetEdge(name string) error {
+	switch name {
+	case cmspagetranslation.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case cmspagetranslation.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case cmspagetranslation.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	case cmspagetranslation.EdgeDeleter:
+		m.ResetDeleter()
+		return nil
+	case cmspagetranslation.EdgePage:
+		m.ResetPage()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPageTranslation edge %s", name)
 }
 
 // CmsPostMutation represents an operation that mutates the CmsPost nodes in the graph.
 type CmsPostMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int64
-	created_at         *time.Time
-	updated_at         *time.Time
-	deleted_at         *time.Time
-	status             *cmspost.Status
-	publish_at         *time.Time
-	title              *string
-	slug               *string
-	excerpt            *string
-	body               *string
-	clearedFields      map[string]struct{}
-	workspace          *int64
-	clearedworkspace   bool
-	creator            *int64
-	clearedcreator     bool
-	updater            *int64
-	clearedupdater     bool
-	deleter            *int64
-	cleareddeleter     bool
-	cover_media        *int64
-	clearedcover_media bool
-	done               bool
-	oldValue           func(context.Context) (*CmsPost, error)
-	predicates         []predicate.CmsPost
+	op                  Op
+	typ                 string
+	id                  *int64
+	created_at          *time.Time
+	updated_at          *time.Time
+	deleted_at          *time.Time
+	clearedFields       map[string]struct{}
+	workspace           *int64
+	clearedworkspace    bool
+	creator             *int64
+	clearedcreator      bool
+	updater             *int64
+	clearedupdater      bool
+	deleter             *int64
+	cleareddeleter      bool
+	cover_media         *int64
+	clearedcover_media  bool
+	translations        map[int64]struct{}
+	removedtranslations map[int64]struct{}
+	clearedtranslations bool
+	done                bool
+	oldValue            func(context.Context) (*CmsPost, error)
+	predicates          []predicate.CmsPost
 }
 
 var _ ent.Mutation = (*CmsPostMutation)(nil)
@@ -6708,248 +7881,6 @@ func (m *CmsPostMutation) ResetDeletedByID() {
 	delete(m.clearedFields, cmspost.FieldDeletedByID)
 }
 
-// SetStatus sets the "status" field.
-func (m *CmsPostMutation) SetStatus(c cmspost.Status) {
-	m.status = &c
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *CmsPostMutation) Status() (r cmspost.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the CmsPost entity.
-// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPostMutation) OldStatus(ctx context.Context) (v cmspost.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *CmsPostMutation) ResetStatus() {
-	m.status = nil
-}
-
-// SetPublishAt sets the "publish_at" field.
-func (m *CmsPostMutation) SetPublishAt(t time.Time) {
-	m.publish_at = &t
-}
-
-// PublishAt returns the value of the "publish_at" field in the mutation.
-func (m *CmsPostMutation) PublishAt() (r time.Time, exists bool) {
-	v := m.publish_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPublishAt returns the old "publish_at" field's value of the CmsPost entity.
-// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPostMutation) OldPublishAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPublishAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPublishAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPublishAt: %w", err)
-	}
-	return oldValue.PublishAt, nil
-}
-
-// ClearPublishAt clears the value of the "publish_at" field.
-func (m *CmsPostMutation) ClearPublishAt() {
-	m.publish_at = nil
-	m.clearedFields[cmspost.FieldPublishAt] = struct{}{}
-}
-
-// PublishAtCleared returns if the "publish_at" field was cleared in this mutation.
-func (m *CmsPostMutation) PublishAtCleared() bool {
-	_, ok := m.clearedFields[cmspost.FieldPublishAt]
-	return ok
-}
-
-// ResetPublishAt resets all changes to the "publish_at" field.
-func (m *CmsPostMutation) ResetPublishAt() {
-	m.publish_at = nil
-	delete(m.clearedFields, cmspost.FieldPublishAt)
-}
-
-// SetTitle sets the "title" field.
-func (m *CmsPostMutation) SetTitle(s string) {
-	m.title = &s
-}
-
-// Title returns the value of the "title" field in the mutation.
-func (m *CmsPostMutation) Title() (r string, exists bool) {
-	v := m.title
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTitle returns the old "title" field's value of the CmsPost entity.
-// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPostMutation) OldTitle(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTitle requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
-	}
-	return oldValue.Title, nil
-}
-
-// ResetTitle resets all changes to the "title" field.
-func (m *CmsPostMutation) ResetTitle() {
-	m.title = nil
-}
-
-// SetSlug sets the "slug" field.
-func (m *CmsPostMutation) SetSlug(s string) {
-	m.slug = &s
-}
-
-// Slug returns the value of the "slug" field in the mutation.
-func (m *CmsPostMutation) Slug() (r string, exists bool) {
-	v := m.slug
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSlug returns the old "slug" field's value of the CmsPost entity.
-// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPostMutation) OldSlug(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSlug requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
-	}
-	return oldValue.Slug, nil
-}
-
-// ResetSlug resets all changes to the "slug" field.
-func (m *CmsPostMutation) ResetSlug() {
-	m.slug = nil
-}
-
-// SetExcerpt sets the "excerpt" field.
-func (m *CmsPostMutation) SetExcerpt(s string) {
-	m.excerpt = &s
-}
-
-// Excerpt returns the value of the "excerpt" field in the mutation.
-func (m *CmsPostMutation) Excerpt() (r string, exists bool) {
-	v := m.excerpt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExcerpt returns the old "excerpt" field's value of the CmsPost entity.
-// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPostMutation) OldExcerpt(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExcerpt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExcerpt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExcerpt: %w", err)
-	}
-	return oldValue.Excerpt, nil
-}
-
-// ClearExcerpt clears the value of the "excerpt" field.
-func (m *CmsPostMutation) ClearExcerpt() {
-	m.excerpt = nil
-	m.clearedFields[cmspost.FieldExcerpt] = struct{}{}
-}
-
-// ExcerptCleared returns if the "excerpt" field was cleared in this mutation.
-func (m *CmsPostMutation) ExcerptCleared() bool {
-	_, ok := m.clearedFields[cmspost.FieldExcerpt]
-	return ok
-}
-
-// ResetExcerpt resets all changes to the "excerpt" field.
-func (m *CmsPostMutation) ResetExcerpt() {
-	m.excerpt = nil
-	delete(m.clearedFields, cmspost.FieldExcerpt)
-}
-
-// SetBody sets the "body" field.
-func (m *CmsPostMutation) SetBody(s string) {
-	m.body = &s
-}
-
-// Body returns the value of the "body" field in the mutation.
-func (m *CmsPostMutation) Body() (r string, exists bool) {
-	v := m.body
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBody returns the old "body" field's value of the CmsPost entity.
-// If the CmsPost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CmsPostMutation) OldBody(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBody is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBody requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBody: %w", err)
-	}
-	return oldValue.Body, nil
-}
-
-// ResetBody resets all changes to the "body" field.
-func (m *CmsPostMutation) ResetBody() {
-	m.body = nil
-}
-
 // SetCoverMediaID sets the "cover_media_id" field.
 func (m *CmsPostMutation) SetCoverMediaID(i int64) {
 	m.cover_media = &i
@@ -7173,6 +8104,60 @@ func (m *CmsPostMutation) ResetCoverMedia() {
 	m.clearedcover_media = false
 }
 
+// AddTranslationIDs adds the "translations" edge to the CmsPostTranslation entity by ids.
+func (m *CmsPostMutation) AddTranslationIDs(ids ...int64) {
+	if m.translations == nil {
+		m.translations = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTranslations clears the "translations" edge to the CmsPostTranslation entity.
+func (m *CmsPostMutation) ClearTranslations() {
+	m.clearedtranslations = true
+}
+
+// TranslationsCleared reports if the "translations" edge to the CmsPostTranslation entity was cleared.
+func (m *CmsPostMutation) TranslationsCleared() bool {
+	return m.clearedtranslations
+}
+
+// RemoveTranslationIDs removes the "translations" edge to the CmsPostTranslation entity by IDs.
+func (m *CmsPostMutation) RemoveTranslationIDs(ids ...int64) {
+	if m.removedtranslations == nil {
+		m.removedtranslations = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.translations, ids[i])
+		m.removedtranslations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTranslations returns the removed IDs of the "translations" edge to the CmsPostTranslation entity.
+func (m *CmsPostMutation) RemovedTranslationsIDs() (ids []int64) {
+	for id := range m.removedtranslations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TranslationsIDs returns the "translations" edge IDs in the mutation.
+func (m *CmsPostMutation) TranslationsIDs() (ids []int64) {
+	for id := range m.translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTranslations resets all changes to the "translations" edge.
+func (m *CmsPostMutation) ResetTranslations() {
+	m.translations = nil
+	m.clearedtranslations = false
+	m.removedtranslations = nil
+}
+
 // Where appends a list predicates to the CmsPostMutation builder.
 func (m *CmsPostMutation) Where(ps ...predicate.CmsPost) {
 	m.predicates = append(m.predicates, ps...)
@@ -7207,7 +8192,7 @@ func (m *CmsPostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CmsPostMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 8)
 	if m.workspace != nil {
 		fields = append(fields, cmspost.FieldWorkspaceID)
 	}
@@ -7228,24 +8213,6 @@ func (m *CmsPostMutation) Fields() []string {
 	}
 	if m.deleter != nil {
 		fields = append(fields, cmspost.FieldDeletedByID)
-	}
-	if m.status != nil {
-		fields = append(fields, cmspost.FieldStatus)
-	}
-	if m.publish_at != nil {
-		fields = append(fields, cmspost.FieldPublishAt)
-	}
-	if m.title != nil {
-		fields = append(fields, cmspost.FieldTitle)
-	}
-	if m.slug != nil {
-		fields = append(fields, cmspost.FieldSlug)
-	}
-	if m.excerpt != nil {
-		fields = append(fields, cmspost.FieldExcerpt)
-	}
-	if m.body != nil {
-		fields = append(fields, cmspost.FieldBody)
 	}
 	if m.cover_media != nil {
 		fields = append(fields, cmspost.FieldCoverMediaID)
@@ -7272,18 +8239,6 @@ func (m *CmsPostMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedAt()
 	case cmspost.FieldDeletedByID:
 		return m.DeletedByID()
-	case cmspost.FieldStatus:
-		return m.Status()
-	case cmspost.FieldPublishAt:
-		return m.PublishAt()
-	case cmspost.FieldTitle:
-		return m.Title()
-	case cmspost.FieldSlug:
-		return m.Slug()
-	case cmspost.FieldExcerpt:
-		return m.Excerpt()
-	case cmspost.FieldBody:
-		return m.Body()
 	case cmspost.FieldCoverMediaID:
 		return m.CoverMediaID()
 	}
@@ -7309,18 +8264,6 @@ func (m *CmsPostMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDeletedAt(ctx)
 	case cmspost.FieldDeletedByID:
 		return m.OldDeletedByID(ctx)
-	case cmspost.FieldStatus:
-		return m.OldStatus(ctx)
-	case cmspost.FieldPublishAt:
-		return m.OldPublishAt(ctx)
-	case cmspost.FieldTitle:
-		return m.OldTitle(ctx)
-	case cmspost.FieldSlug:
-		return m.OldSlug(ctx)
-	case cmspost.FieldExcerpt:
-		return m.OldExcerpt(ctx)
-	case cmspost.FieldBody:
-		return m.OldBody(ctx)
 	case cmspost.FieldCoverMediaID:
 		return m.OldCoverMediaID(ctx)
 	}
@@ -7381,48 +8324,6 @@ func (m *CmsPostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDeletedByID(v)
 		return nil
-	case cmspost.FieldStatus:
-		v, ok := value.(cmspost.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case cmspost.FieldPublishAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPublishAt(v)
-		return nil
-	case cmspost.FieldTitle:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTitle(v)
-		return nil
-	case cmspost.FieldSlug:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSlug(v)
-		return nil
-	case cmspost.FieldExcerpt:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExcerpt(v)
-		return nil
-	case cmspost.FieldBody:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBody(v)
-		return nil
 	case cmspost.FieldCoverMediaID:
 		v, ok := value.(int64)
 		if !ok {
@@ -7469,12 +8370,6 @@ func (m *CmsPostMutation) ClearedFields() []string {
 	if m.FieldCleared(cmspost.FieldDeletedByID) {
 		fields = append(fields, cmspost.FieldDeletedByID)
 	}
-	if m.FieldCleared(cmspost.FieldPublishAt) {
-		fields = append(fields, cmspost.FieldPublishAt)
-	}
-	if m.FieldCleared(cmspost.FieldExcerpt) {
-		fields = append(fields, cmspost.FieldExcerpt)
-	}
 	if m.FieldCleared(cmspost.FieldCoverMediaID) {
 		fields = append(fields, cmspost.FieldCoverMediaID)
 	}
@@ -7497,12 +8392,6 @@ func (m *CmsPostMutation) ClearField(name string) error {
 		return nil
 	case cmspost.FieldDeletedByID:
 		m.ClearDeletedByID()
-		return nil
-	case cmspost.FieldPublishAt:
-		m.ClearPublishAt()
-		return nil
-	case cmspost.FieldExcerpt:
-		m.ClearExcerpt()
 		return nil
 	case cmspost.FieldCoverMediaID:
 		m.ClearCoverMediaID()
@@ -7536,24 +8425,6 @@ func (m *CmsPostMutation) ResetField(name string) error {
 	case cmspost.FieldDeletedByID:
 		m.ResetDeletedByID()
 		return nil
-	case cmspost.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case cmspost.FieldPublishAt:
-		m.ResetPublishAt()
-		return nil
-	case cmspost.FieldTitle:
-		m.ResetTitle()
-		return nil
-	case cmspost.FieldSlug:
-		m.ResetSlug()
-		return nil
-	case cmspost.FieldExcerpt:
-		m.ResetExcerpt()
-		return nil
-	case cmspost.FieldBody:
-		m.ResetBody()
-		return nil
 	case cmspost.FieldCoverMediaID:
 		m.ResetCoverMediaID()
 		return nil
@@ -7563,7 +8434,7 @@ func (m *CmsPostMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CmsPostMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.workspace != nil {
 		edges = append(edges, cmspost.EdgeWorkspace)
 	}
@@ -7578,6 +8449,9 @@ func (m *CmsPostMutation) AddedEdges() []string {
 	}
 	if m.cover_media != nil {
 		edges = append(edges, cmspost.EdgeCoverMedia)
+	}
+	if m.translations != nil {
+		edges = append(edges, cmspost.EdgeTranslations)
 	}
 	return edges
 }
@@ -7606,25 +8480,42 @@ func (m *CmsPostMutation) AddedIDs(name string) []ent.Value {
 		if id := m.cover_media; id != nil {
 			return []ent.Value{*id}
 		}
+	case cmspost.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.translations))
+		for id := range m.translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CmsPostMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
+	if m.removedtranslations != nil {
+		edges = append(edges, cmspost.EdgeTranslations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CmsPostMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case cmspost.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.removedtranslations))
+		for id := range m.removedtranslations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CmsPostMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedworkspace {
 		edges = append(edges, cmspost.EdgeWorkspace)
 	}
@@ -7639,6 +8530,9 @@ func (m *CmsPostMutation) ClearedEdges() []string {
 	}
 	if m.clearedcover_media {
 		edges = append(edges, cmspost.EdgeCoverMedia)
+	}
+	if m.clearedtranslations {
+		edges = append(edges, cmspost.EdgeTranslations)
 	}
 	return edges
 }
@@ -7657,6 +8551,8 @@ func (m *CmsPostMutation) EdgeCleared(name string) bool {
 		return m.cleareddeleter
 	case cmspost.EdgeCoverMedia:
 		return m.clearedcover_media
+	case cmspost.EdgeTranslations:
+		return m.clearedtranslations
 	}
 	return false
 }
@@ -7703,8 +8599,2305 @@ func (m *CmsPostMutation) ResetEdge(name string) error {
 	case cmspost.EdgeCoverMedia:
 		m.ResetCoverMedia()
 		return nil
+	case cmspost.EdgeTranslations:
+		m.ResetTranslations()
+		return nil
 	}
 	return fmt.Errorf("unknown CmsPost edge %s", name)
+}
+
+// CmsPostTranslationMutation represents an operation that mutates the CmsPostTranslation nodes in the graph.
+type CmsPostTranslationMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int64
+	created_at       *time.Time
+	updated_at       *time.Time
+	deleted_at       *time.Time
+	status           *cmsposttranslation.Status
+	publish_at       *time.Time
+	locale           *string
+	title            *string
+	slug             *string
+	excerpt          *string
+	body             *string
+	clearedFields    map[string]struct{}
+	workspace        *int64
+	clearedworkspace bool
+	creator          *int64
+	clearedcreator   bool
+	updater          *int64
+	clearedupdater   bool
+	deleter          *int64
+	cleareddeleter   bool
+	post             *int64
+	clearedpost      bool
+	done             bool
+	oldValue         func(context.Context) (*CmsPostTranslation, error)
+	predicates       []predicate.CmsPostTranslation
+}
+
+var _ ent.Mutation = (*CmsPostTranslationMutation)(nil)
+
+// cmsposttranslationOption allows management of the mutation configuration using functional options.
+type cmsposttranslationOption func(*CmsPostTranslationMutation)
+
+// newCmsPostTranslationMutation creates new mutation for the CmsPostTranslation entity.
+func newCmsPostTranslationMutation(c config, op Op, opts ...cmsposttranslationOption) *CmsPostTranslationMutation {
+	m := &CmsPostTranslationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCmsPostTranslation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCmsPostTranslationID sets the ID field of the mutation.
+func withCmsPostTranslationID(id int64) cmsposttranslationOption {
+	return func(m *CmsPostTranslationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CmsPostTranslation
+		)
+		m.oldValue = func(ctx context.Context) (*CmsPostTranslation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CmsPostTranslation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCmsPostTranslation sets the old CmsPostTranslation of the mutation.
+func withCmsPostTranslation(node *CmsPostTranslation) cmsposttranslationOption {
+	return func(m *CmsPostTranslationMutation) {
+		m.oldValue = func(context.Context) (*CmsPostTranslation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CmsPostTranslationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CmsPostTranslationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CmsPostTranslation entities.
+func (m *CmsPostTranslationMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CmsPostTranslationMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CmsPostTranslationMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CmsPostTranslation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *CmsPostTranslationMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *CmsPostTranslationMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *CmsPostTranslationMutation) ResetWorkspaceID() {
+	m.workspace = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *CmsPostTranslationMutation) SetCreatedBy(i int64) {
+	m.creator = &i
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *CmsPostTranslationMutation) CreatedBy() (r int64, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *CmsPostTranslationMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *CmsPostTranslationMutation) SetUpdatedBy(i int64) {
+	m.updater = &i
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *CmsPostTranslationMutation) UpdatedBy() (r int64, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *CmsPostTranslationMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CmsPostTranslationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CmsPostTranslationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CmsPostTranslationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CmsPostTranslationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CmsPostTranslationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CmsPostTranslationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CmsPostTranslationMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CmsPostTranslationMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CmsPostTranslationMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[cmsposttranslation.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CmsPostTranslationMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[cmsposttranslation.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CmsPostTranslationMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, cmsposttranslation.FieldDeletedAt)
+}
+
+// SetDeletedByID sets the "deleted_by_id" field.
+func (m *CmsPostTranslationMutation) SetDeletedByID(i int64) {
+	m.deleter = &i
+}
+
+// DeletedByID returns the value of the "deleted_by_id" field in the mutation.
+func (m *CmsPostTranslationMutation) DeletedByID() (r int64, exists bool) {
+	v := m.deleter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedByID returns the old "deleted_by_id" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldDeletedByID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedByID: %w", err)
+	}
+	return oldValue.DeletedByID, nil
+}
+
+// ClearDeletedByID clears the value of the "deleted_by_id" field.
+func (m *CmsPostTranslationMutation) ClearDeletedByID() {
+	m.deleter = nil
+	m.clearedFields[cmsposttranslation.FieldDeletedByID] = struct{}{}
+}
+
+// DeletedByIDCleared returns if the "deleted_by_id" field was cleared in this mutation.
+func (m *CmsPostTranslationMutation) DeletedByIDCleared() bool {
+	_, ok := m.clearedFields[cmsposttranslation.FieldDeletedByID]
+	return ok
+}
+
+// ResetDeletedByID resets all changes to the "deleted_by_id" field.
+func (m *CmsPostTranslationMutation) ResetDeletedByID() {
+	m.deleter = nil
+	delete(m.clearedFields, cmsposttranslation.FieldDeletedByID)
+}
+
+// SetStatus sets the "status" field.
+func (m *CmsPostTranslationMutation) SetStatus(c cmsposttranslation.Status) {
+	m.status = &c
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *CmsPostTranslationMutation) Status() (r cmsposttranslation.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldStatus(ctx context.Context) (v cmsposttranslation.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *CmsPostTranslationMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetPublishAt sets the "publish_at" field.
+func (m *CmsPostTranslationMutation) SetPublishAt(t time.Time) {
+	m.publish_at = &t
+}
+
+// PublishAt returns the value of the "publish_at" field in the mutation.
+func (m *CmsPostTranslationMutation) PublishAt() (r time.Time, exists bool) {
+	v := m.publish_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishAt returns the old "publish_at" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldPublishAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishAt: %w", err)
+	}
+	return oldValue.PublishAt, nil
+}
+
+// ClearPublishAt clears the value of the "publish_at" field.
+func (m *CmsPostTranslationMutation) ClearPublishAt() {
+	m.publish_at = nil
+	m.clearedFields[cmsposttranslation.FieldPublishAt] = struct{}{}
+}
+
+// PublishAtCleared returns if the "publish_at" field was cleared in this mutation.
+func (m *CmsPostTranslationMutation) PublishAtCleared() bool {
+	_, ok := m.clearedFields[cmsposttranslation.FieldPublishAt]
+	return ok
+}
+
+// ResetPublishAt resets all changes to the "publish_at" field.
+func (m *CmsPostTranslationMutation) ResetPublishAt() {
+	m.publish_at = nil
+	delete(m.clearedFields, cmsposttranslation.FieldPublishAt)
+}
+
+// SetPostID sets the "post_id" field.
+func (m *CmsPostTranslationMutation) SetPostID(i int64) {
+	m.post = &i
+}
+
+// PostID returns the value of the "post_id" field in the mutation.
+func (m *CmsPostTranslationMutation) PostID() (r int64, exists bool) {
+	v := m.post
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostID returns the old "post_id" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldPostID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostID: %w", err)
+	}
+	return oldValue.PostID, nil
+}
+
+// ResetPostID resets all changes to the "post_id" field.
+func (m *CmsPostTranslationMutation) ResetPostID() {
+	m.post = nil
+}
+
+// SetLocale sets the "locale" field.
+func (m *CmsPostTranslationMutation) SetLocale(s string) {
+	m.locale = &s
+}
+
+// Locale returns the value of the "locale" field in the mutation.
+func (m *CmsPostTranslationMutation) Locale() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocale returns the old "locale" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocale: %w", err)
+	}
+	return oldValue.Locale, nil
+}
+
+// ResetLocale resets all changes to the "locale" field.
+func (m *CmsPostTranslationMutation) ResetLocale() {
+	m.locale = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *CmsPostTranslationMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *CmsPostTranslationMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *CmsPostTranslationMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetSlug sets the "slug" field.
+func (m *CmsPostTranslationMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *CmsPostTranslationMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *CmsPostTranslationMutation) ResetSlug() {
+	m.slug = nil
+}
+
+// SetExcerpt sets the "excerpt" field.
+func (m *CmsPostTranslationMutation) SetExcerpt(s string) {
+	m.excerpt = &s
+}
+
+// Excerpt returns the value of the "excerpt" field in the mutation.
+func (m *CmsPostTranslationMutation) Excerpt() (r string, exists bool) {
+	v := m.excerpt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExcerpt returns the old "excerpt" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldExcerpt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExcerpt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExcerpt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExcerpt: %w", err)
+	}
+	return oldValue.Excerpt, nil
+}
+
+// ClearExcerpt clears the value of the "excerpt" field.
+func (m *CmsPostTranslationMutation) ClearExcerpt() {
+	m.excerpt = nil
+	m.clearedFields[cmsposttranslation.FieldExcerpt] = struct{}{}
+}
+
+// ExcerptCleared returns if the "excerpt" field was cleared in this mutation.
+func (m *CmsPostTranslationMutation) ExcerptCleared() bool {
+	_, ok := m.clearedFields[cmsposttranslation.FieldExcerpt]
+	return ok
+}
+
+// ResetExcerpt resets all changes to the "excerpt" field.
+func (m *CmsPostTranslationMutation) ResetExcerpt() {
+	m.excerpt = nil
+	delete(m.clearedFields, cmsposttranslation.FieldExcerpt)
+}
+
+// SetBody sets the "body" field.
+func (m *CmsPostTranslationMutation) SetBody(s string) {
+	m.body = &s
+}
+
+// Body returns the value of the "body" field in the mutation.
+func (m *CmsPostTranslationMutation) Body() (r string, exists bool) {
+	v := m.body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBody returns the old "body" field's value of the CmsPostTranslation entity.
+// If the CmsPostTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsPostTranslationMutation) OldBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBody: %w", err)
+	}
+	return oldValue.Body, nil
+}
+
+// ResetBody resets all changes to the "body" field.
+func (m *CmsPostTranslationMutation) ResetBody() {
+	m.body = nil
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *CmsPostTranslationMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[cmsposttranslation.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *CmsPostTranslationMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *CmsPostTranslationMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *CmsPostTranslationMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *CmsPostTranslationMutation) SetCreatorID(id int64) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *CmsPostTranslationMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[cmsposttranslation.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *CmsPostTranslationMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *CmsPostTranslationMutation) CreatorID() (id int64, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *CmsPostTranslationMutation) CreatorIDs() (ids []int64) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *CmsPostTranslationMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *CmsPostTranslationMutation) SetUpdaterID(id int64) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *CmsPostTranslationMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[cmsposttranslation.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *CmsPostTranslationMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *CmsPostTranslationMutation) UpdaterID() (id int64, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *CmsPostTranslationMutation) UpdaterIDs() (ids []int64) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *CmsPostTranslationMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// SetDeleterID sets the "deleter" edge to the User entity by id.
+func (m *CmsPostTranslationMutation) SetDeleterID(id int64) {
+	m.deleter = &id
+}
+
+// ClearDeleter clears the "deleter" edge to the User entity.
+func (m *CmsPostTranslationMutation) ClearDeleter() {
+	m.cleareddeleter = true
+	m.clearedFields[cmsposttranslation.FieldDeletedByID] = struct{}{}
+}
+
+// DeleterCleared reports if the "deleter" edge to the User entity was cleared.
+func (m *CmsPostTranslationMutation) DeleterCleared() bool {
+	return m.DeletedByIDCleared() || m.cleareddeleter
+}
+
+// DeleterID returns the "deleter" edge ID in the mutation.
+func (m *CmsPostTranslationMutation) DeleterID() (id int64, exists bool) {
+	if m.deleter != nil {
+		return *m.deleter, true
+	}
+	return
+}
+
+// DeleterIDs returns the "deleter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeleterID instead. It exists only for internal usage by the builders.
+func (m *CmsPostTranslationMutation) DeleterIDs() (ids []int64) {
+	if id := m.deleter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDeleter resets all changes to the "deleter" edge.
+func (m *CmsPostTranslationMutation) ResetDeleter() {
+	m.deleter = nil
+	m.cleareddeleter = false
+}
+
+// ClearPost clears the "post" edge to the CmsPost entity.
+func (m *CmsPostTranslationMutation) ClearPost() {
+	m.clearedpost = true
+	m.clearedFields[cmsposttranslation.FieldPostID] = struct{}{}
+}
+
+// PostCleared reports if the "post" edge to the CmsPost entity was cleared.
+func (m *CmsPostTranslationMutation) PostCleared() bool {
+	return m.clearedpost
+}
+
+// PostIDs returns the "post" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PostID instead. It exists only for internal usage by the builders.
+func (m *CmsPostTranslationMutation) PostIDs() (ids []int64) {
+	if id := m.post; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPost resets all changes to the "post" edge.
+func (m *CmsPostTranslationMutation) ResetPost() {
+	m.post = nil
+	m.clearedpost = false
+}
+
+// Where appends a list predicates to the CmsPostTranslationMutation builder.
+func (m *CmsPostTranslationMutation) Where(ps ...predicate.CmsPostTranslation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CmsPostTranslationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CmsPostTranslationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CmsPostTranslation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CmsPostTranslationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CmsPostTranslationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CmsPostTranslation).
+func (m *CmsPostTranslationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CmsPostTranslationMutation) Fields() []string {
+	fields := make([]string, 0, 15)
+	if m.workspace != nil {
+		fields = append(fields, cmsposttranslation.FieldWorkspaceID)
+	}
+	if m.creator != nil {
+		fields = append(fields, cmsposttranslation.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, cmsposttranslation.FieldUpdatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, cmsposttranslation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, cmsposttranslation.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, cmsposttranslation.FieldDeletedAt)
+	}
+	if m.deleter != nil {
+		fields = append(fields, cmsposttranslation.FieldDeletedByID)
+	}
+	if m.status != nil {
+		fields = append(fields, cmsposttranslation.FieldStatus)
+	}
+	if m.publish_at != nil {
+		fields = append(fields, cmsposttranslation.FieldPublishAt)
+	}
+	if m.post != nil {
+		fields = append(fields, cmsposttranslation.FieldPostID)
+	}
+	if m.locale != nil {
+		fields = append(fields, cmsposttranslation.FieldLocale)
+	}
+	if m.title != nil {
+		fields = append(fields, cmsposttranslation.FieldTitle)
+	}
+	if m.slug != nil {
+		fields = append(fields, cmsposttranslation.FieldSlug)
+	}
+	if m.excerpt != nil {
+		fields = append(fields, cmsposttranslation.FieldExcerpt)
+	}
+	if m.body != nil {
+		fields = append(fields, cmsposttranslation.FieldBody)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CmsPostTranslationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case cmsposttranslation.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case cmsposttranslation.FieldCreatedBy:
+		return m.CreatedBy()
+	case cmsposttranslation.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case cmsposttranslation.FieldCreatedAt:
+		return m.CreatedAt()
+	case cmsposttranslation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case cmsposttranslation.FieldDeletedAt:
+		return m.DeletedAt()
+	case cmsposttranslation.FieldDeletedByID:
+		return m.DeletedByID()
+	case cmsposttranslation.FieldStatus:
+		return m.Status()
+	case cmsposttranslation.FieldPublishAt:
+		return m.PublishAt()
+	case cmsposttranslation.FieldPostID:
+		return m.PostID()
+	case cmsposttranslation.FieldLocale:
+		return m.Locale()
+	case cmsposttranslation.FieldTitle:
+		return m.Title()
+	case cmsposttranslation.FieldSlug:
+		return m.Slug()
+	case cmsposttranslation.FieldExcerpt:
+		return m.Excerpt()
+	case cmsposttranslation.FieldBody:
+		return m.Body()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CmsPostTranslationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case cmsposttranslation.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case cmsposttranslation.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case cmsposttranslation.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case cmsposttranslation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case cmsposttranslation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case cmsposttranslation.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case cmsposttranslation.FieldDeletedByID:
+		return m.OldDeletedByID(ctx)
+	case cmsposttranslation.FieldStatus:
+		return m.OldStatus(ctx)
+	case cmsposttranslation.FieldPublishAt:
+		return m.OldPublishAt(ctx)
+	case cmsposttranslation.FieldPostID:
+		return m.OldPostID(ctx)
+	case cmsposttranslation.FieldLocale:
+		return m.OldLocale(ctx)
+	case cmsposttranslation.FieldTitle:
+		return m.OldTitle(ctx)
+	case cmsposttranslation.FieldSlug:
+		return m.OldSlug(ctx)
+	case cmsposttranslation.FieldExcerpt:
+		return m.OldExcerpt(ctx)
+	case cmsposttranslation.FieldBody:
+		return m.OldBody(ctx)
+	}
+	return nil, fmt.Errorf("unknown CmsPostTranslation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsPostTranslationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case cmsposttranslation.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case cmsposttranslation.FieldCreatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case cmsposttranslation.FieldUpdatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case cmsposttranslation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case cmsposttranslation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case cmsposttranslation.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case cmsposttranslation.FieldDeletedByID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedByID(v)
+		return nil
+	case cmsposttranslation.FieldStatus:
+		v, ok := value.(cmsposttranslation.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case cmsposttranslation.FieldPublishAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishAt(v)
+		return nil
+	case cmsposttranslation.FieldPostID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostID(v)
+		return nil
+	case cmsposttranslation.FieldLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocale(v)
+		return nil
+	case cmsposttranslation.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case cmsposttranslation.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case cmsposttranslation.FieldExcerpt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExcerpt(v)
+		return nil
+	case cmsposttranslation.FieldBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBody(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPostTranslation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CmsPostTranslationMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CmsPostTranslationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsPostTranslationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CmsPostTranslation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CmsPostTranslationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(cmsposttranslation.FieldDeletedAt) {
+		fields = append(fields, cmsposttranslation.FieldDeletedAt)
+	}
+	if m.FieldCleared(cmsposttranslation.FieldDeletedByID) {
+		fields = append(fields, cmsposttranslation.FieldDeletedByID)
+	}
+	if m.FieldCleared(cmsposttranslation.FieldPublishAt) {
+		fields = append(fields, cmsposttranslation.FieldPublishAt)
+	}
+	if m.FieldCleared(cmsposttranslation.FieldExcerpt) {
+		fields = append(fields, cmsposttranslation.FieldExcerpt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CmsPostTranslationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CmsPostTranslationMutation) ClearField(name string) error {
+	switch name {
+	case cmsposttranslation.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case cmsposttranslation.FieldDeletedByID:
+		m.ClearDeletedByID()
+		return nil
+	case cmsposttranslation.FieldPublishAt:
+		m.ClearPublishAt()
+		return nil
+	case cmsposttranslation.FieldExcerpt:
+		m.ClearExcerpt()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPostTranslation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CmsPostTranslationMutation) ResetField(name string) error {
+	switch name {
+	case cmsposttranslation.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case cmsposttranslation.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case cmsposttranslation.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case cmsposttranslation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case cmsposttranslation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case cmsposttranslation.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case cmsposttranslation.FieldDeletedByID:
+		m.ResetDeletedByID()
+		return nil
+	case cmsposttranslation.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case cmsposttranslation.FieldPublishAt:
+		m.ResetPublishAt()
+		return nil
+	case cmsposttranslation.FieldPostID:
+		m.ResetPostID()
+		return nil
+	case cmsposttranslation.FieldLocale:
+		m.ResetLocale()
+		return nil
+	case cmsposttranslation.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case cmsposttranslation.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case cmsposttranslation.FieldExcerpt:
+		m.ResetExcerpt()
+		return nil
+	case cmsposttranslation.FieldBody:
+		m.ResetBody()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPostTranslation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CmsPostTranslationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.workspace != nil {
+		edges = append(edges, cmsposttranslation.EdgeWorkspace)
+	}
+	if m.creator != nil {
+		edges = append(edges, cmsposttranslation.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, cmsposttranslation.EdgeUpdater)
+	}
+	if m.deleter != nil {
+		edges = append(edges, cmsposttranslation.EdgeDeleter)
+	}
+	if m.post != nil {
+		edges = append(edges, cmsposttranslation.EdgePost)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CmsPostTranslationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case cmsposttranslation.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmsposttranslation.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmsposttranslation.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmsposttranslation.EdgeDeleter:
+		if id := m.deleter; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmsposttranslation.EdgePost:
+		if id := m.post; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CmsPostTranslationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 5)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CmsPostTranslationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CmsPostTranslationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.clearedworkspace {
+		edges = append(edges, cmsposttranslation.EdgeWorkspace)
+	}
+	if m.clearedcreator {
+		edges = append(edges, cmsposttranslation.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, cmsposttranslation.EdgeUpdater)
+	}
+	if m.cleareddeleter {
+		edges = append(edges, cmsposttranslation.EdgeDeleter)
+	}
+	if m.clearedpost {
+		edges = append(edges, cmsposttranslation.EdgePost)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CmsPostTranslationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case cmsposttranslation.EdgeWorkspace:
+		return m.clearedworkspace
+	case cmsposttranslation.EdgeCreator:
+		return m.clearedcreator
+	case cmsposttranslation.EdgeUpdater:
+		return m.clearedupdater
+	case cmsposttranslation.EdgeDeleter:
+		return m.cleareddeleter
+	case cmsposttranslation.EdgePost:
+		return m.clearedpost
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CmsPostTranslationMutation) ClearEdge(name string) error {
+	switch name {
+	case cmsposttranslation.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
+	case cmsposttranslation.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case cmsposttranslation.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	case cmsposttranslation.EdgeDeleter:
+		m.ClearDeleter()
+		return nil
+	case cmsposttranslation.EdgePost:
+		m.ClearPost()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPostTranslation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CmsPostTranslationMutation) ResetEdge(name string) error {
+	switch name {
+	case cmsposttranslation.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case cmsposttranslation.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case cmsposttranslation.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	case cmsposttranslation.EdgeDeleter:
+		m.ResetDeleter()
+		return nil
+	case cmsposttranslation.EdgePost:
+		m.ResetPost()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsPostTranslation edge %s", name)
+}
+
+// CmsSettingMutation represents an operation that mutates the CmsSetting nodes in the graph.
+type CmsSettingMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int64
+	created_at              *time.Time
+	updated_at              *time.Time
+	default_locale          *string
+	supported_locales       *[]string
+	appendsupported_locales []string
+	clearedFields           map[string]struct{}
+	workspace               *int64
+	clearedworkspace        bool
+	creator                 *int64
+	clearedcreator          bool
+	updater                 *int64
+	clearedupdater          bool
+	done                    bool
+	oldValue                func(context.Context) (*CmsSetting, error)
+	predicates              []predicate.CmsSetting
+}
+
+var _ ent.Mutation = (*CmsSettingMutation)(nil)
+
+// cmssettingOption allows management of the mutation configuration using functional options.
+type cmssettingOption func(*CmsSettingMutation)
+
+// newCmsSettingMutation creates new mutation for the CmsSetting entity.
+func newCmsSettingMutation(c config, op Op, opts ...cmssettingOption) *CmsSettingMutation {
+	m := &CmsSettingMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCmsSetting,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCmsSettingID sets the ID field of the mutation.
+func withCmsSettingID(id int64) cmssettingOption {
+	return func(m *CmsSettingMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CmsSetting
+		)
+		m.oldValue = func(ctx context.Context) (*CmsSetting, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CmsSetting.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCmsSetting sets the old CmsSetting of the mutation.
+func withCmsSetting(node *CmsSetting) cmssettingOption {
+	return func(m *CmsSettingMutation) {
+		m.oldValue = func(context.Context) (*CmsSetting, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CmsSettingMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CmsSettingMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CmsSetting entities.
+func (m *CmsSettingMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CmsSettingMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CmsSettingMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CmsSetting.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *CmsSettingMutation) SetWorkspaceID(i int64) {
+	m.workspace = &i
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *CmsSettingMutation) WorkspaceID() (r int64, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the CmsSetting entity.
+// If the CmsSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsSettingMutation) OldWorkspaceID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *CmsSettingMutation) ResetWorkspaceID() {
+	m.workspace = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *CmsSettingMutation) SetCreatedBy(i int64) {
+	m.creator = &i
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *CmsSettingMutation) CreatedBy() (r int64, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the CmsSetting entity.
+// If the CmsSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsSettingMutation) OldCreatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *CmsSettingMutation) ResetCreatedBy() {
+	m.creator = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *CmsSettingMutation) SetUpdatedBy(i int64) {
+	m.updater = &i
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *CmsSettingMutation) UpdatedBy() (r int64, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the CmsSetting entity.
+// If the CmsSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsSettingMutation) OldUpdatedBy(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *CmsSettingMutation) ResetUpdatedBy() {
+	m.updater = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CmsSettingMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CmsSettingMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CmsSetting entity.
+// If the CmsSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsSettingMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CmsSettingMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CmsSettingMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CmsSettingMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CmsSetting entity.
+// If the CmsSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsSettingMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CmsSettingMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDefaultLocale sets the "default_locale" field.
+func (m *CmsSettingMutation) SetDefaultLocale(s string) {
+	m.default_locale = &s
+}
+
+// DefaultLocale returns the value of the "default_locale" field in the mutation.
+func (m *CmsSettingMutation) DefaultLocale() (r string, exists bool) {
+	v := m.default_locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultLocale returns the old "default_locale" field's value of the CmsSetting entity.
+// If the CmsSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsSettingMutation) OldDefaultLocale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultLocale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultLocale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultLocale: %w", err)
+	}
+	return oldValue.DefaultLocale, nil
+}
+
+// ResetDefaultLocale resets all changes to the "default_locale" field.
+func (m *CmsSettingMutation) ResetDefaultLocale() {
+	m.default_locale = nil
+}
+
+// SetSupportedLocales sets the "supported_locales" field.
+func (m *CmsSettingMutation) SetSupportedLocales(s []string) {
+	m.supported_locales = &s
+	m.appendsupported_locales = nil
+}
+
+// SupportedLocales returns the value of the "supported_locales" field in the mutation.
+func (m *CmsSettingMutation) SupportedLocales() (r []string, exists bool) {
+	v := m.supported_locales
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSupportedLocales returns the old "supported_locales" field's value of the CmsSetting entity.
+// If the CmsSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CmsSettingMutation) OldSupportedLocales(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSupportedLocales is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSupportedLocales requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSupportedLocales: %w", err)
+	}
+	return oldValue.SupportedLocales, nil
+}
+
+// AppendSupportedLocales adds s to the "supported_locales" field.
+func (m *CmsSettingMutation) AppendSupportedLocales(s []string) {
+	m.appendsupported_locales = append(m.appendsupported_locales, s...)
+}
+
+// AppendedSupportedLocales returns the list of values that were appended to the "supported_locales" field in this mutation.
+func (m *CmsSettingMutation) AppendedSupportedLocales() ([]string, bool) {
+	if len(m.appendsupported_locales) == 0 {
+		return nil, false
+	}
+	return m.appendsupported_locales, true
+}
+
+// ResetSupportedLocales resets all changes to the "supported_locales" field.
+func (m *CmsSettingMutation) ResetSupportedLocales() {
+	m.supported_locales = nil
+	m.appendsupported_locales = nil
+}
+
+// ClearWorkspace clears the "workspace" edge to the Workspace entity.
+func (m *CmsSettingMutation) ClearWorkspace() {
+	m.clearedworkspace = true
+	m.clearedFields[cmssetting.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceCleared reports if the "workspace" edge to the Workspace entity was cleared.
+func (m *CmsSettingMutation) WorkspaceCleared() bool {
+	return m.clearedworkspace
+}
+
+// WorkspaceIDs returns the "workspace" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceID instead. It exists only for internal usage by the builders.
+func (m *CmsSettingMutation) WorkspaceIDs() (ids []int64) {
+	if id := m.workspace; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspace resets all changes to the "workspace" edge.
+func (m *CmsSettingMutation) ResetWorkspace() {
+	m.workspace = nil
+	m.clearedworkspace = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *CmsSettingMutation) SetCreatorID(id int64) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *CmsSettingMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[cmssetting.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *CmsSettingMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *CmsSettingMutation) CreatorID() (id int64, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *CmsSettingMutation) CreatorIDs() (ids []int64) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *CmsSettingMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *CmsSettingMutation) SetUpdaterID(id int64) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *CmsSettingMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[cmssetting.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *CmsSettingMutation) UpdaterCleared() bool {
+	return m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *CmsSettingMutation) UpdaterID() (id int64, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *CmsSettingMutation) UpdaterIDs() (ids []int64) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *CmsSettingMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// Where appends a list predicates to the CmsSettingMutation builder.
+func (m *CmsSettingMutation) Where(ps ...predicate.CmsSetting) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CmsSettingMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CmsSettingMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CmsSetting, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CmsSettingMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CmsSettingMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CmsSetting).
+func (m *CmsSettingMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CmsSettingMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.workspace != nil {
+		fields = append(fields, cmssetting.FieldWorkspaceID)
+	}
+	if m.creator != nil {
+		fields = append(fields, cmssetting.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, cmssetting.FieldUpdatedBy)
+	}
+	if m.created_at != nil {
+		fields = append(fields, cmssetting.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, cmssetting.FieldUpdatedAt)
+	}
+	if m.default_locale != nil {
+		fields = append(fields, cmssetting.FieldDefaultLocale)
+	}
+	if m.supported_locales != nil {
+		fields = append(fields, cmssetting.FieldSupportedLocales)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CmsSettingMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case cmssetting.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case cmssetting.FieldCreatedBy:
+		return m.CreatedBy()
+	case cmssetting.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case cmssetting.FieldCreatedAt:
+		return m.CreatedAt()
+	case cmssetting.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case cmssetting.FieldDefaultLocale:
+		return m.DefaultLocale()
+	case cmssetting.FieldSupportedLocales:
+		return m.SupportedLocales()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CmsSettingMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case cmssetting.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case cmssetting.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case cmssetting.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case cmssetting.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case cmssetting.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case cmssetting.FieldDefaultLocale:
+		return m.OldDefaultLocale(ctx)
+	case cmssetting.FieldSupportedLocales:
+		return m.OldSupportedLocales(ctx)
+	}
+	return nil, fmt.Errorf("unknown CmsSetting field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsSettingMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case cmssetting.FieldWorkspaceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case cmssetting.FieldCreatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case cmssetting.FieldUpdatedBy:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case cmssetting.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case cmssetting.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case cmssetting.FieldDefaultLocale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultLocale(v)
+		return nil
+	case cmssetting.FieldSupportedLocales:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSupportedLocales(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CmsSetting field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CmsSettingMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CmsSettingMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CmsSettingMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CmsSetting numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CmsSettingMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CmsSettingMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CmsSettingMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CmsSetting nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CmsSettingMutation) ResetField(name string) error {
+	switch name {
+	case cmssetting.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case cmssetting.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case cmssetting.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case cmssetting.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case cmssetting.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case cmssetting.FieldDefaultLocale:
+		m.ResetDefaultLocale()
+		return nil
+	case cmssetting.FieldSupportedLocales:
+		m.ResetSupportedLocales()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsSetting field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CmsSettingMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.workspace != nil {
+		edges = append(edges, cmssetting.EdgeWorkspace)
+	}
+	if m.creator != nil {
+		edges = append(edges, cmssetting.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, cmssetting.EdgeUpdater)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CmsSettingMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case cmssetting.EdgeWorkspace:
+		if id := m.workspace; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmssetting.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case cmssetting.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CmsSettingMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CmsSettingMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CmsSettingMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedworkspace {
+		edges = append(edges, cmssetting.EdgeWorkspace)
+	}
+	if m.clearedcreator {
+		edges = append(edges, cmssetting.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, cmssetting.EdgeUpdater)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CmsSettingMutation) EdgeCleared(name string) bool {
+	switch name {
+	case cmssetting.EdgeWorkspace:
+		return m.clearedworkspace
+	case cmssetting.EdgeCreator:
+		return m.clearedcreator
+	case cmssetting.EdgeUpdater:
+		return m.clearedupdater
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CmsSettingMutation) ClearEdge(name string) error {
+	switch name {
+	case cmssetting.EdgeWorkspace:
+		m.ClearWorkspace()
+		return nil
+	case cmssetting.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case cmssetting.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsSetting unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CmsSettingMutation) ResetEdge(name string) error {
+	switch name {
+	case cmssetting.EdgeWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case cmssetting.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case cmssetting.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	}
+	return fmt.Errorf("unknown CmsSetting edge %s", name)
 }
 
 // CurrencyMutation represents an operation that mutates the Currency nodes in the graph.

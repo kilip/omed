@@ -21,8 +21,17 @@ type CmsMedia func(*sql.Selector)
 // CmsPage is the predicate function for cmspage builders.
 type CmsPage func(*sql.Selector)
 
+// CmsPageTranslation is the predicate function for cmspagetranslation builders.
+type CmsPageTranslation func(*sql.Selector)
+
 // CmsPost is the predicate function for cmspost builders.
 type CmsPost func(*sql.Selector)
+
+// CmsPostTranslation is the predicate function for cmsposttranslation builders.
+type CmsPostTranslation func(*sql.Selector)
+
+// CmsSetting is the predicate function for cmssetting builders.
+type CmsSetting func(*sql.Selector)
 
 // Currency is the predicate function for currency builders.
 type Currency func(*sql.Selector)

@@ -10,7 +10,10 @@ import (
 	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
 	"github.com/kilip/omed/api/ent/cmspage"
+	"github.com/kilip/omed/api/ent/cmspagetranslation"
 	"github.com/kilip/omed/api/ent/cmspost"
+	"github.com/kilip/omed/api/ent/cmsposttranslation"
+	"github.com/kilip/omed/api/ent/cmssetting"
 	"github.com/kilip/omed/api/ent/currency"
 	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/ent/exchangerate"
@@ -160,8 +163,6 @@ func init() {
 	cmspageMixin := schema.CmsPage{}.Mixin()
 	cmspageMixinFields1 := cmspageMixin[1].Fields()
 	_ = cmspageMixinFields1
-	cmspageMixinFields3 := cmspageMixin[3].Fields()
-	_ = cmspageMixinFields3
 	cmspageFields := schema.CmsPage{}.Fields()
 	_ = cmspageFields
 	// cmspageDescCreatedAt is the schema descriptor for created_at field.
@@ -174,23 +175,42 @@ func init() {
 	cmspage.DefaultUpdatedAt = cmspageDescUpdatedAt.Default.(func() time.Time)
 	// cmspage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	cmspage.UpdateDefaultUpdatedAt = cmspageDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// cmspageDescTitle is the schema descriptor for title field.
-	cmspageDescTitle := cmspageFields[1].Descriptor()
-	// cmspage.TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	cmspage.TitleValidator = cmspageDescTitle.Validators[0].(func(string) error)
-	// cmspageDescSlug is the schema descriptor for slug field.
-	cmspageDescSlug := cmspageFields[2].Descriptor()
-	// cmspage.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
-	cmspage.SlugValidator = cmspageDescSlug.Validators[0].(func(string) error)
-	// cmspageDescBody is the schema descriptor for body field.
-	cmspageDescBody := cmspageFields[3].Descriptor()
-	// cmspage.DefaultBody holds the default value on creation for the body field.
-	cmspage.DefaultBody = cmspageDescBody.Default.(string)
+	cmspagetranslationMixin := schema.CmsPageTranslation{}.Mixin()
+	cmspagetranslationMixinFields1 := cmspagetranslationMixin[1].Fields()
+	_ = cmspagetranslationMixinFields1
+	cmspagetranslationMixinFields3 := cmspagetranslationMixin[3].Fields()
+	_ = cmspagetranslationMixinFields3
+	cmspagetranslationFields := schema.CmsPageTranslation{}.Fields()
+	_ = cmspagetranslationFields
+	// cmspagetranslationDescCreatedAt is the schema descriptor for created_at field.
+	cmspagetranslationDescCreatedAt := cmspagetranslationMixinFields1[2].Descriptor()
+	// cmspagetranslation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cmspagetranslation.DefaultCreatedAt = cmspagetranslationDescCreatedAt.Default.(func() time.Time)
+	// cmspagetranslationDescUpdatedAt is the schema descriptor for updated_at field.
+	cmspagetranslationDescUpdatedAt := cmspagetranslationMixinFields1[3].Descriptor()
+	// cmspagetranslation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cmspagetranslation.DefaultUpdatedAt = cmspagetranslationDescUpdatedAt.Default.(func() time.Time)
+	// cmspagetranslation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cmspagetranslation.UpdateDefaultUpdatedAt = cmspagetranslationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cmspagetranslationDescLocale is the schema descriptor for locale field.
+	cmspagetranslationDescLocale := cmspagetranslationFields[2].Descriptor()
+	// cmspagetranslation.LocaleValidator is a validator for the "locale" field. It is called by the builders before save.
+	cmspagetranslation.LocaleValidator = cmspagetranslationDescLocale.Validators[0].(func(string) error)
+	// cmspagetranslationDescTitle is the schema descriptor for title field.
+	cmspagetranslationDescTitle := cmspagetranslationFields[3].Descriptor()
+	// cmspagetranslation.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	cmspagetranslation.TitleValidator = cmspagetranslationDescTitle.Validators[0].(func(string) error)
+	// cmspagetranslationDescSlug is the schema descriptor for slug field.
+	cmspagetranslationDescSlug := cmspagetranslationFields[4].Descriptor()
+	// cmspagetranslation.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	cmspagetranslation.SlugValidator = cmspagetranslationDescSlug.Validators[0].(func(string) error)
+	// cmspagetranslationDescBody is the schema descriptor for body field.
+	cmspagetranslationDescBody := cmspagetranslationFields[5].Descriptor()
+	// cmspagetranslation.DefaultBody holds the default value on creation for the body field.
+	cmspagetranslation.DefaultBody = cmspagetranslationDescBody.Default.(string)
 	cmspostMixin := schema.CmsPost{}.Mixin()
 	cmspostMixinFields1 := cmspostMixin[1].Fields()
 	_ = cmspostMixinFields1
-	cmspostMixinFields3 := cmspostMixin[3].Fields()
-	_ = cmspostMixinFields3
 	cmspostFields := schema.CmsPost{}.Fields()
 	_ = cmspostFields
 	// cmspostDescCreatedAt is the schema descriptor for created_at field.
@@ -203,18 +223,62 @@ func init() {
 	cmspost.DefaultUpdatedAt = cmspostDescUpdatedAt.Default.(func() time.Time)
 	// cmspost.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	cmspost.UpdateDefaultUpdatedAt = cmspostDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// cmspostDescTitle is the schema descriptor for title field.
-	cmspostDescTitle := cmspostFields[1].Descriptor()
-	// cmspost.TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	cmspost.TitleValidator = cmspostDescTitle.Validators[0].(func(string) error)
-	// cmspostDescSlug is the schema descriptor for slug field.
-	cmspostDescSlug := cmspostFields[2].Descriptor()
-	// cmspost.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
-	cmspost.SlugValidator = cmspostDescSlug.Validators[0].(func(string) error)
-	// cmspostDescBody is the schema descriptor for body field.
-	cmspostDescBody := cmspostFields[4].Descriptor()
-	// cmspost.DefaultBody holds the default value on creation for the body field.
-	cmspost.DefaultBody = cmspostDescBody.Default.(string)
+	cmsposttranslationMixin := schema.CmsPostTranslation{}.Mixin()
+	cmsposttranslationMixinFields1 := cmsposttranslationMixin[1].Fields()
+	_ = cmsposttranslationMixinFields1
+	cmsposttranslationMixinFields3 := cmsposttranslationMixin[3].Fields()
+	_ = cmsposttranslationMixinFields3
+	cmsposttranslationFields := schema.CmsPostTranslation{}.Fields()
+	_ = cmsposttranslationFields
+	// cmsposttranslationDescCreatedAt is the schema descriptor for created_at field.
+	cmsposttranslationDescCreatedAt := cmsposttranslationMixinFields1[2].Descriptor()
+	// cmsposttranslation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cmsposttranslation.DefaultCreatedAt = cmsposttranslationDescCreatedAt.Default.(func() time.Time)
+	// cmsposttranslationDescUpdatedAt is the schema descriptor for updated_at field.
+	cmsposttranslationDescUpdatedAt := cmsposttranslationMixinFields1[3].Descriptor()
+	// cmsposttranslation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cmsposttranslation.DefaultUpdatedAt = cmsposttranslationDescUpdatedAt.Default.(func() time.Time)
+	// cmsposttranslation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cmsposttranslation.UpdateDefaultUpdatedAt = cmsposttranslationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cmsposttranslationDescLocale is the schema descriptor for locale field.
+	cmsposttranslationDescLocale := cmsposttranslationFields[2].Descriptor()
+	// cmsposttranslation.LocaleValidator is a validator for the "locale" field. It is called by the builders before save.
+	cmsposttranslation.LocaleValidator = cmsposttranslationDescLocale.Validators[0].(func(string) error)
+	// cmsposttranslationDescTitle is the schema descriptor for title field.
+	cmsposttranslationDescTitle := cmsposttranslationFields[3].Descriptor()
+	// cmsposttranslation.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	cmsposttranslation.TitleValidator = cmsposttranslationDescTitle.Validators[0].(func(string) error)
+	// cmsposttranslationDescSlug is the schema descriptor for slug field.
+	cmsposttranslationDescSlug := cmsposttranslationFields[4].Descriptor()
+	// cmsposttranslation.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	cmsposttranslation.SlugValidator = cmsposttranslationDescSlug.Validators[0].(func(string) error)
+	// cmsposttranslationDescBody is the schema descriptor for body field.
+	cmsposttranslationDescBody := cmsposttranslationFields[6].Descriptor()
+	// cmsposttranslation.DefaultBody holds the default value on creation for the body field.
+	cmsposttranslation.DefaultBody = cmsposttranslationDescBody.Default.(string)
+	cmssettingMixin := schema.CmsSetting{}.Mixin()
+	cmssettingMixinFields1 := cmssettingMixin[1].Fields()
+	_ = cmssettingMixinFields1
+	cmssettingFields := schema.CmsSetting{}.Fields()
+	_ = cmssettingFields
+	// cmssettingDescCreatedAt is the schema descriptor for created_at field.
+	cmssettingDescCreatedAt := cmssettingMixinFields1[2].Descriptor()
+	// cmssetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cmssetting.DefaultCreatedAt = cmssettingDescCreatedAt.Default.(func() time.Time)
+	// cmssettingDescUpdatedAt is the schema descriptor for updated_at field.
+	cmssettingDescUpdatedAt := cmssettingMixinFields1[3].Descriptor()
+	// cmssetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cmssetting.DefaultUpdatedAt = cmssettingDescUpdatedAt.Default.(func() time.Time)
+	// cmssetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cmssetting.UpdateDefaultUpdatedAt = cmssettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cmssettingDescDefaultLocale is the schema descriptor for default_locale field.
+	cmssettingDescDefaultLocale := cmssettingFields[1].Descriptor()
+	// cmssetting.DefaultDefaultLocale holds the default value on creation for the default_locale field.
+	cmssetting.DefaultDefaultLocale = cmssettingDescDefaultLocale.Default.(string)
+	// cmssettingDescSupportedLocales is the schema descriptor for supported_locales field.
+	cmssettingDescSupportedLocales := cmssettingFields[2].Descriptor()
+	// cmssetting.DefaultSupportedLocales holds the default value on creation for the supported_locales field.
+	cmssetting.DefaultSupportedLocales = cmssettingDescSupportedLocales.Default.([]string)
 	currencyFields := schema.Currency{}.Fields()
 	_ = currencyFields
 	// currencyDescCode is the schema descriptor for code field.

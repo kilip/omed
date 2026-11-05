@@ -42,6 +42,29 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "domain.TranslationSummary": {
+                "properties": {
+                    "effectiveStatus": {
+                        "type": "string"
+                    },
+                    "locale": {
+                        "type": "string"
+                    },
+                    "publishAt": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "httpx.ErrorBody": {
                 "properties": {
                     "code": {
@@ -501,6 +524,19 @@ const docTemplate = `{
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.CashFlowItemResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_CmsSettingResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.CmsSettingResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -1237,6 +1273,21 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.CmsSettingResponse": {
+                "properties": {
+                    "defaultLocale": {
+                        "type": "string"
+                    },
+                    "supportedLocales": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "type": "object"
+            },
             "model.CreateAccessTokenRequest": {
                 "properties": {
                     "expiresInDays": {
@@ -1420,6 +1471,9 @@ const docTemplate = `{
                     "body": {
                         "type": "string"
                     },
+                    "locale": {
+                        "type": "string"
+                    },
                     "slug": {
                         "type": "string"
                     },
@@ -1470,6 +1524,9 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "excerpt": {
+                        "type": "string"
+                    },
+                    "locale": {
                         "type": "string"
                     },
                     "slug": {
@@ -2259,6 +2316,9 @@ const docTemplate = `{
                     "id": {
                         "type": "integer"
                     },
+                    "locale": {
+                        "type": "string"
+                    },
                     "publishAt": {
                         "type": "string"
                     },
@@ -2270,6 +2330,13 @@ const docTemplate = `{
                     },
                     "title": {
                         "type": "string"
+                    },
+                    "translations": {
+                        "items": {
+                            "$ref": "#/components/schemas/domain.TranslationSummary"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
                     },
                     "workspaceId": {
                         "type": "integer"
@@ -2372,6 +2439,9 @@ const docTemplate = `{
                     "id": {
                         "type": "integer"
                     },
+                    "locale": {
+                        "type": "string"
+                    },
                     "publishAt": {
                         "type": "string"
                     },
@@ -2383,6 +2453,13 @@ const docTemplate = `{
                     },
                     "title": {
                         "type": "string"
+                    },
+                    "translations": {
+                        "items": {
+                            "$ref": "#/components/schemas/domain.TranslationSummary"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
                     },
                     "workspaceId": {
                         "type": "integer"
@@ -2488,6 +2565,20 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.PublicAlternate": {
+                "properties": {
+                    "locale": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.PublicCoverImage": {
                 "properties": {
                     "alt": {
@@ -2534,11 +2625,27 @@ const docTemplate = `{
             },
             "model.PublicPageResponse": {
                 "properties": {
+                    "alternates": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.PublicAlternate"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "body": {
                         "type": "string"
                     },
+                    "fallback": {
+                        "type": "boolean"
+                    },
                     "id": {
                         "type": "integer"
+                    },
+                    "locale": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
                     },
                     "publishedAt": {
                         "type": "string"
@@ -2554,6 +2661,13 @@ const docTemplate = `{
             },
             "model.PublicPostResponse": {
                 "properties": {
+                    "alternates": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.PublicAlternate"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "body": {
                         "type": "string"
                     },
@@ -2563,8 +2677,17 @@ const docTemplate = `{
                     "excerpt": {
                         "type": "string"
                     },
+                    "fallback": {
+                        "type": "boolean"
+                    },
                     "id": {
                         "type": "integer"
+                    },
+                    "locale": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
                     },
                     "publishedAt": {
                         "type": "string"
@@ -2665,6 +2788,43 @@ const docTemplate = `{
                     "items",
                     "paymentAccountId",
                     "transactionDate"
+                ],
+                "type": "object"
+            },
+            "model.SavePageTranslationRequest": {
+                "properties": {
+                    "body": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "title"
+                ],
+                "type": "object"
+            },
+            "model.SavePostTranslationRequest": {
+                "properties": {
+                    "body": {
+                        "type": "string"
+                    },
+                    "excerpt": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "title"
                 ],
                 "type": "object"
             },
@@ -2882,6 +3042,9 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer"
                     },
+                    "locale": {
+                        "type": "string"
+                    },
                     "query": {
                         "type": "string"
                     },
@@ -2912,6 +3075,9 @@ const docTemplate = `{
                         "maximum": 100,
                         "minimum": 1,
                         "type": "integer"
+                    },
+                    "locale": {
+                        "type": "string"
                     },
                     "query": {
                         "type": "string"
@@ -3354,6 +3520,21 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.UpdateCmsSettingRequest": {
+                "properties": {
+                    "defaultLocale": {
+                        "type": "string"
+                    },
+                    "supportedLocales": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "type": "object"
+            },
             "model.UpdateEntryRequest": {
                 "properties": {
                     "description": {
@@ -3491,6 +3672,9 @@ const docTemplate = `{
                     "body": {
                         "type": "string"
                     },
+                    "locale": {
+                        "type": "string"
+                    },
                     "slug": {
                         "type": "string"
                     },
@@ -3538,6 +3722,9 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "excerpt": {
+                        "type": "string"
+                    },
+                    "locale": {
                         "type": "string"
                     },
                     "slug": {
@@ -4252,7 +4439,7 @@ const docTemplate = `{
         },
         "/public/workspaces/{wid}/cms/pages": {
             "get": {
-                "description": "List published pages visible at the current time for a workspace",
+                "description": "List published pages visible at the current time for a workspace in default locale",
                 "parameters": [
                     {
                         "description": "Workspace ID",
@@ -4320,7 +4507,7 @@ const docTemplate = `{
         },
         "/public/workspaces/{wid}/cms/pages/{slug}": {
             "get": {
-                "description": "Retrieve a published page visible at current time by slug",
+                "description": "Retrieve a published page visible at current time by slug in default locale",
                 "parameters": [
                     {
                         "description": "Workspace ID",
@@ -4352,6 +4539,16 @@ const docTemplate = `{
                         },
                         "description": "OK"
                     },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
                     "404": {
                         "content": {
                             "application/json": {
@@ -4381,7 +4578,7 @@ const docTemplate = `{
         },
         "/public/workspaces/{wid}/cms/posts": {
             "get": {
-                "description": "List published posts visible at the current time for a workspace",
+                "description": "List published posts visible at the current time for a workspace in default locale",
                 "parameters": [
                     {
                         "description": "Workspace ID",
@@ -4449,7 +4646,7 @@ const docTemplate = `{
         },
         "/public/workspaces/{wid}/cms/posts/{slug}": {
             "get": {
-                "description": "Retrieve a published post visible at current time by slug",
+                "description": "Retrieve a published post visible at current time by slug in default locale",
                 "parameters": [
                     {
                         "description": "Workspace ID",
@@ -4481,6 +4678,16 @@ const docTemplate = `{
                         },
                         "description": "OK"
                     },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
                     "404": {
                         "content": {
                             "application/json": {
@@ -4503,6 +4710,320 @@ const docTemplate = `{
                     }
                 },
                 "summary": "Get public post by slug",
+                "tags": [
+                    "CMS Public"
+                ]
+            }
+        },
+        "/public/workspaces/{wid}/cms/{locale}/pages": {
+            "get": {
+                "description": "List published pages visible at current time for a workspace in specified locale",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "path",
+                        "name": "locale",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Composite pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Limit (1-100, default 20)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_PublicPageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "List public pages with locale",
+                "tags": [
+                    "CMS Public"
+                ]
+            }
+        },
+        "/public/workspaces/{wid}/cms/{locale}/pages/{slug}": {
+            "get": {
+                "description": "Retrieve a published page visible at current time by slug in specified locale",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "path",
+                        "name": "locale",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Page slug",
+                        "in": "path",
+                        "name": "slug",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PublicPageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Get public page by slug with locale",
+                "tags": [
+                    "CMS Public"
+                ]
+            }
+        },
+        "/public/workspaces/{wid}/cms/{locale}/posts": {
+            "get": {
+                "description": "List published posts visible at current time for a workspace in specified locale",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "path",
+                        "name": "locale",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Composite pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Limit (1-100, default 20)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-array_model_PublicPostResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "List public posts with locale",
+                "tags": [
+                    "CMS Public"
+                ]
+            }
+        },
+        "/public/workspaces/{wid}/cms/{locale}/posts/{slug}": {
+            "get": {
+                "description": "Retrieve a published post visible at current time by slug in specified locale",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "path",
+                        "name": "locale",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Post slug",
+                        "in": "path",
+                        "name": "slug",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PublicPostResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Get public post by slug with locale",
                 "tags": [
                     "CMS Public"
                 ]
@@ -7524,7 +8045,7 @@ const docTemplate = `{
                 ]
             },
             "get": {
-                "description": "Get page details by ID",
+                "description": "Get page details by ID for the requested or default locale",
                 "parameters": [
                     {
                         "description": "Workspace ID",
@@ -7542,6 +8063,14 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -7636,6 +8165,14 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -7766,6 +8303,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -7871,6 +8416,14 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -7980,6 +8533,257 @@ const docTemplate = `{
                 ]
             }
         },
+        "/workspaces/{wid}/cms/pages/{id}/translations/{locale}": {
+            "delete": {
+                "description": "Delete a translation for a page by locale",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "path",
+                        "name": "locale",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete page translation",
+                "tags": [
+                    "CMS Pages"
+                ]
+            },
+            "put": {
+                "description": "Create or update localized translation for a page",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "path",
+                        "name": "locale",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SavePageTranslationRequest",
+                                "summary": "request",
+                                "description": "Translation payload"
+                            }
+                        }
+                    },
+                    "description": "Translation payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Save page translation",
+                "tags": [
+                    "CMS Pages"
+                ]
+            }
+        },
         "/workspaces/{wid}/cms/pages/{id}/unpublish": {
             "post": {
                 "description": "Unpublish a published or scheduled page back to draft",
@@ -8000,6 +8804,14 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -8392,7 +9204,7 @@ const docTemplate = `{
                 ]
             },
             "get": {
-                "description": "Get post details by ID",
+                "description": "Get post details by ID for the requested or default locale",
                 "parameters": [
                     {
                         "description": "Workspace ID",
@@ -8410,6 +9222,14 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -8504,6 +9324,14 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -8634,6 +9462,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -8739,6 +9575,14 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -8848,6 +9692,257 @@ const docTemplate = `{
                 ]
             }
         },
+        "/workspaces/{wid}/cms/posts/{id}/translations/{locale}": {
+            "delete": {
+                "description": "Delete a translation for a post by locale",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Post ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "path",
+                        "name": "locale",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete post translation",
+                "tags": [
+                    "CMS Posts"
+                ]
+            },
+            "put": {
+                "description": "Create or update localized translation for a post",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Post ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "path",
+                        "name": "locale",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.SavePostTranslationRequest",
+                                "summary": "request",
+                                "description": "Translation payload"
+                            }
+                        }
+                    },
+                    "description": "Translation payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_PostResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Save post translation",
+                "tags": [
+                    "CMS Posts"
+                ]
+            }
+        },
         "/workspaces/{wid}/cms/posts/{id}/unpublish": {
             "post": {
                 "description": "Unpublish a published or scheduled post back to draft",
@@ -8868,6 +9963,14 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "BCP 47 locale tag",
+                        "in": "query",
+                        "name": "locale",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -8951,6 +10054,191 @@ const docTemplate = `{
                 "summary": "Unpublish post",
                 "tags": [
                     "CMS Posts"
+                ]
+            }
+        },
+        "/workspaces/{wid}/cms/settings": {
+            "get": {
+                "description": "Retrieve CMS default and supported locales for the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_CmsSettingResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get CMS settings",
+                "tags": [
+                    "CMS Settings"
+                ]
+            },
+            "put": {
+                "description": "Update CMS default and supported locales for the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateCmsSettingRequest",
+                                "summary": "request",
+                                "description": "Setting update payload"
+                            }
+                        }
+                    },
+                    "description": "Setting update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_CmsSettingResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update CMS settings",
+                "tags": [
+                    "CMS Settings"
                 ]
             }
         },

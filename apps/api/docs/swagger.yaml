@@ -22,6 +22,21 @@ components:
         name:
           type: string
       type: object
+    domain.TranslationSummary:
+      properties:
+        effectiveStatus:
+          type: string
+        locale:
+          type: string
+        publishAt:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        title:
+          type: string
+      type: object
     httpx.ErrorBody:
       properties:
         code:
@@ -343,6 +358,15 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/model.CashFlowItemResponse'
+          description: Data contains the response payload.
+        meta:
+          $ref: '#/components/schemas/httpx.Meta'
+          description: Meta contains request metadata such as request ID and timestamps.
+      type: object
+    httpx.WebResponse-model_CmsSettingResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/model.CmsSettingResponse'
           description: Data contains the response payload.
         meta:
           $ref: '#/components/schemas/httpx.Meta'
@@ -852,6 +876,16 @@ components:
           example: "1000000.00"
           type: string
       type: object
+    model.CmsSettingResponse:
+      properties:
+        defaultLocale:
+          type: string
+        supportedLocales:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+      type: object
     model.CreateAccessTokenRequest:
       properties:
         expiresInDays:
@@ -982,6 +1016,8 @@ components:
       properties:
         body:
           type: string
+        locale:
+          type: string
         slug:
           type: string
         title:
@@ -1017,6 +1053,8 @@ components:
         coverMediaId:
           type: integer
         excerpt:
+          type: string
+        locale:
           type: string
         slug:
           type: string
@@ -1560,6 +1598,8 @@ components:
           type: string
         id:
           type: integer
+        locale:
+          type: string
         publishAt:
           type: string
         slug:
@@ -1568,6 +1608,11 @@ components:
           type: string
         title:
           type: string
+        translations:
+          items:
+            $ref: '#/components/schemas/domain.TranslationSummary'
+          type: array
+          uniqueItems: false
         workspaceId:
           type: integer
       type: object
@@ -1636,6 +1681,8 @@ components:
           type: string
         id:
           type: integer
+        locale:
+          type: string
         publishAt:
           type: string
         slug:
@@ -1644,6 +1691,11 @@ components:
           type: string
         title:
           type: string
+        translations:
+          items:
+            $ref: '#/components/schemas/domain.TranslationSummary'
+          type: array
+          uniqueItems: false
         workspaceId:
           type: integer
       type: object
@@ -1715,6 +1767,15 @@ components:
         name:
           type: string
       type: object
+    model.PublicAlternate:
+      properties:
+        locale:
+          type: string
+        path:
+          type: string
+        slug:
+          type: string
+      type: object
     model.PublicCoverImage:
       properties:
         alt:
@@ -1746,10 +1807,21 @@ components:
       type: object
     model.PublicPageResponse:
       properties:
+        alternates:
+          items:
+            $ref: '#/components/schemas/model.PublicAlternate'
+          type: array
+          uniqueItems: false
         body:
           type: string
+        fallback:
+          type: boolean
         id:
           type: integer
+        locale:
+          type: string
+        path:
+          type: string
         publishedAt:
           type: string
         slug:
@@ -1759,14 +1831,25 @@ components:
       type: object
     model.PublicPostResponse:
       properties:
+        alternates:
+          items:
+            $ref: '#/components/schemas/model.PublicAlternate'
+          type: array
+          uniqueItems: false
         body:
           type: string
         coverImage:
           $ref: '#/components/schemas/model.PublicCoverImage'
         excerpt:
           type: string
+        fallback:
+          type: boolean
         id:
           type: integer
+        locale:
+          type: string
+        path:
+          type: string
         publishedAt:
           type: string
         slug:
@@ -1840,6 +1923,30 @@ components:
       - items
       - paymentAccountId
       - transactionDate
+      type: object
+    model.SavePageTranslationRequest:
+      properties:
+        body:
+          type: string
+        slug:
+          type: string
+        title:
+          type: string
+      required:
+      - title
+      type: object
+    model.SavePostTranslationRequest:
+      properties:
+        body:
+          type: string
+        excerpt:
+          type: string
+        slug:
+          type: string
+        title:
+          type: string
+      required:
+      - title
       type: object
     model.SchedulePageRequest:
       properties:
@@ -1992,6 +2099,8 @@ components:
           maximum: 100
           minimum: 1
           type: integer
+        locale:
+          type: string
         query:
           type: string
         status:
@@ -2013,6 +2122,8 @@ components:
           maximum: 100
           minimum: 1
           type: integer
+        locale:
+          type: string
         query:
           type: string
         status:
@@ -2314,6 +2425,16 @@ components:
       required:
       - baseCurrency
       type: object
+    model.UpdateCmsSettingRequest:
+      properties:
+        defaultLocale:
+          type: string
+        supportedLocales:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+      type: object
     model.UpdateEntryRequest:
       properties:
         description:
@@ -2407,6 +2528,8 @@ components:
       properties:
         body:
           type: string
+        locale:
+          type: string
         slug:
           type: string
         title:
@@ -2440,6 +2563,8 @@ components:
         coverMediaId:
           type: integer
         excerpt:
+          type: string
+        locale:
           type: string
         slug:
           type: string
@@ -2863,6 +2988,206 @@ paths:
       summary: Accept workspace invitation
       tags:
       - Workspace Invitations
+  /public/workspaces/{wid}/cms/{locale}/pages:
+    get:
+      description: List published pages visible at current time for a workspace in
+        specified locale
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: BCP 47 locale tag
+        in: path
+        name: locale
+        required: true
+        schema:
+          type: string
+      - description: Composite pagination cursor
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: Limit (1-100, default 20)
+        in: query
+        name: limit
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-array_model_PublicPageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      summary: List public pages with locale
+      tags:
+      - CMS Public
+  /public/workspaces/{wid}/cms/{locale}/pages/{slug}:
+    get:
+      description: Retrieve a published page visible at current time by slug in specified
+        locale
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: BCP 47 locale tag
+        in: path
+        name: locale
+        required: true
+        schema:
+          type: string
+      - description: Page slug
+        in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PublicPageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      summary: Get public page by slug with locale
+      tags:
+      - CMS Public
+  /public/workspaces/{wid}/cms/{locale}/posts:
+    get:
+      description: List published posts visible at current time for a workspace in
+        specified locale
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: BCP 47 locale tag
+        in: path
+        name: locale
+        required: true
+        schema:
+          type: string
+      - description: Composite pagination cursor
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: Limit (1-100, default 20)
+        in: query
+        name: limit
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-array_model_PublicPostResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      summary: List public posts with locale
+      tags:
+      - CMS Public
+  /public/workspaces/{wid}/cms/{locale}/posts/{slug}:
+    get:
+      description: Retrieve a published post visible at current time by slug in specified
+        locale
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: BCP 47 locale tag
+        in: path
+        name: locale
+        required: true
+        schema:
+          type: string
+      - description: Post slug
+        in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PublicPostResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      summary: Get public post by slug with locale
+      tags:
+      - CMS Public
   /public/workspaces/{wid}/cms/media/{id}:
     get:
       description: Redirects (302) to the presigned download URL for a media item
@@ -2899,6 +3224,7 @@ paths:
   /public/workspaces/{wid}/cms/pages:
     get:
       description: List published pages visible at the current time for a workspace
+        in default locale
       parameters:
       - description: Workspace ID
         in: path
@@ -2940,7 +3266,8 @@ paths:
       - CMS Public
   /public/workspaces/{wid}/cms/pages/{slug}:
     get:
-      description: Retrieve a published page visible at current time by slug
+      description: Retrieve a published page visible at current time by slug in default
+        locale
       parameters:
       - description: Workspace ID
         in: path
@@ -2961,6 +3288,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/httpx.WebResponse-model_PublicPageResponse'
           description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
         "404":
           content:
             application/json:
@@ -2979,6 +3312,7 @@ paths:
   /public/workspaces/{wid}/cms/posts:
     get:
       description: List published posts visible at the current time for a workspace
+        in default locale
       parameters:
       - description: Workspace ID
         in: path
@@ -3020,7 +3354,8 @@ paths:
       - CMS Public
   /public/workspaces/{wid}/cms/posts/{slug}:
     get:
-      description: Retrieve a published post visible at current time by slug
+      description: Retrieve a published post visible at current time by slug in default
+        locale
       parameters:
       - description: Workspace ID
         in: path
@@ -3041,6 +3376,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/httpx.WebResponse-model_PublicPostResponse'
           description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
         "404":
           content:
             application/json:
@@ -4793,7 +5134,7 @@ paths:
       tags:
       - CMS Pages
     get:
-      description: Get page details by ID
+      description: Get page details by ID for the requested or default locale
       parameters:
       - description: Workspace ID
         in: path
@@ -4807,6 +5148,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -4864,6 +5210,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
@@ -4943,6 +5294,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -5007,6 +5363,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
@@ -5070,6 +5431,160 @@ paths:
       summary: Schedule page
       tags:
       - CMS Pages
+  /workspaces/{wid}/cms/pages/{id}/translations/{locale}:
+    delete:
+      description: Delete a translation for a page by locale
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Page ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - description: BCP 47 locale tag
+        in: path
+        name: locale
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-httpx_NoContent'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Delete page translation
+      tags:
+      - CMS Pages
+    put:
+      description: Create or update localized translation for a page
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Page ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - description: BCP 47 locale tag
+        in: path
+        name: locale
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.SavePageTranslationRequest'
+              description: Translation payload
+              summary: request
+        description: Translation payload
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Save page translation
+      tags:
+      - CMS Pages
   /workspaces/{wid}/cms/pages/{id}/unpublish:
     post:
       description: Unpublish a published or scheduled page back to draft
@@ -5086,6 +5601,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -5321,7 +5841,7 @@ paths:
       tags:
       - CMS Posts
     get:
-      description: Get post details by ID
+      description: Get post details by ID for the requested or default locale
       parameters:
       - description: Workspace ID
         in: path
@@ -5335,6 +5855,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -5392,6 +5917,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
@@ -5471,6 +6001,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -5535,6 +6070,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
@@ -5598,6 +6138,160 @@ paths:
       summary: Schedule post
       tags:
       - CMS Posts
+  /workspaces/{wid}/cms/posts/{id}/translations/{locale}:
+    delete:
+      description: Delete a translation for a post by locale
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - description: BCP 47 locale tag
+        in: path
+        name: locale
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-httpx_NoContent'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Delete post translation
+      tags:
+      - CMS Posts
+    put:
+      description: Create or update localized translation for a post
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - description: BCP 47 locale tag
+        in: path
+        name: locale
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.SavePostTranslationRequest'
+              description: Translation payload
+              summary: request
+        description: Translation payload
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_PostResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Save post translation
+      tags:
+      - CMS Posts
   /workspaces/{wid}/cms/posts/{id}/unpublish:
     post:
       description: Unpublish a published or scheduled post back to draft
@@ -5614,6 +6308,11 @@ paths:
         required: true
         schema:
           type: integer
+      - description: BCP 47 locale tag
+        in: query
+        name: locale
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -5723,6 +6422,118 @@ paths:
       summary: Search posts
       tags:
       - CMS Posts
+  /workspaces/{wid}/cms/settings:
+    get:
+      description: Retrieve CMS default and supported locales for the workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_CmsSettingResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Get CMS settings
+      tags:
+      - CMS Settings
+    put:
+      description: Update CMS default and supported locales for the workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: wid
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/model.UpdateCmsSettingRequest'
+              description: Setting update payload
+              summary: request
+        description: Setting update payload
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.WebResponse-model_CmsSettingResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Conflict
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/httpx.ErrorResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Update CMS settings
+      tags:
+      - CMS Settings
   /workspaces/{wid}/files:
     post:
       description: Upload a file via multipart/form-data into the workspace's dedicated

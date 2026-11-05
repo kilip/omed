@@ -12,13 +12,15 @@ import (
 // PostServiceContract defines the operations required by PostController.
 type PostServiceContract interface {
 	Create(c context.Context, req model.CreatePostRequest) (domain.Post, error)
-	GetByID(c context.Context, id int64) (domain.Post, error)
+	GetByID(c context.Context, id int64, requestedLocale ...string) (domain.Post, error)
 	Search(c context.Context, req model.SearchPostRequest) ([]domain.Post, string, error)
-	Update(c context.Context, id int64, req model.UpdatePostRequest) (domain.Post, error)
+	Update(c context.Context, id int64, req model.UpdatePostRequest, locale ...string) (domain.Post, error)
 	Delete(c context.Context, id int64) error
-	Publish(c context.Context, id int64) (domain.Post, error)
-	Schedule(c context.Context, id int64, req model.SchedulePostRequest) (domain.Post, error)
-	Unpublish(c context.Context, id int64) (domain.Post, error)
+	Publish(c context.Context, id int64, locale ...string) (domain.Post, error)
+	Schedule(c context.Context, id int64, req model.SchedulePostRequest, locale ...string) (domain.Post, error)
+	Unpublish(c context.Context, id int64, locale ...string) (domain.Post, error)
+	SaveTranslation(c context.Context, id int64, locale string, req model.SavePostTranslationRequest) (domain.Post, error)
+	DeleteTranslation(c context.Context, id int64, locale string) error
 }
 
 // PostController handles HTTP requests for CMS post management.
@@ -100,17 +102,18 @@ func (ctl PostController) Search(c fiber.Ctx) error {
 // GetByID retrieves a post by ID.
 //
 //	@Summary		Get post by ID
-//	@Description	Get post details by ID
+//	@Description	Get post details by ID for the requested or default locale
 //	@Tags			CMS Posts
 //	@Produce		json
-//	@Param			wid	path		int	true	"Workspace ID"
-//	@Param			id	path		int	true	"Post ID"
-//	@Success		200	{object}	httpx.WebResponse[model.PostResponse]
-//	@Failure		400	{object}	httpx.ErrorResponse
-//	@Failure		401	{object}	httpx.ErrorResponse
-//	@Failure		403	{object}	httpx.ErrorResponse
-//	@Failure		404	{object}	httpx.ErrorResponse
-//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Post ID"
+//	@Param			locale	query		string	false	"BCP 47 locale tag"
+//	@Success		200		{object}	httpx.WebResponse[model.PostResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/cms/posts/{id} [get]
 func (ctl PostController) GetByID(c fiber.Ctx) error {
@@ -118,7 +121,8 @@ func (ctl PostController) GetByID(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	item, err := ctl.svc.GetByID(c, id)
+	locale := c.Query("locale")
+	item, err := ctl.svc.GetByID(c, id, locale)
 	if err != nil {
 		return err
 	}
@@ -134,6 +138,7 @@ func (ctl PostController) GetByID(c fiber.Ctx) error {
 //	@Produce		json
 //	@Param			wid		path		int						true	"Workspace ID"
 //	@Param			id		path		int						true	"Post ID"
+//	@Param			locale	query		string					false	"BCP 47 locale tag"
 //	@Param			request	body		model.UpdatePostRequest	true	"Post update payload"
 //	@Success		200		{object}	httpx.WebResponse[model.PostResponse]
 //	@Failure		400		{object}	httpx.ErrorResponse
@@ -154,11 +159,83 @@ func (ctl PostController) Update(c fiber.Ctx) error {
 	if err := c.Bind().Body(&req); err != nil {
 		return err
 	}
-	item, err := ctl.svc.Update(c, id, req)
+	locale := c.Query("locale")
+	item, err := ctl.svc.Update(c, id, req, locale)
 	if err != nil {
 		return err
 	}
 	return httpx.OK(c, toPostResponse(item))
+}
+
+// SaveTranslation creates or updates a translation for a post.
+//
+//	@Summary		Save post translation
+//	@Description	Create or update localized translation for a post
+//	@Tags			CMS Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int								true	"Workspace ID"
+//	@Param			id		path		int								true	"Post ID"
+//	@Param			locale	path		string							true	"BCP 47 locale tag"
+//	@Param			request	body		model.SavePostTranslationRequest	true	"Translation payload"
+//	@Success		200		{object}	httpx.WebResponse[model.PostResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/cms/posts/{id}/translations/{locale} [put]
+func (ctl PostController) SaveTranslation(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	locale := c.Params("locale")
+	var req model.SavePostTranslationRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	if req.Title == "" {
+		return domain.ErrTitleRequired
+	}
+	item, err := ctl.svc.SaveTranslation(c, id, locale, req)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, toPostResponse(item))
+}
+
+// DeleteTranslation removes a translation for a post.
+//
+//	@Summary		Delete post translation
+//	@Description	Delete a translation for a post by locale
+//	@Tags			CMS Posts
+//	@Produce		json
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Post ID"
+//	@Param			locale	path		string	true	"BCP 47 locale tag"
+//	@Success		200		{object}	httpx.WebResponse[httpx.NoContent]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/cms/posts/{id}/translations/{locale} [delete]
+func (ctl PostController) DeleteTranslation(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+	locale := c.Params("locale")
+	if err := ctl.svc.DeleteTranslation(c, id, locale); err != nil {
+		return err
+	}
+	return httpx.OK(c, httpx.NoContent{})
 }
 
 // Delete soft-deletes a post.
@@ -194,15 +271,16 @@ func (ctl PostController) Delete(c fiber.Ctx) error {
 //	@Description	Publish a draft or scheduled post immediately
 //	@Tags			CMS Posts
 //	@Produce		json
-//	@Param			wid	path		int	true	"Workspace ID"
-//	@Param			id	path		int	true	"Post ID"
-//	@Success		200	{object}	httpx.WebResponse[model.PostResponse]
-//	@Failure		400	{object}	httpx.ErrorResponse
-//	@Failure		401	{object}	httpx.ErrorResponse
-//	@Failure		403	{object}	httpx.ErrorResponse
-//	@Failure		404	{object}	httpx.ErrorResponse
-//	@Failure		409	{object}	httpx.ErrorResponse
-//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Post ID"
+//	@Param			locale	query		string	false	"BCP 47 locale tag"
+//	@Success		200		{object}	httpx.WebResponse[model.PostResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/cms/posts/{id}/publish [post]
 func (ctl PostController) Publish(c fiber.Ctx) error {
@@ -210,7 +288,8 @@ func (ctl PostController) Publish(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	item, err := ctl.svc.Publish(c, id)
+	locale := c.Query("locale")
+	item, err := ctl.svc.Publish(c, id, locale)
 	if err != nil {
 		return err
 	}
@@ -226,6 +305,7 @@ func (ctl PostController) Publish(c fiber.Ctx) error {
 //	@Produce		json
 //	@Param			wid		path		int							true	"Workspace ID"
 //	@Param			id		path		int							true	"Post ID"
+//	@Param			locale	query		string						false	"BCP 47 locale tag"
 //	@Param			request	body		model.SchedulePostRequest	true	"Schedule details"
 //	@Success		200		{object}	httpx.WebResponse[model.PostResponse]
 //	@Failure		400		{object}	httpx.ErrorResponse
@@ -249,7 +329,8 @@ func (ctl PostController) Schedule(c fiber.Ctx) error {
 	if req.PublishAt.IsZero() {
 		return domain.ErrPublishAtRequired
 	}
-	item, err := ctl.svc.Schedule(c, id, req)
+	locale := c.Query("locale")
+	item, err := ctl.svc.Schedule(c, id, req, locale)
 	if err != nil {
 		return err
 	}
@@ -262,15 +343,16 @@ func (ctl PostController) Schedule(c fiber.Ctx) error {
 //	@Description	Unpublish a published or scheduled post back to draft
 //	@Tags			CMS Posts
 //	@Produce		json
-//	@Param			wid	path		int	true	"Workspace ID"
-//	@Param			id	path		int	true	"Post ID"
-//	@Success		200	{object}	httpx.WebResponse[model.PostResponse]
-//	@Failure		400	{object}	httpx.ErrorResponse
-//	@Failure		401	{object}	httpx.ErrorResponse
-//	@Failure		403	{object}	httpx.ErrorResponse
-//	@Failure		404	{object}	httpx.ErrorResponse
-//	@Failure		409	{object}	httpx.ErrorResponse
-//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Param			wid		path		int		true	"Workspace ID"
+//	@Param			id		path		int		true	"Post ID"
+//	@Param			locale	query		string	false	"BCP 47 locale tag"
+//	@Success		200		{object}	httpx.WebResponse[model.PostResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		409		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
 //	@Security		BearerAuth
 //	@Router			/workspaces/{wid}/cms/posts/{id}/unpublish [post]
 func (ctl PostController) Unpublish(c fiber.Ctx) error {
@@ -278,7 +360,8 @@ func (ctl PostController) Unpublish(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	item, err := ctl.svc.Unpublish(c, id)
+	locale := c.Query("locale")
+	item, err := ctl.svc.Unpublish(c, id, locale)
 	if err != nil {
 		return err
 	}
@@ -289,6 +372,7 @@ func toPostResponse(p domain.Post) model.PostResponse {
 	resp := model.PostResponse{
 		ID:              p.ID,
 		WorkspaceID:     p.WorkspaceID,
+		Locale:          p.Locale,
 		Title:           p.Title,
 		Slug:            p.Slug,
 		Excerpt:         p.Excerpt,
@@ -297,6 +381,7 @@ func toPostResponse(p domain.Post) model.PostResponse {
 		Status:          p.Status,
 		EffectiveStatus: p.EffectiveStatus,
 		PublishAt:       p.PublishAt,
+		Translations:    p.Translations,
 		AuditMeta:       p.AuditMeta,
 	}
 	if p.CoverMedia != nil {

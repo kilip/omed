@@ -4,18 +4,28 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/internal/base"
+	"github.com/kilip/omed/api/internal/cms/domain"
 )
 
 // CreatePageRequest defines the request body for creating a page.
 type CreatePageRequest struct {
-	Title string  `json:"title" validate:"required"`
-	Slug  *string `json:"slug,omitempty"`
-	Body  *string `json:"body,omitempty"`
+	Title  string  `json:"title" validate:"required"`
+	Slug   *string `json:"slug,omitempty"`
+	Body   *string `json:"body,omitempty"`
+	Locale *string `json:"locale,omitempty"`
 }
 
 // UpdatePageRequest defines the request body for updating a page.
 type UpdatePageRequest struct {
-	Title *string `json:"title,omitempty"`
+	Title  *string `json:"title,omitempty"`
+	Slug   *string `json:"slug,omitempty"`
+	Body   *string `json:"body,omitempty"`
+	Locale *string `json:"locale,omitempty"`
+}
+
+// SavePageTranslationRequest defines payload for creating or updating a page translation.
+type SavePageTranslationRequest struct {
+	Title string  `json:"title" validate:"required"`
 	Slug  *string `json:"slug,omitempty"`
 	Body  *string `json:"body,omitempty"`
 }
@@ -29,26 +39,30 @@ type SchedulePageRequest struct {
 type SearchPageRequest struct {
 	Query  *string `json:"query,omitempty"`
 	Status *string `json:"status,omitempty"` // Filter on effective status: DRAFT, SCHEDULED, PUBLISHED
+	Locale *string `json:"locale,omitempty"`
 	Cursor *string `json:"cursor,omitempty"`
 	Limit  *int    `json:"limit,omitempty" validate:"omitempty,min=1,max=100"`
 }
 
 // PageResponse represents page metadata returned by admin API endpoints.
 type PageResponse struct {
-	ID              int64          `json:"id"`
-	WorkspaceID     int64          `json:"workspaceId"`
-	Title           string         `json:"title"`
-	Slug            string         `json:"slug"`
-	Body            string         `json:"body"`
-	Status          string         `json:"status"`
-	EffectiveStatus string         `json:"effectiveStatus"`
-	PublishAt       *time.Time     `json:"publishAt,omitempty"`
-	AuditMeta       base.AuditMeta `json:"auditMeta"`
+	ID              int64                     `json:"id"`
+	WorkspaceID     int64                     `json:"workspaceId"`
+	Locale          string                    `json:"locale"`
+	Title           string                    `json:"title"`
+	Slug            string                    `json:"slug"`
+	Body            string                    `json:"body"`
+	Status          string                    `json:"status"`
+	EffectiveStatus string                    `json:"effectiveStatus"`
+	PublishAt       *time.Time                `json:"publishAt,omitempty"`
+	Translations    []domain.TranslationSummary `json:"translations,omitempty"`
+	AuditMeta       base.AuditMeta            `json:"auditMeta"`
 }
 
-// CreatePageRecord defines internal payload for inserting a cms_page database record.
+// CreatePageRecord defines internal payload for inserting a cms_page and initial translation record.
 type CreatePageRecord struct {
 	WorkspaceID int64
+	Locale      string
 	Title       string
 	Slug        string
 	Body        string
@@ -56,12 +70,25 @@ type CreatePageRecord struct {
 	PublishAt   *time.Time
 }
 
-// UpdatePageRecord defines internal payload for updating a cms_page database record.
+// UpdatePageRecord defines internal payload for updating a cms_page and translation record.
 type UpdatePageRecord struct {
+	Locale         string
 	Title          *string
 	Slug           *string
 	Body           *string
 	Status         *string
 	PublishAt      *time.Time
 	ClearPublishAt bool
+}
+
+// SavePageTranslationRecord defines internal payload for upserting a cms_page_translation record.
+type SavePageTranslationRecord struct {
+	PageID      int64
+	WorkspaceID int64
+	Locale      string
+	Title       string
+	Slug        string
+	Body        string
+	Status      string
+	PublishAt   *time.Time
 }

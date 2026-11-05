@@ -555,7 +555,7 @@ export interface paths {
     };
     /**
      * List public pages
-     * @description List published pages visible at the current time for a workspace
+     * @description List published pages visible at the current time for a workspace in default locale
      */
     get: {
       parameters: {
@@ -620,7 +620,7 @@ export interface paths {
     };
     /**
      * Get public page by slug
-     * @description Retrieve a published page visible at current time by slug
+     * @description Retrieve a published page visible at current time by slug in default locale
      */
     get: {
       parameters: {
@@ -643,6 +643,15 @@ export interface paths {
           };
           content: {
             "application/json": components["schemas"]["httpx.WebResponse-model_PublicPageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
           };
         };
         /** @description Not Found */
@@ -682,7 +691,7 @@ export interface paths {
     };
     /**
      * List public posts
-     * @description List published posts visible at the current time for a workspace
+     * @description List published posts visible at the current time for a workspace in default locale
      */
     get: {
       parameters: {
@@ -747,7 +756,7 @@ export interface paths {
     };
     /**
      * Get public post by slug
-     * @description Retrieve a published post visible at current time by slug
+     * @description Retrieve a published post visible at current time by slug in default locale
      */
     get: {
       parameters: {
@@ -770,6 +779,295 @@ export interface paths {
           };
           content: {
             "application/json": components["schemas"]["httpx.WebResponse-model_PublicPostResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/public/workspaces/{wid}/cms/{locale}/pages": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List public pages with locale
+     * @description List published pages visible at current time for a workspace in specified locale
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Composite pagination cursor */
+          cursor?: string;
+          /** @description Limit (1-100, default 20) */
+          limit?: number;
+        };
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description BCP 47 locale tag */
+          locale: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-array_model_PublicPageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/public/workspaces/{wid}/cms/{locale}/pages/{slug}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get public page by slug with locale
+     * @description Retrieve a published page visible at current time by slug in specified locale
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description BCP 47 locale tag */
+          locale: string;
+          /** @description Page slug */
+          slug: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PublicPageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/public/workspaces/{wid}/cms/{locale}/posts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List public posts with locale
+     * @description List published posts visible at current time for a workspace in specified locale
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Composite pagination cursor */
+          cursor?: string;
+          /** @description Limit (1-100, default 20) */
+          limit?: number;
+        };
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description BCP 47 locale tag */
+          locale: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-array_model_PublicPostResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/public/workspaces/{wid}/cms/{locale}/posts/{slug}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get public post by slug with locale
+     * @description Retrieve a published post visible at current time by slug in specified locale
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description BCP 47 locale tag */
+          locale: string;
+          /** @description Post slug */
+          slug: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PublicPostResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
           };
         };
         /** @description Not Found */
@@ -3433,11 +3731,14 @@ export interface paths {
     };
     /**
      * Get page by ID
-     * @description Get page details by ID
+     * @description Get page details by ID for the requested or default locale
      */
     get: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -3511,7 +3812,10 @@ export interface paths {
      */
     put: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -3697,7 +4001,10 @@ export interface paths {
      */
     post: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -3795,7 +4102,10 @@ export interface paths {
      */
     post: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -3892,6 +4202,204 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/cms/pages/{id}/translations/{locale}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Save page translation
+     * @description Create or update localized translation for a page
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Page ID */
+          id: number;
+          /** @description BCP 47 locale tag */
+          locale: string;
+        };
+        cookie?: never;
+      };
+      /** @description Translation payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SavePageTranslationRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
+    /**
+     * Delete page translation
+     * @description Delete a translation for a page by locale
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Page ID */
+          id: number;
+          /** @description BCP 47 locale tag */
+          locale: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-httpx_NoContent"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/cms/pages/{id}/unpublish": {
     parameters: {
       query?: never;
@@ -3907,7 +4415,10 @@ export interface paths {
      */
     post: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -4192,11 +4703,14 @@ export interface paths {
     };
     /**
      * Get post by ID
-     * @description Get post details by ID
+     * @description Get post details by ID for the requested or default locale
      */
     get: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -4270,7 +4784,10 @@ export interface paths {
      */
     put: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -4456,7 +4973,10 @@ export interface paths {
      */
     post: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -4554,7 +5074,10 @@ export interface paths {
      */
     post: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -4651,6 +5174,204 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/cms/posts/{id}/translations/{locale}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Save post translation
+     * @description Create or update localized translation for a post
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Post ID */
+          id: number;
+          /** @description BCP 47 locale tag */
+          locale: string;
+        };
+        cookie?: never;
+      };
+      /** @description Translation payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.SavePostTranslationRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_PostResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
+    /**
+     * Delete post translation
+     * @description Delete a translation for a post by locale
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Post ID */
+          id: number;
+          /** @description BCP 47 locale tag */
+          locale: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-httpx_NoContent"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/cms/posts/{id}/unpublish": {
     parameters: {
       query?: never;
@@ -4666,7 +5387,10 @@ export interface paths {
      */
     post: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description BCP 47 locale tag */
+          locale?: string;
+        };
         header?: never;
         path: {
           /** @description Workspace ID */
@@ -4743,6 +5467,169 @@ export interface paths {
         };
       };
     };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/cms/settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get CMS settings
+     * @description Retrieve CMS default and supported locales for the workspace
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_CmsSettingResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    /**
+     * Update CMS settings
+     * @description Update CMS default and supported locales for the workspace
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Setting update payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.UpdateCmsSettingRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_CmsSettingResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -10812,6 +11699,14 @@ export interface components {
       avatar?: string;
       name?: string;
     };
+    "domain.TranslationSummary": {
+      effectiveStatus?: string;
+      locale?: string;
+      publishAt?: string;
+      slug?: string;
+      status?: string;
+      title?: string;
+    };
     "httpx.ErrorBody": {
       code?: string;
       fields?: components["schemas"]["httpx.FieldError"][];
@@ -10981,6 +11876,12 @@ export interface components {
     "httpx.WebResponse-model_CashFlowItemResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.CashFlowItemResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-model_CmsSettingResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.CmsSettingResponse"];
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
@@ -11295,6 +12196,10 @@ export interface components {
       /** @example 1000000.00 */
       unitPrice?: string;
     };
+    "model.CmsSettingResponse": {
+      defaultLocale?: string;
+      supportedLocales?: string[];
+    };
     "model.CreateAccessTokenRequest": {
       expiresInDays?: number;
       name?: string;
@@ -11350,6 +12255,7 @@ export interface components {
     };
     "model.CreatePageRequest": {
       body?: string;
+      locale?: string;
       slug?: string;
       title: string;
     };
@@ -11367,6 +12273,7 @@ export interface components {
       body?: string;
       coverMediaId?: number;
       excerpt?: string;
+      locale?: string;
       slug?: string;
       title: string;
     };
@@ -11655,10 +12562,12 @@ export interface components {
       body?: string;
       effectiveStatus?: string;
       id?: number;
+      locale?: string;
       publishAt?: string;
       slug?: string;
       status?: string;
       title?: string;
+      translations?: components["schemas"]["domain.TranslationSummary"][];
       workspaceId?: number;
     };
     "model.PeriodResponse": {
@@ -11694,10 +12603,12 @@ export interface components {
       effectiveStatus?: string;
       excerpt?: string;
       id?: number;
+      locale?: string;
       publishAt?: string;
       slug?: string;
       status?: string;
       title?: string;
+      translations?: components["schemas"]["domain.TranslationSummary"][];
       workspaceId?: number;
     };
     "model.PostingResponse": {
@@ -11740,6 +12651,11 @@ export interface components {
       model?: string;
       name?: string;
     };
+    "model.PublicAlternate": {
+      locale?: string;
+      path?: string;
+      slug?: string;
+    };
     "model.PublicCoverImage": {
       alt?: string;
       id?: number;
@@ -11755,17 +12671,25 @@ export interface components {
       workspaceName?: string;
     };
     "model.PublicPageResponse": {
+      alternates?: components["schemas"]["model.PublicAlternate"][];
       body?: string;
+      fallback?: boolean;
       id?: number;
+      locale?: string;
+      path?: string;
       publishedAt?: string;
       slug?: string;
       title?: string;
     };
     "model.PublicPostResponse": {
+      alternates?: components["schemas"]["model.PublicAlternate"][];
       body?: string;
       coverImage?: components["schemas"]["model.PublicCoverImage"];
       excerpt?: string;
+      fallback?: boolean;
       id?: number;
+      locale?: string;
+      path?: string;
       publishedAt?: string;
       slug?: string;
       title?: string;
@@ -11807,6 +12731,17 @@ export interface components {
       status?: "DRAFT" | "POSTED";
       /** @example 2026-01-01 */
       transactionDate: string;
+    };
+    "model.SavePageTranslationRequest": {
+      body?: string;
+      slug?: string;
+      title: string;
+    };
+    "model.SavePostTranslationRequest": {
+      body?: string;
+      excerpt?: string;
+      slug?: string;
+      title: string;
     };
     "model.SchedulePageRequest": {
       publishAt: string;
@@ -11885,6 +12820,7 @@ export interface components {
     "model.SearchPageRequest": {
       cursor?: string;
       limit?: number;
+      locale?: string;
       query?: string;
       /** @description Filter on effective status: DRAFT, SCHEDULED, PUBLISHED */
       status?: string;
@@ -11896,6 +12832,7 @@ export interface components {
     "model.SearchPostRequest": {
       cursor?: string;
       limit?: number;
+      locale?: string;
       query?: string;
       /** @description Filter on effective status: DRAFT, SCHEDULED, PUBLISHED */
       status?: string;
@@ -12050,6 +12987,10 @@ export interface components {
     "model.UpdateBaseCurrencyRequest": {
       baseCurrency: string;
     };
+    "model.UpdateCmsSettingRequest": {
+      defaultLocale?: string;
+      supportedLocales?: string[];
+    };
     "model.UpdateEntryRequest": {
       description?: string;
       postings: components["schemas"]["model.CreatePostingRequest"][];
@@ -12096,6 +13037,7 @@ export interface components {
     };
     "model.UpdatePageRequest": {
       body?: string;
+      locale?: string;
       slug?: string;
       title?: string;
     };
@@ -12113,6 +13055,7 @@ export interface components {
       body?: string;
       coverMediaId?: number;
       excerpt?: string;
+      locale?: string;
       slug?: string;
       title?: string;
     };

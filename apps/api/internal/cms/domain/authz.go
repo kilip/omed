@@ -10,6 +10,8 @@ const (
 	ObjPage = "cms:page"
 	// ObjMedia is the permission object for Media library management.
 	ObjMedia = "cms:media"
+	// ObjSetting is the permission object for CMS settings management.
+	ObjSetting = "cms:setting"
 )
 
 // Built-in CMS role IDs assignable per workspace.
@@ -31,6 +33,7 @@ func init() {
 			{Object: ObjPost, Action: "read"},
 			{Object: ObjPage, Action: "read"},
 			{Object: ObjMedia, Action: "read"},
+			{Object: ObjSetting, Action: "read"},
 		},
 	})
 	authz.AddRole(authz.Role{

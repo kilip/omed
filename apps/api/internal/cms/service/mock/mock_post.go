@@ -44,18 +44,18 @@ func (m *MockPostRepository) EXPECT() *MockPostRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockPostRepository) Create(c context.Context, req model.CreatePostRecord, now time.Time) (domain.Post, error) {
+func (m *MockPostRepository) Create(c context.Context, req model.CreatePostRecord, defaultLocale string, now time.Time) (domain.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", c, req, now)
+	ret := m.ctrl.Call(m, "Create", c, req, defaultLocale, now)
 	ret0, _ := ret[0].(domain.Post)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockPostRepositoryMockRecorder) Create(c, req, now any) *gomock.Call {
+func (mr *MockPostRepositoryMockRecorder) Create(c, req, defaultLocale, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPostRepository)(nil).Create), c, req, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPostRepository)(nil).Create), c, req, defaultLocale, now)
 }
 
 // Delete mocks base method.
@@ -72,40 +72,56 @@ func (mr *MockPostRepositoryMockRecorder) Delete(c, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockPostRepository)(nil).Delete), c, id)
 }
 
-// GetByID mocks base method.
-func (m *MockPostRepository) GetByID(c context.Context, id int64, now time.Time) (domain.Post, error) {
+// DeleteTranslation mocks base method.
+func (m *MockPostRepository) DeleteTranslation(c context.Context, postID int64, locale string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", c, id, now)
+	ret := m.ctrl.Call(m, "DeleteTranslation", c, postID, locale)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTranslation indicates an expected call of DeleteTranslation.
+func (mr *MockPostRepositoryMockRecorder) DeleteTranslation(c, postID, locale any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTranslation", reflect.TypeOf((*MockPostRepository)(nil).DeleteTranslation), c, postID, locale)
+}
+
+// GetByID mocks base method.
+func (m *MockPostRepository) GetByID(c context.Context, id int64, requestedLocale, defaultLocale string, now time.Time) (domain.Post, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", c, id, requestedLocale, defaultLocale, now)
 	ret0, _ := ret[0].(domain.Post)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockPostRepositoryMockRecorder) GetByID(c, id, now any) *gomock.Call {
+func (mr *MockPostRepositoryMockRecorder) GetByID(c, id, requestedLocale, defaultLocale, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockPostRepository)(nil).GetByID), c, id, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockPostRepository)(nil).GetByID), c, id, requestedLocale, defaultLocale, now)
 }
 
 // PublicGetBySlug mocks base method.
-func (m *MockPostRepository) PublicGetBySlug(c context.Context, workspaceID int64, slug string, now time.Time) (domain.Post, error) {
+func (m *MockPostRepository) PublicGetBySlug(c context.Context, workspaceID int64, locale, defaultLocale, slug string, now time.Time) (domain.Post, bool, []model.PublicAlternate, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PublicGetBySlug", c, workspaceID, slug, now)
+	ret := m.ctrl.Call(m, "PublicGetBySlug", c, workspaceID, locale, defaultLocale, slug, now)
 	ret0, _ := ret[0].(domain.Post)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].([]model.PublicAlternate)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // PublicGetBySlug indicates an expected call of PublicGetBySlug.
-func (mr *MockPostRepositoryMockRecorder) PublicGetBySlug(c, workspaceID, slug, now any) *gomock.Call {
+func (mr *MockPostRepositoryMockRecorder) PublicGetBySlug(c, workspaceID, locale, defaultLocale, slug, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicGetBySlug", reflect.TypeOf((*MockPostRepository)(nil).PublicGetBySlug), c, workspaceID, slug, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicGetBySlug", reflect.TypeOf((*MockPostRepository)(nil).PublicGetBySlug), c, workspaceID, locale, defaultLocale, slug, now)
 }
 
 // PublicList mocks base method.
-func (m *MockPostRepository) PublicList(c context.Context, workspaceID int64, cursor *string, limit int, now time.Time) ([]domain.Post, string, error) {
+func (m *MockPostRepository) PublicList(c context.Context, workspaceID int64, locale, defaultLocale string, cursor *string, limit int, now time.Time) ([]domain.Post, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PublicList", c, workspaceID, cursor, limit, now)
+	ret := m.ctrl.Call(m, "PublicList", c, workspaceID, locale, defaultLocale, cursor, limit, now)
 	ret0, _ := ret[0].([]domain.Post)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -113,15 +129,30 @@ func (m *MockPostRepository) PublicList(c context.Context, workspaceID int64, cu
 }
 
 // PublicList indicates an expected call of PublicList.
-func (mr *MockPostRepositoryMockRecorder) PublicList(c, workspaceID, cursor, limit, now any) *gomock.Call {
+func (mr *MockPostRepositoryMockRecorder) PublicList(c, workspaceID, locale, defaultLocale, cursor, limit, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicList", reflect.TypeOf((*MockPostRepository)(nil).PublicList), c, workspaceID, cursor, limit, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicList", reflect.TypeOf((*MockPostRepository)(nil).PublicList), c, workspaceID, locale, defaultLocale, cursor, limit, now)
+}
+
+// SaveTranslation mocks base method.
+func (m *MockPostRepository) SaveTranslation(c context.Context, req model.SavePostTranslationRecord, defaultLocale string, now time.Time) (domain.Post, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveTranslation", c, req, defaultLocale, now)
+	ret0, _ := ret[0].(domain.Post)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SaveTranslation indicates an expected call of SaveTranslation.
+func (mr *MockPostRepositoryMockRecorder) SaveTranslation(c, req, defaultLocale, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTranslation", reflect.TypeOf((*MockPostRepository)(nil).SaveTranslation), c, req, defaultLocale, now)
 }
 
 // Search mocks base method.
-func (m *MockPostRepository) Search(c context.Context, req model.SearchPostRequest, now time.Time) ([]domain.Post, string, error) {
+func (m *MockPostRepository) Search(c context.Context, req model.SearchPostRequest, defaultLocale string, now time.Time) ([]domain.Post, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", c, req, now)
+	ret := m.ctrl.Call(m, "Search", c, req, defaultLocale, now)
 	ret0, _ := ret[0].([]domain.Post)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -129,39 +160,39 @@ func (m *MockPostRepository) Search(c context.Context, req model.SearchPostReque
 }
 
 // Search indicates an expected call of Search.
-func (mr *MockPostRepositoryMockRecorder) Search(c, req, now any) *gomock.Call {
+func (mr *MockPostRepositoryMockRecorder) Search(c, req, defaultLocale, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockPostRepository)(nil).Search), c, req, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockPostRepository)(nil).Search), c, req, defaultLocale, now)
 }
 
-// SlugExists mocks base method.
-func (m *MockPostRepository) SlugExists(c context.Context, slug string, excludeID *int64) (bool, error) {
+// SlugExistsInLocale mocks base method.
+func (m *MockPostRepository) SlugExistsInLocale(c context.Context, workspaceID int64, locale, slug string, excludePostID *int64) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SlugExists", c, slug, excludeID)
+	ret := m.ctrl.Call(m, "SlugExistsInLocale", c, workspaceID, locale, slug, excludePostID)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SlugExists indicates an expected call of SlugExists.
-func (mr *MockPostRepositoryMockRecorder) SlugExists(c, slug, excludeID any) *gomock.Call {
+// SlugExistsInLocale indicates an expected call of SlugExistsInLocale.
+func (mr *MockPostRepositoryMockRecorder) SlugExistsInLocale(c, workspaceID, locale, slug, excludePostID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SlugExists", reflect.TypeOf((*MockPostRepository)(nil).SlugExists), c, slug, excludeID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SlugExistsInLocale", reflect.TypeOf((*MockPostRepository)(nil).SlugExistsInLocale), c, workspaceID, locale, slug, excludePostID)
 }
 
 // Update mocks base method.
-func (m *MockPostRepository) Update(c context.Context, id int64, req model.UpdatePostRecord, now time.Time) (domain.Post, error) {
+func (m *MockPostRepository) Update(c context.Context, id int64, req model.UpdatePostRecord, defaultLocale string, now time.Time) (domain.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", c, id, req, now)
+	ret := m.ctrl.Call(m, "Update", c, id, req, defaultLocale, now)
 	ret0, _ := ret[0].(domain.Post)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockPostRepositoryMockRecorder) Update(c, id, req, now any) *gomock.Call {
+func (mr *MockPostRepositoryMockRecorder) Update(c, id, req, defaultLocale, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockPostRepository)(nil).Update), c, id, req, now)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockPostRepository)(nil).Update), c, id, req, defaultLocale, now)
 }
 
 // MockMediaChecker is a mock of MediaChecker interface.
@@ -201,4 +232,43 @@ func (m *MockMediaChecker) GetByID(c context.Context, id int64) (domain.Media, e
 func (mr *MockMediaCheckerMockRecorder) GetByID(c, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockMediaChecker)(nil).GetByID), c, id)
+}
+
+// MockSettingProvider is a mock of SettingProvider interface.
+type MockSettingProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockSettingProviderMockRecorder
+	isgomock struct{}
+}
+
+// MockSettingProviderMockRecorder is the mock recorder for MockSettingProvider.
+type MockSettingProviderMockRecorder struct {
+	mock *MockSettingProvider
+}
+
+// NewMockSettingProvider creates a new mock instance.
+func NewMockSettingProvider(ctrl *gomock.Controller) *MockSettingProvider {
+	mock := &MockSettingProvider{ctrl: ctrl}
+	mock.recorder = &MockSettingProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSettingProvider) EXPECT() *MockSettingProviderMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method.
+func (m *MockSettingProvider) Get(c context.Context, workspaceID int64) (domain.Setting, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", c, workspaceID)
+	ret0, _ := ret[0].(domain.Setting)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockSettingProviderMockRecorder) Get(c, workspaceID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSettingProvider)(nil).Get), c, workspaceID)
 }

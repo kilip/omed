@@ -27,15 +27,19 @@ type Config struct {
 
 // CmsModule represents the cms module implementing config.Module.
 type CmsModule struct {
-	cfg          Config
-	Authorizer   *authz.Authorizer
-	MediaService service.MediaService
-	PostService  service.PostService
-	PageService  service.PageService
+	cfg            Config
+	Authorizer     *authz.Authorizer
+	MediaService   service.MediaService
+	PostService    service.PostService
+	PageService    service.PageService
+	SettingService service.SettingService
 }
 
 // New constructs a new CmsModule instance.
 func New(cfg Config) *CmsModule {
+	settingRepo := repository.NewSettingRepository(cfg.EntCli)
+	settingSvc := service.NewSettingService(settingRepo)
+
 	mediaRepo := repository.NewMediaRepository(cfg.EntCli)
 	mediaSvc := service.NewMediaService(mediaRepo, cfg.FileService, service.MediaConfig{
 		MaxSizeMB:    cfg.CMSMediaMaxSizeMB,
@@ -43,16 +47,24 @@ func New(cfg Config) *CmsModule {
 	})
 
 	postRepo := repository.NewPostRepository(cfg.EntCli)
-	postSvc := service.NewPostService(postRepo, service.WithPostMediaChecker(mediaRepo))
+	postSvc := service.NewPostService(
+		postRepo,
+		service.WithPostMediaChecker(mediaRepo),
+		service.WithPostSettingProvider(settingRepo),
+	)
 
 	pageRepo := repository.NewPageRepository(cfg.EntCli)
-	pageSvc := service.NewPageService(pageRepo)
+	pageSvc := service.NewPageService(
+		pageRepo,
+		service.WithPageSettingProvider(settingRepo),
+	)
 
 	return &CmsModule{
-		cfg:          cfg,
-		MediaService: mediaSvc,
-		PostService:  postSvc,
-		PageService:  pageSvc,
+		cfg:            cfg,
+		MediaService:   mediaSvc,
+		PostService:    postSvc,
+		PageService:    pageSvc,
+		SettingService: settingSvc,
 	}
 }
 

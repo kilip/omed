@@ -3,7 +3,6 @@
 package cmspost
 
 import (
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -29,18 +28,6 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldDeletedByID holds the string denoting the deleted_by_id field in the database.
 	FieldDeletedByID = "deleted_by_id"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
-	// FieldPublishAt holds the string denoting the publish_at field in the database.
-	FieldPublishAt = "publish_at"
-	// FieldTitle holds the string denoting the title field in the database.
-	FieldTitle = "title"
-	// FieldSlug holds the string denoting the slug field in the database.
-	FieldSlug = "slug"
-	// FieldExcerpt holds the string denoting the excerpt field in the database.
-	FieldExcerpt = "excerpt"
-	// FieldBody holds the string denoting the body field in the database.
-	FieldBody = "body"
 	// FieldCoverMediaID holds the string denoting the cover_media_id field in the database.
 	FieldCoverMediaID = "cover_media_id"
 	// EdgeWorkspace holds the string denoting the workspace edge name in mutations.
@@ -53,6 +40,8 @@ const (
 	EdgeDeleter = "deleter"
 	// EdgeCoverMedia holds the string denoting the cover_media edge name in mutations.
 	EdgeCoverMedia = "cover_media"
+	// EdgeTranslations holds the string denoting the translations edge name in mutations.
+	EdgeTranslations = "translations"
 	// Table holds the table name of the cmspost in the database.
 	Table = "cms_posts"
 	// WorkspaceTable is the table that holds the workspace relation/edge.
@@ -90,6 +79,13 @@ const (
 	CoverMediaInverseTable = "cms_media"
 	// CoverMediaColumn is the table column denoting the cover_media relation/edge.
 	CoverMediaColumn = "cover_media_id"
+	// TranslationsTable is the table that holds the translations relation/edge.
+	TranslationsTable = "cms_post_translations"
+	// TranslationsInverseTable is the table name for the CmsPostTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "cmsposttranslation" package.
+	TranslationsInverseTable = "cms_post_translations"
+	// TranslationsColumn is the table column denoting the translations relation/edge.
+	TranslationsColumn = "post_id"
 )
 
 // Columns holds all SQL columns for cmspost fields.
@@ -102,12 +98,6 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldDeletedAt,
 	FieldDeletedByID,
-	FieldStatus,
-	FieldPublishAt,
-	FieldTitle,
-	FieldSlug,
-	FieldExcerpt,
-	FieldBody,
 	FieldCoverMediaID,
 }
 
@@ -128,39 +118,7 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	TitleValidator func(string) error
-	// SlugValidator is a validator for the "slug" field. It is called by the builders before save.
-	SlugValidator func(string) error
-	// DefaultBody holds the default value on creation for the "body" field.
-	DefaultBody string
 )
-
-// Status defines the type for the "status" enum field.
-type Status string
-
-// StatusDRAFT is the default value of the Status enum.
-const DefaultStatus = StatusDRAFT
-
-// Status values.
-const (
-	StatusDRAFT     Status = "DRAFT"
-	StatusPUBLISHED Status = "PUBLISHED"
-)
-
-func (s Status) String() string {
-	return string(s)
-}
-
-// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
-func StatusValidator(s Status) error {
-	switch s {
-	case StatusDRAFT, StatusPUBLISHED:
-		return nil
-	default:
-		return fmt.Errorf("cmspost: invalid enum value for status field: %q", s)
-	}
-}
 
 // OrderOption defines the ordering options for the CmsPost queries.
 type OrderOption func(*sql.Selector)
@@ -205,36 +163,6 @@ func ByDeletedByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeletedByID, opts...).ToFunc()
 }
 
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
-}
-
-// ByPublishAt orders the results by the publish_at field.
-func ByPublishAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPublishAt, opts...).ToFunc()
-}
-
-// ByTitle orders the results by the title field.
-func ByTitle(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTitle, opts...).ToFunc()
-}
-
-// BySlug orders the results by the slug field.
-func BySlug(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSlug, opts...).ToFunc()
-}
-
-// ByExcerpt orders the results by the excerpt field.
-func ByExcerpt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExcerpt, opts...).ToFunc()
-}
-
-// ByBody orders the results by the body field.
-func ByBody(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBody, opts...).ToFunc()
-}
-
 // ByCoverMediaID orders the results by the cover_media_id field.
 func ByCoverMediaID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCoverMediaID, opts...).ToFunc()
@@ -274,6 +202,20 @@ func ByCoverMediaField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCoverMediaStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByTranslationsCount orders the results by translations count.
+func ByTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTranslationsStep(), opts...)
+	}
+}
+
+// ByTranslations orders the results by translations terms.
+func ByTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newWorkspaceStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -307,5 +249,12 @@ func newCoverMediaStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CoverMediaInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, CoverMediaTable, CoverMediaColumn),
+	)
+}
+func newTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TranslationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
 	)
 }

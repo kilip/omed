@@ -12,7 +12,10 @@ type SchemaConfig struct {
 	AgentSetting        string // AgentSetting table.
 	CmsMedia            string // CmsMedia table.
 	CmsPage             string // CmsPage table.
+	CmsPageTranslation  string // CmsPageTranslation table.
 	CmsPost             string // CmsPost table.
+	CmsPostTranslation  string // CmsPostTranslation table.
+	CmsSetting          string // CmsSetting table.
 	Currency            string // Currency table.
 	Entry               string // Entry table.
 	ExchangeRate        string // ExchangeRate table.

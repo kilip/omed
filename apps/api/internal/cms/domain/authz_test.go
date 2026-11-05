@@ -43,6 +43,7 @@ func TestCmsRoles_RegistrationAndInheritance(t *testing.T) {
 		{Object: domain.ObjPost, Action: "read"},
 		{Object: domain.ObjPage, Action: "read"},
 		{Object: domain.ObjMedia, Action: "read"},
+		{Object: domain.ObjSetting, Action: "read"},
 	}
 	assert.ElementsMatch(t, expectedViewerPerms, viewer.Permissions)
 

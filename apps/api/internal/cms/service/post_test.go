@@ -47,17 +47,19 @@ func (s *PostServiceSuite) TearDownTest() {
 
 func (s *PostServiceSuite) Test_Create_AutoSlug_NoConflict() {
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "hello-world", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "hello-world", nil).
 		Return(false, nil)
 
 	s.mockRepo.EXPECT().
 		Create(s.ctx, model.CreatePostRecord{
-			Title:   "Hello World",
-			Slug:    "hello-world",
-			Excerpt: "",
-			Body:    "",
-			Status:  domain.StatusDraft,
-		}, s.fixedTime).
+			WorkspaceID: 0,
+			Locale:      "en",
+			Title:       "Hello World",
+			Slug:        "hello-world",
+			Excerpt:     "",
+			Body:        "",
+			Status:      domain.StatusDraft,
+		}, "en", s.fixedTime).
 		Return(domain.Post{
 			ID:    1,
 			Title: "Hello World",
@@ -73,23 +75,23 @@ func (s *PostServiceSuite) Test_Create_AutoSlug_NoConflict() {
 }
 
 func (s *PostServiceSuite) Test_Create_AutoSlug_ConflictResolution() {
-	// First slug exists
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "hello-world", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "hello-world", nil).
 		Return(true, nil)
-	// Second slug (suffix 2) does not exist
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "hello-world-2", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "hello-world-2", nil).
 		Return(false, nil)
 
 	s.mockRepo.EXPECT().
 		Create(s.ctx, model.CreatePostRecord{
-			Title:   "Hello World",
-			Slug:    "hello-world-2",
-			Excerpt: "",
-			Body:    "",
-			Status:  domain.StatusDraft,
-		}, s.fixedTime).
+			WorkspaceID: 0,
+			Locale:      "en",
+			Title:       "Hello World",
+			Slug:        "hello-world-2",
+			Excerpt:     "",
+			Body:        "",
+			Status:      domain.StatusDraft,
+		}, "en", s.fixedTime).
 		Return(domain.Post{
 			ID:    2,
 			Title: "Hello World",
@@ -106,7 +108,7 @@ func (s *PostServiceSuite) Test_Create_AutoSlug_ConflictResolution() {
 func (s *PostServiceSuite) Test_Create_ExplicitSlug_ConflictReturnsError() {
 	explicit := "custom-slug"
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "custom-slug", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "custom-slug", nil).
 		Return(true, nil)
 
 	_, err := s.svc.Create(s.ctx, model.CreatePostRequest{
@@ -119,7 +121,7 @@ func (s *PostServiceSuite) Test_Create_ExplicitSlug_ConflictReturnsError() {
 func (s *PostServiceSuite) Test_Create_BadCoverMedia() {
 	coverID := int64(999)
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "post-title", nil).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "post-title", nil).
 		Return(false, nil)
 
 	s.mockMediaChecker.EXPECT().
@@ -138,7 +140,7 @@ func (s *PostServiceSuite) Test_Update_SlugConflict() {
 	newSlug := "taken-slug"
 
 	s.mockRepo.EXPECT().
-		SlugExists(s.ctx, "taken-slug", &id).
+		SlugExistsInLocale(s.ctx, int64(0), "en", "taken-slug", &id).
 		Return(true, nil)
 
 	_, err := s.svc.Update(s.ctx, id, model.UpdatePostRequest{
@@ -165,21 +167,23 @@ func (s *PostServiceSuite) Test_Publish_FromDraft() {
 	id := int64(5)
 	draftPost := domain.Post{
 		ID:        id,
+		Locale:    "en",
 		Status:    domain.StatusDraft,
 		PublishAt: nil,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(draftPost, nil)
 
 	newStatus := domain.StatusPublished
 	expectedPublishAt := s.fixedTime
 	s.mockRepo.EXPECT().
 		Update(s.ctx, id, model.UpdatePostRecord{
+			Locale:    "en",
 			Status:    &newStatus,
 			PublishAt: &expectedPublishAt,
-		}, s.fixedTime).
+		}, "en", s.fixedTime).
 		Return(domain.Post{
 			ID:              id,
 			Status:          domain.StatusPublished,
@@ -197,12 +201,13 @@ func (s *PostServiceSuite) Test_Publish_AlreadyPublishedFails() {
 	past := s.fixedTime.Add(-1 * time.Hour)
 	livePost := domain.Post{
 		ID:        id,
+		Locale:    "en",
 		Status:    domain.StatusPublished,
 		PublishAt: &past,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(livePost, nil)
 
 	_, err := s.svc.Publish(s.ctx, id)
@@ -213,11 +218,12 @@ func (s *PostServiceSuite) Test_Schedule_InPastFails() {
 	id := int64(5)
 	draftPost := domain.Post{
 		ID:     id,
+		Locale: "en",
 		Status: domain.StatusDraft,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(draftPost, nil)
 
 	past := s.fixedTime.Add(-10 * time.Minute)
@@ -231,20 +237,22 @@ func (s *PostServiceSuite) Test_Schedule_FutureSuccess() {
 	id := int64(5)
 	draftPost := domain.Post{
 		ID:     id,
+		Locale: "en",
 		Status: domain.StatusDraft,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(draftPost, nil)
 
 	future := s.fixedTime.Add(2 * time.Hour)
 	newStatus := domain.StatusPublished
 	s.mockRepo.EXPECT().
 		Update(s.ctx, id, model.UpdatePostRecord{
+			Locale:    "en",
 			Status:    &newStatus,
 			PublishAt: &future,
-		}, s.fixedTime).
+		}, "en", s.fixedTime).
 		Return(domain.Post{
 			ID:              id,
 			Status:          domain.StatusPublished,
@@ -264,20 +272,22 @@ func (s *PostServiceSuite) Test_Unpublish_Success() {
 	future := s.fixedTime.Add(2 * time.Hour)
 	scheduledPost := domain.Post{
 		ID:        id,
+		Locale:    "en",
 		Status:    domain.StatusPublished,
 		PublishAt: &future,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(scheduledPost, nil)
 
 	newStatus := domain.StatusDraft
 	s.mockRepo.EXPECT().
 		Update(s.ctx, id, model.UpdatePostRecord{
+			Locale:         "en",
 			Status:         &newStatus,
 			ClearPublishAt: true,
-		}, s.fixedTime).
+		}, "en", s.fixedTime).
 		Return(domain.Post{
 			ID:              id,
 			Status:          domain.StatusDraft,
@@ -294,11 +304,12 @@ func (s *PostServiceSuite) Test_Unpublish_DraftFails() {
 	id := int64(5)
 	draftPost := domain.Post{
 		ID:     id,
+		Locale: "en",
 		Status: domain.StatusDraft,
 	}
 
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, id, s.fixedTime).
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
 		Return(draftPost, nil)
 
 	_, err := s.svc.Unpublish(s.ctx, id)
@@ -307,7 +318,7 @@ func (s *PostServiceSuite) Test_Unpublish_DraftFails() {
 
 func (s *PostServiceSuite) Test_GetByID_Search_Delete() {
 	s.mockRepo.EXPECT().
-		GetByID(s.ctx, int64(1), s.fixedTime).
+		GetByID(s.ctx, int64(1), "en", "en", s.fixedTime).
 		Return(domain.Post{ID: 1}, nil)
 
 	p, err := s.svc.GetByID(s.ctx, 1)
@@ -315,7 +326,7 @@ func (s *PostServiceSuite) Test_GetByID_Search_Delete() {
 	s.Equal(int64(1), p.ID)
 
 	s.mockRepo.EXPECT().
-		Search(s.ctx, model.SearchPostRequest{}, s.fixedTime).
+		Search(s.ctx, model.SearchPostRequest{}, "en", s.fixedTime).
 		Return([]domain.Post{{ID: 1}}, "cursor-1", nil)
 
 	posts, cursor, err := s.svc.Search(s.ctx, model.SearchPostRequest{})
@@ -328,5 +339,40 @@ func (s *PostServiceSuite) Test_GetByID_Search_Delete() {
 		Return(nil)
 
 	err = s.svc.Delete(s.ctx, 1)
+	s.Require().NoError(err)
+}
+
+func (s *PostServiceSuite) Test_Translation_Invariants() {
+	id := int64(1)
+
+	// Delete default translation when another translation exists -> rejected
+	s.mockRepo.EXPECT().
+		GetByID(s.ctx, id, "en", "en", s.fixedTime).
+		Return(domain.Post{
+			ID: id,
+			Translations: []domain.TranslationSummary{
+				{Locale: "en", Title: "English"},
+				{Locale: "id", Title: "Indonesian"},
+			},
+		}, nil)
+
+	err := s.svc.DeleteTranslation(s.ctx, id, "en")
+	s.Require().ErrorIs(err, domain.ErrDefaultTranslationRequired)
+
+	// Delete secondary translation -> allowed
+	s.mockRepo.EXPECT().
+		GetByID(s.ctx, id, "id", "en", s.fixedTime).
+		Return(domain.Post{
+			ID: id,
+			Translations: []domain.TranslationSummary{
+				{Locale: "en", Title: "English"},
+				{Locale: "id", Title: "Indonesian"},
+			},
+		}, nil)
+	s.mockRepo.EXPECT().
+		DeleteTranslation(s.ctx, id, "id").
+		Return(nil)
+
+	err = s.svc.DeleteTranslation(s.ctx, id, "id")
 	s.Require().NoError(err)
 }
