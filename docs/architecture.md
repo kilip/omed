@@ -68,12 +68,13 @@ omed/
 ### CMS (`cms`)
 
 - `/cms`: CMS overview.
-- `/cms/posts`, `/cms/posts/new`, `/cms/posts/:id`: Blog posts with search, status filters (`Draft`, `Scheduled`, `Published`), auto-slug, excerpt, Markdown editor (write/preview), cover media picker, and publishing controls.
-- `/cms/pages`, `/cms/pages/new`, `/cms/pages/:id`: Standalone pages with auto-slug, Markdown editor, and publishing controls.
+- `/cms/posts`, `/cms/posts/new`, `/cms/posts/:id`: Blog posts with multi-language tabs, search, status filters (`Draft`, `Scheduled`, `Published`), per-locale auto-slug, excerpt, Markdown editor (write/preview), cover media picker, and publishing controls.
+- `/cms/pages`, `/cms/pages/new`, `/cms/pages/:id`: Standalone pages with multi-language tabs, per-locale auto-slug, Markdown editor, and publishing controls.
 - `/cms/media`: Media library with drag-and-drop uploads, metadata editing (title, alt text, caption, public toggle), public URL copying, and in-use delete protection.
+- `/cms/settings`: Workspace CMS configuration managing default and supported BCP 47 locales.
 - **API Endpoints:**
-  - Admin API: authenticated workspace-scoped CRUD and publishing endpoints under `/workspaces/:wid/cms/{posts,pages,media}`.
-  - Public API: unauthenticated read-only endpoints under `/public/workspaces/:wid/cms/{posts,pages,media}`.
+  - Admin API: authenticated workspace-scoped CRUD, settings, and per-locale translation endpoints under `/workspaces/:wid/cms/{posts,pages,media,settings}`.
+  - Public API: unauthenticated read-only endpoints under `/public/workspaces/:wid/cms/{posts,pages,media}` and locale-scoped `/public/workspaces/:wid/cms/:locale/{posts,pages}` with default-locale fallback and `alternates` for `hreflang`.
 
 ### Agent (`agent`)
 

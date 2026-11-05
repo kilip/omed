@@ -24,7 +24,7 @@ In scope:
 - **Admin API + dashboard UI** (workspace-scoped, authenticated, role-based).
 - **Public read API** (unauthenticated, read-only).
 
-Out of scope (do not build): categories/tags, revisions/history, comments, page hierarchy, SEO fields, i18n of content, a rendered public site, webhooks, background workers, Redis/Kafka usage, rate limiting or cache headers for the public API.
+Out of scope (do not build): categories/tags, revisions/history, comments, page hierarchy, SEO fields, translating Media metadata, a rendered public site, webhooks, background workers, Redis/Kafka usage, rate limiting or cache headers for the public API. Content i18n is supported for Posts and Pages.
 
 ## Decisions taken
 
