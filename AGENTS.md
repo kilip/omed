@@ -6,6 +6,8 @@ Read [README.md](./README.md) for product overview, [docs/architecture.md](./doc
 
 ## 1. General rules
 
+- **NEVER execute a plan unless explicitly approved by the user.** When asked to create or review a plan, stop and wait for explicit user approval before writing or modifying implementation code.
+- **NEVER commit unless the user explicitly asks to commit.** Do not run `git commit` on your own initiative, and never commit or push directly to `main`.
 - Many paths in the README describe planned structure and may not exist yet. Check the filesystem before assuming a file, package, or script exists.
 - The root `package.json` is the source of truth for root scripts. Do not document or call scripts that are not defined there.
 - Formatting follows `.editorconfig`. Use Biome for TypeScript, JSON, and CSS (`mise run lint`, `mise run format`) and `gofmt` for Go.
