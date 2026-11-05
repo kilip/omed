@@ -25,6 +25,31 @@ Feature: Finance Income and Expense Quick Entry
     And I see cashflow item "4,000,000" in the table
     And I see cashflow status "Posted"
 
+  Scenario: Finance Income and Expense - Record a multi-item income as draft, edit and post it
+    When I open "/fin/income"
+    Then I am on "/fin/income"
+    When I click the new income button
+    Then I am on "/fin/income/new"
+    When I select deposit account "1121"
+    And I enter cashflow reference "inv-draft-001"
+    And I add cashflow item 0 with account "4130", description "Initial Consultation", quantity 1 and unit price 500000
+    When I click the cashflow draft button
+    Then I am on "/fin/income"
+    And I see cashflow status "Draft"
+    And I see cashflow item "inv-draft-001" in the table
+    And I see cashflow item "500,000" in the table
+    When I click cashflow row "inv-draft-001"
+    And I see cashflow status "Draft"
+    And I click the edit cashflow button
+    And I add cashflow item 1 with account "4110", description "Follow-up Consultation", quantity 2 and unit price 250000
+    When I click the cashflow posting button
+    Then I am on "/fin/income"
+    And I see cashflow status "Posted"
+    And I see cashflow item "inv-draft-001" in the table
+    And I see cashflow item "1,000,000" in the table
+    When I click cashflow row "inv-draft-001"
+    And I see cashflow status "Posted"
+
   Scenario: Finance Income and Expense - Record a multi-item expense as draft, edit and post it
     When I open "/fin/expense"
     Then I am on "/fin/expense"
