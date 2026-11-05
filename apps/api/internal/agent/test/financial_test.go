@@ -229,6 +229,71 @@ func (s *FinancialIntegrationSuite) TestFinancial_Analyze_Success() {
 	s.Equal("Paper A4", res.Items[0].Description)
 }
 
+func (s *FinancialIntegrationSuite) TestFinancial_Analyze_ReceiptUnitsAndThousandSeparators_Issue55() {
+	ws := s.ensureWorkspace("Analyze Issue 55 WS", s.User.ID)
+	s.createProviderAndEnable(ws.ID)
+
+	cashAcc := s.ensureAccount(ws.ID, "1001", "Cash", "ASSET", "DEBIT", true, true)
+	expenseAcc := s.ensureAccount(ws.ID, "5001", "Food & Beverage", "EXPENSE", "DEBIT", true, true)
+
+	s.chatResponse = fmt.Sprintf(`{
+		"documentType": "receipt",
+		"transactionDate": "2026-01-15",
+		"paymentAccountId": %d,
+		"currency": "IDR",
+		"exchangeRate": "1.0",
+		"reference": "RCP-55",
+		"description": "Grocery purchase",
+		"documentTotal": "Rp 70.000",
+		"items": [
+			{
+				"accountId": %d,
+				"description": "Indomie Goreng",
+				"quantity": "1 lusin",
+				"unitPrice": "36,000"
+			},
+			{
+				"accountId": %d,
+				"description": "Fruit Tea Apple",
+				"quantity": "1 500 ml",
+				"unitPrice": "7,000"
+			},
+			{
+				"accountId": %d,
+				"description": "Belfood Sosis Bakar",
+				"quantity": "1",
+				"unitPrice": "27,000"
+			}
+		]
+	}`, cashAcc, expenseAcc, expenseAcc, expenseAcc)
+
+	s.requestAnalyze(ws.ID, "receipt.png", testPNGBytes, "EXPENSE")
+	s.OK()
+
+	res := s.GetResponse().Data
+	s.Equal("receipt", res.DocumentType)
+	s.Require().NotNil(res.PaymentAccountID)
+	s.Equal(cashAcc, *res.PaymentAccountID)
+
+	s.Require().Len(res.Warnings, 0, "No ITEM_INVALID warnings expected")
+	s.Require().Len(res.Items, 3)
+
+	s.Equal("Indomie Goreng (lusin)", res.Items[0].Description)
+	s.Equal("1", res.Items[0].Quantity)
+	s.Equal("36000", res.Items[0].UnitPrice)
+
+	s.Equal("Fruit Tea Apple 500 ml", res.Items[1].Description)
+	s.Equal("1", res.Items[1].Quantity)
+	s.Equal("7000", res.Items[1].UnitPrice)
+
+	s.Equal("Belfood Sosis Bakar", res.Items[2].Description)
+	s.Equal("1", res.Items[2].Quantity)
+	s.Equal("27000", res.Items[2].UnitPrice)
+
+	s.Require().NotNil(res.DocumentTotal)
+	s.Equal("70000", *res.DocumentTotal)
+}
+
 func (s *FinancialIntegrationSuite) TestFinancial_Analyze_StripsForeignAccountID() {
 	ws1 := s.ensureWorkspace("Analyze WS 1", s.User.ID)
 	s.createProviderAndEnable(ws1.ID)

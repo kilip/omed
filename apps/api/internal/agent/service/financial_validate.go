@@ -1,11 +1,33 @@
 package service
 
 import (
+	"errors"
+	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/kilip/omed/api/internal/agent/model"
 	"github.com/shopspring/decimal"
+)
+
+var (
+	reCanonicalDecimal      = regexp.MustCompile(`^[0-9]+(\.[0-9]+)?$`)
+	rePureInteger           = regexp.MustCompile(`^[0-9]+$`)
+	reLeadingZeroComma      = regexp.MustCompile(`^0,[0-9]+$`)
+	reSingleCommaDecimal    = regexp.MustCompile(`^[0-9]+,[0-9]+$`)
+	reBothUS                = regexp.MustCompile(`^[1-9][0-9]{0,2}(,[0-9]{3})+(\.[0-9]+)?$`)
+	reBothEU                = regexp.MustCompile(`^[1-9][0-9]{0,2}(\.[0-9]{3})+(,[0-9]+)?$`)
+	reMultiDotInteger       = regexp.MustCompile(`^[1-9][0-9]{0,2}(\.[0-9]{3}){2,}$`)
+	reMultiCommaInteger     = regexp.MustCompile(`^[1-9][0-9]{0,2}(,[0-9]{3}){2,}$`)
+	reSingleDotThreeDigit   = regexp.MustCompile(`^[1-9][0-9]{0,2}\.[0-9]{3}$`)
+	reSingleCommaThreeDigit = regexp.MustCompile(`^[1-9][0-9]{0,2},[0-9]{3}$`)
+
+	reMultiplierPrefix = regexp.MustCompile(`^(?:[xX×*@]\s+)+`)
+	reMultiplierSuffix = regexp.MustCompile(`(?:\s+[xX×*@])+$`)
+	reQtyWithSpace     = regexp.MustCompile(`^([+-]?[0-9]+(?:[.,][0-9]+)?)\s+(.+)$`)
+	reQtyAttached      = regexp.MustCompile(`^([+-]?[0-9]+(?:[.,][0-9]+)?)\s*([a-zA-Z×*@].*)$`)
+	reMultiplierOnly   = regexp.MustCompile(`^[xX×*@]\s*([+-]?[0-9]+(?:[.,][0-9]+)?)$`)
 )
 
 // Warning codes emitted during financial suggestion validation.
@@ -104,10 +126,16 @@ func validateSuggestion(raw rawSuggestion, snap FinanceSnapshot, now time.Time) 
 		}
 	}
 
+	isZeroDec := false
+	if res.Currency != nil && isZeroDecimalCurrency(*res.Currency) {
+		isZeroDec = true
+	} else if isZeroDecimalCurrency(snap.BaseCurrency) {
+		isZeroDec = true
+	}
+
 	if res.Currency != nil && !strings.EqualFold(*res.Currency, snap.BaseCurrency) {
 		if raw.ExchangeRate != nil {
-			rateStr := strings.TrimSpace(*raw.ExchangeRate)
-			if rate, err := decimal.NewFromString(rateStr); err == nil && rate.GreaterThan(decimal.Zero) {
+			if rate, err := parseDecimalAmount(*raw.ExchangeRate, false, false); err == nil && rate.GreaterThan(decimal.Zero) {
 				rateNorm := rate.String()
 				res.ExchangeRate = &rateNorm
 			}
@@ -138,8 +166,7 @@ func validateSuggestion(raw rawSuggestion, snap FinanceSnapshot, now time.Time) 
 	}
 
 	if raw.DocumentTotal != nil {
-		s := strings.TrimSpace(*raw.DocumentTotal)
-		if total, err := decimal.NewFromString(s); err == nil {
+		if total, err := parseDecimalAmount(*raw.DocumentTotal, true, isZeroDec); err == nil && total.GreaterThanOrEqual(decimal.Zero) {
 			norm := total.String()
 			res.DocumentTotal = &norm
 		}
@@ -158,12 +185,10 @@ func validateSuggestion(raw rawSuggestion, snap FinanceSnapshot, now time.Time) 
 	}
 
 	for _, rawItem := range itemsToProcess {
-		qtyStr := strings.TrimSpace(rawItem.Quantity)
-		priceStr := strings.TrimSpace(rawItem.UnitPrice)
-		qty, errQ := decimal.NewFromString(qtyStr)
-		price, errP := decimal.NewFromString(priceStr)
+		qty, updatedDesc, okQ := parseQuantityAndQualifier(rawItem.Quantity, rawItem.Description)
+		price, errP := parseDecimalAmount(rawItem.UnitPrice, true, isZeroDec)
 
-		if errQ != nil || errP != nil || !qty.GreaterThan(decimal.Zero) || price.LessThan(decimal.Zero) {
+		if !okQ || errP != nil || !qty.GreaterThan(decimal.Zero) || price.LessThan(decimal.Zero) {
 			res.Warnings = append(res.Warnings, model.FinancialWarning{
 				Code: WarningItemInvalid,
 			})
@@ -190,7 +215,7 @@ func validateSuggestion(raw rawSuggestion, snap FinanceSnapshot, now time.Time) 
 			}
 		}
 
-		desc := truncateRunes(strings.TrimSpace(rawItem.Description), 500)
+		desc := truncateRunes(strings.TrimSpace(updatedDesc), 500)
 		res.Items = append(res.Items, model.SuggestedItem{
 			AccountID:   accID,
 			Description: desc,
@@ -200,4 +225,230 @@ func validateSuggestion(raw rawSuggestion, snap FinanceSnapshot, now time.Time) 
 	}
 
 	return res
+}
+
+func isZeroDecimalCurrency(curr string) bool {
+	switch strings.ToUpper(strings.TrimSpace(curr)) {
+	case "IDR", "JPY", "KRW", "VND", "CLP", "BIF", "DJF", "GNF", "KMF", "PYG", "RWF", "UGX", "VUV", "XAF", "XOF", "XPF":
+		return true
+	default:
+		return false
+	}
+}
+
+func cleanCurrencyAndSymbols(s string) (string, bool) {
+	s = strings.TrimSpace(s)
+	lower := strings.ToLower(s)
+	hadRupiahMarker := strings.HasPrefix(lower, "rp") ||
+		strings.HasPrefix(lower, "idr") ||
+		strings.HasSuffix(lower, ",-") ||
+		strings.HasSuffix(lower, ",--") ||
+		strings.HasSuffix(lower, ".-") ||
+		strings.Contains(lower, "rp.") ||
+		strings.Contains(lower, "rp ")
+
+	// Strip leading '@'
+	if strings.HasPrefix(s, "@") {
+		s = strings.TrimSpace(s[1:])
+	}
+
+	// Strip currency prefixes
+	prefixes := []string{
+		"rp.", "rp", "idr", "us$", "s$", "sgd", "myr", "rm", "$", "€", "£", "¥",
+	}
+	for _, p := range prefixes {
+		if strings.HasPrefix(strings.ToLower(s), p) {
+			s = strings.TrimSpace(s[len(p):])
+			s = strings.TrimPrefix(s, ".")
+			s = strings.TrimSpace(s)
+			break
+		}
+	}
+
+	// Strip trailing suffixes
+	suffixes := []string{",--", ",-", ".-", "idr", "usd", "eur"}
+	for _, sf := range suffixes {
+		if strings.HasSuffix(strings.ToLower(s), sf) {
+			s = strings.TrimSpace(s[:len(s)-len(sf)])
+			break
+		}
+	}
+
+	return s, hadRupiahMarker
+}
+
+func parseDecimalAmount(s string, isMonetaryAmount bool, isZeroDecimalCurrency bool) (decimal.Decimal, error) {
+	s = strings.TrimSpace(s)
+	if s == "" || len(s) > 64 {
+		return decimal.Zero, errors.New("invalid amount length")
+	}
+	if strings.ContainsAny(s, "eE") {
+		return decimal.Zero, errors.New("scientific notation not allowed")
+	}
+
+	isNegative := false
+	if strings.HasPrefix(s, "-") {
+		isNegative = true
+		s = strings.TrimSpace(s[1:])
+	}
+
+	s, hadRupiahMarker := cleanCurrencyAndSymbols(s)
+
+	if strings.HasPrefix(s, "-") {
+		isNegative = true
+		s = strings.TrimSpace(s[1:])
+	}
+
+	if s == "" {
+		return decimal.Zero, errors.New("empty numeric string")
+	}
+
+	treatThreeDigitAsThousand := hadRupiahMarker || (isMonetaryAmount && isZeroDecimalCurrency)
+
+	var norm string
+	switch {
+	case reBothUS.MatchString(s):
+		norm = strings.ReplaceAll(s, ",", "")
+	case reBothEU.MatchString(s):
+		noDot := strings.ReplaceAll(s, ".", "")
+		norm = strings.ReplaceAll(noDot, ",", ".")
+	case strings.Contains(s, ",") && strings.Contains(s, "."):
+		return decimal.Zero, errors.New("invalid mixed separators")
+	case strings.Contains(s, ","):
+		switch {
+		case reMultiCommaInteger.MatchString(s):
+			norm = strings.ReplaceAll(s, ",", "")
+		case reSingleCommaThreeDigit.MatchString(s):
+			if treatThreeDigitAsThousand || isMonetaryAmount {
+				norm = strings.ReplaceAll(s, ",", "")
+			} else {
+				norm = strings.ReplaceAll(s, ",", ".")
+			}
+		case reLeadingZeroComma.MatchString(s) || reSingleCommaDecimal.MatchString(s):
+			norm = strings.ReplaceAll(s, ",", ".")
+		default:
+			return decimal.Zero, errors.New("invalid comma format")
+		}
+	case strings.Contains(s, "."):
+		switch {
+		case reMultiDotInteger.MatchString(s):
+			norm = strings.ReplaceAll(s, ".", "")
+		case reSingleDotThreeDigit.MatchString(s):
+			if treatThreeDigitAsThousand {
+				norm = strings.ReplaceAll(s, ".", "")
+			} else {
+				norm = s
+			}
+		case reCanonicalDecimal.MatchString(s):
+			norm = s
+		default:
+			return decimal.Zero, errors.New("invalid dot format")
+		}
+	default:
+		if rePureInteger.MatchString(s) {
+			norm = s
+		} else {
+			return decimal.Zero, errors.New("invalid integer format")
+		}
+	}
+
+	if isNegative {
+		norm = "-" + norm
+	}
+
+	return decimal.NewFromString(norm)
+}
+
+func parseQuantityAndQualifier(rawQty string, desc string) (decimal.Decimal, string, bool) {
+	rawQty = strings.TrimSpace(rawQty)
+	if rawQty == "" || len(rawQty) > 64 {
+		return decimal.Zero, desc, false
+	}
+	if strings.ContainsAny(rawQty, "eE") {
+		return decimal.Zero, desc, false
+	}
+
+	// 1. Try direct numeric parse
+	if q, err := parseDecimalAmount(rawQty, false, false); err == nil {
+		if q.GreaterThan(decimal.Zero) {
+			return q, desc, true
+		}
+		return decimal.Zero, desc, false
+	}
+
+	// 2. Try multiplier prefix, e.g. "x 1" or "x1"
+	if m := reMultiplierOnly.FindStringSubmatch(rawQty); len(m) == 2 {
+		if q, err := parseDecimalAmount(m[1], false, false); err == nil && q.GreaterThan(decimal.Zero) {
+			return q, desc, true
+		}
+		return decimal.Zero, desc, false
+	}
+
+	// 3. Try number with space or attached qualifier
+	var numStr, remStr string
+	if m := reQtyWithSpace.FindStringSubmatch(rawQty); len(m) == 3 {
+		numStr = m[1]
+		remStr = m[2]
+	} else if m := reQtyAttached.FindStringSubmatch(rawQty); len(m) == 3 {
+		numStr = m[1]
+		remStr = m[2]
+	} else {
+		return decimal.Zero, desc, false
+	}
+
+	q, err := parseDecimalAmount(numStr, false, false)
+	if err != nil || !q.GreaterThan(decimal.Zero) {
+		return decimal.Zero, desc, false
+	}
+
+	remStr = strings.TrimSpace(remStr)
+	remStr = reMultiplierPrefix.ReplaceAllString(remStr, "")
+	remStr = reMultiplierSuffix.ReplaceAllString(remStr, "")
+	remStr = strings.TrimSpace(remStr)
+
+	if remStr == "x" || remStr == "X" || remStr == "×" || remStr == "*" || remStr == "@" {
+		remStr = ""
+	}
+
+	hasLetters := strings.IndexFunc(remStr, unicode.IsLetter) >= 0
+	if remStr != "" && !hasLetters {
+		return decimal.Zero, desc, false
+	}
+
+	if isTrivialCountUnit(remStr) {
+		remStr = ""
+	}
+
+	updatedDesc := applyQualifierToDescription(desc, remStr)
+	return q, updatedDesc, true
+}
+
+func isTrivialCountUnit(u string) bool {
+	switch strings.ToLower(strings.TrimSpace(u)) {
+	case "pcs", "pc", "pce", "bh", "buah", "ea", "unit", "item", "items":
+		return true
+	default:
+		return false
+	}
+}
+
+func applyQualifierToDescription(desc string, qualifier string) string {
+	qualifier = strings.TrimSpace(qualifier)
+	if qualifier == "" {
+		return desc
+	}
+
+	if strings.Contains(strings.ToLower(desc), strings.ToLower(qualifier)) {
+		return desc
+	}
+
+	desc = strings.TrimSpace(desc)
+	if desc == "" {
+		return qualifier
+	}
+
+	if unicode.IsDigit(rune(qualifier[0])) {
+		return desc + " " + qualifier
+	}
+	return desc + " (" + qualifier + ")"
 }

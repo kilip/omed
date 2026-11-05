@@ -42,7 +42,8 @@ const financialResponseSchema = `{
       "type": ["string", "null"]
     },
     "exchangeRate": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Exchange rate as a plain decimal string without thousand separators."
     },
     "reference": {
       "type": ["string", "null"]
@@ -51,7 +52,8 @@ const financialResponseSchema = `{
       "type": ["string", "null"]
     },
     "documentTotal": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Total payable amount as a plain decimal string without currency symbols or thousand separators."
     },
     "items": {
       "type": "array",
@@ -62,13 +64,16 @@ const financialResponseSchema = `{
             "type": ["integer", "null"]
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Item name including any packaging, volume, weight, or unit qualifier from the quantity column (e.g., 'Indomie Goreng (lusin)', 'Fruit Tea Apple 500 ml')."
           },
           "quantity": {
-            "type": "string"
+            "type": "string",
+            "description": "Numeric item count only as a plain decimal string without units or thousand separators (e.g., '1', '2.5')."
           },
           "unitPrice": {
-            "type": "string"
+            "type": "string",
+            "description": "Unit price as a plain decimal string without currency symbols or thousand separators (e.g., '36000', '7000')."
           }
         },
         "required": ["accountId", "description", "quantity", "unitPrice"],
@@ -231,7 +236,10 @@ func buildSystemPrompt(snap FinanceSnapshot) string {
 	b.WriteString("Extract transaction data from the provided document according to the following instructions:\n")
 	b.WriteString("- Extract only visible values from the document. Never invent or assume values.\n")
 	b.WriteString("- Dates must be in YYYY-MM-DD format, or null if not found.\n")
-	b.WriteString("- Amounts must be decimal strings (e.g., \"123.45\").\n")
+	b.WriteString("- Amounts, documentTotal, unitPrice, and exchangeRate must be plain numeric decimal strings using '.' only for fractional decimals. Do not include currency symbols (e.g., 'Rp', '$'), units, or thousand separators (e.g., use '36000', '7000', or '123.45', never '36,000' or '36.000').\n")
+	b.WriteString("- Quantity must be a plain numeric decimal string representing item count only (e.g., '1', '2.5'). Never include measurement units, package sizes, or multipliers in quantity (e.g., use '1', never '1 lusin', '1 500 ml', or '1x').\n")
+	b.WriteString("- Place any packaging, weight, volume, or unit qualifier appearing next to the quantity into the item description. Use the line total and unit price to disambiguate item count from product size (e.g., in '1 lusin x 36,000', description is 'Indomie Goreng (lusin)', quantity is '1', and unitPrice is '36000'; in '1 500 ml x 7,000 = 7,000', description is 'Fruit Tea Apple 500 ml', quantity is '1', and unitPrice is '7000').\n")
+	b.WriteString("- Extract all purchased product/service line items. Exclude summary rows (Subtotal, Total), payment tender/change rows (Tunai, Kembalian), or negative discount rows.\n")
 	b.WriteString("- Choose account IDs only from the provided lists below. Use null when unsure.\n")
 	b.WriteString("- Classify the document type as one of: invoice, receipt, payment_proof, other.\n")
 	b.WriteString("- Return no line items (an empty list) if the document is a payment proof (payment_proof).\n")
