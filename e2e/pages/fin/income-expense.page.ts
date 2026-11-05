@@ -201,4 +201,86 @@ export class FinIncomeExpensePage extends BasePage {
   async expectEmptyStateVisible(): Promise<void> {
     await this.emptyState.waitFor({ state: "visible" });
   }
+
+  get detailTableRows(): Locator {
+    return this.page.locator(".ant-table-tbody .ant-table-row");
+  }
+
+  get detailTotal(): Locator {
+    return this.page.locator(".border-t").filter({ hasText: "Total:" });
+  }
+
+  get uploadAttachmentButton(): Locator {
+    return this.page.getByRole("button", { name: "Upload attachment" });
+  }
+
+  get attachmentFileInput(): Locator {
+    return this.page.locator('input[type="file"]').first();
+  }
+
+  get attachmentItems(): Locator {
+    return this.page.getByTestId("transaction-attachment-item");
+  }
+
+  get popconfirmOkButton(): Locator {
+    return this.page
+      .locator(".ant-popconfirm")
+      .getByRole("button", { name: "OK" });
+  }
+
+  async expectDetailLineItem(text: string): Promise<void> {
+    const row = this.detailTableRows.filter({ hasText: text });
+    await row.first().waitFor({ state: "visible" });
+    const rowText = await row.first().innerText();
+    assert.ok(
+      rowText.includes(text),
+      `Expected detail line item to contain "${text}", got "${rowText}"`,
+    );
+  }
+
+  async expectDetailTotal(amount: string): Promise<void> {
+    await this.detailTotal.waitFor({ state: "visible" });
+    const text = await this.detailTotal.innerText();
+    assert.ok(
+      text.includes(amount),
+      `Expected detail total to contain "${amount}", got "${text}"`,
+    );
+  }
+
+  async uploadAttachment(filename: string, content: string): Promise<void> {
+    await this.attachmentFileInput.setInputFiles({
+      name: filename,
+      mimeType: filename.endsWith(".pdf") ? "application/pdf" : "image/png",
+      buffer: Buffer.from(content, "utf-8"),
+    });
+  }
+
+  async expectAttachmentVisible(filename: string): Promise<void> {
+    const item = this.attachmentItems.filter({ hasText: filename });
+    await item.first().waitFor({ state: "visible" });
+  }
+
+  async expectAttachmentNotVisible(filename: string): Promise<void> {
+    const item = this.attachmentItems.filter({ hasText: filename });
+    await item.first().waitFor({ state: "hidden" });
+  }
+
+  async deleteAttachment(filename: string): Promise<void> {
+    const item = this.attachmentItems.filter({ hasText: filename }).first();
+    await item.waitFor({ state: "visible" });
+    await item.getByRole("button", { name: "Delete attachment" }).click();
+    await this.popconfirmOkButton.waitFor({ state: "visible" });
+    await this.popconfirmOkButton.click();
+  }
+
+  async expectReadOnlyDetail(): Promise<void> {
+    const editCount = await this.editButton.count();
+    assert.equal(editCount, 0, "Expected edit button to be hidden");
+    const uploadCount = await this.uploadAttachmentButton.count();
+    assert.equal(
+      uploadCount,
+      0,
+      "Expected upload attachment button to be hidden",
+    );
+  }
 }

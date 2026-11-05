@@ -42,11 +42,10 @@ Routes with some coverage that is missing important flows.
   - Covered by `e2e/features/core/members.feature`: open an existing member, change roles, save, see the updated roles in the list, and remove the member.
   - Page object: `e2e/pages/core/members.page.ts`. Steps: `e2e/steps/core/members.steps.ts`.
   - Verified against a live stack (`mise run e2e:local`).
-- [ ] 7. `/fin/income/:id` and `/fin/income/:id/edit` (`income-detail.tsx`, `income-edit.tsx`)
-  - `fin/income-expense.feature` creates and posts an income. Only the expense scenario opens the detail page and edits it.
-  - Missing: open an income draft, edit it, post it. Add a scenario next to the expense one.
-- [ ] 8. `/fin/expense/:id` (`expense-detail.tsx`)
-  - Covered indirectly by the expense draft, edit, and post scenario. It has no assertions on the detail view itself, such as items, totals, and attachments.
+- [x] 7. `/fin/income/:id` and `/fin/income/:id/edit` (`income-detail.tsx`, `income-edit.tsx`)
+  - Covered by `e2e/features/fin/income-expense.feature`: open an income draft, edit it, and post it.
+- [x] 8. `/fin/expense/:id` (`expense-detail.tsx`)
+  - Covered by `e2e/features/fin/income-expense.feature`: assert items, totals, attachment upload & deletion, and read-only protections on draft and posted expense detail.
 - [ ] 9. `/fin/accounts` (`modules/fin/routes/accounts.tsx`)
   - Opened in `fin/ledger.feature` and `fin/setup.feature` for navigation and for checking seeded accounts.
   - Missing: create, edit, and deactivate an account.
@@ -74,8 +73,8 @@ Routes with some coverage that is missing important flows.
 | `/fin` (launcher) | `fin/dashboard.feature`, `fin/setup.feature` |
 | `/fin/onboarding` | `fin/setup.feature` |
 | `/fin/overview` | `fin/dashboard.feature` |
-| `/fin/income`, `/fin/income/new` | `fin/income-expense.feature` |
-| `/fin/expense`, `/fin/expense/new`, `/fin/expense/:id/edit` | `fin/income-expense.feature` |
+| `/fin/income`, `/fin/income/new`, `/fin/income/:id`, `/fin/income/:id/edit` | `fin/income-expense.feature` |
+| `/fin/expense`, `/fin/expense/new`, `/fin/expense/:id`, `/fin/expense/:id/edit` | `fin/income-expense.feature` |
 | `/fin/periods` | `fin/periods.feature` |
 | `/fin/opening-balance` | `fin/opening-balance.feature` |
 | `/fin/transactions`, `/new`, `/:id`, `/:id/edit` | `fin/transactions.feature`, `fin/permissions.feature` |

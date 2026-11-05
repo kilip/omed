@@ -98,3 +98,55 @@ Then(
     await this.pages.fin.incomeExpense.expectItemInTable(text);
   },
 );
+
+Then(
+  "I see cashflow detail line item {string}",
+  async function (this: OmedWorld, text: string) {
+    await this.pages.fin.incomeExpense.expectDetailLineItem(text);
+  },
+);
+
+Then(
+  "I see cashflow detail total {string}",
+  async function (this: OmedWorld, amount: string) {
+    await this.pages.fin.incomeExpense.expectDetailTotal(amount);
+  },
+);
+
+When(
+  "I upload attachment {string} on cashflow detail",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.incomeExpense.uploadAttachment(
+      filename,
+      "dummy attachment bytes",
+    );
+  },
+);
+
+Then(
+  "I see attachment {string} on cashflow detail",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.incomeExpense.expectAttachmentVisible(filename);
+  },
+);
+
+When(
+  "I delete attachment {string} on cashflow detail",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.incomeExpense.deleteAttachment(filename);
+  },
+);
+
+Then(
+  "I do not see attachment {string} on cashflow detail",
+  async function (this: OmedWorld, filename: string) {
+    await this.pages.fin.incomeExpense.expectAttachmentNotVisible(filename);
+  },
+);
+
+Then(
+  "I cannot edit or modify attachments on cashflow detail",
+  async function (this: OmedWorld) {
+    await this.pages.fin.incomeExpense.expectReadOnlyDetail();
+  },
+);

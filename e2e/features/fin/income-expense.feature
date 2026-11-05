@@ -56,14 +56,35 @@ Feature: Finance Income and Expense Quick Entry
     When I click the new expense button
     Then I am on "/fin/expense/new"
     When I select payment account "1111"
+    And I enter cashflow reference "exp-draft-001"
     And I add cashflow item 0 with account "6710", description "telur", quantity 2 and unit price 55000
     And I add cashflow item 1 with account "6710", description "indomie", quantity 5 and unit price 3000
     When I click the cashflow draft button
     Then I am on "/fin/expense"
     And I see cashflow status "Draft"
+    And I see cashflow item "exp-draft-001" in the table
     And I see cashflow item "125,000" in the table
     When I click cashflow row "125,000"
-    And I click the edit cashflow button
+    Then I see cashflow status "Draft"
+    And I see cashflow detail line item "telur"
+    And I see cashflow detail line item "indomie"
+    And I see cashflow detail total "125,000"
+    When I upload attachment "receipt.png" on cashflow detail
+    Then I see attachment "receipt.png" on cashflow detail
+    When I delete attachment "receipt.png" on cashflow detail
+    Then I do not see attachment "receipt.png" on cashflow detail
+    When I upload attachment "receipt.png" on cashflow detail
+    Then I see attachment "receipt.png" on cashflow detail
+    When I click the edit cashflow button
     When I click the cashflow posting button
     Then I am on "/fin/expense"
     And I see cashflow status "Posted"
+    And I see cashflow item "exp-draft-001" in the table
+    And I see cashflow item "125,000" in the table
+    When I click cashflow row "125,000"
+    Then I see cashflow status "Posted"
+    And I see cashflow detail line item "telur"
+    And I see cashflow detail line item "indomie"
+    And I see cashflow detail total "125,000"
+    And I see attachment "receipt.png" on cashflow detail
+    And I cannot edit or modify attachments on cashflow detail
