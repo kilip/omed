@@ -46,9 +46,10 @@ Routes with some coverage that is missing important flows.
   - Covered by `e2e/features/fin/income-expense.feature`: open an income draft, edit it, and post it.
 - [x] 8. `/fin/expense/:id` (`expense-detail.tsx`)
   - Covered by `e2e/features/fin/income-expense.feature`: assert items, totals, attachment upload & deletion, and read-only protections on draft and posted expense detail.
-- [ ] 9. `/fin/accounts` (`modules/fin/routes/accounts.tsx`)
-  - Opened in `fin/ledger.feature` and `fin/setup.feature` for navigation and for checking seeded accounts.
-  - Missing: create, edit, and deactivate an account.
+- [x] 9. `/fin/accounts` (`modules/fin/routes/accounts.tsx`)
+  - Covered by `e2e/features/fin/accounts.feature`: create, edit, deactivate, and delete an account.
+  - Page object: `e2e/pages/fin/accounts.page.ts`. Steps: `e2e/steps/fin/accounts.steps.ts`.
+  - Verified against a live stack (`mise run e2e:local`).
 
 ## Covered (for reference)
 
@@ -82,3 +83,4 @@ Routes with some coverage that is missing important flows.
 | `/fin/ledger` | `fin/ledger.feature` |
 | `/fin/trial-balance` | `fin/trial-balance.feature` |
 | `/fin/settings` | `fin/settings.feature` |
+| `/fin/accounts` | `fin/accounts.feature`, `fin/ledger.feature`, `fin/setup.feature` |
