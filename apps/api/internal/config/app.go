@@ -19,6 +19,7 @@ import (
 	"github.com/kilip/omed/api/internal/core/service"
 	"github.com/kilip/omed/api/internal/fin"
 	"github.com/kilip/omed/api/internal/platform/authz"
+	"github.com/kilip/omed/api/internal/platform/llmx"
 	"github.com/kilip/omed/api/internal/platform/mailx"
 	"github.com/kilip/omed/api/internal/platform/mcpx"
 	"github.com/kilip/omed/api/internal/platform/s3x"
@@ -150,6 +151,31 @@ func New(state State) Omed {
 		log.Fatalf("failed to initialize secret cipher: %v", err)
 	}
 
+	var testFallbackAdapter llmx.Adapter
+	if state.Config.IsTestRoutesEnabled() && state.Config.TestAgentKind != "" && state.Config.TestAgentAPIKey != "" && state.Config.TestAgentModel != "" {
+		kind := llmx.Kind(state.Config.TestAgentKind)
+		caps := llmx.DefaultCapabilities(kind)
+		var err error
+		testFallbackAdapter, err = llmx.New(llmx.Config{
+			Kind:             kind,
+			BaseURL:          state.Config.TestAgentBaseURL,
+			APIKey:           state.Config.TestAgentAPIKey,
+			Model:            state.Config.TestAgentModel,
+			Capabilities:     &caps,
+			AllowPrivateURLs: state.Config.LLMAllowPrivateURLs,
+		})
+		if err != nil {
+			if state.Logger != nil {
+				state.Logger.Warn("failed to initialize dev fallback agent adapter", "error", err)
+			}
+			testFallbackAdapter = nil
+		} else {
+			if state.Logger != nil {
+				state.Logger.Info("dev fallback agent adapter initialized", "kind", kind, "model", state.Config.TestAgentModel)
+			}
+		}
+	}
+
 	agentMod := agent.New(agent.Config{
 		FiberApp:               state.FiberApp,
 		Logger:                 state.Logger,
@@ -159,6 +185,8 @@ func New(state State) Omed {
 		FinanceContext:         newFinanceContext(finMod),
 		AttachmentMaxSizeMB:    int(state.Config.AttachmentMaxSizeMB),
 		AttachmentAllowedTypes: state.Config.AttachmentAllowedTypes,
+		TestFallbackAdapter:    testFallbackAdapter,
+		LogHTTPBody:            state.Config.LogHTTPBody,
 	})
 	agentMod.SetAuthorizer(az)
 

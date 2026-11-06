@@ -88,6 +88,14 @@ type Config struct {
 	LLMAllowPrivateURLs bool `env:"OMED_LLM_ALLOW_PRIVATE_URLS,default=false"`
 	// LogHTTPBody enables logging sanitized HTTP request bodies on error responses (status >= 400). Defaults to false.
 	LogHTTPBody bool `env:"OMED_LOG_HTTP_BODY,default=false"`
+	// TestAgentKind specifies a fallback LLM provider kind (openai_compat, anthropic, gemini) for development/debugging.
+	TestAgentKind string `env:"OMED_TEST_AGENT_KIND"`
+	// TestAgentBaseURL specifies the fallback LLM base URL for development/debugging.
+	TestAgentBaseURL string `env:"OMED_TEST_AGENT_BASE_URL"`
+	// TestAgentAPIKey specifies the fallback LLM API key for development/debugging.
+	TestAgentAPIKey string `env:"OMED_TEST_AGENT_API_KEY"`
+	// TestAgentModel specifies the fallback LLM model ID for development/debugging.
+	TestAgentModel string `env:"OMED_TEST_AGENT_MODEL"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
 	// ReadTimeout is the maximum duration for reading the entire request. Defaults to 10s.
@@ -133,6 +141,9 @@ func (c Config) IsOTPEnabled() bool {
 func (c Config) Validate() error {
 	if c.Env == "production" && len(c.AuthSecret) < 32 {
 		return errors.New("OMED_AUTH_SECRET must be at least 32 bytes in production")
+	}
+	if c.Env == "production" && (c.TestAgentAPIKey != "" || c.TestAgentKind != "" || c.TestAgentModel != "") {
+		log.Println("WARNING: OMED_TEST_AGENT_* is configured in production; fallback LLM provider is disabled in production")
 	}
 	return nil
 }

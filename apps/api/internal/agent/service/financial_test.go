@@ -1,8 +1,10 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 	"time"
@@ -714,5 +716,181 @@ func TestBuildSystemPrompt_OpenPeriods(t *testing.T) {
 		assert.Contains(t, systemText, "Open accounting period date ranges:")
 		assert.Contains(t, systemText, "- 2026-03-01 to 2026-03-31")
 		assert.Contains(t, systemText, "Use open accounting periods ONLY to disambiguate ambiguous numeric date formats")
+	})
+}
+
+func TestFinancialService_FallbackAdapter(t *testing.T) {
+	ctx := contextWithUser(context.Background(), 1)
+	fin := &fakeFinanceContext{snap: sampleSnapshot()}
+
+	t.Run("Status uses fallback when setting is not found", func(t *testing.T) {
+		repo := &fakeSettingRepo{err: &ent.NotFoundError{}}
+		resolver := &fakeAdapterResolver{err: domain.ErrNoDefaultProvider}
+		fbMem := llmx.NewMemory()
+		fbAdapter := &customCapAdapter{
+			Adapter: fbMem,
+			caps: llmx.Capabilities{
+				Vision:           true,
+				StructuredOutput: true,
+			},
+		}
+		svc := service.NewFinancialService(repo, resolver, fin, service.WithFinancialTestFallback(fbAdapter))
+
+		status, err := svc.Status(ctx)
+		require.NoError(t, err)
+		assert.True(t, status.Enabled)
+		assert.True(t, status.Available)
+		assert.Nil(t, status.Reason)
+	})
+
+	t.Run("Status uses fallback when setting is disabled", func(t *testing.T) {
+		repo := &fakeSettingRepo{setting: &ent.AgentSetting{FinancialEnabled: false}}
+		resolver := &fakeAdapterResolver{err: domain.ErrNoDefaultProvider}
+		fbMem := llmx.NewMemory()
+		fbAdapter := &customCapAdapter{
+			Adapter: fbMem,
+			caps: llmx.Capabilities{
+				Vision:           true,
+				StructuredOutput: true,
+			},
+		}
+		svc := service.NewFinancialService(repo, resolver, fin, service.WithFinancialTestFallback(fbAdapter))
+
+		status, err := svc.Status(ctx)
+		require.NoError(t, err)
+		assert.True(t, status.Enabled)
+		assert.True(t, status.Available)
+		assert.Nil(t, status.Reason)
+	})
+
+	t.Run("Status uses fallback when provider is missing", func(t *testing.T) {
+		repo := &fakeSettingRepo{setting: &ent.AgentSetting{FinancialEnabled: true}}
+		resolver := &fakeAdapterResolver{err: domain.ErrProviderNotFound}
+		fbMem := llmx.NewMemory()
+		fbAdapter := &customCapAdapter{
+			Adapter: fbMem,
+			caps: llmx.Capabilities{
+				Vision:           true,
+				StructuredOutput: true,
+			},
+		}
+		svc := service.NewFinancialService(repo, resolver, fin, service.WithFinancialTestFallback(fbAdapter))
+
+		status, err := svc.Status(ctx)
+		require.NoError(t, err)
+		assert.True(t, status.Enabled)
+		assert.True(t, status.Available)
+		assert.Nil(t, status.Reason)
+	})
+
+	t.Run("Analyze uses fallback and logs diagnostic when setting is not found", func(t *testing.T) {
+		repo := &fakeSettingRepo{err: &ent.NotFoundError{}}
+		resolver := &fakeAdapterResolver{err: domain.ErrNoDefaultProvider}
+		fbMem := llmx.NewMemory(validJSONResponse())
+		fbAdapter := &customCapAdapter{
+			Adapter: fbMem,
+			caps: llmx.Capabilities{
+				Vision:           true,
+				StructuredOutput: true,
+			},
+		}
+
+		var logBuf bytes.Buffer
+		logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+		svc := service.NewFinancialService(repo, resolver, fin,
+			service.WithFinancialTestFallback(fbAdapter),
+			service.WithFinancialLogger(logger, false),
+		)
+
+		sugg, err := svc.Analyze(ctx, model.AnalyzeRequest{
+			Flow: "EXPENSE",
+			MIME: "image/png",
+			Data: []byte("test_image"),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "invoice", sugg.DocumentType)
+		assert.Len(t, fbMem.Requests(), 1)
+
+		logOutput := logBuf.String()
+		assert.Contains(t, logOutput, "financial agent suggestion analyzed")
+		assert.Contains(t, logOutput, "used_fallback=true")
+		assert.Contains(t, logOutput, "raw_response=")
+	})
+
+	t.Run("Analyze uses fallback when provider is missing in DB", func(t *testing.T) {
+		repo := &fakeSettingRepo{setting: &ent.AgentSetting{FinancialEnabled: true}}
+		resolver := &fakeAdapterResolver{err: domain.ErrNoDefaultProvider}
+		fbMem := llmx.NewMemory(validJSONResponse())
+		fbAdapter := &customCapAdapter{
+			Adapter: fbMem,
+			caps: llmx.Capabilities{
+				Vision:           true,
+				StructuredOutput: true,
+			},
+		}
+
+		svc := service.NewFinancialService(repo, resolver, fin,
+			service.WithFinancialTestFallback(fbAdapter),
+		)
+
+		sugg, err := svc.Analyze(ctx, model.AnalyzeRequest{
+			Flow: "EXPENSE",
+			MIME: "image/png",
+			Data: []byte("test_image"),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "invoice", sugg.DocumentType)
+		assert.Len(t, fbMem.Requests(), 1)
+	})
+
+	t.Run("Status and Analyze use normal provider when DB setting is present", func(t *testing.T) {
+		repo := &fakeSettingRepo{setting: &ent.AgentSetting{FinancialEnabled: true}}
+		normMem := llmx.NewMemory(validJSONResponse())
+		normAdapter := &customCapAdapter{
+			Adapter: normMem,
+			caps: llmx.Capabilities{
+				Vision:           true,
+				StructuredOutput: true,
+			},
+		}
+		resolver := &fakeAdapterResolver{adapter: normAdapter}
+
+		fbMem := llmx.NewMemory(validJSONResponse())
+		fbAdapter := &customCapAdapter{
+			Adapter: fbMem,
+			caps: llmx.Capabilities{
+				Vision:           true,
+				StructuredOutput: true,
+			},
+		}
+
+		var logBuf bytes.Buffer
+		logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+		svc := service.NewFinancialService(repo, resolver, fin,
+			service.WithFinancialTestFallback(fbAdapter),
+			service.WithFinancialLogger(logger, true),
+		)
+
+		status, err := svc.Status(ctx)
+		require.NoError(t, err)
+		assert.True(t, status.Enabled)
+		assert.True(t, status.Available)
+
+		sugg, err := svc.Analyze(ctx, model.AnalyzeRequest{
+			Flow: "EXPENSE",
+			MIME: "image/png",
+			Data: []byte("test_image"),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "invoice", sugg.DocumentType)
+
+		assert.Len(t, normMem.Requests(), 1)
+		assert.Len(t, fbMem.Requests(), 0)
+
+		logOutput := logBuf.String()
+		assert.Contains(t, logOutput, "financial agent suggestion analyzed")
+		assert.Contains(t, logOutput, "used_fallback=false")
 	})
 }

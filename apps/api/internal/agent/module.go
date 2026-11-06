@@ -10,6 +10,7 @@ import (
 	"github.com/kilip/omed/api/internal/agent/repository"
 	"github.com/kilip/omed/api/internal/agent/service"
 	"github.com/kilip/omed/api/internal/platform/authz"
+	"github.com/kilip/omed/api/internal/platform/llmx"
 	"github.com/kilip/omed/api/internal/platform/secretx"
 )
 
@@ -23,6 +24,8 @@ type Config struct {
 	FinanceContext         service.FinanceContext
 	AttachmentMaxSizeMB    int
 	AttachmentAllowedTypes []string
+	TestFallbackAdapter    llmx.Adapter
+	LogHTTPBody            bool
 }
 
 // AgentModule represents the agent module implementing config.Module.
@@ -40,7 +43,15 @@ func New(cfg Config) *AgentModule {
 	providerSvc := service.NewProviderService(repo, cfg.Cipher, cfg.AllowPrivateURLs)
 	settingRepo := repository.NewSettingRepository(cfg.EntCli)
 	settingSvc := service.NewSettingService(settingRepo, providerSvc)
-	financialSvc := service.NewFinancialService(settingRepo, providerSvc, cfg.FinanceContext)
+
+	var opts []service.FinancialOption
+	if cfg.TestFallbackAdapter != nil {
+		opts = append(opts, service.WithFinancialTestFallback(cfg.TestFallbackAdapter))
+	}
+	if cfg.Logger != nil {
+		opts = append(opts, service.WithFinancialLogger(cfg.Logger, cfg.LogHTTPBody))
+	}
+	financialSvc := service.NewFinancialService(settingRepo, providerSvc, cfg.FinanceContext, opts...)
 
 	return &AgentModule{
 		cfg:              cfg,

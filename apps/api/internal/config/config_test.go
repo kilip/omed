@@ -197,6 +197,16 @@ func (s *ConfigSuite) Test_Validate() {
 
 	testCfg := config.Config{Env: "test", AuthSecret: "short"}
 	s.NoError(testCfg.Validate())
+
+	// Production mode with TestAgentAPIKey configured logs a warning but does not fail validation
+	prodCfgWithTestAgent := config.Config{
+		Env:             "production",
+		AuthSecret:      "12345678901234567890123456789012",
+		TestAgentAPIKey: "sk-test",
+		TestAgentKind:   "openai_compat",
+		TestAgentModel:  "gpt-4o",
+	}
+	s.NoError(prodCfgWithTestAgent.Validate())
 }
 
 func (s *ConfigSuite) Test_GetConfig_Production_Requires32ByteSecret() {
@@ -260,18 +270,46 @@ func (s *ConfigSuite) TestAgentConfigDefaults() {
 		}
 	})
 
+	for _, env := range []string{
+		"OMED_TEST_AGENT_KIND",
+		"OMED_TEST_AGENT_BASE_URL",
+		"OMED_TEST_AGENT_API_KEY",
+		"OMED_TEST_AGENT_MODEL",
+	} {
+		if val, ok := os.LookupEnv(env); ok {
+			s.Require().NoError(os.Unsetenv(env))
+			v := val
+			k := env
+			s.T().Cleanup(func() {
+				s.Require().NoError(os.Setenv(k, v))
+			})
+		}
+	}
+
 	cfg := config.GetConfig()
 	s.Equal("", cfg.SecretKey)
 	s.False(cfg.LLMAllowPrivateURLs)
+	s.Equal("", cfg.TestAgentKind)
+	s.Equal("", cfg.TestAgentBaseURL)
+	s.Equal("", cfg.TestAgentAPIKey)
+	s.Equal("", cfg.TestAgentModel)
 }
 
 func (s *ConfigSuite) TestAgentConfigEnvOverride() {
 	s.T().Setenv("OMED_SECRET_KEY", "custom-secret-key-for-agent-encryption")
 	s.T().Setenv("OMED_LLM_ALLOW_PRIVATE_URLS", "true")
+	s.T().Setenv("OMED_TEST_AGENT_KIND", "openai_compat")
+	s.T().Setenv("OMED_TEST_AGENT_BASE_URL", "http://localhost:11434/v1")
+	s.T().Setenv("OMED_TEST_AGENT_API_KEY", "test-api-key")
+	s.T().Setenv("OMED_TEST_AGENT_MODEL", "llama3")
 
 	cfg := config.GetConfig()
 	s.Equal("custom-secret-key-for-agent-encryption", cfg.SecretKey)
 	s.True(cfg.LLMAllowPrivateURLs)
+	s.Equal("openai_compat", cfg.TestAgentKind)
+	s.Equal("http://localhost:11434/v1", cfg.TestAgentBaseURL)
+	s.Equal("test-api-key", cfg.TestAgentAPIKey)
+	s.Equal("llama3", cfg.TestAgentModel)
 }
 
 func (s *ConfigSuite) Test_GetConfig_Fallbacks() {

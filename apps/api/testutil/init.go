@@ -61,6 +61,11 @@ func init() {
 		_ = os.Setenv("OMED_LLM_ALLOW_PRIVATE_URLS", "true")
 	}
 
+	_ = os.Unsetenv("OMED_TEST_AGENT_KIND")
+	_ = os.Unsetenv("OMED_TEST_AGENT_BASE_URL")
+	_ = os.Unsetenv("OMED_TEST_AGENT_API_KEY")
+	_ = os.Unsetenv("OMED_TEST_AGENT_MODEL")
+
 	cfg = config.GetConfig()
 
 	_, b, _, _ := runtime.Caller(0)

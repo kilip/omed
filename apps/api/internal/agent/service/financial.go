@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -107,10 +108,13 @@ type FinancialService interface {
 }
 
 type financialConfig struct {
-	clock   func() time.Time
-	timeout time.Duration
-	rateCap int
-	ratePer time.Duration
+	clock        func() time.Time
+	timeout      time.Duration
+	rateCap      int
+	ratePer      time.Duration
+	testFallback llmx.Adapter
+	logger       *slog.Logger
+	logHTTPBody  bool
 }
 
 // FinancialOption configures FinancialService behavior.
@@ -142,13 +146,31 @@ func WithFinancialRateLimit(capacity int, per time.Duration) FinancialOption {
 	}
 }
 
+// WithFinancialTestFallback sets a fallback adapter when no provider is configured in the workspace.
+func WithFinancialTestFallback(adapter llmx.Adapter) FinancialOption {
+	return func(c *financialConfig) {
+		c.testFallback = adapter
+	}
+}
+
+// WithFinancialLogger sets the logger and diagnostic logging flag.
+func WithFinancialLogger(logger *slog.Logger, logHTTPBody bool) FinancialOption {
+	return func(c *financialConfig) {
+		c.logger = logger
+		c.logHTTPBody = logHTTPBody
+	}
+}
+
 type financialService struct {
-	settings SettingRepository
-	resolver AdapterResolver
-	fin      FinanceContext
-	clock    func() time.Time
-	timeout  time.Duration
-	limiter  *RateLimiter
+	settings     SettingRepository
+	resolver     AdapterResolver
+	fin          FinanceContext
+	clock        func() time.Time
+	timeout      time.Duration
+	limiter      *RateLimiter
+	testFallback llmx.Adapter
+	logger       *slog.Logger
+	logHTTPBody  bool
 }
 
 // NewFinancialService constructs a new FinancialService.
@@ -166,19 +188,46 @@ func NewFinancialService(settings SettingRepository, resolver AdapterResolver, f
 	}
 
 	return &financialService{
-		settings: settings,
-		resolver: resolver,
-		fin:      fin,
-		clock:    cfg.clock,
-		timeout:  cfg.timeout,
-		limiter:  NewRateLimiter(cfg.clock, cfg.rateCap, cfg.ratePer),
+		settings:     settings,
+		resolver:     resolver,
+		fin:          fin,
+		clock:        cfg.clock,
+		timeout:      cfg.timeout,
+		limiter:      NewRateLimiter(cfg.clock, cfg.rateCap, cfg.ratePer),
+		testFallback: cfg.testFallback,
+		logger:       cfg.logger,
+		logHTTPBody:  cfg.logHTTPBody,
 	}
 }
 
-func (s *financialService) Status(ctx context.Context) (model.FinancialStatus, error) {
+func (s *financialService) resolveActiveAdapter(ctx context.Context) (adapter llmx.Adapter, usedFallback bool, err error) {
 	setting, err := s.settings.Get(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
+		if ent.IsNotFound(err) && s.testFallback != nil {
+			return s.testFallback, true, nil
+		}
+		return nil, false, err
+	}
+	if !setting.FinancialEnabled {
+		if s.testFallback != nil {
+			return s.testFallback, true, nil
+		}
+		return nil, false, domain.ErrFinancialAgentDisabled
+	}
+	adapter, err = s.resolver.ResolveAdapter(ctx, setting.FinancialProviderID)
+	if err != nil {
+		if s.testFallback != nil {
+			return s.testFallback, true, nil
+		}
+		return nil, false, err
+	}
+	return adapter, false, nil
+}
+
+func (s *financialService) Status(ctx context.Context) (model.FinancialStatus, error) {
+	adapter, _, err := s.resolveActiveAdapter(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) || errors.Is(err, domain.ErrFinancialAgentDisabled) {
 			reason := StatusReasonDisabled
 			return model.FinancialStatus{
 				Enabled:   false,
@@ -186,19 +235,6 @@ func (s *financialService) Status(ctx context.Context) (model.FinancialStatus, e
 				Reason:    &reason,
 			}, nil
 		}
-		return model.FinancialStatus{}, err
-	}
-	if !setting.FinancialEnabled {
-		reason := StatusReasonDisabled
-		return model.FinancialStatus{
-			Enabled:   false,
-			Available: false,
-			Reason:    &reason,
-		}, nil
-	}
-
-	adapter, err := s.resolver.ResolveAdapter(ctx, setting.FinancialProviderID)
-	if err != nil {
 		var reason string
 		switch {
 		case errors.Is(err, domain.ErrProviderKeyUnreadable), errors.Is(err, domain.ErrSecretKeyMissing):
@@ -271,16 +307,13 @@ func buildSystemPrompt(snap FinanceSnapshot) string {
 }
 
 func (s *financialService) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.FinancialSuggestion, error) {
-	// 1. Load workspace setting
-	setting, err := s.settings.Get(ctx)
+	// 1. Resolve adapter and verify capabilities
+	adapter, usedFallback, err := s.resolveActiveAdapter(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
+		if ent.IsNotFound(err) || errors.Is(err, domain.ErrFinancialAgentDisabled) {
 			return model.FinancialSuggestion{}, domain.ErrFinancialAgentDisabled
 		}
-		return model.FinancialSuggestion{}, err
-	}
-	if !setting.FinancialEnabled {
-		return model.FinancialSuggestion{}, domain.ErrFinancialAgentDisabled
+		return model.FinancialSuggestion{}, domain.ErrFinancialAgentNoProvider
 	}
 
 	// 2. Check per-user rate limit
@@ -289,12 +322,7 @@ func (s *financialService) Analyze(ctx context.Context, req model.AnalyzeRequest
 		return model.FinancialSuggestion{}, domain.ErrAnalysisRateLimited
 	}
 
-	// 3. Resolve adapter and verify capabilities
-	adapter, err := s.resolver.ResolveAdapter(ctx, setting.FinancialProviderID)
-	if err != nil {
-		return model.FinancialSuggestion{}, domain.ErrFinancialAgentNoProvider
-	}
-
+	// 3. Verify capabilities
 	caps := adapter.Capabilities()
 	if !caps.Vision || !caps.StructuredOutput {
 		return model.FinancialSuggestion{}, domain.ErrFinancialAgentNoProvider
@@ -381,5 +409,10 @@ func (s *financialService) Analyze(ctx context.Context, req model.AnalyzeRequest
 		return model.FinancialSuggestion{}, domain.ErrAnalysisFailed
 	}
 
-	return validateSuggestion(raw, snap, s.clock()), nil
+	sugg := validateSuggestion(raw, snap, s.clock())
+	if s.logger != nil && (usedFallback || s.logHTTPBody) {
+		s.logger.Debug("financial agent suggestion analyzed", "used_fallback", usedFallback, "raw_response", text, "warnings", sugg.Warnings)
+	}
+
+	return sugg, nil
 }
