@@ -11,6 +11,7 @@ import (
 	"github.com/kilip/omed/api/internal/agent/service"
 	"github.com/kilip/omed/api/internal/platform/authz"
 	"github.com/kilip/omed/api/internal/platform/llmx"
+	"github.com/kilip/omed/api/internal/platform/s3x"
 	"github.com/kilip/omed/api/internal/platform/secretx"
 )
 
@@ -22,6 +23,8 @@ type Config struct {
 	Cipher                 *secretx.Cipher
 	AllowPrivateURLs       bool
 	FinanceContext         service.FinanceContext
+	FinanceDraftContext    service.FinanceDraftContext
+	Storage                s3x.Storage
 	AttachmentMaxSizeMB    int
 	AttachmentAllowedTypes []string
 	TestFallbackAdapter    llmx.Adapter
@@ -34,7 +37,9 @@ type AgentModule struct {
 	Authorizer       *authz.Authorizer
 	ProviderService  service.ProviderService
 	SettingService   service.SettingService
-	FinancialService service.FinancialService
+	FinancialService    service.FinancialService
+	FinanceDraftContext service.FinanceDraftContext
+	Storage             s3x.Storage
 }
 
 // New constructs a new AgentModule instance.
@@ -57,7 +62,9 @@ func New(cfg Config) *AgentModule {
 		cfg:              cfg,
 		ProviderService:  providerSvc,
 		SettingService:   settingSvc,
-		FinancialService: financialSvc,
+		FinancialService:    financialSvc,
+		FinanceDraftContext: cfg.FinanceDraftContext,
+		Storage:             cfg.Storage,
 	}
 }
 

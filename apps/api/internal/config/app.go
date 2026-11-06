@@ -183,6 +183,8 @@ func New(state State) Omed {
 		Cipher:                 cipher,
 		AllowPrivateURLs:       state.Config.LLMAllowPrivateURLs,
 		FinanceContext:         newFinanceContext(finMod),
+		FinanceDraftContext:    newFinanceDraftContext(finMod),
+		Storage:                state.Storage,
 		AttachmentMaxSizeMB:    int(state.Config.AttachmentMaxSizeMB),
 		AttachmentAllowedTypes: state.Config.AttachmentAllowedTypes,
 		TestFallbackAdapter:    testFallbackAdapter,
