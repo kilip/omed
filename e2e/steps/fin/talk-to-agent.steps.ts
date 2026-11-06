@@ -44,7 +44,7 @@ async function ensureAgentAndAccounts(world: OmedWorld): Promise<void> {
     token,
     `/workspaces/${ws.id}/agent/settings`,
     {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify({
         financialEnabled: true,
       }),
