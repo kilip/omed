@@ -18,7 +18,10 @@ import (
 	"github.com/kilip/omed/api/internal/agent/domain"
 	"github.com/kilip/omed/api/internal/agent/model"
 	"github.com/kilip/omed/api/internal/base"
+	"github.com/kilip/omed/api/internal/config"
+	finmodel "github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/testutil"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -151,6 +154,10 @@ func (s *FinancialIntegrationSuite) ensurePeriod(wsID int64, name string, start,
 }
 
 func (s *FinancialIntegrationSuite) requestAnalyze(wsID int64, filename string, content []byte, flow string) {
+	s.requestAnalyzeWithApp(nil, wsID, filename, content, flow)
+}
+
+func (s *FinancialIntegrationSuite) requestAnalyzeWithApp(app *fiber.App, wsID int64, filename string, content []byte, flow string) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	if filename != "" {
@@ -175,7 +182,31 @@ func (s *FinancialIntegrationSuite) requestAnalyze(wsID int64, filename string, 
 		req.AddCookie(c)
 	}
 
-	resp, err := testutil.GetState().FiberApp.Test(req)
+	targetApp := testutil.GetState().FiberApp
+	if app != nil {
+		targetApp = app
+	}
+
+	resp, err := targetApp.Test(req)
+	s.Require().NoError(err)
+	s.HttpResponse = resp
+}
+
+func (s *FinancialIntegrationSuite) requestStatusWithApp(app *fiber.App, wsID int64) {
+	targetApp := testutil.GetState().FiberApp
+	if app != nil {
+		targetApp = app
+	}
+
+	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/workspaces/%d/agent/financial/status", wsID), nil)
+	if s.SessionToken != "" {
+		req.Header.Set("Authorization", "Bearer "+s.SessionToken)
+	}
+	for _, c := range s.Cookies {
+		req.AddCookie(c)
+	}
+
+	resp, err := targetApp.Test(req)
 	s.Require().NoError(err)
 	s.HttpResponse = resp
 }
@@ -421,4 +452,246 @@ func (s *FinancialIntegrationSuite) TestFinancial_CrossWorkspaceProviderIsolatio
 		FinancialProviderID: &prov1ID,
 	})
 	s.AssertStatus(fiber.StatusUnprocessableEntity)
+}
+
+func (s *FinancialIntegrationSuite) TestFinancial_ExpenseFlow_DateOutsideOpenPeriod_Eliminates404() {
+	ws := s.ensureWorkspace("Expense Date Flow WS", s.User.ID)
+	s.createProviderAndEnable(ws.ID)
+
+	cashAcc := s.ensureAccount(ws.ID, "1001", "Cash", "ASSET", "DEBIT", true, true)
+	expenseAcc := s.ensureAccount(ws.ID, "5001", "Office Supplies", "EXPENSE", "DEBIT", true, true)
+
+	// Seed open period for the current month only (2026-11-01 to 2026-11-30)
+	s.ensurePeriod(ws.ID, "Nov 2026", time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 11, 30, 23, 59, 59, 0, time.UTC), 2026, "OPEN")
+
+	// LLM returns receipt dated in an older / closed period (2025-10-15)
+	s.chatResponse = fmt.Sprintf(`{
+		"documentType": "receipt",
+		"transactionDate": "2025-10-15",
+		"paymentAccountId": %d,
+		"currency": "IDR",
+		"exchangeRate": "1.0",
+		"reference": "EXP-2025-001",
+		"description": "Office paper purchase",
+		"documentTotal": "150000.00",
+		"items": [
+			{
+				"accountId": %d,
+				"description": "Paper A4",
+				"quantity": "2",
+				"unitPrice": "75000.00"
+			}
+		]
+	}`, cashAcc, expenseAcc)
+
+	s.requestAnalyze(ws.ID, "receipt.png", testPNGBytes, "EXPENSE")
+	s.OK()
+
+	res := s.GetResponse().Data
+	s.Nil(res.TransactionDate, "transactionDate should be nil when outside open accounting periods")
+
+	hasDateWarning := false
+	for _, w := range res.Warnings {
+		if w.Code == "DATE_OUTSIDE_OPEN_PERIOD" {
+			hasDateWarning = true
+			break
+		}
+	}
+	s.True(hasDateWarning, "expected DATE_OUTSIDE_OPEN_PERIOD warning in response")
+
+	// Use retained default date (2026-11-15, inside open period) to submit expense
+	defaultDate := finmodel.Date(time.Date(2026, 11, 15, 0, 0, 0, 0, time.UTC))
+	s.Require().NotNil(res.PaymentAccountID)
+	s.Require().Len(res.Items, 1)
+	s.Require().NotNil(res.Items[0].AccountID)
+
+	desc := ""
+	if res.Description != nil {
+		desc = *res.Description
+	}
+	ref := ""
+	if res.Reference != nil {
+		ref = *res.Reference
+	}
+	curr := "IDR"
+	if res.Currency != nil {
+		curr = *res.Currency
+	}
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/expense", ws.ID), fiber.MethodPost, finmodel.SaveCashFlowRequest{
+		PaymentAccountID: *res.PaymentAccountID,
+		TransactionDate:  defaultDate,
+		Description:      desc,
+		Reference:        ref,
+		Currency:         curr,
+		Items: []finmodel.CashFlowItemRequest{
+			{
+				AccountID:   *res.Items[0].AccountID,
+				Description: res.Items[0].Description,
+				Quantity:    decimal.RequireFromString(res.Items[0].Quantity),
+				UnitPrice:   decimal.RequireFromString(res.Items[0].UnitPrice),
+			},
+		},
+	})
+	s.Created()
+
+	createdExp := testutil.DecodeOther[finmodel.CashFlowItemResponse](s).Data
+	s.Require().Positive(createdExp.ID, "expense should be created successfully without 404 PERIOD_NOT_FOUND")
+}
+
+func (s *FinancialIntegrationSuite) TestFinancial_IncomeFlow_DateOutsideOpenPeriod_Eliminates404() {
+	ws := s.ensureWorkspace("Income Date Flow WS", s.User.ID)
+	s.createProviderAndEnable(ws.ID)
+
+	cashAcc := s.ensureAccount(ws.ID, "1001", "Cash", "ASSET", "DEBIT", true, true)
+	revenueAcc := s.ensureAccount(ws.ID, "4001", "Consulting Revenue", "REVENUE", "CREDIT", true, true)
+
+	// Seed open period for the current month only (2026-11-01 to 2026-11-30)
+	s.ensurePeriod(ws.ID, "Nov 2026", time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 11, 30, 23, 59, 59, 0, time.UTC), 2026, "OPEN")
+
+	// LLM returns invoice dated in an older / closed period (2025-10-15)
+	s.chatResponse = fmt.Sprintf(`{
+		"documentType": "invoice",
+		"transactionDate": "2025-10-15",
+		"paymentAccountId": %d,
+		"currency": "IDR",
+		"exchangeRate": "1.0",
+		"reference": "INC-2025-001",
+		"description": "Consulting Retainer",
+		"documentTotal": "500000.00",
+		"items": [
+			{
+				"accountId": %d,
+				"description": "Advisory services",
+				"quantity": "1",
+				"unitPrice": "500000.00"
+			}
+		]
+	}`, cashAcc, revenueAcc)
+
+	s.requestAnalyze(ws.ID, "invoice.png", testPNGBytes, "INCOME")
+	s.OK()
+
+	res := s.GetResponse().Data
+	s.Nil(res.TransactionDate, "transactionDate should be nil when outside open accounting periods")
+
+	hasDateWarning := false
+	for _, w := range res.Warnings {
+		if w.Code == "DATE_OUTSIDE_OPEN_PERIOD" {
+			hasDateWarning = true
+			break
+		}
+	}
+	s.True(hasDateWarning, "expected DATE_OUTSIDE_OPEN_PERIOD warning in response")
+
+	// Use retained default date (2026-11-15, inside open period) to submit income
+	defaultDate := finmodel.Date(time.Date(2026, 11, 15, 0, 0, 0, 0, time.UTC))
+	s.Require().NotNil(res.PaymentAccountID)
+	s.Require().Len(res.Items, 1)
+	s.Require().NotNil(res.Items[0].AccountID)
+
+	desc := ""
+	if res.Description != nil {
+		desc = *res.Description
+	}
+	ref := ""
+	if res.Reference != nil {
+		ref = *res.Reference
+	}
+	curr := "IDR"
+	if res.Currency != nil {
+		curr = *res.Currency
+	}
+
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/income", ws.ID), fiber.MethodPost, finmodel.SaveCashFlowRequest{
+		PaymentAccountID: *res.PaymentAccountID,
+		TransactionDate:  defaultDate,
+		Description:      desc,
+		Reference:        ref,
+		Currency:         curr,
+		Items: []finmodel.CashFlowItemRequest{
+			{
+				AccountID:   *res.Items[0].AccountID,
+				Description: res.Items[0].Description,
+				Quantity:    decimal.RequireFromString(res.Items[0].Quantity),
+				UnitPrice:   decimal.RequireFromString(res.Items[0].UnitPrice),
+			},
+		},
+	})
+	s.Created()
+
+	createdInc := testutil.DecodeOther[finmodel.CashFlowItemResponse](s).Data
+	s.Require().Positive(createdInc.ID, "income should be created successfully without 404 PERIOD_NOT_FOUND")
+}
+
+func (s *FinancialIntegrationSuite) TestFinancial_DevFallbackProvider_Integration() {
+	ws := s.ensureWorkspace("Fallback Test WS", s.User.ID)
+	// Workspace has NO provider configured in the DB, and NO setting in the DB.
+
+	cashAcc := s.ensureAccount(ws.ID, "1001", "Cash", "ASSET", "DEBIT", true, true)
+	expenseAcc := s.ensureAccount(ws.ID, "5001", "Supplies", "EXPENSE", "DEBIT", true, true)
+	s.ensurePeriod(ws.ID, "Nov 2026", time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 11, 30, 23, 59, 59, 0, time.UTC), 2026, "OPEN")
+
+	// Configure test agent fallback when test routes are enabled
+	cfg := testutil.GetState().Config
+	cfg.TestAgentKind = "openai_compat"
+	cfg.TestAgentBaseURL = s.fakeServer.URL
+	cfg.TestAgentAPIKey = "sk-test-fallback"
+	cfg.TestAgentModel = "gpt-4o"
+	cfg.LLMAllowPrivateURLs = true
+
+	fApp := config.GetFiber(cfg, testutil.GetState().Logger)
+	appState := config.State{
+		FiberApp: fApp,
+		Logger:   testutil.GetState().Logger,
+		EntCli:   testutil.GetEntCli(),
+		Config:   cfg,
+		Mailer:   testutil.GetMailer(),
+		Storage:  testutil.GetStorage(),
+	}
+	app := config.New(appState)
+	s.Require().NoError(app.Boot())
+
+	// Status check: verify enabled: true, available: true
+	s.requestStatusWithApp(fApp, ws.ID)
+	s.OK()
+
+	st := testutil.DecodeOther[model.FinancialStatus](s).Data
+	s.True(st.Enabled)
+	s.True(st.Available)
+	s.Nil(st.Reason)
+
+	// Analyze check: verify fallback adapter is used successfully
+	s.fakeCallCount.Store(0)
+	s.chatResponse = fmt.Sprintf(`{
+		"documentType": "receipt",
+		"transactionDate": "2026-11-15",
+		"paymentAccountId": %d,
+		"currency": "IDR",
+		"exchangeRate": "1.0",
+		"reference": "FALLBACK-001",
+		"description": "Fallback Supplies",
+		"documentTotal": "50000.00",
+		"items": [
+			{
+				"accountId": %d,
+				"description": "Marker",
+				"quantity": "1",
+				"unitPrice": "50000.00"
+			}
+		]
+	}`, cashAcc, expenseAcc)
+
+	s.requestAnalyzeWithApp(fApp, ws.ID, "receipt.png", testPNGBytes, "EXPENSE")
+	s.OK()
+
+	res := s.GetResponse().Data
+	s.Equal("receipt", res.DocumentType)
+	s.Require().NotNil(res.PaymentAccountID)
+	s.Equal(cashAcc, *res.PaymentAccountID)
+	s.Require().Len(res.Items, 1)
+	s.Require().NotNil(res.Items[0].AccountID)
+	s.Equal(expenseAcc, *res.Items[0].AccountID)
+	s.Equal("Marker", res.Items[0].Description)
+	s.Positive(s.fakeCallCount.Load(), "fallback adapter should have called fakeServer")
 }
