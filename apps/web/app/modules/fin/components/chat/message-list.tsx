@@ -23,24 +23,21 @@ type Attachment = components["schemas"]["model.AttachmentResponse"];
 
 export function extractDraftProposal(parts: unknown): DraftProposal | null {
   if (!parts) return null;
-  if (typeof parts === "string") {
+  let target = parts;
+  if (typeof target === "string") {
     try {
-      const parsed = JSON.parse(parts) as Record<string, unknown>;
-      if (
-        parsed &&
-        typeof parsed === "object" &&
-        ("kind" in parsed || "items" in parsed || "entries" in parsed)
-      ) {
-        return parsed as DraftProposal;
-      }
+      target = JSON.parse(target);
     } catch {
       return null;
     }
   }
-  if (typeof parts === "object" && parts !== null) {
-    const obj = parts as Record<string, unknown>;
+  if (typeof target === "object" && target !== null) {
+    const obj = target as Record<string, unknown>;
+    if ("proposal" in obj && obj.proposal && typeof obj.proposal === "object") {
+      return obj.proposal as DraftProposal;
+    }
     if ("kind" in obj || "items" in obj || "entries" in obj) {
-      return parts as DraftProposal;
+      return target as DraftProposal;
     }
   }
   return null;

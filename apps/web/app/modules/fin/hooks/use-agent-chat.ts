@@ -200,9 +200,28 @@ export function useSendMessage(wid?: number, conversationId?: number) {
         }),
       );
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
       const targetId = variables?.conversationId ?? conversationId;
       if (targetId) {
+        queryClient.setQueryData(
+          agentChatKeys.conversation(resolvedWid, targetId),
+          (old: ConversationDetailResponse | undefined) => {
+            const existingMessages = old?.messages || [];
+            const userMsg = data?.userMessage;
+            const asstMsg = data?.assistantMessage;
+            const newMessages = [...existingMessages];
+            if (userMsg && !newMessages.some((m) => m.id === userMsg.id)) {
+              newMessages.push(userMsg);
+            }
+            if (asstMsg && !newMessages.some((m) => m.id === asstMsg.id)) {
+              newMessages.push(asstMsg);
+            }
+            return {
+              ...(old || { id: targetId, title: "Chat" }),
+              messages: newMessages,
+            };
+          },
+        );
         queryClient.invalidateQueries({
           queryKey: agentChatKeys.conversation(resolvedWid, targetId),
         });

@@ -176,6 +176,7 @@ describe("agent chat hooks", () => {
   const mockQueryClient = {
     invalidateQueries: vi.fn(),
     removeQueries: vi.fn(),
+    setQueryData: vi.fn(),
   };
 
   beforeEach(() => {

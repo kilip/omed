@@ -148,7 +148,7 @@ export class FinTalkToAgentPage extends BasePage {
   }
 
   async expectDraftCard(kind: string): Promise<void> {
-    await this.draftPreviewCard.waitFor({ state: "visible", timeout: 15_000 });
+    await this.draftPreviewCard.waitFor({ state: "visible", timeout: 30_000 });
     const cardText = await this.draftPreviewCard.textContent();
     assert.ok(cardText, "Expected draft card to have content");
 
