@@ -106,9 +106,12 @@ export function startFakeLlmServer(port = FAKE_LLM_PORT): Promise<void> {
           messages as Array<{ role?: string; content?: unknown }>
         ).filter((m) => m.role !== "system");
 
-        let userText = JSON.stringify(nonSystemMessages).toLowerCase();
+        const rawNonSystemJSON = JSON.stringify(nonSystemMessages);
+        let userText = rawNonSystemJSON.toLowerCase();
         const base64Matches =
-          userText.match(/data:image\/[^;]+;base64,([a-zA-Z0-9+/=]+)/g) || [];
+          rawNonSystemJSON.match(
+            /data:image\/[^;]+;base64,([a-zA-Z0-9+/=]+)/g,
+          ) || [];
         for (const match of base64Matches) {
           const b64 = match.split("base64,")[1];
           if (b64) {
