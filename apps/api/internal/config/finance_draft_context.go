@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/kilip/omed/api/internal/agent/model"
@@ -241,14 +242,36 @@ func (a *financeDraftContextAdapter) saveJournalDraft(ctx context.Context, propo
 	if a.transactions == nil {
 		return 0, errors.New("transaction service is not configured")
 	}
-	if proposal.PeriodID == nil {
-		return 0, errors.New("period ID is required for journal draft")
-	}
 	tDate, err := parseDraftDate(proposal.TransactionDate)
 	if err != nil {
 		return 0, err
 	}
 
+	var periodID int64
+	if proposal.PeriodID != nil {
+		periodID = *proposal.PeriodID
+	} else {
+		periods, pErr := a.ListPeriods(ctx)
+		if pErr == nil {
+			for _, p := range periods {
+				if strings.EqualFold(p.Status, "open") && !tDate.Time().Before(p.StartDate) && !tDate.Time().After(p.EndDate) {
+					periodID = p.ID
+					break
+				}
+			}
+			if periodID == 0 {
+				for _, p := range periods {
+					if strings.EqualFold(p.Status, "open") {
+						periodID = p.ID
+						break
+					}
+				}
+			}
+		}
+		if periodID == 0 {
+			return 0, errors.New("period ID is required for journal draft")
+		}
+	}
 	postings := make([]finmodel.CreatePostingRequest, len(proposal.Entries))
 	for i, entry := range proposal.Entries {
 		postings[i] = finmodel.CreatePostingRequest{
@@ -266,7 +289,7 @@ func (a *financeDraftContextAdapter) saveJournalDraft(ctx context.Context, propo
 		Currency:        proposal.Currency,
 		ExchangeRate:    proposal.ExchangeRate,
 		Entry: &finmodel.CreateEntryInlineRequest{
-			PeriodID:    *proposal.PeriodID,
+			PeriodID:    periodID,
 			EntryDate:   tDate,
 			Description: proposal.Description,
 			Postings:    postings,

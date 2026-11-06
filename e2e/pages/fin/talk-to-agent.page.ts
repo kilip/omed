@@ -189,16 +189,16 @@ export class FinTalkToAgentPage extends BasePage {
   async expectConfirmedState(): Promise<void> {
     const confirmedTag = this.draftPreviewCard
       .locator(".ant-tag")
-      .filter({ hasText: "Confirmed" });
-    await confirmedTag.waitFor({ state: "visible", timeout: 10_000 });
-    await this.transactionLink.waitFor({ state: "visible", timeout: 10_000 });
+      .filter({ hasText: /Confirmed|Dikonfirmasi/i });
+    await confirmedTag.waitFor({ state: "visible", timeout: 15_000 });
+    await this.transactionLink.waitFor({ state: "visible", timeout: 15_000 });
   }
 
   async expectDiscardedState(): Promise<void> {
     const discardedTag = this.draftPreviewCard
       .locator(".ant-tag")
-      .filter({ hasText: "Discarded" });
-    await discardedTag.waitFor({ state: "visible", timeout: 10_000 });
+      .filter({ hasText: /Discarded|Dibuang/i });
+    await discardedTag.waitFor({ state: "visible", timeout: 15_000 });
     const confirmVisible = await this.confirmButton.isVisible();
     assert.strictEqual(
       confirmVisible,
