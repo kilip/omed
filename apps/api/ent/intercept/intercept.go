@@ -9,6 +9,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/agentchatattachment"
+	"github.com/kilip/omed/api/ent/agentchatconversation"
+	"github.com/kilip/omed/api/ent/agentchatmessage"
 	"github.com/kilip/omed/api/ent/agentprovider"
 	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
@@ -117,6 +120,87 @@ func (f TraverseAccount) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.AccountQuery", q)
+}
+
+// The AgentChatAttachmentFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AgentChatAttachmentFunc func(context.Context, *ent.AgentChatAttachmentQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f AgentChatAttachmentFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.AgentChatAttachmentQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.AgentChatAttachmentQuery", q)
+}
+
+// The TraverseAgentChatAttachment type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAgentChatAttachment func(context.Context, *ent.AgentChatAttachmentQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAgentChatAttachment) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAgentChatAttachment) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AgentChatAttachmentQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.AgentChatAttachmentQuery", q)
+}
+
+// The AgentChatConversationFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AgentChatConversationFunc func(context.Context, *ent.AgentChatConversationQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f AgentChatConversationFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.AgentChatConversationQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.AgentChatConversationQuery", q)
+}
+
+// The TraverseAgentChatConversation type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAgentChatConversation func(context.Context, *ent.AgentChatConversationQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAgentChatConversation) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAgentChatConversation) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AgentChatConversationQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.AgentChatConversationQuery", q)
+}
+
+// The AgentChatMessageFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AgentChatMessageFunc func(context.Context, *ent.AgentChatMessageQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f AgentChatMessageFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.AgentChatMessageQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.AgentChatMessageQuery", q)
+}
+
+// The TraverseAgentChatMessage type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAgentChatMessage func(context.Context, *ent.AgentChatMessageQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAgentChatMessage) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAgentChatMessage) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AgentChatMessageQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.AgentChatMessageQuery", q)
 }
 
 // The AgentProviderFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -772,6 +856,12 @@ func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
 	case *ent.AccountQuery:
 		return &query[*ent.AccountQuery, predicate.Account, account.OrderOption]{typ: ent.TypeAccount, tq: q}, nil
+	case *ent.AgentChatAttachmentQuery:
+		return &query[*ent.AgentChatAttachmentQuery, predicate.AgentChatAttachment, agentchatattachment.OrderOption]{typ: ent.TypeAgentChatAttachment, tq: q}, nil
+	case *ent.AgentChatConversationQuery:
+		return &query[*ent.AgentChatConversationQuery, predicate.AgentChatConversation, agentchatconversation.OrderOption]{typ: ent.TypeAgentChatConversation, tq: q}, nil
+	case *ent.AgentChatMessageQuery:
+		return &query[*ent.AgentChatMessageQuery, predicate.AgentChatMessage, agentchatmessage.OrderOption]{typ: ent.TypeAgentChatMessage, tq: q}, nil
 	case *ent.AgentProviderQuery:
 		return &query[*ent.AgentProviderQuery, predicate.AgentProvider, agentprovider.OrderOption]{typ: ent.TypeAgentProvider, tq: q}, nil
 	case *ent.AgentSettingQuery:

@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/agentchatattachment"
+	"github.com/kilip/omed/api/ent/agentchatconversation"
+	"github.com/kilip/omed/api/ent/agentchatmessage"
 	"github.com/kilip/omed/api/ent/agentprovider"
 	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
@@ -87,6 +90,75 @@ func init() {
 	accountDescIsPostable := accountFields[9].Descriptor()
 	// account.DefaultIsPostable holds the default value on creation for the is_postable field.
 	account.DefaultIsPostable = accountDescIsPostable.Default.(bool)
+	agentchatattachmentMixin := schema.AgentChatAttachment{}.Mixin()
+	agentchatattachmentMixinFields1 := agentchatattachmentMixin[1].Fields()
+	_ = agentchatattachmentMixinFields1
+	agentchatattachmentFields := schema.AgentChatAttachment{}.Fields()
+	_ = agentchatattachmentFields
+	// agentchatattachmentDescCreatedAt is the schema descriptor for created_at field.
+	agentchatattachmentDescCreatedAt := agentchatattachmentMixinFields1[2].Descriptor()
+	// agentchatattachment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentchatattachment.DefaultCreatedAt = agentchatattachmentDescCreatedAt.Default.(func() time.Time)
+	// agentchatattachmentDescUpdatedAt is the schema descriptor for updated_at field.
+	agentchatattachmentDescUpdatedAt := agentchatattachmentMixinFields1[3].Descriptor()
+	// agentchatattachment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentchatattachment.DefaultUpdatedAt = agentchatattachmentDescUpdatedAt.Default.(func() time.Time)
+	// agentchatattachment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentchatattachment.UpdateDefaultUpdatedAt = agentchatattachmentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// agentchatattachmentDescObjectKey is the schema descriptor for object_key field.
+	agentchatattachmentDescObjectKey := agentchatattachmentFields[3].Descriptor()
+	// agentchatattachment.ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
+	agentchatattachment.ObjectKeyValidator = agentchatattachmentDescObjectKey.Validators[0].(func(string) error)
+	// agentchatattachmentDescBucket is the schema descriptor for bucket field.
+	agentchatattachmentDescBucket := agentchatattachmentFields[4].Descriptor()
+	// agentchatattachment.BucketValidator is a validator for the "bucket" field. It is called by the builders before save.
+	agentchatattachment.BucketValidator = agentchatattachmentDescBucket.Validators[0].(func(string) error)
+	// agentchatattachmentDescMime is the schema descriptor for mime field.
+	agentchatattachmentDescMime := agentchatattachmentFields[5].Descriptor()
+	// agentchatattachment.MimeValidator is a validator for the "mime" field. It is called by the builders before save.
+	agentchatattachment.MimeValidator = agentchatattachmentDescMime.Validators[0].(func(string) error)
+	// agentchatattachmentDescSize is the schema descriptor for size field.
+	agentchatattachmentDescSize := agentchatattachmentFields[6].Descriptor()
+	// agentchatattachment.SizeValidator is a validator for the "size" field. It is called by the builders before save.
+	agentchatattachment.SizeValidator = agentchatattachmentDescSize.Validators[0].(func(int64) error)
+	// agentchatattachmentDescFileName is the schema descriptor for file_name field.
+	agentchatattachmentDescFileName := agentchatattachmentFields[7].Descriptor()
+	// agentchatattachment.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
+	agentchatattachment.FileNameValidator = agentchatattachmentDescFileName.Validators[0].(func(string) error)
+	agentchatconversationMixin := schema.AgentChatConversation{}.Mixin()
+	agentchatconversationMixinFields1 := agentchatconversationMixin[1].Fields()
+	_ = agentchatconversationMixinFields1
+	agentchatconversationFields := schema.AgentChatConversation{}.Fields()
+	_ = agentchatconversationFields
+	// agentchatconversationDescCreatedAt is the schema descriptor for created_at field.
+	agentchatconversationDescCreatedAt := agentchatconversationMixinFields1[2].Descriptor()
+	// agentchatconversation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentchatconversation.DefaultCreatedAt = agentchatconversationDescCreatedAt.Default.(func() time.Time)
+	// agentchatconversationDescUpdatedAt is the schema descriptor for updated_at field.
+	agentchatconversationDescUpdatedAt := agentchatconversationMixinFields1[3].Descriptor()
+	// agentchatconversation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentchatconversation.DefaultUpdatedAt = agentchatconversationDescUpdatedAt.Default.(func() time.Time)
+	// agentchatconversation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentchatconversation.UpdateDefaultUpdatedAt = agentchatconversationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentchatmessageMixin := schema.AgentChatMessage{}.Mixin()
+	agentchatmessageMixinFields1 := agentchatmessageMixin[1].Fields()
+	_ = agentchatmessageMixinFields1
+	agentchatmessageFields := schema.AgentChatMessage{}.Fields()
+	_ = agentchatmessageFields
+	// agentchatmessageDescCreatedAt is the schema descriptor for created_at field.
+	agentchatmessageDescCreatedAt := agentchatmessageMixinFields1[2].Descriptor()
+	// agentchatmessage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentchatmessage.DefaultCreatedAt = agentchatmessageDescCreatedAt.Default.(func() time.Time)
+	// agentchatmessageDescUpdatedAt is the schema descriptor for updated_at field.
+	agentchatmessageDescUpdatedAt := agentchatmessageMixinFields1[3].Descriptor()
+	// agentchatmessage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentchatmessage.DefaultUpdatedAt = agentchatmessageDescUpdatedAt.Default.(func() time.Time)
+	// agentchatmessage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentchatmessage.UpdateDefaultUpdatedAt = agentchatmessageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// agentchatmessageDescContent is the schema descriptor for content field.
+	agentchatmessageDescContent := agentchatmessageFields[3].Descriptor()
+	// agentchatmessage.DefaultContent holds the default value on creation for the content field.
+	agentchatmessage.DefaultContent = agentchatmessageDescContent.Default.(string)
 	agentproviderMixin := schema.AgentProvider{}.Mixin()
 	agentproviderMixinFields1 := agentproviderMixin[1].Fields()
 	_ = agentproviderMixinFields1

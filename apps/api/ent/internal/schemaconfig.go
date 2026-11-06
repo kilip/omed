@@ -7,31 +7,34 @@ import "context"
 // SchemaConfig represents alternative schema names for all tables
 // that can be passed at runtime.
 type SchemaConfig struct {
-	Account             string // Account table.
-	AgentProvider       string // AgentProvider table.
-	AgentSetting        string // AgentSetting table.
-	CmsMedia            string // CmsMedia table.
-	CmsPage             string // CmsPage table.
-	CmsPageTranslation  string // CmsPageTranslation table.
-	CmsPost             string // CmsPost table.
-	CmsPostTranslation  string // CmsPostTranslation table.
-	CmsSetting          string // CmsSetting table.
-	Currency            string // Currency table.
-	Entry               string // Entry table.
-	ExchangeRate        string // ExchangeRate table.
-	File                string // File table.
-	FinSetting          string // FinSetting table.
-	LoginOTP            string // LoginOTP table.
-	Period              string // Period table.
-	PersonalAccessToken string // PersonalAccessToken table.
-	Posting             string // Posting table.
-	Session             string // Session table.
-	Transaction         string // Transaction table.
-	User                string // User table.
-	UserAccount         string // UserAccount table.
-	Workspace           string // Workspace table.
-	WorkspaceInvitation string // WorkspaceInvitation table.
-	WorkspaceMember     string // WorkspaceMember table.
+	Account               string // Account table.
+	AgentChatAttachment   string // AgentChatAttachment table.
+	AgentChatConversation string // AgentChatConversation table.
+	AgentChatMessage      string // AgentChatMessage table.
+	AgentProvider         string // AgentProvider table.
+	AgentSetting          string // AgentSetting table.
+	CmsMedia              string // CmsMedia table.
+	CmsPage               string // CmsPage table.
+	CmsPageTranslation    string // CmsPageTranslation table.
+	CmsPost               string // CmsPost table.
+	CmsPostTranslation    string // CmsPostTranslation table.
+	CmsSetting            string // CmsSetting table.
+	Currency              string // Currency table.
+	Entry                 string // Entry table.
+	ExchangeRate          string // ExchangeRate table.
+	File                  string // File table.
+	FinSetting            string // FinSetting table.
+	LoginOTP              string // LoginOTP table.
+	Period                string // Period table.
+	PersonalAccessToken   string // PersonalAccessToken table.
+	Posting               string // Posting table.
+	Session               string // Session table.
+	Transaction           string // Transaction table.
+	User                  string // User table.
+	UserAccount           string // UserAccount table.
+	Workspace             string // Workspace table.
+	WorkspaceInvitation   string // WorkspaceInvitation table.
+	WorkspaceMember       string // WorkspaceMember table.
 }
 
 type schemaCtxKey struct{}

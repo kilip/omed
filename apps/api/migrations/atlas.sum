@@ -1,4 +1,4 @@
-h1:t53j/RIJfXS6jrCta+my+KibWh9QHCA30dxf0NkNFrA=
+h1:bdXgb/2nrOxu6pHdcc7bfo/t1+GQSkZlWGi7QCPIt/w=
 20261027062659_initial.sql h1:YDNvVG15mynr23bI4uA6AJNos6hAX9ZlgaaRy4m6sXM=
 20261030144820_fin_onboarding_settings.sql h1:E6HG+YL2ZcKkNHO9NUPeAN/8jfe4MhYcHvdfJuIrULQ=
 20261030205025_add_agent_provider.sql h1:2qUAGHyiq+PEXSZNB2zwu6PGIy2HaLvArkIapQir2sE=
@@ -6,3 +6,4 @@ h1:t53j/RIJfXS6jrCta+my+KibWh9QHCA30dxf0NkNFrA=
 20261101170602_add_core_login_otp.sql h1:IJOvo8QuMI0sB4sscSh3i+ZGwQr5u2Sckz1CZOARA3U=
 20261102071635_add_agent_setting.sql h1:0wHtrydKLF/it9becnVyb4rxQddClKDDmJ86gsQXU08=
 20261105144724_add_cms_translations.sql h1:mLyMmWlVEw3xoU9isxHtMxC7y6j8Li/vqcWF+6BovuA=
+20261106135213_add_agent_chat.sql h1:+r9PDh+4F7+Bdy4J4trWXjC0vJfDufooFMHVQxtRR5M=

@@ -9,6 +9,15 @@ import (
 // Account is the predicate function for account builders.
 type Account func(*sql.Selector)
 
+// AgentChatAttachment is the predicate function for agentchatattachment builders.
+type AgentChatAttachment func(*sql.Selector)
+
+// AgentChatConversation is the predicate function for agentchatconversation builders.
+type AgentChatConversation func(*sql.Selector)
+
+// AgentChatMessage is the predicate function for agentchatmessage builders.
+type AgentChatMessage func(*sql.Selector)
+
 // AgentProvider is the predicate function for agentprovider builders.
 type AgentProvider func(*sql.Selector)
 

@@ -92,6 +92,182 @@ var (
 			},
 		},
 	}
+	// AgentChatAttachmentsColumns holds the columns for the "agent_chat_attachments" table.
+	AgentChatAttachmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "object_key", Type: field.TypeString},
+		{Name: "bucket", Type: field.TypeString},
+		{Name: "mime", Type: field.TypeString},
+		{Name: "size", Type: field.TypeInt64},
+		{Name: "file_name", Type: field.TypeString},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "conversation_id", Type: field.TypeInt64},
+		{Name: "message_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// AgentChatAttachmentsTable holds the schema information for the "agent_chat_attachments" table.
+	AgentChatAttachmentsTable = &schema.Table{
+		Name:       "agent_chat_attachments",
+		Columns:    AgentChatAttachmentsColumns,
+		PrimaryKey: []*schema.Column{AgentChatAttachmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "agent_chat_attachments_workspaces_workspace",
+				Columns:    []*schema.Column{AgentChatAttachmentsColumns[8]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_attachments_users_creator",
+				Columns:    []*schema.Column{AgentChatAttachmentsColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_attachments_users_updater",
+				Columns:    []*schema.Column{AgentChatAttachmentsColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_attachments_agent_chat_conversations_conversation",
+				Columns:    []*schema.Column{AgentChatAttachmentsColumns[11]},
+				RefColumns: []*schema.Column{AgentChatConversationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "agent_chat_attachments_agent_chat_messages_attachments",
+				Columns:    []*schema.Column{AgentChatAttachmentsColumns[12]},
+				RefColumns: []*schema.Column{AgentChatMessagesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentchatattachment_workspace_id_conversation_id",
+				Unique:  false,
+				Columns: []*schema.Column{AgentChatAttachmentsColumns[8], AgentChatAttachmentsColumns[11]},
+			},
+			{
+				Name:    "agentchatattachment_workspace_id_message_id",
+				Unique:  false,
+				Columns: []*schema.Column{AgentChatAttachmentsColumns[8], AgentChatAttachmentsColumns[12]},
+			},
+		},
+	}
+	// AgentChatConversationsColumns holds the columns for the "agent_chat_conversations" table.
+	AgentChatConversationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "title", Type: field.TypeString, Nullable: true},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+		{Name: "deleted_by_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// AgentChatConversationsTable holds the schema information for the "agent_chat_conversations" table.
+	AgentChatConversationsTable = &schema.Table{
+		Name:       "agent_chat_conversations",
+		Columns:    AgentChatConversationsColumns,
+		PrimaryKey: []*schema.Column{AgentChatConversationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "agent_chat_conversations_workspaces_workspace",
+				Columns:    []*schema.Column{AgentChatConversationsColumns[5]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_conversations_users_creator",
+				Columns:    []*schema.Column{AgentChatConversationsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_conversations_users_updater",
+				Columns:    []*schema.Column{AgentChatConversationsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_conversations_users_deleter",
+				Columns:    []*schema.Column{AgentChatConversationsColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentchatconversation_workspace_id_deleted_at",
+				Unique:  false,
+				Columns: []*schema.Column{AgentChatConversationsColumns[5], AgentChatConversationsColumns[3]},
+			},
+			{
+				Name:    "agentchatconversation_workspace_id_created_by",
+				Unique:  false,
+				Columns: []*schema.Column{AgentChatConversationsColumns[5], AgentChatConversationsColumns[6]},
+			},
+		},
+	}
+	// AgentChatMessagesColumns holds the columns for the "agent_chat_messages" table.
+	AgentChatMessagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"user", "assistant", "system", "tool"}},
+		{Name: "content", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "parts", Type: field.TypeJSON, Nullable: true},
+		{Name: "draft_status", Type: field.TypeEnum, Enums: []string{"none", "proposed", "confirmed", "discarded"}, Default: "none"},
+		{Name: "confirmed_transaction_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "conversation_id", Type: field.TypeInt64},
+		{Name: "workspace_id", Type: field.TypeInt64},
+		{Name: "created_by", Type: field.TypeInt64},
+		{Name: "updated_by", Type: field.TypeInt64},
+	}
+	// AgentChatMessagesTable holds the schema information for the "agent_chat_messages" table.
+	AgentChatMessagesTable = &schema.Table{
+		Name:       "agent_chat_messages",
+		Columns:    AgentChatMessagesColumns,
+		PrimaryKey: []*schema.Column{AgentChatMessagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "agent_chat_messages_agent_chat_conversations_messages",
+				Columns:    []*schema.Column{AgentChatMessagesColumns[8]},
+				RefColumns: []*schema.Column{AgentChatConversationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_messages_workspaces_workspace",
+				Columns:    []*schema.Column{AgentChatMessagesColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_messages_users_creator",
+				Columns:    []*schema.Column{AgentChatMessagesColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "agent_chat_messages_users_updater",
+				Columns:    []*schema.Column{AgentChatMessagesColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentchatmessage_workspace_id_conversation_id",
+				Unique:  false,
+				Columns: []*schema.Column{AgentChatMessagesColumns[9], AgentChatMessagesColumns[8]},
+			},
+		},
+	}
 	// AgentProvidersColumns holds the columns for the "agent_providers" table.
 	AgentProvidersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1449,6 +1625,9 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountsTable,
+		AgentChatAttachmentsTable,
+		AgentChatConversationsTable,
+		AgentChatMessagesTable,
 		AgentProvidersTable,
 		AgentSettingsTable,
 		CmsMediaTable,
@@ -1482,6 +1661,19 @@ func init() {
 	AccountsTable.ForeignKeys[2].RefTable = UsersTable
 	AccountsTable.ForeignKeys[3].RefTable = UsersTable
 	AccountsTable.ForeignKeys[4].RefTable = AccountsTable
+	AgentChatAttachmentsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	AgentChatAttachmentsTable.ForeignKeys[1].RefTable = UsersTable
+	AgentChatAttachmentsTable.ForeignKeys[2].RefTable = UsersTable
+	AgentChatAttachmentsTable.ForeignKeys[3].RefTable = AgentChatConversationsTable
+	AgentChatAttachmentsTable.ForeignKeys[4].RefTable = AgentChatMessagesTable
+	AgentChatConversationsTable.ForeignKeys[0].RefTable = WorkspacesTable
+	AgentChatConversationsTable.ForeignKeys[1].RefTable = UsersTable
+	AgentChatConversationsTable.ForeignKeys[2].RefTable = UsersTable
+	AgentChatConversationsTable.ForeignKeys[3].RefTable = UsersTable
+	AgentChatMessagesTable.ForeignKeys[0].RefTable = AgentChatConversationsTable
+	AgentChatMessagesTable.ForeignKeys[1].RefTable = WorkspacesTable
+	AgentChatMessagesTable.ForeignKeys[2].RefTable = UsersTable
+	AgentChatMessagesTable.ForeignKeys[3].RefTable = UsersTable
 	AgentProvidersTable.ForeignKeys[0].RefTable = WorkspacesTable
 	AgentProvidersTable.ForeignKeys[1].RefTable = UsersTable
 	AgentProvidersTable.ForeignKeys[2].RefTable = UsersTable

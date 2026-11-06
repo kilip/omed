@@ -14,6 +14,12 @@ type Tx struct {
 	config
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
+	// AgentChatAttachment is the client for interacting with the AgentChatAttachment builders.
+	AgentChatAttachment *AgentChatAttachmentClient
+	// AgentChatConversation is the client for interacting with the AgentChatConversation builders.
+	AgentChatConversation *AgentChatConversationClient
+	// AgentChatMessage is the client for interacting with the AgentChatMessage builders.
+	AgentChatMessage *AgentChatMessageClient
 	// AgentProvider is the client for interacting with the AgentProvider builders.
 	AgentProvider *AgentProviderClient
 	// AgentSetting is the client for interacting with the AgentSetting builders.
@@ -194,6 +200,9 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
+	tx.AgentChatAttachment = NewAgentChatAttachmentClient(tx.config)
+	tx.AgentChatConversation = NewAgentChatConversationClient(tx.config)
+	tx.AgentChatMessage = NewAgentChatMessageClient(tx.config)
 	tx.AgentProvider = NewAgentProviderClient(tx.config)
 	tx.AgentSetting = NewAgentSettingClient(tx.config)
 	tx.CmsMedia = NewCmsMediaClient(tx.config)

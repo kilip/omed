@@ -13,6 +13,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/agentchatattachment"
+	"github.com/kilip/omed/api/ent/agentchatconversation"
+	"github.com/kilip/omed/api/ent/agentchatmessage"
 	"github.com/kilip/omed/api/ent/agentprovider"
 	"github.com/kilip/omed/api/ent/agentsetting"
 	"github.com/kilip/omed/api/ent/cmsmedia"
@@ -97,31 +100,34 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			account.Table:             account.ValidColumn,
-			agentprovider.Table:       agentprovider.ValidColumn,
-			agentsetting.Table:        agentsetting.ValidColumn,
-			cmsmedia.Table:            cmsmedia.ValidColumn,
-			cmspage.Table:             cmspage.ValidColumn,
-			cmspagetranslation.Table:  cmspagetranslation.ValidColumn,
-			cmspost.Table:             cmspost.ValidColumn,
-			cmsposttranslation.Table:  cmsposttranslation.ValidColumn,
-			cmssetting.Table:          cmssetting.ValidColumn,
-			currency.Table:            currency.ValidColumn,
-			entry.Table:               entry.ValidColumn,
-			exchangerate.Table:        exchangerate.ValidColumn,
-			file.Table:                file.ValidColumn,
-			finsetting.Table:          finsetting.ValidColumn,
-			loginotp.Table:            loginotp.ValidColumn,
-			period.Table:              period.ValidColumn,
-			personalaccesstoken.Table: personalaccesstoken.ValidColumn,
-			posting.Table:             posting.ValidColumn,
-			session.Table:             session.ValidColumn,
-			transaction.Table:         transaction.ValidColumn,
-			user.Table:                user.ValidColumn,
-			useraccount.Table:         useraccount.ValidColumn,
-			workspace.Table:           workspace.ValidColumn,
-			workspaceinvitation.Table: workspaceinvitation.ValidColumn,
-			workspacemember.Table:     workspacemember.ValidColumn,
+			account.Table:               account.ValidColumn,
+			agentchatattachment.Table:   agentchatattachment.ValidColumn,
+			agentchatconversation.Table: agentchatconversation.ValidColumn,
+			agentchatmessage.Table:      agentchatmessage.ValidColumn,
+			agentprovider.Table:         agentprovider.ValidColumn,
+			agentsetting.Table:          agentsetting.ValidColumn,
+			cmsmedia.Table:              cmsmedia.ValidColumn,
+			cmspage.Table:               cmspage.ValidColumn,
+			cmspagetranslation.Table:    cmspagetranslation.ValidColumn,
+			cmspost.Table:               cmspost.ValidColumn,
+			cmsposttranslation.Table:    cmsposttranslation.ValidColumn,
+			cmssetting.Table:            cmssetting.ValidColumn,
+			currency.Table:              currency.ValidColumn,
+			entry.Table:                 entry.ValidColumn,
+			exchangerate.Table:          exchangerate.ValidColumn,
+			file.Table:                  file.ValidColumn,
+			finsetting.Table:            finsetting.ValidColumn,
+			loginotp.Table:              loginotp.ValidColumn,
+			period.Table:                period.ValidColumn,
+			personalaccesstoken.Table:   personalaccesstoken.ValidColumn,
+			posting.Table:               posting.ValidColumn,
+			session.Table:               session.ValidColumn,
+			transaction.Table:           transaction.ValidColumn,
+			user.Table:                  user.ValidColumn,
+			useraccount.Table:           useraccount.ValidColumn,
+			workspace.Table:             workspace.ValidColumn,
+			workspaceinvitation.Table:   workspaceinvitation.ValidColumn,
+			workspacemember.Table:       workspacemember.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

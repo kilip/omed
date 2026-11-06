@@ -21,6 +21,42 @@ func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
 }
 
+// The AgentChatAttachmentFunc type is an adapter to allow the use of ordinary
+// function as AgentChatAttachment mutator.
+type AgentChatAttachmentFunc func(context.Context, *ent.AgentChatAttachmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentChatAttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AgentChatAttachmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AgentChatAttachmentMutation", m)
+}
+
+// The AgentChatConversationFunc type is an adapter to allow the use of ordinary
+// function as AgentChatConversation mutator.
+type AgentChatConversationFunc func(context.Context, *ent.AgentChatConversationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentChatConversationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AgentChatConversationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AgentChatConversationMutation", m)
+}
+
+// The AgentChatMessageFunc type is an adapter to allow the use of ordinary
+// function as AgentChatMessage mutator.
+type AgentChatMessageFunc func(context.Context, *ent.AgentChatMessageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentChatMessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AgentChatMessageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AgentChatMessageMutation", m)
+}
+
 // The AgentProviderFunc type is an adapter to allow the use of ordinary
 // function as AgentProvider mutator.
 type AgentProviderFunc func(context.Context, *ent.AgentProviderMutation) (ent.Value, error)
