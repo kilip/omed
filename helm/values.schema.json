@@ -140,7 +140,8 @@
                 }
               }
             },
-            "llmAllowPrivateURLs": { "type": "boolean" }
+            "llmAllowPrivateURLs": { "type": "boolean" },
+            "logHttpBody": { "type": "boolean" }
           }
         },
         "extraEnv": { "type": "array" },

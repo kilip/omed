@@ -203,6 +203,8 @@ Non-secret env vars shared by the api Deployment and the migration Job.
   value: {{ $c.otp.hourlyLimit | quote }}
 - name: OMED_LLM_ALLOW_PRIVATE_URLS
   value: {{ $c.llmAllowPrivateURLs | quote }}
+- name: OMED_LOG_HTTP_BODY
+  value: {{ $c.logHttpBody | quote }}
 {{- with .Values.api.extraEnv }}
 {{ toYaml . }}
 {{- end }}

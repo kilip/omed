@@ -96,6 +96,8 @@ api:
       hourlyLimit: 5
     # -- OMED_LLM_ALLOW_PRIVATE_URLS. Allow private / loopback IP addresses for custom LLM endpoints.
     llmAllowPrivateURLs: false
+    # -- OMED_LOG_HTTP_BODY. Log sanitized HTTP request bodies on error responses (status >= 400).
+    logHttpBody: false
   # -- Extra env vars for the api container (and migration Job).
   extraEnv: []
   service:
