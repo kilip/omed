@@ -24,6 +24,7 @@ import { FinOpeningBalancePage } from "./fin/opening-balance.page";
 import { FinPeriodsPage } from "./fin/periods.page";
 import { FinSettingsPage } from "./fin/settings.page";
 import { FinSetupPage } from "./fin/setup.page";
+import { FinTalkToAgentPage } from "./fin/talk-to-agent.page";
 import { FinTransactionDetailPage } from "./fin/transaction-detail.page";
 import { FinTransactionsPage } from "./fin/transactions.page";
 import { FinTrialBalancePage } from "./fin/trial-balance.page";
@@ -55,6 +56,7 @@ export const createPages = (page: Page) => ({
     transactions: new FinTransactionsPage(page),
     transactionDetail: new FinTransactionDetailPage(page),
     trialBalance: new FinTrialBalancePage(page),
+    talkToAgent: new FinTalkToAgentPage(page),
   },
   cms: {
     launcher: new CmsLauncherPage(page),
