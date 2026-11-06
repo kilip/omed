@@ -28,6 +28,7 @@ export type CreateConversationRequest =
 export type FinancialStatus = components["schemas"]["model.FinancialStatus"];
 
 export type SendMessageParams = {
+  conversationId?: number;
   content?: string;
   files?: File[];
 };
@@ -170,8 +171,12 @@ export function useSendMessage(wid?: number, conversationId?: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ content, files }: SendMessageParams) => {
-      const convId = conversationId ?? 0;
+    mutationFn: ({
+      conversationId: overrideConvId,
+      content,
+      files,
+    }: SendMessageParams) => {
+      const convId = overrideConvId ?? conversationId ?? 0;
       const formData = new FormData();
       if (content !== undefined && content !== "") {
         formData.append("content", content);
@@ -195,10 +200,11 @@ export function useSendMessage(wid?: number, conversationId?: number) {
         }),
       );
     },
-    onSuccess: () => {
-      if (conversationId) {
+    onSuccess: (_data, variables) => {
+      const targetId = variables?.conversationId ?? conversationId;
+      if (targetId) {
         queryClient.invalidateQueries({
-          queryKey: agentChatKeys.conversation(resolvedWid, conversationId),
+          queryKey: agentChatKeys.conversation(resolvedWid, targetId),
         });
       }
       queryClient.invalidateQueries({
