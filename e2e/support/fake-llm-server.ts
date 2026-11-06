@@ -152,15 +152,15 @@ export function startFakeLlmServer(port = FAKE_LLM_PORT): Promise<void> {
             totalAmount: "2000000.00",
             entries: [
               {
-                accountId: 1101,
-                accountCode: "1101",
+                accountId: 1111,
+                accountCode: "1111",
                 direction: "DEBIT",
                 amount: "2000000.00",
                 description: "Kas Utama",
               },
               {
-                accountId: 1102,
-                accountCode: "1102",
+                accountId: 1121,
+                accountCode: "1121",
                 direction: "CREDIT",
                 amount: "2000000.00",
                 description: "Bank Kaltimtara",
@@ -209,8 +209,8 @@ export function startFakeLlmServer(port = FAKE_LLM_PORT): Promise<void> {
           // Reference Case 2: Multi-item shop receipt
           const proposal = {
             kind: "expense",
-            paymentAccountId: 1101,
-            paymentAccountCode: "1101",
+            paymentAccountId: 1111,
+            paymentAccountCode: "1111",
             transactionDate: "2026-01-15",
             description: "Toko Alat Tulis Kantor",
             reference: "RCPT-SHOP-001",
@@ -218,16 +218,16 @@ export function startFakeLlmServer(port = FAKE_LLM_PORT): Promise<void> {
             totalAmount: "70000.00",
             items: [
               {
-                accountId: 5101,
-                accountCode: "5101",
+                accountId: 6730,
+                accountCode: "6730",
                 description: "Kertas HVS A4",
                 quantity: "1",
                 unitPrice: "50000.00",
                 amount: "50000.00",
               },
               {
-                accountId: 5101,
-                accountCode: "5101",
+                accountId: 6730,
+                accountCode: "6730",
                 description: "Pulpen Gel Hitam",
                 quantity: "2",
                 unitPrice: "10000.00",

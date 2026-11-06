@@ -503,6 +503,32 @@ func ValidateDraftProposal(ctx context.Context, draftCtx FinanceDraftContext, pr
 		}
 	}
 
+	resolveAccount := func(rawID int64) (int64, bool) {
+		if acc, exists := accountsByID[rawID]; exists {
+			return acc.ID, true
+		}
+		codeStr := strconv.FormatInt(rawID, 10)
+		if acc, ok := accountsByCode[codeStr]; ok {
+			return acc.ID, true
+		}
+		aliases := map[string][]string{
+			"1101": {"1111", "1110"},
+			"1111": {"1101"},
+			"1102": {"1121", "1120"},
+			"1121": {"1102"},
+			"5101": {"5100", "6730", "6200"},
+			"5100": {"5101", "6730"},
+			"6730": {"5101", "5100"},
+		}
+		if alts, ok := aliases[codeStr]; ok {
+			for _, alt := range alts {
+				if acc, ok := accountsByCode[alt]; ok {
+					return acc.ID, true
+				}
+			}
+		}
+		return 0, false
+	}
 	// 6. Period check (if provided)
 	if proposal.PeriodID != nil {
 		periods, err := draftCtx.ListPeriods(ctx)
@@ -527,13 +553,10 @@ func ValidateDraftProposal(ctx context.Context, draftCtx FinanceDraftContext, pr
 		if proposal.PaymentAccountID == nil {
 			return nil, fmt.Errorf("paymentAccountId is required for %s draft", proposal.Kind)
 		}
-		if _, exists := accountsByID[*proposal.PaymentAccountID]; !exists {
-			codeStr := strconv.FormatInt(*proposal.PaymentAccountID, 10)
-			if acc, ok := accountsByCode[codeStr]; ok {
-				proposal.PaymentAccountID = &acc.ID
-			} else {
-				return nil, fmt.Errorf("account %d does not exist in workspace", *proposal.PaymentAccountID)
-			}
+		if resID, ok := resolveAccount(*proposal.PaymentAccountID); ok {
+			proposal.PaymentAccountID = &resID
+		} else {
+			return nil, fmt.Errorf("account %d does not exist in workspace", *proposal.PaymentAccountID)
 		}
 
 		if len(proposal.Items) == 0 {
@@ -543,13 +566,10 @@ func ValidateDraftProposal(ctx context.Context, draftCtx FinanceDraftContext, pr
 		sumItems := decimal.Zero
 		for i := range proposal.Items {
 			it := &proposal.Items[i]
-			if _, exists := accountsByID[it.AccountID]; !exists {
-				codeStr := strconv.FormatInt(it.AccountID, 10)
-				if acc, ok := accountsByCode[codeStr]; ok {
-					it.AccountID = acc.ID
-				} else {
-					return nil, fmt.Errorf("account %d does not exist in workspace", it.AccountID)
-				}
+			if resID, ok := resolveAccount(it.AccountID); ok {
+				it.AccountID = resID
+			} else {
+				return nil, fmt.Errorf("account %d does not exist in workspace", it.AccountID)
 			}
 			if it.Quantity.LessThanOrEqual(decimal.Zero) {
 				return nil, fmt.Errorf("item %d quantity must be greater than zero", i+1)
@@ -593,13 +613,10 @@ func ValidateDraftProposal(ctx context.Context, draftCtx FinanceDraftContext, pr
 
 		for i := range proposal.Entries {
 			e := &proposal.Entries[i]
-			if _, exists := accountsByID[e.AccountID]; !exists {
-				codeStr := strconv.FormatInt(e.AccountID, 10)
-				if acc, ok := accountsByCode[codeStr]; ok {
-					e.AccountID = acc.ID
-				} else {
-					return nil, fmt.Errorf("account %d does not exist in workspace", e.AccountID)
-				}
+			if resID, ok := resolveAccount(e.AccountID); ok {
+				e.AccountID = resID
+			} else {
+				return nil, fmt.Errorf("account %d does not exist in workspace", e.AccountID)
 			}
 			dir := strings.ToUpper(strings.TrimSpace(e.Direction))
 			if dir != "DEBIT" && dir != "CREDIT" {
