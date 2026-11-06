@@ -52,6 +52,7 @@ describe("FinLauncher component", () => {
       "/fin/journal",
       "/fin/ledger",
       "/fin/trial-balance",
+      "/fin/agent",
       "/fin/settings",
     ];
 
@@ -69,6 +70,7 @@ describe("FinLauncher component", () => {
     expect(html).toContain("fin.menu.journal");
     expect(html).toContain("fin.menu.ledger");
     expect(html).toContain("fin.menu.trialBalance");
+    expect(html).toContain("fin.menu.talkToAgent");
     expect(html).toContain("fin.menu.settings");
   });
 });
@@ -82,12 +84,17 @@ describe("fin module configuration", () => {
       "income",
       "expense",
       "accounting",
+      "talk-to-agent",
       "settings",
     ]);
 
     const settings = finModule.menu.find((m) => m.key === "settings");
     expect(settings?.path).toBe("settings");
     expect(settings?.labelKey).toBe("fin.menu.settings");
+
+    const talkToAgent = finModule.menu.find((m) => m.key === "talk-to-agent");
+    expect(talkToAgent?.path).toBe("agent");
+    expect(talkToAgent?.labelKey).toBe("fin.menu.talkToAgent");
 
     const overview = finModule.menu.find((m) => m.key === "overview");
     expect(overview?.path).toBe("overview");

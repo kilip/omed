@@ -31,6 +31,7 @@ export default prefix("fin", [
     route("journal/:id", "modules/fin/routes/entry.tsx"),
     route("ledger", "modules/fin/routes/ledger.tsx"),
     route("trial-balance", "modules/fin/routes/trial-balance.tsx"),
+    route("agent", "modules/fin/routes/chat.tsx"),
     route("settings", "modules/fin/routes/settings.tsx"),
   ]),
 ]) satisfies RouteConfigEntry[];

@@ -233,6 +233,7 @@ export const id: Translation = {
       journal: "Jurnal umum",
       ledger: "Buku besar",
       trialBalance: "Neraca saldo",
+      talkToAgent: "Bicara dengan Agen",
       settings: "Pengaturan",
     },
     types: {

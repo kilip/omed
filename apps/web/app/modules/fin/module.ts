@@ -10,6 +10,7 @@ import {
   DashboardOutlined,
   DollarOutlined,
   FileTextOutlined,
+  RobotOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
 import { defineModule } from "~/lib/modules";
@@ -87,6 +88,12 @@ export default defineModule({
           icon: AccountBookOutlined,
         },
       ],
+    },
+    {
+      key: "talk-to-agent",
+      path: "agent",
+      labelKey: "fin.menu.talkToAgent",
+      icon: RobotOutlined,
     },
     {
       key: "settings",

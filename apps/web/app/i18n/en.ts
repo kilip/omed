@@ -230,6 +230,7 @@ export const en = {
       journal: "Journal entries",
       ledger: "General ledger",
       trialBalance: "Trial balance",
+      talkToAgent: "Talk to Agent",
       settings: "Settings",
     },
     types: {
