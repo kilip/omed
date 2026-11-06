@@ -87,6 +87,14 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 		}
 	})
 
+	originalLogHTTPBody, hadLogHTTPBody := os.LookupEnv("OMED_LOG_HTTP_BODY")
+	s.Require().NoError(os.Unsetenv("OMED_LOG_HTTP_BODY"))
+	s.T().Cleanup(func() {
+		if hadLogHTTPBody {
+			s.Require().NoError(os.Setenv("OMED_LOG_HTTP_BODY", originalLogHTTPBody))
+		}
+	})
+
 	originalPort, hadPort := os.LookupEnv("OMED_API_PORT")
 	s.Require().NoError(os.Unsetenv("OMED_API_PORT"))
 	s.T().Cleanup(func() {
@@ -112,6 +120,7 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 	s.Equal([]string{".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}, cfg.CMSMediaAllowedTypes)
 	s.Equal("", cfg.SecretKey)
 	s.False(cfg.LLMAllowPrivateURLs)
+	s.False(cfg.LogHTTPBody)
 	s.False(cfg.DatabaseMigrateOnStart)
 	s.False(cfg.DatabaseAutoMigrate)
 }
@@ -133,6 +142,7 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_CMS_MEDIA_ALLOWED_TYPES", ".png,.jpg")
 	s.T().Setenv("OMED_SECRET_KEY", "custom-secret-key")
 	s.T().Setenv("OMED_LLM_ALLOW_PRIVATE_URLS", "true")
+	s.T().Setenv("OMED_LOG_HTTP_BODY", "true")
 	s.T().Setenv("OMED_DB_DEV_URL", "postgres://omed:omed@localhost:5432/omed_dev?sslmode=disable")
 	s.T().Setenv("OMED_DB_MIGRATE_ON_START", "true")
 	s.T().Setenv("OMED_DB_AUTO_MIGRATE", "true")
@@ -154,6 +164,7 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.Equal([]string{".png", ".jpg"}, cfg.CMSMediaAllowedTypes)
 	s.Equal("custom-secret-key", cfg.SecretKey)
 	s.True(cfg.LLMAllowPrivateURLs)
+	s.True(cfg.LogHTTPBody)
 	s.Equal("postgres://omed:omed@localhost:5432/omed_dev?sslmode=disable", cfg.DatabaseDevUrl)
 	s.True(cfg.DatabaseMigrateOnStart)
 	s.True(cfg.DatabaseAutoMigrate)

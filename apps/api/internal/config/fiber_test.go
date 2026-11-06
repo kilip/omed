@@ -513,6 +513,552 @@ func (s *FiberSuite) Test_GetFiber_RateLimiting_TestEnvSkip() {
 	s.Equal(fiber.StatusTooManyRequests, resp2.StatusCode)
 }
 
+func parseLastLogEntry(buf string) (map[string]any, error) {
+	lines := strings.Split(strings.TrimSpace(buf), "\n")
+	var entry map[string]any
+	err := json.Unmarshal([]byte(lines[len(lines)-1]), &entry)
+	return entry, err
+}
+
+func (s *FiberSuite) Test_ErrorDetails_StructuredLogging_On4xx_5xx() {
+	s.cfg.LogHTTPBody = false
+	app := config.GetFiber(s.cfg, s.logger)
+
+	// 1. 404 mapped error
+	app.Get("/test-404", func(c fiber.Ctx) error {
+		return base.ErrNotFound
+	})
+	s.logBuf.Reset()
+	req404 := httptest.NewRequest(fiber.MethodGet, "/test-404", nil)
+	resp404, err := app.Test(req404)
+	s.Require().NoError(err)
+	_ = resp404.Body.Close()
+	s.Equal(fiber.StatusNotFound, resp404.StatusCode)
+
+	logged404 := s.logBuf.String()
+	s.Contains(logged404, `"error":{"code":"NOT_FOUND","message":"not found"}`)
+	s.NotContains(logged404, `"request_body"`)
+	entry404, err := parseLastLogEntry(logged404)
+	s.Require().NoError(err)
+	s.Equal("NOT_FOUND: not found", entry404["msg"])
+
+	// 2. 422 validation failure
+	app.Post("/test-422", func(c fiber.Ctx) error {
+		var p testPayload
+		if err := c.Bind().Body(&p); err != nil {
+			return err
+		}
+		return c.SendString("ok")
+	})
+	s.logBuf.Reset()
+	req422 := httptest.NewRequest(fiber.MethodPost, "/test-422", strings.NewReader(`{"name":"","age":10}`))
+	req422.Header.Set("Content-Type", "application/json")
+	resp422, err := app.Test(req422)
+	s.Require().NoError(err)
+	_ = resp422.Body.Close()
+	s.Equal(fiber.StatusUnprocessableEntity, resp422.StatusCode)
+
+	logged422 := s.logBuf.String()
+	s.Contains(logged422, `"code":"VALIDATION_FAILED"`)
+	s.Contains(logged422, `"message":"validation failed"`)
+	s.Contains(logged422, `"fields":`)
+	s.NotContains(logged422, `"request_body"`)
+	entry422, err := parseLastLogEntry(logged422)
+	s.Require().NoError(err)
+	s.Equal("VALIDATION_FAILED: validation failed", entry422["msg"])
+
+	// 3. 500 unknown error
+	app.Get("/test-500", func(c fiber.Ctx) error {
+		return errors.New("critical failure")
+	})
+	s.logBuf.Reset()
+	req500 := httptest.NewRequest(fiber.MethodGet, "/test-500", nil)
+	resp500, err := app.Test(req500)
+	s.Require().NoError(err)
+	_ = resp500.Body.Close()
+	s.Equal(fiber.StatusInternalServerError, resp500.StatusCode)
+
+	logged500 := s.logBuf.String()
+	s.Contains(logged500, `"code":"UNKNOWN"`)
+	s.Contains(logged500, `"message":"unknown error"`)
+	s.Contains(logged500, `"cause":"critical failure"`)
+	s.NotContains(logged500, `"request_body"`)
+	entry500, err := parseLastLogEntry(logged500)
+	s.Require().NoError(err)
+	s.Equal("UNKNOWN: unknown error", entry500["msg"])
+}
+
+func (s *FiberSuite) Test_ErrorDetails_StructuredLogging_RateLimit_429() {
+	cfg := config.Config{
+		RateLimitEnabled:             true,
+		Env:                          "production",
+		RateLimitGeneralMax:          1,
+		RateLimitGeneralExpiration:   1 * time.Minute,
+		RateLimitSensitiveMax:        10,
+		RateLimitSensitiveExpiration: 1 * time.Minute,
+	}
+	app := config.GetFiber(cfg, s.logger)
+	app.Get("/rate-test", func(c fiber.Ctx) error {
+		return c.SendString("ok")
+	})
+
+	req1 := httptest.NewRequest(fiber.MethodGet, "/rate-test", nil)
+	resp1, err := app.Test(req1)
+	s.Require().NoError(err)
+	_ = resp1.Body.Close()
+	s.Equal(fiber.StatusOK, resp1.StatusCode)
+
+	s.logBuf.Reset()
+	req2 := httptest.NewRequest(fiber.MethodGet, "/rate-test", nil)
+	resp2, err := app.Test(req2)
+	s.Require().NoError(err)
+	defer func() { _ = resp2.Body.Close() }()
+	s.Equal(fiber.StatusTooManyRequests, resp2.StatusCode)
+
+	logged := s.logBuf.String()
+	s.Contains(logged, `"code":"TOO_MANY_REQUESTS"`)
+	s.Contains(logged, `"message":"Too many requests, please try again later"`)
+	entry, err := parseLastLogEntry(logged)
+	s.Require().NoError(err)
+	s.Equal("TOO_MANY_REQUESTS: Too many requests, please try again later", entry["msg"])
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_SanitizesSensitiveFields() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/account", func(c fiber.Ctx) error {
+		return base.ErrInvalidID
+	})
+
+	payload := map[string]any{
+		"username":         "alice",
+		"password":         "plain-secret-password",
+		"pass":             "another-pass",
+		"current_password": "old-password",
+		"new_password":     "brand-new-password",
+		"secret":           "my-secret",
+		"secret_key":       "my-secret-key",
+		"client_secret":    "oauth-client-secret",
+		"token":            "session-token-123",
+		"access_token":     "jwt-access-token",
+		"refresh_token":    "jwt-refresh-token",
+		"id_token":         "oidc-id-token",
+		"authorization":    "Bearer secret-bearer",
+		"api_key":          "api-key-999",
+		"code":             "verification-code-123456",
+		"otp":              "654321",
+		"credential":       "cred-val",
+		"credentials":      "creds-val",
+		"private_key":      "-----BEGIN PRIVATE KEY-----",
+		"nested": map[string]any{
+			"password": "nested-password",
+			"details":  "public-detail",
+		},
+		"items": []any{
+			map[string]any{
+				"token": "item-token",
+				"label": "public-item",
+			},
+		},
+	}
+	bodyBytes, err := json.Marshal(payload)
+	s.Require().NoError(err)
+
+	req := httptest.NewRequest(fiber.MethodPost, "/account", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	logged := s.logBuf.String()
+	s.Contains(logged, `"request_body"`)
+
+	var logEntry struct {
+		RequestBody map[string]any `json:"request_body"`
+	}
+	s.Require().NoError(json.Unmarshal([]byte(logged), &logEntry))
+	s.Require().NotNil(logEntry.RequestBody)
+
+	// Sensitive fields must be redacted
+	s.Equal("[REDACTED]", logEntry.RequestBody["password"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["pass"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["current_password"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["new_password"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["secret"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["secret_key"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["client_secret"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["token"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["access_token"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["refresh_token"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["id_token"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["authorization"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["api_key"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["code"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["otp"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["credential"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["credentials"])
+	s.Equal("[REDACTED]", logEntry.RequestBody["private_key"])
+
+	// Non-sensitive fields preserved
+	s.Equal("alice", logEntry.RequestBody["username"])
+
+	// Nested object
+	nested, ok := logEntry.RequestBody["nested"].(map[string]any)
+	s.Require().True(ok)
+	s.Equal("[REDACTED]", nested["password"])
+	s.Equal("public-detail", nested["details"])
+
+	// Array of objects
+	items, ok := logEntry.RequestBody["items"].([]any)
+	s.Require().True(ok)
+	s.Require().Len(items, 1)
+	item0, ok := items[0].(map[string]any)
+	s.Require().True(ok)
+	s.Equal("[REDACTED]", item0["token"])
+	s.Equal("public-item", item0["label"])
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_NotLoggedOn2xx() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/success", func(c fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"ok": true})
+	})
+
+	body := `{"user":"alice","data":"something"}`
+	req := httptest.NewRequest(fiber.MethodPost, "/success", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+
+	logged := s.logBuf.String()
+	s.NotContains(logged, "request_body")
+	entry, err := parseLastLogEntry(logged)
+	s.Require().NoError(err)
+	s.Equal("Incoming request", entry["msg"])
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_NotLoggedWhenDisabled() {
+	s.cfg.LogHTTPBody = false
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/failed", func(c fiber.Ctx) error {
+		return base.ErrInvalidID
+	})
+
+	body := `{"user":"alice","data":"something"}`
+	req := httptest.NewRequest(fiber.MethodPost, "/failed", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	logged := s.logBuf.String()
+	s.NotContains(logged, "request_body")
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_MultipartNotLogged() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/upload", func(c fiber.Ctx) error {
+		return base.ErrInvalidID
+	})
+
+	body := "--boundary\r\nContent-Disposition: form-data; name=\"file\"\r\n\r\ncontent\r\n--boundary--"
+	req := httptest.NewRequest(fiber.MethodPost, "/upload", strings.NewReader(body))
+	req.Header.Set("Content-Type", "multipart/form-data; boundary=boundary")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	logged := s.logBuf.String()
+	s.NotContains(logged, "request_body")
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_MalformedJSON() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/validate", func(c fiber.Ctx) error {
+		var p testPayload
+		if err := c.Bind().Body(&p); err != nil {
+			return fiber.ErrBadRequest
+		}
+		return c.SendString("ok")
+	})
+	app.Post("/auth/login", func(c fiber.Ctx) error {
+		var p testPayload
+		if err := c.Bind().Body(&p); err != nil {
+			return fiber.ErrBadRequest
+		}
+		return c.SendString("ok")
+	})
+
+	// Non-sensitive route -> logs raw truncated body
+	malformed := `{"broken: json`
+	req1 := httptest.NewRequest(fiber.MethodPost, "/validate", strings.NewReader(malformed))
+	req1.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp1, err := app.Test(req1)
+	s.Require().NoError(err)
+	_ = resp1.Body.Close()
+	s.Equal(fiber.StatusBadRequest, resp1.StatusCode)
+
+	logged1 := s.logBuf.String()
+	entry1, err := parseLastLogEntry(logged1)
+	s.Require().NoError(err)
+	reqBody, ok := entry1["request_body"].(map[string]any)
+	s.Require().True(ok)
+	s.Equal(true, reqBody["_malformed"])
+	s.Equal(`{"broken: json`, reqBody["raw"])
+
+	// Sensitive route -> does NOT log raw body
+	sensitiveMalformed := `{"password":"secret-broken`
+	req2 := httptest.NewRequest(fiber.MethodPost, "/auth/login", strings.NewReader(sensitiveMalformed))
+	req2.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp2, err := app.Test(req2)
+	s.Require().NoError(err)
+	_ = resp2.Body.Close()
+	s.Equal(fiber.StatusBadRequest, resp2.StatusCode)
+
+	logged2 := s.logBuf.String()
+	s.NotContains(logged2, "request_body")
+	s.NotContains(logged2, "secret-broken")
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_MalformedJSON_SensitiveSuppression() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/workspaces/:wid/agent/providers", func(c fiber.Ctx) error {
+		var p testPayload
+		if err := c.Bind().Body(&p); err != nil {
+			return fiber.ErrBadRequest
+		}
+		return c.SendString("ok")
+	})
+	app.Post("/tokens", func(c fiber.Ctx) error {
+		var p testPayload
+		if err := c.Bind().Body(&p); err != nil {
+			return fiber.ErrBadRequest
+		}
+		return c.SendString("ok")
+	})
+	app.Post("/validate", func(c fiber.Ctx) error {
+		var p testPayload
+		if err := c.Bind().Body(&p); err != nil {
+			return fiber.ErrBadRequest
+		}
+		return c.SendString("ok")
+	})
+
+	// 1. Malformed JSON on /workspaces/1/agent/providers
+	malformed1 := `{"name": "broken`
+	req1 := httptest.NewRequest(fiber.MethodPost, "/workspaces/1/agent/providers", strings.NewReader(malformed1))
+	req1.Header.Set("Content-Type", "application/json")
+	s.logBuf.Reset()
+	resp1, err := app.Test(req1)
+	s.Require().NoError(err)
+	_ = resp1.Body.Close()
+	s.Equal(fiber.StatusBadRequest, resp1.StatusCode)
+	s.NotContains(s.logBuf.String(), "request_body")
+
+	// 2. Malformed JSON on /tokens
+	reqTokens := httptest.NewRequest(fiber.MethodPost, "/tokens", strings.NewReader(malformed1))
+	reqTokens.Header.Set("Content-Type", "application/json")
+	s.logBuf.Reset()
+	respTokens, err := app.Test(reqTokens)
+	s.Require().NoError(err)
+	_ = respTokens.Body.Close()
+	s.Equal(fiber.StatusBadRequest, respTokens.StatusCode)
+	s.NotContains(s.logBuf.String(), "request_body")
+
+	// 3. Malformed JSON on non-sensitive route containing "apiKey" (case-insensitive)
+	malformed2 := `{"apiKey": "abc-broken`
+	req2 := httptest.NewRequest(fiber.MethodPost, "/validate", strings.NewReader(malformed2))
+	req2.Header.Set("Content-Type", "application/json")
+	s.logBuf.Reset()
+	resp2, err := app.Test(req2)
+	s.Require().NoError(err)
+	_ = resp2.Body.Close()
+	s.Equal(fiber.StatusBadRequest, resp2.StatusCode)
+	s.NotContains(s.logBuf.String(), "request_body")
+	s.NotContains(s.logBuf.String(), "abc-broken")
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_RootLevelJSONArray() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/batch", func(c fiber.Ctx) error {
+		return base.ErrInvalidID
+	})
+
+	body := `[{"password":"123","name":"item"}]`
+	req := httptest.NewRequest(fiber.MethodPost, "/batch", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	entry, err := parseLastLogEntry(s.logBuf.String())
+	s.Require().NoError(err)
+	items, ok := entry["request_body"].([]any)
+	s.Require().True(ok)
+	s.Require().Len(items, 1)
+
+	item0, ok := items[0].(map[string]any)
+	s.Require().True(ok)
+	s.Equal("[REDACTED]", item0["password"])
+	s.Equal("item", item0["name"])
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_ContentTypeWithCharset() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/account", func(c fiber.Ctx) error {
+		return base.ErrInvalidID
+	})
+
+	body := `{"password":"secret","name":"john"}`
+	req := httptest.NewRequest(fiber.MethodPost, "/account", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	entry, err := parseLastLogEntry(s.logBuf.String())
+	s.Require().NoError(err)
+	reqBody, ok := entry["request_body"].(map[string]any)
+	s.Require().True(ok)
+	s.Equal("[REDACTED]", reqBody["password"])
+	s.Equal("john", reqBody["name"])
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_ExtendedSensitiveFields_AndPreservedKeys() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/account", func(c fiber.Ctx) error {
+		return base.ErrInvalidID
+	})
+
+	payload := map[string]any{
+		"confirm_password": "secret-confirm",
+		"api_token":        "tok-12345",
+		"webhook_secret":   "whsec_xyz",
+		"totp":             "123456",
+		"pin":              "4321",
+		"private_key":      "priv-key-content",
+		"passphrase":       "user-passphrase",
+		"accesskey":        "ak-999",
+		"idempotencyKey":   "idem-key-val",
+		"sortKey":          "asc",
+		"fileKey":          "files/document.pdf",
+		"groupKey":         "grp-1",
+	}
+	bodyBytes, err := json.Marshal(payload)
+	s.Require().NoError(err)
+
+	req := httptest.NewRequest(fiber.MethodPost, "/account", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	entry, err := parseLastLogEntry(s.logBuf.String())
+	s.Require().NoError(err)
+	reqBody, ok := entry["request_body"].(map[string]any)
+	s.Require().True(ok)
+
+	// Extended sensitive fields must be redacted
+	s.Equal("[REDACTED]", reqBody["confirm_password"])
+	s.Equal("[REDACTED]", reqBody["api_token"])
+	s.Equal("[REDACTED]", reqBody["webhook_secret"])
+	s.Equal("[REDACTED]", reqBody["totp"])
+	s.Equal("[REDACTED]", reqBody["pin"])
+	s.Equal("[REDACTED]", reqBody["private_key"])
+	s.Equal("[REDACTED]", reqBody["passphrase"])
+	s.Equal("[REDACTED]", reqBody["accesskey"])
+
+	// Non-sensitive *Key fields must be preserved
+	s.Equal("idem-key-val", reqBody["idempotencyKey"])
+	s.Equal("asc", reqBody["sortKey"])
+	s.Equal("files/document.pdf", reqBody["fileKey"])
+	s.Equal("grp-1", reqBody["groupKey"])
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_MalformedJSON_TruncatedAndValidUTF8() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/validate", func(c fiber.Ctx) error {
+		return fiber.ErrBadRequest
+	})
+
+	// 1500 bytes with invalid UTF-8 sequence at the end
+	raw := strings.Repeat("a", 1023) + string([]byte{0xff, 0xfe}) + strings.Repeat("b", 500)
+	req := httptest.NewRequest(fiber.MethodPost, "/validate", strings.NewReader(raw))
+	req.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	_ = resp.Body.Close()
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	entry, err := parseLastLogEntry(s.logBuf.String())
+	s.Require().NoError(err)
+	reqBody, ok := entry["request_body"].(map[string]any)
+	s.Require().True(ok)
+	s.Equal(true, reqBody["_malformed"])
+	rawStr, ok := reqBody["raw"].(string)
+	s.Require().True(ok)
+	s.LessOrEqual(len(rawStr), 1024)
+}
+
+func (s *FiberSuite) Test_RequestBodyLogging_ExceedsMaxSize() {
+	s.cfg.LogHTTPBody = true
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Post("/large", func(c fiber.Ctx) error {
+		return base.ErrInvalidID
+	})
+
+	// Create JSON > 64KB
+	largeData := strings.Repeat("x", 65*1024)
+	largeBody := `{"data":"` + largeData + `"}`
+	req := httptest.NewRequest(fiber.MethodPost, "/large", strings.NewReader(largeBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	s.logBuf.Reset()
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+
+	logged := s.logBuf.String()
+	s.NotContains(logged, "request_body")
+}
+
 func TestFiberSuite(t *testing.T) {
 	suite.Run(t, new(FiberSuite))
 }

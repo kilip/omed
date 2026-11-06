@@ -86,6 +86,8 @@ type Config struct {
 	SecretKey string `env:"OMED_SECRET_KEY"`
 	// LLMAllowPrivateURLs allows private/loopback network targets for LLM endpoints when true. Defaults to false.
 	LLMAllowPrivateURLs bool `env:"OMED_LLM_ALLOW_PRIVATE_URLS,default=false"`
+	// LogHTTPBody enables logging sanitized HTTP request bodies on error responses (status >= 400). Defaults to false.
+	LogHTTPBody bool `env:"OMED_LOG_HTTP_BODY,default=false"`
 	// Env is the runtime environment (development, test, production). Defaults to production.
 	Env string `env:"OMED_ENV,default=production"`
 	// ReadTimeout is the maximum duration for reading the entire request. Defaults to 10s.
