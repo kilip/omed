@@ -288,6 +288,61 @@ describe("applyAnalysis", () => {
     expect(overwriteResult.values).toEqual({});
   });
 
+  it("retains current.transactionDate and does not include transactionDate in filledFields when suggestion.transactionDate is null, empty, or omitted", () => {
+    const originalDate = dayjs("2026-04-10");
+    const current = {
+      transactionDate: originalDate,
+      items: [{ quantity: 1, unitPrice: 0 }],
+    };
+
+    // 1. Omitted
+    const omittedResult = applyAnalysis({
+      current,
+      isTouched: () => false,
+      suggestion: {
+        description: "Office lunch",
+      },
+      mode: "default",
+    });
+    expect(omittedResult.values.transactionDate).toBeUndefined();
+    expect(omittedResult.filledFields).not.toContain("transactionDate");
+    expect(
+      omittedResult.values.transactionDate ?? current.transactionDate,
+    ).toBe(originalDate);
+
+    // 2. Empty string
+    const emptyResult = applyAnalysis({
+      current,
+      isTouched: () => false,
+      suggestion: {
+        transactionDate: "",
+        description: "Office lunch",
+      },
+      mode: "default",
+    });
+    expect(emptyResult.values.transactionDate).toBeUndefined();
+    expect(emptyResult.filledFields).not.toContain("transactionDate");
+    expect(emptyResult.values.transactionDate ?? current.transactionDate).toBe(
+      originalDate,
+    );
+
+    // 3. Overwrite mode
+    const overwriteResult = applyAnalysis({
+      current,
+      isTouched: () => true,
+      suggestion: {
+        transactionDate: undefined,
+        description: "Office lunch",
+      },
+      mode: "overwrite",
+    });
+    expect(overwriteResult.values.transactionDate).toBeUndefined();
+    expect(overwriteResult.filledFields).not.toContain("transactionDate");
+    expect(
+      overwriteResult.values.transactionDate ?? current.transactionDate,
+    ).toBe(originalDate);
+  });
+
   it("payment_proof suggestion returns no items in either mode and filledFields does not contain items", () => {
     const current = {
       transactionDate: dayjs("2026-01-01"),

@@ -676,6 +676,8 @@ export const en = {
           CATEGORY_UNRESOLVED: "Category account could not be resolved",
           ITEM_INVALID: "Invalid item was dropped",
           ITEMS_TRUNCATED: "Item list exceeded limit and was truncated",
+          DATE_OUTSIDE_OPEN_PERIOD:
+            "Document date is outside open accounting periods and was not applied (kept current form date)",
         },
       },
     },

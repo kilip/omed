@@ -296,12 +296,20 @@ export function CashflowForm({
     });
 
     if (filledFields.length === 0) {
-      message.info(
-        t(
-          "fin.cashflow.ai.emptyResult",
-          "Tidak ada data yang dapat diekstrak dari dokumen ini.",
-        ),
-      );
+      if (suggestion.warnings && suggestion.warnings.length > 0) {
+        setAnalysisSuccess({
+          fileName: job.file.name,
+          filledCount: 0,
+          warnings: suggestion.warnings,
+        });
+      } else {
+        message.info(
+          t(
+            "fin.cashflow.ai.emptyResult",
+            "Tidak ada data yang dapat diekstrak dari dokumen ini.",
+          ),
+        );
+      }
       return;
     }
 
@@ -662,7 +670,11 @@ export function CashflowForm({
           {/* Success Alert */}
           {available && analysisSuccess && !activeJob && (
             <Alert
-              type="success"
+              type={
+                analysisSuccess.warnings && analysisSuccess.warnings.length > 0
+                  ? "warning"
+                  : "success"
+              }
               showIcon
               closable
               onClose={() => setAnalysisSuccess(null)}

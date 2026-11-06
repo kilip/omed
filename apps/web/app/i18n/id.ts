@@ -675,6 +675,8 @@ export const id: Translation = {
           CATEGORY_UNRESOLVED: "Kategori akun tidak dapat ditentukan",
           ITEM_INVALID: "Item tidak valid diabaikan",
           ITEMS_TRUNCATED: "Daftar item melebihi batas dan dipotong",
+          DATE_OUTSIDE_OPEN_PERIOD:
+            "Tanggal dokumen di luar periode akuntansi aktif dan diabaikan (menggunakan tanggal formulir saat ini)",
         },
       },
     },
