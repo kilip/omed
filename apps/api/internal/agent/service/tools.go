@@ -495,8 +495,12 @@ func ValidateDraftProposal(ctx context.Context, draftCtx FinanceDraftContext, pr
 		return nil, fmt.Errorf("failed to list accounts: %w", err)
 	}
 	accountsByID := make(map[int64]AccountOption, len(accounts))
+	accountsByCode := make(map[string]AccountOption, len(accounts))
 	for _, acc := range accounts {
 		accountsByID[acc.ID] = acc
+		if acc.Code != "" {
+			accountsByCode[strings.TrimSpace(acc.Code)] = acc
+		}
 	}
 
 	// 6. Period check (if provided)
@@ -524,7 +528,12 @@ func ValidateDraftProposal(ctx context.Context, draftCtx FinanceDraftContext, pr
 			return nil, fmt.Errorf("paymentAccountId is required for %s draft", proposal.Kind)
 		}
 		if _, exists := accountsByID[*proposal.PaymentAccountID]; !exists {
-			return nil, fmt.Errorf("account %d does not exist in workspace", *proposal.PaymentAccountID)
+			codeStr := strconv.FormatInt(*proposal.PaymentAccountID, 10)
+			if acc, ok := accountsByCode[codeStr]; ok {
+				proposal.PaymentAccountID = &acc.ID
+			} else {
+				return nil, fmt.Errorf("account %d does not exist in workspace", *proposal.PaymentAccountID)
+			}
 		}
 
 		if len(proposal.Items) == 0 {
@@ -535,7 +544,12 @@ func ValidateDraftProposal(ctx context.Context, draftCtx FinanceDraftContext, pr
 		for i := range proposal.Items {
 			it := &proposal.Items[i]
 			if _, exists := accountsByID[it.AccountID]; !exists {
-				return nil, fmt.Errorf("account %d does not exist in workspace", it.AccountID)
+				codeStr := strconv.FormatInt(it.AccountID, 10)
+				if acc, ok := accountsByCode[codeStr]; ok {
+					it.AccountID = acc.ID
+				} else {
+					return nil, fmt.Errorf("account %d does not exist in workspace", it.AccountID)
+				}
 			}
 			if it.Quantity.LessThanOrEqual(decimal.Zero) {
 				return nil, fmt.Errorf("item %d quantity must be greater than zero", i+1)
@@ -580,7 +594,12 @@ func ValidateDraftProposal(ctx context.Context, draftCtx FinanceDraftContext, pr
 		for i := range proposal.Entries {
 			e := &proposal.Entries[i]
 			if _, exists := accountsByID[e.AccountID]; !exists {
-				return nil, fmt.Errorf("account %d does not exist in workspace", e.AccountID)
+				codeStr := strconv.FormatInt(e.AccountID, 10)
+				if acc, ok := accountsByCode[codeStr]; ok {
+					e.AccountID = acc.ID
+				} else {
+					return nil, fmt.Errorf("account %d does not exist in workspace", e.AccountID)
+				}
 			}
 			dir := strings.ToUpper(strings.TrimSpace(e.Direction))
 			if dir != "DEBIT" && dir != "CREDIT" {
