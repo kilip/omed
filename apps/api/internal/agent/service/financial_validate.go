@@ -41,9 +41,9 @@ const (
 
 // AccountOption represents a selectable account candidate.
 type AccountOption struct {
-	ID   int64
-	Code string
-	Name string
+	ID   int64  `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
 }
 
 // PeriodRange represents an accounting period date range.
