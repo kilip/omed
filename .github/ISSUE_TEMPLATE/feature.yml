@@ -1,0 +1,51 @@
+name: Feature request
+description: Propose a new feature or an enhancement to an existing one.
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options: [core, fin, cms, agent, cross-cutting]
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Affected scope
+      options:
+        - label: api (Go)
+        - label: web (React Router)
+        - label: e2e
+        - label: deploy (Helm)
+        - label: docs
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What should be added, and why is it needed?
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Behavior
+      description: Expected behavior, endpoints, UI, and constraints.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: "- [ ] ..."
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+  - type: textarea
+    id: open-items
+    attributes:
+      label: Open items
+      description: Decisions intentionally left to the implementer.
