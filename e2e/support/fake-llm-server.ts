@@ -145,7 +145,6 @@ export function startFakeLlmServer(port = FAKE_LLM_PORT): Promise<void> {
           // Reference Case 1: ATM slip journal draft
           const proposal = {
             kind: "journal",
-            periodId: 1,
             transactionDate: "2026-01-15",
             description: "Tarik Tunai ATM Bank Kaltimtara",
             reference: "ATM-KALTIMTARA-001",
