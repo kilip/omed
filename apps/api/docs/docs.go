@@ -546,6 +546,45 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_ConfirmDraftResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.ConfirmDraftResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_ConversationDetailResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.ConversationDetailResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_ConversationResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.ConversationResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_CreatedAccessTokenResponse": {
                 "properties": {
                     "data": {
@@ -702,6 +741,19 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "httpx.WebResponse-model_ListConversationsResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.ListConversationsResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
             "httpx.WebResponse-model_MediaResponse": {
                 "properties": {
                     "data": {
@@ -849,6 +901,19 @@ const docTemplate = `{
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/model.SendInvitationResponse",
+                        "description": "Data contains the response payload."
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/httpx.Meta",
+                        "description": "Meta contains request metadata such as request ID and timestamps."
+                    }
+                },
+                "type": "object"
+            },
+            "httpx.WebResponse-model_SendMessageResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/model.SendMessageResponse",
                         "description": "Data contains the response payload."
                     },
                     "meta": {
@@ -1113,6 +1178,46 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.AttachmentResponse": {
+                "properties": {
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "bucket": {
+                        "example": "omed-attachments",
+                        "type": "string"
+                    },
+                    "conversationId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "fileName": {
+                        "example": "receipt.jpg",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "messageId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "mime": {
+                        "example": "image/jpeg",
+                        "type": "string"
+                    },
+                    "objectKey": {
+                        "example": "workspaces/1/agent/chat/uuid.jpg",
+                        "type": "string"
+                    },
+                    "size": {
+                        "example": 102400,
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.CashFlowAccountSummaryResponse": {
                 "properties": {
                     "code": {
@@ -1288,6 +1393,69 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "model.ConfirmDraftRequest": {
+                "properties": {
+                    "proposal": {
+                        "$ref": "#/components/schemas/model.DraftProposal"
+                    }
+                },
+                "type": "object"
+            },
+            "model.ConfirmDraftResponse": {
+                "properties": {
+                    "transactionId": {
+                        "example": 100,
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.ConversationDetailResponse": {
+                "properties": {
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "id": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "messages": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.MessageResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "title": {
+                        "example": "Receipt Analysis",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.ConversationResponse": {
+                "properties": {
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "id": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "messages": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.MessageResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "title": {
+                        "example": "Receipt Analysis",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "model.CreateAccessTokenRequest": {
                 "properties": {
                     "expiresInDays": {
@@ -1345,6 +1513,15 @@ const docTemplate = `{
                     "name",
                     "type"
                 ],
+                "type": "object"
+            },
+            "model.CreateConversationRequest": {
+                "properties": {
+                    "title": {
+                        "example": "Receipt Analysis",
+                        "type": "string"
+                    }
+                },
                 "type": "object"
             },
             "model.CreateEntryInlineRequest": {
@@ -1738,6 +1915,122 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "symbol": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.DraftItem": {
+                "properties": {
+                    "accountId": {
+                        "example": 40130,
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "example": "70000.00",
+                        "type": "string"
+                    },
+                    "description": {
+                        "example": "Office supplies",
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "example": "1",
+                        "type": "string"
+                    },
+                    "unitPrice": {
+                        "example": "70000.00",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.DraftJournalEntry": {
+                "properties": {
+                    "accountId": {
+                        "example": 1101,
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "example": "2000000.00",
+                        "type": "string"
+                    },
+                    "description": {
+                        "example": "Cash on Hand",
+                        "type": "string"
+                    },
+                    "direction": {
+                        "description": "\"DEBIT\" or \"CREDIT\"",
+                        "example": "DEBIT",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "model.DraftKind": {
+                "enum": [
+                    "expense",
+                    "income",
+                    "journal"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "DraftKindExpense",
+                    "DraftKindIncome",
+                    "DraftKindJournal"
+                ]
+            },
+            "model.DraftProposal": {
+                "properties": {
+                    "currency": {
+                        "example": "IDR",
+                        "type": "string"
+                    },
+                    "description": {
+                        "example": "Office supplies purchase",
+                        "type": "string"
+                    },
+                    "entries": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.DraftJournalEntry"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "exchangeRate": {
+                        "example": "1.00000000",
+                        "type": "string"
+                    },
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.DraftItem"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "kind": {
+                        "$ref": "#/components/schemas/model.DraftKind",
+                        "description": "\"expense\", \"income\", \"journal\"",
+                        "example": "expense"
+                    },
+                    "paymentAccountId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "periodId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "reference": {
+                        "example": "INV-001",
+                        "type": "string"
+                    },
+                    "totalAmount": {
+                        "example": "70000.00",
+                        "type": "string"
+                    },
+                    "transactionDate": {
+                        "example": "2026-01-01",
                         "type": "string"
                     }
                 },
@@ -2151,6 +2444,34 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "model.ListConversationsResponse": {
+                "properties": {
+                    "conversations": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.ConversationResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.ConversationResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "limit": {
+                        "type": "integer"
+                    },
+                    "page": {
+                        "type": "integer"
+                    },
+                    "total": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "model.ListModelsRequest": {
                 "properties": {
                     "apiKey": {
@@ -2235,6 +2556,48 @@ const docTemplate = `{
                     },
                     "workspaceId": {
                         "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "model.MessageResponse": {
+                "properties": {
+                    "attachments": {
+                        "items": {
+                            "$ref": "#/components/schemas/model.AttachmentResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "auditMeta": {
+                        "$ref": "#/components/schemas/base.AuditMeta"
+                    },
+                    "confirmedTransactionId": {
+                        "example": 100,
+                        "type": "integer"
+                    },
+                    "content": {
+                        "example": "Here is the receipt",
+                        "type": "string"
+                    },
+                    "conversationId": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "draftStatus": {
+                        "example": "proposed",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "parts": {
+                        "type": "object"
+                    },
+                    "role": {
+                        "example": "user",
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -3181,6 +3544,20 @@ const docTemplate = `{
                 "properties": {
                     "sent": {
                         "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "model.SendMessageResponse": {
+                "properties": {
+                    "assistantMessage": {
+                        "$ref": "#/components/schemas/model.MessageResponse"
+                    },
+                    "draftProposal": {
+                        "$ref": "#/components/schemas/model.DraftProposal"
+                    },
+                    "userMessage": {
+                        "$ref": "#/components/schemas/model.MessageResponse"
                     }
                 },
                 "type": "object"
@@ -5757,6 +6134,878 @@ const docTemplate = `{
                 "summary": "Update workspace",
                 "tags": [
                     "Workspaces"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/chat/attachments/{id}/download": {
+            "get": {
+                "description": "Stream download a chat attachment file",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Attachment ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "file"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Download chat attachment",
+                "tags": [
+                    "Agent Chat"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/chat/conversations": {
+            "get": {
+                "description": "Retrieve paginated list of chat conversations in the workspace",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page number (default 1)",
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Page size limit (default 20)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ListConversationsResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List chat conversations",
+                "tags": [
+                    "Agent Chat"
+                ]
+            },
+            "post": {
+                "description": "Create a new conversation session for Talk To Agent",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreateConversationRequest",
+                                "summary": "request",
+                                "description": "Conversation creation payload"
+                            }
+                        }
+                    },
+                    "description": "Conversation creation payload"
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ConversationResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create chat conversation",
+                "tags": [
+                    "Agent Chat"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/chat/conversations/{id}": {
+            "delete": {
+                "description": "Delete a conversation and remove all stored attachment files from storage",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Conversation ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Delete chat conversation",
+                "tags": [
+                    "Agent Chat"
+                ]
+            },
+            "get": {
+                "description": "Retrieve detailed view of a conversation including all messages and attachments",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Conversation ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ConversationDetailResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get chat conversation",
+                "tags": [
+                    "Agent Chat"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/chat/conversations/{id}/messages": {
+            "post": {
+                "description": "Post a user message with optional document or image attachments to a conversation",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Conversation ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "content": {
+                                        "description": "Message content",
+                                        "type": "string"
+                                    },
+                                    "file": {
+                                        "description": "Attachment file (.png, .jpg, .jpeg, .webp, .pdf)",
+                                        "format": "binary",
+                                        "type": "string"
+                                    },
+                                    "files": {
+                                        "description": "Additional attachment files",
+                                        "format": "binary",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "description": "Message content"
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_SendMessageResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    },
+                    "502": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Gateway"
+                    },
+                    "504": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Gateway Timeout"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Send chat message",
+                "tags": [
+                    "Agent Chat"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/chat/messages/{id}/confirm": {
+            "post": {
+                "description": "Confirm and save a draft transaction from an agent proposal, with optional user edits",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Message ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.ConfirmDraftRequest",
+                                "summary": "request",
+                                "description": "Optional edited proposal payload"
+                            }
+                        }
+                    },
+                    "description": "Optional edited proposal payload"
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ConfirmDraftResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Confirm draft proposal",
+                "tags": [
+                    "Agent Chat"
+                ]
+            }
+        },
+        "/workspaces/{wid}/agent/chat/messages/{id}/discard": {
+            "post": {
+                "description": "Discard an agent draft proposal without creating any transaction",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Message ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-httpx_NoContent"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Discard draft proposal",
+                "tags": [
+                    "Agent Chat"
                 ]
             }
         },

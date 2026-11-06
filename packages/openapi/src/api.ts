@@ -1794,6 +1794,769 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/workspaces/{wid}/agent/chat/attachments/{id}/download": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Download chat attachment
+     * @description Stream download a chat attachment file
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Attachment ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/octet-stream": Record<string, never>;
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/octet-stream": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/octet-stream": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/octet-stream": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/octet-stream": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/octet-stream": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/agent/chat/conversations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List chat conversations
+     * @description Retrieve paginated list of chat conversations in the workspace
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Page number (default 1) */
+          page?: number;
+          /** @description Page size limit (default 20) */
+          limit?: number;
+        };
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_ListConversationsResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    /**
+     * Create chat conversation
+     * @description Create a new conversation session for Talk To Agent
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+        };
+        cookie?: never;
+      };
+      /** @description Conversation creation payload */
+      requestBody?: {
+        content: {
+          "application/json": components["schemas"]["model.CreateConversationRequest"];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_ConversationResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/agent/chat/conversations/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get chat conversation
+     * @description Retrieve detailed view of a conversation including all messages and attachments
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Conversation ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_ConversationDetailResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    /**
+     * Delete chat conversation
+     * @description Delete a conversation and remove all stored attachment files from storage
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Conversation ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-httpx_NoContent"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/agent/chat/conversations/{id}/messages": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Send chat message
+     * @description Post a user message with optional document or image attachments to a conversation
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Conversation ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      /** @description Message content */
+      requestBody?: {
+        content: {
+          "multipart/form-data": {
+            /** @description Message content */
+            content?: string;
+            /**
+             * Format: binary
+             * @description Attachment file (.png, .jpg, .jpeg, .webp, .pdf)
+             */
+            file?: string;
+            /**
+             * Format: binary
+             * @description Additional attachment files
+             */
+            files?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_SendMessageResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Too Many Requests */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Bad Gateway */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Gateway Timeout */
+        504: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/agent/chat/messages/{id}/confirm": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Confirm draft proposal
+     * @description Confirm and save a draft transaction from an agent proposal, with optional user edits
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Message ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      /** @description Optional edited proposal payload */
+      requestBody?: {
+        content: {
+          "application/json": components["schemas"]["model.ConfirmDraftRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_ConfirmDraftResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/workspaces/{wid}/agent/chat/messages/{id}/discard": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Discard draft proposal
+     * @description Discard an agent draft proposal without creating any transaction
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Message ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-httpx_NoContent"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Conflict */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/workspaces/{wid}/agent/financial/analyze": {
     parameters: {
       query?: never;
@@ -11885,6 +12648,24 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_ConfirmDraftResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.ConfirmDraftResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-model_ConversationDetailResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.ConversationDetailResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-model_ConversationResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.ConversationResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_CreatedAccessTokenResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.CreatedAccessTokenResponse"];
@@ -11957,6 +12738,12 @@ export interface components {
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
+    "httpx.WebResponse-model_ListConversationsResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.ListConversationsResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
     "httpx.WebResponse-model_MediaResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.MediaResponse"];
@@ -12026,6 +12813,12 @@ export interface components {
     "httpx.WebResponse-model_SendInvitationResponse": {
       /** @description Data contains the response payload. */
       data?: components["schemas"]["model.SendInvitationResponse"];
+      /** @description Meta contains request metadata such as request ID and timestamps. */
+      meta?: components["schemas"]["httpx.Meta"];
+    };
+    "httpx.WebResponse-model_SendMessageResponse": {
+      /** @description Data contains the response payload. */
+      data?: components["schemas"]["model.SendMessageResponse"];
       /** @description Meta contains request metadata such as request ID and timestamps. */
       meta?: components["schemas"]["httpx.Meta"];
     };
@@ -12127,6 +12920,25 @@ export interface components {
       lang?: string;
       template?: string;
     };
+    "model.AttachmentResponse": {
+      auditMeta?: components["schemas"]["base.AuditMeta"];
+      /** @example omed-attachments */
+      bucket?: string;
+      /** @example 1 */
+      conversationId?: number;
+      /** @example receipt.jpg */
+      fileName?: string;
+      /** @example 1 */
+      id?: number;
+      /** @example 1 */
+      messageId?: number;
+      /** @example image/jpeg */
+      mime?: string;
+      /** @example workspaces/1/agent/chat/uuid.jpg */
+      objectKey?: string;
+      /** @example 102400 */
+      size?: number;
+    };
     "model.CashFlowAccountSummaryResponse": {
       /** @example 1101 */
       code?: string;
@@ -12200,6 +13012,29 @@ export interface components {
       defaultLocale?: string;
       supportedLocales?: string[];
     };
+    "model.ConfirmDraftRequest": {
+      proposal?: components["schemas"]["model.DraftProposal"];
+    };
+    "model.ConfirmDraftResponse": {
+      /** @example 100 */
+      transactionId?: number;
+    };
+    "model.ConversationDetailResponse": {
+      auditMeta?: components["schemas"]["base.AuditMeta"];
+      /** @example 1 */
+      id?: number;
+      messages?: components["schemas"]["model.MessageResponse"][];
+      /** @example Receipt Analysis */
+      title?: string;
+    };
+    "model.ConversationResponse": {
+      auditMeta?: components["schemas"]["base.AuditMeta"];
+      /** @example 1 */
+      id?: number;
+      messages?: components["schemas"]["model.MessageResponse"][];
+      /** @example Receipt Analysis */
+      title?: string;
+    };
     "model.CreateAccessTokenRequest": {
       expiresInDays?: number;
       name?: string;
@@ -12216,6 +13051,10 @@ export interface components {
       parentId?: number;
       /** @enum {string} */
       type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
+    };
+    "model.CreateConversationRequest": {
+      /** @example Receipt Analysis */
+      title?: string;
     };
     "model.CreateEntryInlineRequest": {
       description?: string;
@@ -12350,6 +13189,58 @@ export interface components {
       id?: number;
       name?: string;
       symbol?: string;
+    };
+    "model.DraftItem": {
+      /** @example 40130 */
+      accountId?: number;
+      /** @example 70000.00 */
+      amount?: string;
+      /** @example Office supplies */
+      description?: string;
+      /** @example 1 */
+      quantity?: string;
+      /** @example 70000.00 */
+      unitPrice?: string;
+    };
+    "model.DraftJournalEntry": {
+      /** @example 1101 */
+      accountId?: number;
+      /** @example 2000000.00 */
+      amount?: string;
+      /** @example Cash on Hand */
+      description?: string;
+      /**
+       * @description "DEBIT" or "CREDIT"
+       * @example DEBIT
+       */
+      direction?: string;
+    };
+    /** @enum {string} */
+    "model.DraftKind": "expense" | "income" | "journal";
+    "model.DraftProposal": {
+      /** @example IDR */
+      currency?: string;
+      /** @example Office supplies purchase */
+      description?: string;
+      entries?: components["schemas"]["model.DraftJournalEntry"][];
+      /** @example 1.00000000 */
+      exchangeRate?: string;
+      items?: components["schemas"]["model.DraftItem"][];
+      /**
+       * @description "expense", "income", "journal"
+       * @example expense
+       */
+      kind?: components["schemas"]["model.DraftKind"];
+      /** @example 1 */
+      paymentAccountId?: number;
+      /** @example 1 */
+      periodId?: number;
+      /** @example INV-001 */
+      reference?: string;
+      /** @example 70000.00 */
+      totalAmount?: string;
+      /** @example 2026-01-01 */
+      transactionDate?: string;
     };
     "model.EntryResponse": {
       auditMeta?: components["schemas"]["base.AuditMeta"];
@@ -12508,6 +13399,13 @@ export interface components {
       email: string;
       roles: string[];
     };
+    "model.ListConversationsResponse": {
+      conversations?: components["schemas"]["model.ConversationResponse"][];
+      items?: components["schemas"]["model.ConversationResponse"][];
+      limit?: number;
+      page?: number;
+      total?: number;
+    };
     "model.ListModelsRequest": {
       apiKey: string;
       baseUrl?: string;
@@ -12534,6 +13432,23 @@ export interface components {
       updatedAt?: string;
       user?: components["schemas"]["model.UserResponse"];
       workspaceId?: number;
+    };
+    "model.MessageResponse": {
+      attachments?: components["schemas"]["model.AttachmentResponse"][];
+      auditMeta?: components["schemas"]["base.AuditMeta"];
+      /** @example 100 */
+      confirmedTransactionId?: number;
+      /** @example Here is the receipt */
+      content?: string;
+      /** @example 1 */
+      conversationId?: number;
+      /** @example proposed */
+      draftStatus?: string;
+      /** @example 1 */
+      id?: number;
+      parts?: Record<string, never>;
+      /** @example user */
+      role?: string;
     };
     "model.MonthlyRevenueExpenseItem": {
       /** @example 15000000.00 */
@@ -12867,6 +13782,11 @@ export interface components {
     };
     "model.SendInvitationResponse": {
       sent?: boolean;
+    };
+    "model.SendMessageResponse": {
+      assistantMessage?: components["schemas"]["model.MessageResponse"];
+      draftProposal?: components["schemas"]["model.DraftProposal"];
+      userMessage?: components["schemas"]["model.MessageResponse"];
     };
     "model.SessionData": {
       createdAt?: string;

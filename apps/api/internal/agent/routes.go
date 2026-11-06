@@ -33,4 +33,16 @@ func initRoutes(mod AgentModule, r fiber.Router, az *authz.Authorizer) {
 
 	financial.Get("/status", az.Require(domain.ObjFinancial, "use"), az.Require("fin:transaction", "create"), financialCtl.Status)
 	financial.Post("/analyze", az.Require(domain.ObjFinancial, "use"), az.Require("fin:transaction", "create"), financialCtl.Analyze)
+
+	chat := r.Group("/workspaces/:wid/agent/chat", az.Require(domain.ObjFinancial, "use"), az.Require("fin:transaction", "create"))
+	chatCtl := controller.NewChatController(mod.ChatService, mod.cfg.AttachmentMaxSizeMB, mod.cfg.AttachmentAllowedTypes)
+
+	chat.Get("/conversations", chatCtl.ListConversations)
+	chat.Post("/conversations", chatCtl.CreateConversation)
+	chat.Get("/conversations/:id", chatCtl.GetConversation)
+	chat.Delete("/conversations/:id", chatCtl.DeleteConversation)
+	chat.Post("/conversations/:id/messages", chatCtl.SendMessage)
+	chat.Post("/messages/:id/confirm", chatCtl.ConfirmDraft)
+	chat.Post("/messages/:id/discard", chatCtl.DiscardDraft)
+	chat.Get("/attachments/:id/download", chatCtl.DownloadAttachment)
 }

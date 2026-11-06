@@ -101,6 +101,11 @@ type ConfirmDraftRequest struct {
 	Proposal *DraftProposal `json:"proposal,omitempty"`
 }
 
+// ConfirmDraftResponse defines the response after confirming a proposed draft.
+type ConfirmDraftResponse struct {
+	TransactionID int64 `json:"transactionId" example:"100"`
+}
+
 // AttachmentResponse represents the API view of a chat attachment.
 type AttachmentResponse struct {
 	ID             int64          `json:"id" example:"1"`
@@ -120,7 +125,7 @@ type MessageResponse struct {
 	ConversationID         int64                `json:"conversationId" example:"1"`
 	Role                   string               `json:"role" example:"user"`
 	Content                string               `json:"content" example:"Here is the receipt"`
-	Parts                  json.RawMessage      `json:"parts,omitempty"`
+	Parts                  json.RawMessage      `json:"parts,omitempty" swaggertype:"object"`
 	DraftStatus            string               `json:"draftStatus" example:"proposed"`
 	ConfirmedTransactionID *int64               `json:"confirmedTransactionId,omitempty" example:"100"`
 	Attachments            []AttachmentResponse `json:"attachments,omitempty"`
