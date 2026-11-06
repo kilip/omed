@@ -22,6 +22,7 @@
 - **Income & Expense Tracking:** Record multi-item income and expense documents with file attachments, AI-assisted receipt analysis, search, and draft-or-post workflows.
 - **Double-Entry Bookkeeping:** Create balanced journal vouchers and business transactions with support for posting, reversing, and voiding entries.
 - **General Ledger & Trial Balance:** Inspect account-level running balances with direct links back to journal entries and generate trial balance summaries.
+- **Talk To Agent Financial Chat:** Conversational assistant for analyzing receipts, invoices, and ATM slips into draft vouchers with double-entry balance verification.
 
 ### 📝 Content Management (`CMS`)
 - **Posts & Standalone Pages:** Write and manage blog posts and static pages with a live-preview Markdown editor, excerpts, cover media, and automatic slug generation.
@@ -31,6 +32,7 @@
 
 ### 🤖 AI & Agent Integration (`Agent` & `MCP`)
 - **Financial Document Analysis:** Automatically analyze receipt and invoice attachments (images and PDFs) with AI vision models to extract dates, document totals, line items, and smart Chart of Accounts suggestions directly into income and expense vouchers.
+- **Talk To Agent Receipt & Invoice Analysis:** Interactive multi-turn chat powered by tool calling (`list_accounts`, `list_currencies`, `list_periods`, `propose_draft`) that validates uploaded receipts, invoices, and ATM slips into reviewable draft proposals with zero-write model safety.
 - **LLM Provider Management:** Configure workspace AI providers—including **Anthropic**, **OpenAI**, **DeepSeek**, **Ollama**, and custom OpenAI-compatible endpoints—with encrypted API credentials, default model selection, and live connection testing.
 - **Built-In MCP Server:** Connect AI clients (such as Claude Desktop or other Model Context Protocol tools) directly to Omed using a Personal Access Token to query monthly financial overviews, inspect account balances, and search cashflow records.
 

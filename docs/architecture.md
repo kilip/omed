@@ -64,6 +64,7 @@ omed/
 - `/fin/journal`, `/fin/journal/new`, `/fin/journal/:id`: Double-entry journal vouchers (`PostingsEditor`) with status workflows (post, reverse with date override, void) and ledger postings.
 - `/fin/ledger`: General Ledger view (`GET /workspaces/{wid}/fin/accounts/{id}/ledger`) with account selector, running balances, and deep-links to journal entries.
 - `/fin/trial-balance`: Financial trial balance reports and summaries.
+- `/fin/agent`: Talk To Agent interactive chat for receipt and invoice analysis with draft proposal previews.
 
 ### CMS (`cms`)
 
@@ -87,13 +88,22 @@ omed/
 - **Roles:**
   - `agent:admin`: Full administrative access to the agent module (`agent:*`).
   - `agent:viewer`: Read-only access to view providers and workspace agent settings (`agent:provider` `read`, `agent:setting` `read`).
-  - `agent:financial-user`: Permission to use financial agent analysis features (`agent:financial` `use`). Following least-privilege principles, financial document analysis requires both `agent:financial` `use` and `fin:transaction` `create`.
+- `agent:financial-user`: Permission to use financial agent analysis features (`agent:financial` `use`). Following least-privilege principles, financial document analysis and Talk To Agent chat require both `agent:financial` `use` and `fin:transaction` `create`.
 - **API Endpoints:**
   - Providers: Authenticated workspace-scoped CRUD, model listing, and connection testing endpoints under `/workspaces/:wid/agent/providers*`.
   - Settings: `GET /workspaces/:wid/agent/settings` (requires `agent:setting` `read`) and `PATCH /workspaces/:wid/agent/settings` (requires `agent:setting` `update`) to manage workspace agent configuration and the active financial analysis provider.
   - Financial Agent:
     - `GET /workspaces/:wid/agent/financial/status`: Check financial agent availability and readiness (`enabled`, `available`, and reason when unavailable). Requires `agent:financial` `use` and `fin:transaction` `create`.
     - `POST /workspaces/:wid/agent/financial/analyze`: Analyze an uploaded receipt, invoice, or financial document (PNG, JPEG, WebP, PDF) with structured extraction of suggested transaction date, amount, items, and accounts. Requires `agent:financial` `use` and `fin:transaction` `create`.
+  - Talk To Agent Chat:
+    - `GET /workspaces/:wid/agent/chat/conversations`: List user chat conversations (paginated). Requires `agent:financial` `use` and `fin:transaction` `create`.
+    - `POST /workspaces/:wid/agent/chat/conversations`: Create a new chat conversation. Requires `agent:financial` `use` and `fin:transaction` `create`.
+    - `GET /workspaces/:wid/agent/chat/conversations/:id`: Retrieve conversation detail with ordered message history and attachments. Requires `agent:financial` `use` and `fin:transaction` `create`.
+    - `DELETE /workspaces/:wid/agent/chat/conversations/:id`: Soft-delete conversation and purge its S3 attachments. Requires `agent:financial` `use` and `fin:transaction` `create`.
+    - `POST /workspaces/:wid/agent/chat/conversations/:id/messages`: Send a message with optional image/PDF attachments, invoking LLM tool calling (`list_accounts`, `list_currencies`, `list_periods`, `propose_draft`) to generate draft financial proposals. Requires `agent:financial` `use` and `fin:transaction` `create`.
+    - `POST /workspaces/:wid/agent/chat/messages/:id/confirm`: User-confirmed persistence of proposed financial draft to `fin` as an unposted draft transaction. Requires `agent:financial` `use` and `fin:transaction` `create`.
+    - `POST /workspaces/:wid/agent/chat/messages/:id/discard`: Mark proposed draft as discarded. Requires `agent:financial` `use` and `fin:transaction` `create`.
+    - `GET /workspaces/:wid/agent/chat/attachments/:id/download`: Stream stored chat attachment. Requires `agent:financial` `use` and `fin:transaction` `create`.
 
 ## LLM Drivers & Capabilities (`llmx`)
 
