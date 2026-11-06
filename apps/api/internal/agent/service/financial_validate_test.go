@@ -33,6 +33,23 @@ func TestValidateSuggestion(t *testing.T) {
 	now := time.Date(2026, 11, 2, 12, 0, 0, 0, time.UTC)
 	snap := defaultSnapshot()
 
+	periodSnap := defaultSnapshot()
+	periodSnap.HasPeriodContext = true
+	periodSnap.OpenPeriods = []PeriodRange{
+		{
+			StartDate: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+			EndDate:   time.Date(2026, 1, 31, 23, 59, 59, 0, time.UTC),
+		},
+		{
+			StartDate: time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
+			EndDate:   time.Date(2026, 3, 31, 23, 59, 59, 0, time.UTC),
+		},
+	}
+
+	zeroPeriodSnap := defaultSnapshot()
+	zeroPeriodSnap.HasPeriodContext = true
+	zeroPeriodSnap.OpenPeriods = []PeriodRange{}
+
 	tests := []struct {
 		name     string
 		raw      rawSuggestion
@@ -396,6 +413,147 @@ func TestValidateSuggestion(t *testing.T) {
 			expected: model.FinancialSuggestion{
 				DocumentType:    "receipt",
 				TransactionDate: nil,
+				Items:           []model.SuggestedItem{},
+				Warnings:        []model.FinancialWarning{},
+			},
+		},
+		{
+			name: "transactionDate inside open period accepted without warning",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-01-15"),
+			},
+			snap: periodSnap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-01-15"),
+				Items:           []model.SuggestedItem{},
+				Warnings:        []model.FinancialWarning{},
+			},
+		},
+		{
+			name: "transactionDate outside open period dropped with DATE_OUTSIDE_OPEN_PERIOD",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-02-15"),
+			},
+			snap: periodSnap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: nil,
+				Items:           []model.SuggestedItem{},
+				Warnings: []model.FinancialWarning{
+					{Code: WarningDateOutsideOpenPeriod},
+				},
+			},
+		},
+		{
+			name: "transactionDate with zero open periods dropped with DATE_OUTSIDE_OPEN_PERIOD",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-01-15"),
+			},
+			snap: zeroPeriodSnap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: nil,
+				Items:           []model.SuggestedItem{},
+				Warnings: []model.FinancialWarning{
+					{Code: WarningDateOutsideOpenPeriod},
+				},
+			},
+		},
+		{
+			name: "transactionDate exact start date of first open period accepted",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-01-01"),
+			},
+			snap: periodSnap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-01-01"),
+				Items:           []model.SuggestedItem{},
+				Warnings:        []model.FinancialWarning{},
+			},
+		},
+		{
+			name: "transactionDate exact end date of first open period accepted",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-01-31"),
+			},
+			snap: periodSnap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-01-31"),
+				Items:           []model.SuggestedItem{},
+				Warnings:        []model.FinancialWarning{},
+			},
+		},
+		{
+			name: "transactionDate exact start date of second open period accepted",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-03-01"),
+			},
+			snap: periodSnap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-03-01"),
+				Items:           []model.SuggestedItem{},
+				Warnings:        []model.FinancialWarning{},
+			},
+		},
+		{
+			name: "transactionDate exact end date of second open period accepted",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-03-31"),
+			},
+			snap: periodSnap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-03-31"),
+				Items:           []model.SuggestedItem{},
+				Warnings:        []model.FinancialWarning{},
+			},
+		},
+		{
+			name: "transactionDate between multiple open periods dropped with DATE_OUTSIDE_OPEN_PERIOD",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-02-01"),
+			},
+			snap: periodSnap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: nil,
+				Items:           []model.SuggestedItem{},
+				Warnings: []model.FinancialWarning{
+					{Code: WarningDateOutsideOpenPeriod},
+				},
+			},
+		},
+		{
+			name: "transactionDate without period context retained if inside window",
+			raw: rawSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-02-15"),
+			},
+			snap: snap,
+			now:  now,
+			expected: model.FinancialSuggestion{
+				DocumentType:    "receipt",
+				TransactionDate: ptr("2026-02-15"),
 				Items:           []model.SuggestedItem{},
 				Warnings:        []model.FinancialWarning{},
 			},

@@ -9,10 +9,12 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/account"
+	"github.com/kilip/omed/api/ent/period"
 	"github.com/kilip/omed/api/internal/agent/domain"
 	"github.com/kilip/omed/api/internal/agent/model"
 	"github.com/kilip/omed/api/internal/base"
@@ -134,6 +136,20 @@ func (s *FinancialIntegrationSuite) createProviderAndEnable(wsID int64) int64 {
 	return prov.ID
 }
 
+func (s *FinancialIntegrationSuite) ensurePeriod(wsID int64, name string, start, end time.Time, year int, status string) int64 {
+	client := testutil.GetEntCli()
+	p, err := client.Period.Create().
+		SetWorkspaceID(wsID).
+		SetName(name).
+		SetStartDate(start).
+		SetEndDate(end).
+		SetFiscalYear(year).
+		SetStatus(period.Status(status)).
+		Save(base.WithWorkspaceID(s.Context, wsID))
+	s.Require().NoError(err)
+	return p.ID
+}
+
 func (s *FinancialIntegrationSuite) requestAnalyze(wsID int64, filename string, content []byte, flow string) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
@@ -232,6 +248,8 @@ func (s *FinancialIntegrationSuite) TestFinancial_Analyze_Success() {
 func (s *FinancialIntegrationSuite) TestFinancial_Analyze_ReceiptUnitsAndThousandSeparators_Issue55() {
 	ws := s.ensureWorkspace("Analyze Issue 55 WS", s.User.ID)
 	s.createProviderAndEnable(ws.ID)
+
+	s.ensurePeriod(ws.ID, "Jan 2026", time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 31, 23, 59, 59, 0, time.UTC), 2026, "OPEN")
 
 	cashAcc := s.ensureAccount(ws.ID, "1001", "Cash", "ASSET", "DEBIT", true, true)
 	expenseAcc := s.ensureAccount(ws.ID, "5001", "Food & Beverage", "EXPENSE", "DEBIT", true, true)

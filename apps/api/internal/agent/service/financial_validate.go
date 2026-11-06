@@ -36,6 +36,7 @@ const (
 	WarningCategoryUnresolved       = "CATEGORY_UNRESOLVED"
 	WarningItemInvalid              = "ITEM_INVALID"
 	WarningItemsTruncated           = "ITEMS_TRUNCATED"
+	WarningDateOutsideOpenPeriod    = "DATE_OUTSIDE_OPEN_PERIOD"
 )
 
 // AccountOption represents a selectable account candidate.
@@ -153,12 +154,34 @@ func validateSuggestion(raw rawSuggestion, snap FinanceSnapshot, now time.Time) 
 	if raw.TransactionDate != nil {
 		dStr := strings.TrimSpace(*raw.TransactionDate)
 		if parsed, err := time.Parse("2006-01-02", dStr); err == nil {
-			today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-			minDate := today.AddDate(-5, 0, 0)
-			maxDate := today.AddDate(1, 0, 0)
-			if !parsed.Before(minDate) && !parsed.After(maxDate) {
-				formatted := parsed.Format("2006-01-02")
-				res.TransactionDate = &formatted
+			if snap.HasPeriodContext {
+				parsedDate := time.Date(parsed.Year(), parsed.Month(), parsed.Day(), 0, 0, 0, 0, time.UTC)
+				inPeriod := false
+				for _, p := range snap.OpenPeriods {
+					sDate := time.Date(p.StartDate.Year(), p.StartDate.Month(), p.StartDate.Day(), 0, 0, 0, 0, time.UTC)
+					eDate := time.Date(p.EndDate.Year(), p.EndDate.Month(), p.EndDate.Day(), 0, 0, 0, 0, time.UTC)
+					if !parsedDate.Before(sDate) && !parsedDate.After(eDate) {
+						inPeriod = true
+						break
+					}
+				}
+				if inPeriod {
+					formatted := parsed.Format("2006-01-02")
+					res.TransactionDate = &formatted
+				} else {
+					res.TransactionDate = nil
+					res.Warnings = append(res.Warnings, model.FinancialWarning{
+						Code: WarningDateOutsideOpenPeriod,
+					})
+				}
+			} else {
+				today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+				minDate := today.AddDate(-5, 0, 0)
+				maxDate := today.AddDate(1, 0, 0)
+				if !parsed.Before(minDate) && !parsed.After(maxDate) {
+					formatted := parsed.Format("2006-01-02")
+					res.TransactionDate = &formatted
+				}
 			}
 		}
 	}
