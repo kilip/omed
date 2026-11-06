@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"strings"
+	"time"
 
 	agentsvc "github.com/kilip/omed/api/internal/agent/service"
 	"github.com/kilip/omed/api/internal/base"
@@ -23,24 +24,30 @@ type settingGetter interface {
 	GetSettings(c context.Context, workspaceID int64) (finmodel.FinSettingResponse, error)
 }
 
+type periodSearcher interface {
+	Search(c context.Context, req finmodel.SearchPeriodRequest) ([]findomain.Period, string, error)
+}
+
 type financeContextAdapter struct {
 	accounts   accountSearcher
 	currencies currencyLister
 	settings   settingGetter
+	periods    periodSearcher
 }
 
 func newFinanceContext(finMod *fin.FinModule) agentsvc.FinanceContext {
 	if finMod == nil {
 		return nil
 	}
-	return newFinanceContextFromServices(finMod.AccountService, finMod.CurrencyService, finMod.SettingService)
+	return newFinanceContextFromServices(finMod.AccountService, finMod.CurrencyService, finMod.SettingService, finMod.PeriodService)
 }
 
-func newFinanceContextFromServices(accounts accountSearcher, currencies currencyLister, settings settingGetter) agentsvc.FinanceContext {
+func newFinanceContextFromServices(accounts accountSearcher, currencies currencyLister, settings settingGetter, periods periodSearcher) agentsvc.FinanceContext {
 	return &financeContextAdapter{
 		accounts:   accounts,
 		currencies: currencies,
 		settings:   settings,
+		periods:    periods,
 	}
 }
 
@@ -102,10 +109,34 @@ func (a *financeContextAdapter) Snapshot(ctx context.Context, flow string) (agen
 		}
 	}
 
+	var openPeriods []agentsvc.PeriodRange
+	hasPeriodContext := false
+	if a.periods != nil {
+		openStatus := findomain.PeriodStatusOpen
+		periods, _, err := a.periods.Search(ctx, finmodel.SearchPeriodRequest{Status: &openStatus})
+		if err != nil {
+			return agentsvc.FinanceSnapshot{}, err
+		}
+		openPeriods = make([]agentsvc.PeriodRange, 0)
+		for _, p := range periods {
+			if p.Status == findomain.PeriodStatusOpen {
+				startDate := time.Date(p.StartDate.Year(), p.StartDate.Month(), p.StartDate.Day(), 0, 0, 0, 0, time.UTC)
+				endDate := time.Date(p.EndDate.Year(), p.EndDate.Month(), p.EndDate.Day(), 0, 0, 0, 0, time.UTC)
+				openPeriods = append(openPeriods, agentsvc.PeriodRange{
+					StartDate: startDate,
+					EndDate:   endDate,
+				})
+			}
+		}
+		hasPeriodContext = true
+	}
+
 	return agentsvc.FinanceSnapshot{
 		PaymentAccounts:  paymentAccounts,
 		CategoryAccounts: categoryAccounts,
 		Currencies:       curCodes,
 		BaseCurrency:     baseCurrency,
+		OpenPeriods:      openPeriods,
+		HasPeriodContext: hasPeriodContext,
 	}, nil
 }

@@ -45,12 +45,20 @@ type AccountOption struct {
 	Name string
 }
 
+// PeriodRange represents an accounting period date range.
+type PeriodRange struct {
+	StartDate time.Time
+	EndDate   time.Time
+}
+
 // FinanceSnapshot holds reference accounts and currencies for validating model suggestions.
 type FinanceSnapshot struct {
 	PaymentAccounts  []AccountOption
 	CategoryAccounts []AccountOption // already filtered by flow
 	Currencies       []string        // ISO codes in the reference list
 	BaseCurrency     string
+	OpenPeriods      []PeriodRange
+	HasPeriodContext bool
 }
 
 type rawItem struct {

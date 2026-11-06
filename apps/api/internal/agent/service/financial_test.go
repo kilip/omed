@@ -642,3 +642,77 @@ func TestStatus_Reasons(t *testing.T) {
 		assert.Nil(t, status.Reason)
 	})
 }
+
+func TestBuildSystemPrompt_OpenPeriods(t *testing.T) {
+	t.Run("includes open periods and anti-hallucination instructions when present", func(t *testing.T) {
+		snap := sampleSnapshot()
+		snap.OpenPeriods = []service.PeriodRange{
+			{
+				StartDate: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+				EndDate:   time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
+			},
+			{
+				StartDate: time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC),
+				EndDate:   time.Date(2026, 2, 28, 0, 0, 0, 0, time.UTC),
+			},
+		}
+		snap.HasPeriodContext = true
+
+		prompt := service.BuildSystemPrompt(snap)
+
+		assert.Contains(t, prompt, "Open accounting period date ranges:")
+		assert.Contains(t, prompt, "- 2026-01-01 to 2026-01-31")
+		assert.Contains(t, prompt, "- 2026-02-01 to 2026-02-28")
+		assert.Contains(t, prompt, "Use open accounting periods ONLY to disambiguate ambiguous numeric date formats (e.g. DD/MM/YY vs MM/DD/YY, or 2-digit years). NEVER alter an unambiguous date printed on the document to force it into an open period; extract the exact printed date even if it falls outside open periods.")
+	})
+
+	t.Run("omits open periods section when OpenPeriods is empty", func(t *testing.T) {
+		snap := sampleSnapshot()
+		snap.OpenPeriods = nil
+		snap.HasPeriodContext = false
+
+		prompt := service.BuildSystemPrompt(snap)
+
+		assert.NotContains(t, prompt, "Open accounting period date ranges:")
+		assert.NotContains(t, prompt, "Use open accounting periods ONLY")
+	})
+
+	t.Run("Analyze sends open periods in system prompt to LLM adapter", func(t *testing.T) {
+		ctx := contextWithUser(context.Background(), 1)
+		repo := &fakeSettingRepo{setting: &ent.AgentSetting{FinancialEnabled: true}}
+		mem := llmx.NewMemory(validJSONResponse())
+		adapter := &customCapAdapter{
+			Adapter: mem,
+			caps: llmx.Capabilities{
+				Vision:           true,
+				StructuredOutput: true,
+			},
+		}
+		resolver := &fakeAdapterResolver{adapter: adapter}
+
+		snap := sampleSnapshot()
+		snap.OpenPeriods = []service.PeriodRange{
+			{
+				StartDate: time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
+				EndDate:   time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC),
+			},
+		}
+		snap.HasPeriodContext = true
+		fin := &fakeFinanceContext{snap: snap}
+
+		svc := service.NewFinancialService(repo, resolver, fin)
+		_, err := svc.Analyze(ctx, model.AnalyzeRequest{
+			Flow: "EXPENSE",
+			MIME: "image/png",
+			Data: []byte("fake_image_bytes"),
+		})
+		require.NoError(t, err)
+
+		reqs := mem.Requests()
+		require.Len(t, reqs, 1)
+		systemText := reqs[0].Messages[0].Parts[0].Text
+		assert.Contains(t, systemText, "Open accounting period date ranges:")
+		assert.Contains(t, systemText, "- 2026-03-01 to 2026-03-31")
+		assert.Contains(t, systemText, "Use open accounting periods ONLY to disambiguate ambiguous numeric date formats")
+	})
+}

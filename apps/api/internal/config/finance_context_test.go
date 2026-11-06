@@ -2,11 +2,14 @@ package config
 
 import (
 	"context"
+	"errors"
 	"testing"
+	"time"
 
 	"github.com/kilip/omed/api/internal/base"
 	findomain "github.com/kilip/omed/api/internal/fin/domain"
 	finmodel "github.com/kilip/omed/api/internal/fin/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,6 +49,20 @@ func (f *fakeSettingGetter) GetSettings(ctx context.Context, workspaceID int64) 
 	return f.settings, nil
 }
 
+type fakePeriodSearcher struct {
+	periods []findomain.Period
+	err     error
+	lastReq *finmodel.SearchPeriodRequest
+}
+
+func (f *fakePeriodSearcher) Search(ctx context.Context, req finmodel.SearchPeriodRequest) ([]findomain.Period, string, error) {
+	f.lastReq = &req
+	if f.err != nil {
+		return nil, "", f.err
+	}
+	return f.periods, "", nil
+}
+
 func sampleAccounts() []findomain.Account {
 	return []findomain.Account{
 		// ASSET accounts
@@ -83,8 +100,9 @@ func TestFinanceContext_Snapshot_Income(t *testing.T) {
 	accs := &fakeAccountSearcher{accounts: sampleAccounts()}
 	currs := &fakeCurrencyLister{currencies: sampleCurrencies()}
 	settings := &fakeSettingGetter{settings: finmodel.FinSettingResponse{BaseCurrency: "USD"}}
+	periods := &fakePeriodSearcher{}
 
-	ctxAdapter := newFinanceContextFromServices(accs, currs, settings)
+	ctxAdapter := newFinanceContextFromServices(accs, currs, settings, periods)
 
 	ctx := base.WithWorkspaceID(context.Background(), 1)
 	snap, err := ctxAdapter.Snapshot(ctx, "INCOME")
@@ -109,14 +127,17 @@ func TestFinanceContext_Snapshot_Income(t *testing.T) {
 
 	// Base currency
 	require.Equal(t, "USD", snap.BaseCurrency)
+	require.True(t, snap.HasPeriodContext)
+	require.Empty(t, snap.OpenPeriods)
 }
 
 func TestFinanceContext_Snapshot_Expense(t *testing.T) {
 	accs := &fakeAccountSearcher{accounts: sampleAccounts()}
 	currs := &fakeCurrencyLister{currencies: sampleCurrencies()}
 	settings := &fakeSettingGetter{settings: finmodel.FinSettingResponse{BaseCurrency: "EUR"}}
+	periods := &fakePeriodSearcher{}
 
-	ctxAdapter := newFinanceContextFromServices(accs, currs, settings)
+	ctxAdapter := newFinanceContextFromServices(accs, currs, settings, periods)
 
 	ctx := base.WithWorkspaceID(context.Background(), 1)
 	snap, err := ctxAdapter.Snapshot(ctx, "EXPENSE")
@@ -139,14 +160,17 @@ func TestFinanceContext_Snapshot_Expense(t *testing.T) {
 
 	// Base currency
 	require.Equal(t, "EUR", snap.BaseCurrency)
+	require.True(t, snap.HasPeriodContext)
+	require.Empty(t, snap.OpenPeriods)
 }
 
 func TestFinanceContext_Snapshot_DefaultBaseCurrency(t *testing.T) {
 	accs := &fakeAccountSearcher{accounts: sampleAccounts()}
 	currs := &fakeCurrencyLister{currencies: sampleCurrencies()}
 	settings := &fakeSettingGetter{settings: finmodel.FinSettingResponse{BaseCurrency: ""}}
+	periods := &fakePeriodSearcher{}
 
-	ctxAdapter := newFinanceContextFromServices(accs, currs, settings)
+	ctxAdapter := newFinanceContextFromServices(accs, currs, settings, periods)
 
 	ctx := base.WithWorkspaceID(context.Background(), 1)
 	snap, err := ctxAdapter.Snapshot(ctx, "INCOME")
@@ -154,6 +178,69 @@ func TestFinanceContext_Snapshot_DefaultBaseCurrency(t *testing.T) {
 
 	// Default fallback to "IDR"
 	require.Equal(t, "IDR", snap.BaseCurrency)
+}
+
+func TestFinanceContext_Snapshot_OpenPeriods(t *testing.T) {
+	accs := &fakeAccountSearcher{accounts: sampleAccounts()}
+	currs := &fakeCurrencyLister{currencies: sampleCurrencies()}
+	settings := &fakeSettingGetter{settings: finmodel.FinSettingResponse{BaseCurrency: "IDR"}}
+	periods := &fakePeriodSearcher{
+		periods: []findomain.Period{
+			{
+				ID:        1,
+				Name:      "Jan 2026",
+				Status:    findomain.PeriodStatusOpen,
+				StartDate: time.Date(2026, 1, 1, 15, 30, 0, 0, time.FixedZone("WIB", 7*3600)),
+				EndDate:   time.Date(2026, 1, 31, 23, 59, 59, 0, time.FixedZone("WIB", 7*3600)),
+			},
+			{
+				ID:        2,
+				Name:      "Dec 2025",
+				Status:    findomain.PeriodStatusClosed,
+				StartDate: time.Date(2025, 12, 1, 0, 0, 0, 0, time.UTC),
+				EndDate:   time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC),
+			},
+		},
+	}
+
+	ctxAdapter := newFinanceContextFromServices(accs, currs, settings, periods)
+	ctx := base.WithWorkspaceID(context.Background(), 1)
+	snap, err := ctxAdapter.Snapshot(ctx, "EXPENSE")
+	require.NoError(t, err)
+
+	require.True(t, snap.HasPeriodContext)
+	require.Len(t, snap.OpenPeriods, 1)
+	assert.Equal(t, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), snap.OpenPeriods[0].StartDate)
+	assert.Equal(t, time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC), snap.OpenPeriods[0].EndDate)
+
+	require.NotNil(t, periods.lastReq)
+	require.NotNil(t, periods.lastReq.Status)
+	assert.Equal(t, findomain.PeriodStatusOpen, *periods.lastReq.Status)
+}
+
+func TestFinanceContext_Snapshot_PeriodSearchError(t *testing.T) {
+	accs := &fakeAccountSearcher{accounts: sampleAccounts()}
+	currs := &fakeCurrencyLister{currencies: sampleCurrencies()}
+	settings := &fakeSettingGetter{settings: finmodel.FinSettingResponse{BaseCurrency: "IDR"}}
+	periods := &fakePeriodSearcher{err: errors.New("database connection failed")}
+
+	ctxAdapter := newFinanceContextFromServices(accs, currs, settings, periods)
+	ctx := base.WithWorkspaceID(context.Background(), 1)
+	_, err := ctxAdapter.Snapshot(ctx, "EXPENSE")
+	require.Error(t, err)
+}
+
+func TestFinanceContext_Snapshot_NilPeriods(t *testing.T) {
+	accs := &fakeAccountSearcher{accounts: sampleAccounts()}
+	currs := &fakeCurrencyLister{currencies: sampleCurrencies()}
+	settings := &fakeSettingGetter{settings: finmodel.FinSettingResponse{BaseCurrency: "IDR"}}
+
+	ctxAdapter := newFinanceContextFromServices(accs, currs, settings, nil)
+	ctx := base.WithWorkspaceID(context.Background(), 1)
+	snap, err := ctxAdapter.Snapshot(ctx, "EXPENSE")
+	require.NoError(t, err)
+	assert.False(t, snap.HasPeriodContext)
+	assert.Nil(t, snap.OpenPeriods)
 }
 
 func TestFinanceContext_NilFinModule(t *testing.T) {

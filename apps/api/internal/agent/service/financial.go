@@ -259,6 +259,14 @@ func buildSystemPrompt(snap FinanceSnapshot) string {
 	b.WriteString(strings.Join(snap.Currencies, ", "))
 	fmt.Fprintf(&b, "\nBase currency: %s\n", snap.BaseCurrency)
 
+	if len(snap.OpenPeriods) > 0 {
+		b.WriteString("\nOpen accounting period date ranges:\n")
+		for _, p := range snap.OpenPeriods {
+			fmt.Fprintf(&b, "- %s to %s\n", p.StartDate.Format("2006-01-02"), p.EndDate.Format("2006-01-02"))
+		}
+		b.WriteString("Use open accounting periods ONLY to disambiguate ambiguous numeric date formats (e.g. DD/MM/YY vs MM/DD/YY, or 2-digit years). NEVER alter an unambiguous date printed on the document to force it into an open period; extract the exact printed date even if it falls outside open periods.\n")
+	}
+
 	return b.String()
 }
 
