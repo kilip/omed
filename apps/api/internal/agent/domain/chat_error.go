@@ -20,6 +20,8 @@ var (
 	ErrDraftNotProposed = errors.New("DRAFT_NOT_PROPOSED")
 	// ErrInvalidDraftProposal indicates that the draft proposal is malformed or invalid.
 	ErrInvalidDraftProposal = errors.New("INVALID_DRAFT_PROPOSAL")
+	// ErrAttachmentNotFound indicates that the requested chat attachment was not found.
+	ErrAttachmentNotFound = errors.New("ATTACHMENT_NOT_FOUND")
 )
 
 func init() {
@@ -29,4 +31,5 @@ func init() {
 	base.AddToErrorMap(ErrDraftAlreadyDiscarded, fiber.StatusConflict, "draft proposal has already been discarded")
 	base.AddToErrorMap(ErrDraftNotProposed, fiber.StatusUnprocessableEntity, "message does not contain a proposed draft")
 	base.AddToErrorMap(ErrInvalidDraftProposal, fiber.StatusUnprocessableEntity, "invalid draft proposal")
+	base.AddToErrorMap(ErrAttachmentNotFound, fiber.StatusNotFound, "attachment not found")
 }

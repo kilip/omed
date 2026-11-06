@@ -28,8 +28,10 @@ type ChatRepository interface {
 	DeleteConversation(ctx context.Context, id int64) error
 	AppendMessage(ctx context.Context, params AppendMessageParams) (*ent.AgentChatMessage, error)
 	ListMessages(ctx context.Context, conversationID int64) ([]*ent.AgentChatMessage, error)
+	GetMessage(ctx context.Context, id int64) (*ent.AgentChatMessage, error)
 	UpdateDraftStatus(ctx context.Context, messageID int64, status agentchatmessage.DraftStatus, confirmedTxID *int64) (*ent.AgentChatMessage, error)
 	CreateAttachment(ctx context.Context, params CreateAttachmentParams) (*ent.AgentChatAttachment, error)
+	GetAttachment(ctx context.Context, id int64) (*ent.AgentChatAttachment, error)
 	ListAttachmentsByConversation(ctx context.Context, conversationID int64) ([]*ent.AgentChatAttachment, error)
 	ListAttachmentsByMessage(ctx context.Context, messageID int64) ([]*ent.AgentChatAttachment, error)
 }
@@ -484,4 +486,64 @@ func (r *chatRepository) ListAttachmentsByMessage(ctx context.Context, messageID
 		).
 		Order(ent.Asc(agentchatattachment.FieldCreatedAt), ent.Asc(agentchatattachment.FieldID)).
 		All(ctx)
+}
+
+// GetMessage retrieves a message owned by the authenticated user in the current workspace.
+func (r *chatRepository) GetMessage(ctx context.Context, id int64) (*ent.AgentChatMessage, error) {
+	wsID := base.WorkspaceIDFromContext(ctx)
+	if wsID == 0 {
+		return nil, base.ErrWorkspaceRequired
+	}
+	userID := base.UserIDFromContext(ctx)
+	if userID == 0 {
+		return nil, base.ErrUnauthorized
+	}
+
+	msg, err := r.cli.AgentChatMessage.Query().
+		Where(
+			agentchatmessage.IDEQ(id),
+			agentchatmessage.WorkspaceIDEQ(wsID),
+			agentchatmessage.HasConversationWith(
+				agentchatconversation.CreatedByEQ(userID),
+				agentchatconversation.DeletedAtIsNil(),
+			),
+		).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, domain.ErrMessageNotFound
+		}
+		return nil, err
+	}
+	return msg, nil
+}
+
+// GetAttachment retrieves an attachment owned by the authenticated user in the current workspace.
+func (r *chatRepository) GetAttachment(ctx context.Context, id int64) (*ent.AgentChatAttachment, error) {
+	wsID := base.WorkspaceIDFromContext(ctx)
+	if wsID == 0 {
+		return nil, base.ErrWorkspaceRequired
+	}
+	userID := base.UserIDFromContext(ctx)
+	if userID == 0 {
+		return nil, base.ErrUnauthorized
+	}
+
+	att, err := r.cli.AgentChatAttachment.Query().
+		Where(
+			agentchatattachment.IDEQ(id),
+			agentchatattachment.WorkspaceIDEQ(wsID),
+			agentchatattachment.HasConversationWith(
+				agentchatconversation.CreatedByEQ(userID),
+				agentchatconversation.DeletedAtIsNil(),
+			),
+		).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, domain.ErrAttachmentNotFound
+		}
+		return nil, err
+	}
+	return att, nil
 }

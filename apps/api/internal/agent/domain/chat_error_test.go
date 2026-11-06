@@ -52,6 +52,12 @@ func TestChatErrorsRegistered(t *testing.T) {
 			expectedStatus: fiber.StatusUnprocessableEntity,
 			expectedMsg:    "invalid draft proposal",
 		},
+		{
+			err:            domain.ErrAttachmentNotFound,
+			expectedCode:   "ATTACHMENT_NOT_FOUND",
+			expectedStatus: fiber.StatusNotFound,
+			expectedMsg:    "attachment not found",
+		},
 	}
 
 	for _, tc := range testCases {

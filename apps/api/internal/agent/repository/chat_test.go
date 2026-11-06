@@ -594,3 +594,56 @@ func TestChat_ContextValidation(t *testing.T) {
 	_, err = f.repo.ListAttachmentsByMessage(noUserCtx, 1)
 	assert.ErrorIs(t, err, base.ErrUnauthorized)
 }
+
+func TestChatRepository_GetMessageAndAttachment(t *testing.T) {
+	f := setupChatRepo(t)
+
+	conv, err := f.repo.CreateConversation(f.ctxUser1, "Test Message and Attachment")
+	require.NoError(t, err)
+
+	msg, err := f.repo.AppendMessage(f.ctxUser1, repository.AppendMessageParams{
+		ConversationID: conv.ID,
+		Role:           agentchatmessage.RoleUser,
+		Content:        "Hello world",
+	})
+	require.NoError(t, err)
+
+	att, err := f.repo.CreateAttachment(f.ctxUser1, repository.CreateAttachmentParams{
+		ConversationID: conv.ID,
+		MessageID:      &msg.ID,
+		ObjectKey:      "chat/test.pdf",
+		Bucket:         "omed-bucket",
+		MIME:           "application/pdf",
+		Size:           1234,
+		FileName:       "test.pdf",
+	})
+	require.NoError(t, err)
+
+	// GetMessage success
+	gotMsg, err := f.repo.GetMessage(f.ctxUser1, msg.ID)
+	require.NoError(t, err)
+	assert.Equal(t, msg.ID, gotMsg.ID)
+	assert.Equal(t, "Hello world", gotMsg.Content)
+
+	// GetMessage isolation (user2 cannot see user1 message)
+	_, err = f.repo.GetMessage(f.ctxUser2, msg.ID)
+	assert.ErrorIs(t, err, domain.ErrMessageNotFound)
+
+	// GetMessage not found
+	_, err = f.repo.GetMessage(f.ctxUser1, 999999)
+	assert.ErrorIs(t, err, domain.ErrMessageNotFound)
+
+	// GetAttachment success
+	gotAtt, err := f.repo.GetAttachment(f.ctxUser1, att.ID)
+	require.NoError(t, err)
+	assert.Equal(t, att.ID, gotAtt.ID)
+	assert.Equal(t, "test.pdf", gotAtt.FileName)
+
+	// GetAttachment isolation (user2 cannot see user1 attachment)
+	_, err = f.repo.GetAttachment(f.ctxUser2, att.ID)
+	assert.ErrorIs(t, err, domain.ErrAttachmentNotFound)
+
+	// GetAttachment not found
+	_, err = f.repo.GetAttachment(f.ctxUser1, 999999)
+	assert.ErrorIs(t, err, domain.ErrAttachmentNotFound)
+}

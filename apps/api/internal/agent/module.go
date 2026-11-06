@@ -38,6 +38,7 @@ type AgentModule struct {
 	ProviderService  service.ProviderService
 	SettingService   service.SettingService
 	FinancialService    service.FinancialService
+	ChatService         service.ChatService
 	FinanceDraftContext service.FinanceDraftContext
 	Storage             s3x.Storage
 }
@@ -58,11 +59,22 @@ func New(cfg Config) *AgentModule {
 	}
 	financialSvc := service.NewFinancialService(settingRepo, providerSvc, cfg.FinanceContext, opts...)
 
+	chatRepo := repository.NewChatRepository(cfg.EntCli)
+	var chatOpts []service.ChatOption
+	if cfg.TestFallbackAdapter != nil {
+		chatOpts = append(chatOpts, service.WithChatTestFallback(cfg.TestFallbackAdapter))
+	}
+	if cfg.Logger != nil {
+		chatOpts = append(chatOpts, service.WithChatLogger(cfg.Logger, cfg.LogHTTPBody))
+	}
+	chatSvc := service.NewChatService(chatRepo, settingRepo, providerSvc, cfg.FinanceDraftContext, cfg.Storage, chatOpts...)
+
 	return &AgentModule{
-		cfg:              cfg,
-		ProviderService:  providerSvc,
-		SettingService:   settingSvc,
+		cfg:                 cfg,
+		ProviderService:     providerSvc,
+		SettingService:      settingSvc,
 		FinancialService:    financialSvc,
+		ChatService:         chatSvc,
 		FinanceDraftContext: cfg.FinanceDraftContext,
 		Storage:             cfg.Storage,
 	}

@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"io"
 
 	"github.com/kilip/omed/api/ent/agentchatmessage"
 	"github.com/kilip/omed/api/internal/base"
@@ -153,4 +154,62 @@ type CreateAttachmentParams struct {
 	MIME           string
 	Size           int64
 	FileName       string
+}
+
+// AttachmentUpload represents a file uploaded as part of a chat message.
+type AttachmentUpload struct {
+	FileName string    `json:"fileName"`
+	MIME     string    `json:"mime"`
+	Size     int64     `json:"size"`
+	Data     []byte    `json:"-"`
+	Reader   io.Reader `json:"-"`
+}
+
+// ReadData returns the binary content of the attachment, reading from Reader if Data is empty.
+func (a *AttachmentUpload) ReadData() ([]byte, error) {
+	if len(a.Data) > 0 {
+		return a.Data, nil
+	}
+	if a.Reader != nil {
+		data, err := io.ReadAll(a.Reader)
+		if err != nil {
+			return nil, err
+		}
+		a.Data = data
+		if a.Size == 0 {
+			a.Size = int64(len(data))
+		}
+		return data, nil
+	}
+	return nil, nil
+}
+
+// AttachmentDownload represents a downloaded attachment stream with metadata.
+type AttachmentDownload struct {
+	Attachment AttachmentResponse `json:"attachment"`
+	FileName   string             `json:"fileName"`
+	MIME       string             `json:"mime"`
+	Size       int64              `json:"size"`
+	Body       io.ReadCloser      `json:"-"`
+}
+
+// ListConversationsResponse represents the paginated response for listing conversations.
+type ListConversationsResponse struct {
+	Conversations []ConversationResponse `json:"conversations"`
+	Items         []ConversationResponse `json:"items,omitempty"`
+	Total         int                    `json:"total"`
+	Page          int                    `json:"page"`
+	Limit         int                    `json:"limit"`
+}
+
+// ConversationDetailResponse represents the detailed view of a conversation including its messages.
+type ConversationDetailResponse struct {
+	ConversationResponse
+}
+
+// SendMessageResponse represents the result of sending a message in a conversation.
+type SendMessageResponse struct {
+	UserMessage      MessageResponse `json:"userMessage"`
+	AssistantMessage MessageResponse `json:"assistantMessage"`
+	DraftProposal    *DraftProposal  `json:"draftProposal,omitempty"`
 }
