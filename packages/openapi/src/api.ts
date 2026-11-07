@@ -2192,7 +2192,94 @@ export interface paths {
     };
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Update conversation title
+     * @description Rename an existing agent chat conversation
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Workspace ID */
+          wid: number;
+          /** @description Conversation ID */
+          id: number;
+        };
+        cookie?: never;
+      };
+      /** @description Update conversation payload */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["model.UpdateConversationRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.WebResponse-model_ConversationResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Internal Server Error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+      };
+    };
     trace?: never;
   };
   "/workspaces/{wid}/agent/chat/conversations/{id}/messages": {
@@ -2278,6 +2365,15 @@ export interface paths {
         };
         /** @description Not Found */
         404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["httpx.ErrorResponse"];
+          };
+        };
+        /** @description Request Entity Too Large */
+        413: {
           headers: {
             [name: string]: unknown;
           };
@@ -13785,6 +13881,7 @@ export interface components {
     };
     "model.SendMessageResponse": {
       assistantMessage?: components["schemas"]["model.MessageResponse"];
+      conversationTitle?: string;
       draftProposal?: components["schemas"]["model.DraftProposal"];
       userMessage?: components["schemas"]["model.MessageResponse"];
     };
@@ -13910,6 +14007,10 @@ export interface components {
     "model.UpdateCmsSettingRequest": {
       defaultLocale?: string;
       supportedLocales?: string[];
+    };
+    "model.UpdateConversationRequest": {
+      /** @example Purchase at Mitra Sejahtera Mart */
+      title: string;
     };
     "model.UpdateEntryRequest": {
       description?: string;

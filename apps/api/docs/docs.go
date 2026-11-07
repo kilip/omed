@@ -3553,6 +3553,9 @@ const docTemplate = `{
                     "assistantMessage": {
                         "$ref": "#/components/schemas/model.MessageResponse"
                     },
+                    "conversationTitle": {
+                        "type": "string"
+                    },
                     "draftProposal": {
                         "$ref": "#/components/schemas/model.DraftProposal"
                     },
@@ -3910,6 +3913,18 @@ const docTemplate = `{
                         "uniqueItems": false
                     }
                 },
+                "type": "object"
+            },
+            "model.UpdateConversationRequest": {
+                "properties": {
+                    "title": {
+                        "example": "Purchase at Mitra Sejahtera Mart",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "title"
+                ],
                 "type": "object"
             },
             "model.UpdateEntryRequest": {
@@ -6601,6 +6616,123 @@ const docTemplate = `{
                 "tags": [
                     "Agent Chat"
                 ]
+            },
+            "patch": {
+                "description": "Rename an existing agent chat conversation",
+                "parameters": [
+                    {
+                        "description": "Workspace ID",
+                        "in": "path",
+                        "name": "wid",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Conversation ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateConversationRequest",
+                                "summary": "request",
+                                "description": "Update conversation payload"
+                            }
+                        }
+                    },
+                    "description": "Update conversation payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.WebResponse-model_ConversationResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update conversation title",
+                "tags": [
+                    "Agent Chat"
+                ]
             }
         },
         "/workspaces/{wid}/agent/chat/conversations/{id}/messages": {
@@ -6702,6 +6834,16 @@ const docTemplate = `{
                             }
                         },
                         "description": "Not Found"
+                    },
+                    "413": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/httpx.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Request Entity Too Large"
                     },
                     "422": {
                         "content": {
