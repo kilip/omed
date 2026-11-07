@@ -21,6 +21,8 @@ import (
 	"github.com/kilip/omed/api/internal/platform/s3x"
 )
 
+const defaultAttachmentPrompt = "Please analyze the attached document and propose a draft transaction if applicable."
+
 // ChatService handles conversation management, message exchange with LLMs, attachment storage, and draft proposals.
 type ChatService interface {
 	CreateConversation(ctx context.Context, title string) (model.ConversationResponse, error)
@@ -179,9 +181,9 @@ func (s *chatService) CreateConversation(ctx context.Context, title string) (mod
 		return model.ConversationResponse{}, err
 	}
 	return model.ConversationResponse{
-		ID:        conv.ID,
-		Title:     conv.Title,
-		Messages:  []model.MessageResponse{},
+		ID:       conv.ID,
+		Title:    conv.Title,
+		Messages: []model.MessageResponse{},
 		AuditMeta: base.AuditMeta{
 			CreatedAt: conv.CreatedAt,
 			UpdatedAt: conv.UpdatedAt,
@@ -199,8 +201,8 @@ func (s *chatService) ListConversations(ctx context.Context, page, limit int) (m
 	items := make([]model.ConversationResponse, len(convs))
 	for i, c := range convs {
 		items[i] = model.ConversationResponse{
-			ID:        c.ID,
-			Title:     c.Title,
+			ID:    c.ID,
+			Title: c.Title,
 			AuditMeta: base.AuditMeta{
 				CreatedAt: c.CreatedAt,
 				UpdatedAt: c.UpdatedAt,
@@ -243,9 +245,9 @@ func (s *chatService) GetConversation(ctx context.Context, id int64) (model.Conv
 
 	return model.ConversationDetailResponse{
 		ConversationResponse: model.ConversationResponse{
-			ID:        conv.ID,
-			Title:     conv.Title,
-			Messages:  msgResps,
+			ID:       conv.ID,
+			Title:    conv.Title,
+			Messages: msgResps,
 			AuditMeta: base.AuditMeta{
 				CreatedAt: conv.CreatedAt,
 				UpdatedAt: conv.UpdatedAt,
@@ -454,6 +456,8 @@ func (s *chatService) SendMessage(ctx context.Context, conversationID int64, req
 			parts := make([]llmx.Part, 0, 1+len(uploaded))
 			if strings.TrimSpace(userMsg.Content) != "" {
 				parts = append(parts, llmx.Part{Text: userMsg.Content})
+			} else if len(uploaded) > 0 {
+				parts = append(parts, llmx.Part{Text: defaultAttachmentPrompt})
 			}
 			for _, u := range uploaded {
 				if strings.HasPrefix(u.mime, "image/") {
@@ -467,9 +471,13 @@ func (s *chatService) SendMessage(ctx context.Context, conversationID int64, req
 				Parts: parts,
 			})
 		} else if m.Role == agentchatmessage.RoleUser {
+			content := m.Content
+			if strings.TrimSpace(content) == "" {
+				content = defaultAttachmentPrompt
+			}
 			llmMessages = append(llmMessages, llmx.Message{
 				Role:  llmx.RoleUser,
-				Parts: []llmx.Part{{Text: m.Content}},
+				Parts: []llmx.Part{{Text: content}},
 			})
 		} else if m.Role == agentchatmessage.RoleAssistant {
 			llmMessages = append(llmMessages, llmx.Message{
@@ -497,6 +505,9 @@ func (s *chatService) SendMessage(ctx context.Context, conversationID int64, req
 	for range s.maxIterations {
 		resp, err := adapter.Chat(chatCtx, reqLLM)
 		if err != nil {
+			if s.logger != nil {
+				s.logger.ErrorContext(chatCtx, "chat LLM call failed", "conversation_id", conversationID, "error", err)
+			}
 			return model.SendMessageResponse{}, mapLLMError(err, chatCtx)
 		}
 		if resp == nil {

@@ -1,9 +1,14 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"iter"
+	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
@@ -768,4 +773,146 @@ func TestChatService_ToolLoopMaxIterations(t *testing.T) {
 	// It should terminate after 3 iterations and not hang or fail
 	assert.NotEmpty(t, resp.AssistantMessage.Content)
 	assert.Equal(t, 3, len(mem.Requests()))
+}
+
+type failingAdapter struct {
+	err  error
+	caps llmx.Capabilities
+}
+
+func (a *failingAdapter) Chat(ctx context.Context, req llmx.Request) (*llmx.Response, error) {
+	return nil, a.err
+}
+
+func (a *failingAdapter) Stream(ctx context.Context, req llmx.Request) iter.Seq2[llmx.Event, error] {
+	return func(yield func(llmx.Event, error) bool) {
+		yield(llmx.Event{}, a.err)
+	}
+}
+
+func (a *failingAdapter) Capabilities() llmx.Capabilities {
+	return a.caps
+}
+
+func TestChatService_ImageOnlyTurn_InjectsFallbackPrompt(t *testing.T) {
+	f := setupChatFixture(t)
+
+	mem := llmx.NewMemory(
+		llmx.Response{
+			Message: llmx.Message{
+				Role:  llmx.RoleAssistant,
+				Parts: []llmx.Part{{Text: "I analyzed the image."}},
+			},
+		},
+	)
+	adapter := &customCapAdapter{Adapter: mem, caps: standardTestCapabilities()}
+	svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+
+	conv, err := svc.CreateConversation(f.ctx, "Image Only Chat")
+	require.NoError(t, err)
+
+	files := []model.AttachmentUpload{
+		{
+			FileName: "receipt.png",
+			MIME:     "image/png",
+			Data:     []byte("fake-png-bytes"),
+		},
+	}
+
+	resp, err := svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{
+		Content: "   ",
+	}, files)
+	require.NoError(t, err)
+	assert.Equal(t, "I analyzed the image.", resp.AssistantMessage.Content)
+
+	reqs := mem.Requests()
+	require.Len(t, reqs, 1)
+	req := reqs[0]
+	require.Len(t, req.Messages, 2)
+	userTurn := req.Messages[1]
+	assert.Equal(t, llmx.RoleUser, userTurn.Role)
+	require.Len(t, userTurn.Parts, 2)
+	assert.Equal(t, service.DefaultAttachmentPrompt, userTurn.Parts[0].Text)
+	require.NotNil(t, userTurn.Parts[1].Image)
+	assert.Equal(t, "image/png", userTurn.Parts[1].Image.MIME)
+	assert.Equal(t, []byte("fake-png-bytes"), userTurn.Parts[1].Image.Data)
+}
+
+func TestChatService_HistorySanitization_EmptyPriorUserTurn(t *testing.T) {
+	f := setupChatFixture(t)
+
+	mem := llmx.NewMemory(
+		llmx.Response{
+			Message: llmx.Message{
+				Role:  llmx.RoleAssistant,
+				Parts: []llmx.Part{{Text: "Acknowledged."}},
+			},
+		},
+	)
+	adapter := &customCapAdapter{Adapter: mem, caps: standardTestCapabilities()}
+	svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+
+	conv, err := svc.CreateConversation(f.ctx, "History Sanitization Chat")
+	require.NoError(t, err)
+
+	// Simulate a prior turn saved with empty content before an LLM failure
+	_, err = f.chatRepo.AppendMessage(f.ctx, model.AppendMessageParams{
+		ConversationID: conv.ID,
+		Role:           agentchatmessage.RoleUser,
+		Content:        "",
+		DraftStatus:    agentchatmessage.DraftStatusNone,
+	})
+	require.NoError(t, err)
+
+	// Now send a new user turn
+	resp, err := svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{
+		Content: "What was my previous message?",
+	}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, "Acknowledged.", resp.AssistantMessage.Content)
+
+	reqs := mem.Requests()
+	require.Len(t, reqs, 1)
+	req := reqs[0]
+	require.Len(t, req.Messages, 3)
+
+	priorTurn := req.Messages[1]
+	assert.Equal(t, llmx.RoleUser, priorTurn.Role)
+	require.Len(t, priorTurn.Parts, 1)
+	assert.Equal(t, service.DefaultAttachmentPrompt, priorTurn.Parts[0].Text)
+
+	activeTurn := req.Messages[2]
+	assert.Equal(t, llmx.RoleUser, activeTurn.Role)
+	require.Len(t, activeTurn.Parts, 1)
+	assert.Equal(t, "What was my previous message?", activeTurn.Parts[0].Text)
+}
+
+func TestChatService_LLMError_LoggedAtErrorLevel(t *testing.T) {
+	f := setupChatFixture(t)
+
+	llmErr := errors.New("upstream gemini 500 internal error")
+	adapter := &failingAdapter{
+		err:  llmErr,
+		caps: standardTestCapabilities(),
+	}
+
+	var logBuf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true}, service.WithChatLogger(logger, false))
+
+	conv, err := svc.CreateConversation(f.ctx, "LLM Failure Chat")
+	require.NoError(t, err)
+
+	_, err = svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{
+		Content: "Analyze something",
+	}, nil)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, domain.ErrAnalysisFailed)
+
+	logOutput := logBuf.String()
+	assert.True(t, strings.Contains(logOutput, "level=ERROR"))
+	assert.True(t, strings.Contains(logOutput, "chat LLM call failed"))
+	assert.True(t, strings.Contains(logOutput, fmt.Sprintf("conversation_id=%d", conv.ID)))
+	assert.True(t, strings.Contains(logOutput, "upstream gemini 500 internal error"))
 }
