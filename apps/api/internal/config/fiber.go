@@ -400,9 +400,9 @@ func ErrorHandler(log *slog.Logger, logHTTPBody ...bool) fiber.ErrorHandler {
 		if len(body.Fields) > 0 {
 			errorAttrs = append(errorAttrs, slog.Any("fields", body.Fields))
 		}
-		if body.Code == base.ErrUnknown.Error() && err != nil {
+		if (status >= 500 || body.Code == base.ErrUnknown.Error()) && err != nil {
 			errorAttrs = append(errorAttrs, slog.String("cause", err.Error()))
-			if log != nil {
+			if body.Code == base.ErrUnknown.Error() && log != nil {
 				log.ErrorContext(c, "unknown error", "error", err)
 			}
 		}

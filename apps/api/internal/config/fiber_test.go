@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/kilip/omed/api/internal/agent/domain"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/config"
 	"github.com/kilip/omed/api/internal/platform/httpx"
@@ -213,6 +215,26 @@ func (s *FiberSuite) Test_ErrorHandler_UnknownError() {
 	logged := s.logBuf.String()
 	s.Contains(logged, "unknown error")
 	s.Contains(logged, "database disconnected unexpectedly")
+}
+
+func (s *FiberSuite) Test_ErrorHandler_5xxMappedError_LogsCause() {
+	app := config.GetFiber(s.cfg, s.logger)
+	app.Get("/bad-gateway", func(c fiber.Ctx) error {
+		return fmt.Errorf("%w: upstream 500 error occurred", domain.ErrAnalysisFailed)
+	})
+
+	req := httptest.NewRequest(fiber.MethodGet, "/bad-gateway", nil)
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+
+	s.Equal(fiber.StatusBadGateway, resp.StatusCode)
+	var errResp httpx.ErrorResponse
+	s.Require().NoError(json.NewDecoder(resp.Body).Decode(&errResp))
+	s.Equal("FINANCIAL_ANALYSIS_FAILED", errResp.Error.Code)
+
+	logged := s.logBuf.String()
+	s.Contains(logged, "upstream 500 error occurred")
 }
 
 func (s *FiberSuite) Test_GetFiber_Timeouts() {

@@ -1401,3 +1401,46 @@ func TestChatService_RetryRespectsContextCancellation(t *testing.T) {
 		assert.Less(t, elapsed, 400*time.Millisecond, "should abort backoff sleep immediately on cancel")
 	})
 }
+
+func TestMapLLMError_PreservesErrorChain(t *testing.T) {
+	t.Run("ErrUnavailable maps to ErrAnalysisFailed preserving cause", func(t *testing.T) {
+		origErr := fmt.Errorf("%w: upstream 500", llmx.ErrUnavailable)
+		mapped := service.ExportMapLLMError(origErr, context.Background())
+
+		assert.True(t, errors.Is(mapped, domain.ErrAnalysisFailed), "must match domain.ErrAnalysisFailed")
+		assert.True(t, errors.Is(mapped, llmx.ErrUnavailable), "must preserve llmx.ErrUnavailable")
+		assert.Contains(t, mapped.Error(), "upstream 500")
+	})
+
+	t.Run("ErrRateLimit maps to ErrAnalysisRateLimited preserving cause", func(t *testing.T) {
+		origErr := fmt.Errorf("%w: quota exceeded", llmx.ErrRateLimit)
+		mapped := service.ExportMapLLMError(origErr, context.Background())
+
+		assert.True(t, errors.Is(mapped, domain.ErrAnalysisRateLimited), "must match domain.ErrAnalysisRateLimited")
+		assert.True(t, errors.Is(mapped, llmx.ErrRateLimit), "must preserve llmx.ErrRateLimit")
+		assert.Contains(t, mapped.Error(), "quota exceeded")
+	})
+
+	t.Run("ErrUnsupportedContent maps to ErrUnsupportedDocument preserving cause", func(t *testing.T) {
+		origErr := fmt.Errorf("%w: unsupported format", llmx.ErrUnsupportedContent)
+		mapped := service.ExportMapLLMError(origErr, context.Background())
+
+		assert.True(t, errors.Is(mapped, domain.ErrUnsupportedDocument), "must match domain.ErrUnsupportedDocument")
+		assert.True(t, errors.Is(mapped, llmx.ErrUnsupportedContent), "must preserve llmx.ErrUnsupportedContent")
+		assert.Contains(t, mapped.Error(), "unsupported format")
+	})
+
+	t.Run("DeadlineExceeded maps to ErrAnalysisTimeout preserving cause", func(t *testing.T) {
+		origErr := context.DeadlineExceeded
+		mapped := service.ExportMapLLMError(origErr, context.Background())
+
+		assert.True(t, errors.Is(mapped, domain.ErrAnalysisTimeout), "must match domain.ErrAnalysisTimeout")
+		assert.True(t, errors.Is(mapped, context.DeadlineExceeded), "must preserve context.DeadlineExceeded")
+	})
+
+	t.Run("nil error returns ErrAnalysisFailed", func(t *testing.T) {
+		mapped := service.ExportMapLLMError(nil, context.Background())
+
+		assert.True(t, errors.Is(mapped, domain.ErrAnalysisFailed), "nil error must return ErrAnalysisFailed")
+	})
+}

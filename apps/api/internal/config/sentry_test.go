@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http/httptest"
@@ -15,6 +16,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"github.com/kilip/omed/api/internal/agent/domain"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/config"
 	"github.com/kilip/omed/api/internal/platform/httpx"
@@ -211,6 +213,64 @@ func (s *SentrySuite) Test_ErrorHandler_Captures5xx_WithTagsAndUser_Ignores4xx()
 	s.Empty(ev.User.Email)
 	s.Empty(ev.User.Name)
 	s.Empty(ev.User.Username)
+}
+
+func (s *SentrySuite) Test_ErrorHandler_5xxMappedError_IncludesCauseAndCapturesSentry() {
+	cfg := config.Config{
+		Env:                    "test",
+		SentryDSN:              testSentryDSN,
+		SentryEnvironment:      "staging",
+		SentryRelease:          "omed@1.0.0",
+		SentryTracesSampleRate: 0,
+	}
+
+	flush, err := config.InitSentryWithTransport(cfg, s.transport)
+	s.Require().NoError(err)
+	defer flush()
+
+	app := config.GetFiber(cfg, s.logger)
+	app.Use(requestid.New())
+
+	app.Post("/workspaces/:wid/agent/chat/messages", func(c fiber.Ctx) error {
+		upstreamErr := errors.New("upstream gemini 500 internal error")
+		return fmt.Errorf("%w: %w", domain.ErrAnalysisFailed, upstreamErr)
+	})
+
+	req := httptest.NewRequest(fiber.MethodPost, "/workspaces/10/agent/chat/messages", strings.NewReader(`{"content":"hello"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Request-ID", "req-gemini-502")
+
+	resp, err := app.Test(req)
+	s.Require().NoError(err)
+	defer func() { _ = resp.Body.Close() }()
+
+	s.Equal(fiber.StatusBadGateway, resp.StatusCode)
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	s.Require().NoError(err)
+
+	var errResp httpx.ErrorResponse
+	err = json.Unmarshal(bodyBytes, &errResp)
+	s.Require().NoError(err)
+	s.Equal("FINANCIAL_ANALYSIS_FAILED", errResp.Error.Code)
+	s.Equal("financial analysis failed", errResp.Error.Message)
+
+	events := s.transport.Events()
+	s.Require().Len(events, 1)
+	ev := events[0]
+	s.Equal(sentry.LevelError, ev.Level)
+	s.Equal("req-gemini-502", ev.Tags["request_id"])
+	s.Equal("FINANCIAL_ANALYSIS_FAILED", ev.Tags["error.code"])
+	s.Equal("POST", ev.Tags["http.method"])
+	s.Equal("/workspaces/:wid/agent/chat/messages", ev.Tags["http.route"])
+
+	s.Require().NotEmpty(ev.Exception)
+	var exceptionValues []string
+	for _, exc := range ev.Exception {
+		exceptionValues = append(exceptionValues, exc.Value)
+	}
+	allExceptions := strings.Join(exceptionValues, " | ")
+	s.Contains(allExceptions, "upstream gemini 500 internal error")
 }
 
 func (s *SentrySuite) Test_PanicRecovery_CapturedBySentry_AndReturns500() {
