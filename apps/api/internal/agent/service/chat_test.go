@@ -1444,3 +1444,44 @@ func TestMapLLMError_PreservesErrorChain(t *testing.T) {
 		assert.True(t, errors.Is(mapped, domain.ErrAnalysisFailed), "nil error must return ErrAnalysisFailed")
 	})
 }
+
+func TestChatSystemPrompt_TemporalGrounding(t *testing.T) {
+	testTime := time.Date(2026, 11, 7, 14, 30, 0, 0, time.UTC)
+	prompt := service.BuildChatSystemPrompt(testTime)
+
+	// Verify date injection
+	assert.Contains(t, prompt, "2026-11-07")
+	assert.Contains(t, prompt, "2026-11")
+	assert.Contains(t, prompt, "2026")
+	assert.Contains(t, prompt, "Saturday")
+
+	// Verify temporal grounding guidelines
+	assert.Contains(t, prompt, "hari ini")
+	assert.Contains(t, prompt, "bulan ini")
+	assert.Contains(t, prompt, "bulan lalu")
+	assert.Contains(t, prompt, "tahun ini")
+
+	// Verify all financial tools mentioned
+	assert.Contains(t, prompt, "get_account_balances")
+	assert.Contains(t, prompt, "get_financial_summary")
+	assert.Contains(t, prompt, "get_profit_loss_breakdown")
+	assert.Contains(t, prompt, "search_cashflows")
+	assert.Contains(t, prompt, "get_account_ledger")
+	assert.Contains(t, prompt, "search_transactions")
+	assert.Contains(t, prompt, "lookup_exchange_rate")
+	assert.Contains(t, prompt, "list_accounts")
+	assert.Contains(t, prompt, "list_currencies")
+	assert.Contains(t, prompt, "list_periods")
+	assert.Contains(t, prompt, "propose_draft")
+
+	// Verify policies
+	assert.Contains(t, prompt, "Zero Arithmetic Hallucination Policy")
+	assert.Contains(t, prompt, "matchedNetTotal")
+	assert.Contains(t, prompt, "totalRevenue")
+	assert.Contains(t, prompt, "totalExpense")
+	assert.Contains(t, prompt, "netProfit")
+	assert.Contains(t, prompt, "returnedBaseAmountSum")
+	assert.Contains(t, prompt, "POSTED")
+	assert.Contains(t, prompt, "DRAFT")
+	assert.Contains(t, prompt, "Ambiguity Handling")
+}

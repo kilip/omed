@@ -1,6 +1,14 @@
 package service
 
-import "context"
+import (
+	"context"
+	"time"
+)
+
+// BuildChatSystemPrompt exports buildChatSystemPrompt for tests in service_test.
+func BuildChatSystemPrompt(now time.Time) string {
+	return buildChatSystemPrompt(now)
+}
 // BuildSystemPrompt exports the unexported buildSystemPrompt function for tests in service_test.
 func BuildSystemPrompt(snap FinanceSnapshot) string {
 	return buildSystemPrompt(snap)
