@@ -302,3 +302,31 @@ func (a *financeDraftContextAdapter) saveJournalDraft(ctx context.Context, propo
 	}
 	return tx.ID, nil
 }
+
+func (a *financeDraftContextAdapter) GetAccountBalances(ctx context.Context, req agentsvc.AccountBalanceQuery) (agentsvc.AccountBalanceResult, error) {
+	return agentsvc.AccountBalanceResult{}, nil
+}
+
+func (a *financeDraftContextAdapter) GetFinancialSummary(ctx context.Context, req agentsvc.FinancialSummaryQuery) (agentsvc.FinancialSummaryResult, error) {
+	return agentsvc.FinancialSummaryResult{}, nil
+}
+
+func (a *financeDraftContextAdapter) GetProfitLossBreakdown(ctx context.Context, req agentsvc.ProfitLossQuery) (agentsvc.ProfitLossResult, error) {
+	return agentsvc.ProfitLossResult{}, nil
+}
+
+func (a *financeDraftContextAdapter) SearchCashflows(ctx context.Context, req agentsvc.CashflowSearchQuery) (agentsvc.CashflowSearchResult, error) {
+	return agentsvc.CashflowSearchResult{}, nil
+}
+
+func (a *financeDraftContextAdapter) GetAccountLedger(ctx context.Context, req agentsvc.AccountLedgerQuery) (agentsvc.AccountLedgerResult, error) {
+	return agentsvc.AccountLedgerResult{}, nil
+}
+
+func (a *financeDraftContextAdapter) SearchTransactions(ctx context.Context, req agentsvc.TransactionSearchQuery) (agentsvc.TransactionSearchResult, error) {
+	return agentsvc.TransactionSearchResult{}, nil
+}
+
+func (a *financeDraftContextAdapter) LookupExchangeRate(ctx context.Context, req agentsvc.ExchangeRateQuery) (agentsvc.ExchangeRateResult, error) {
+	return agentsvc.ExchangeRateResult{}, nil
+}

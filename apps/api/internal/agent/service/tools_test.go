@@ -56,6 +56,54 @@ func (m *mockFinanceDraftContext) SaveDraft(ctx context.Context, proposal model.
 	return m.saveDraftID, nil
 }
 
+func (m *mockFinanceDraftContext) GetAccountBalances(ctx context.Context, req agentsvc.AccountBalanceQuery) (agentsvc.AccountBalanceResult, error) {
+	return agentsvc.AccountBalanceResult{
+		BaseCurrency: "IDR",
+		Accounts:     []agentsvc.AccountBalanceItem{},
+	}, nil
+}
+
+func (m *mockFinanceDraftContext) GetFinancialSummary(ctx context.Context, req agentsvc.FinancialSummaryQuery) (agentsvc.FinancialSummaryResult, error) {
+	return agentsvc.FinancialSummaryResult{
+		BaseCurrency: "IDR",
+	}, nil
+}
+
+func (m *mockFinanceDraftContext) GetProfitLossBreakdown(ctx context.Context, req agentsvc.ProfitLossQuery) (agentsvc.ProfitLossResult, error) {
+	return agentsvc.ProfitLossResult{
+		BaseCurrency: "IDR",
+		Revenues:     []agentsvc.ProfitLossCategoryItem{},
+		Expenses:     []agentsvc.ProfitLossCategoryItem{},
+	}, nil
+}
+
+func (m *mockFinanceDraftContext) SearchCashflows(ctx context.Context, req agentsvc.CashflowSearchQuery) (agentsvc.CashflowSearchResult, error) {
+	return agentsvc.CashflowSearchResult{
+		Items: []agentsvc.CashflowDocItem{},
+	}, nil
+}
+
+func (m *mockFinanceDraftContext) GetAccountLedger(ctx context.Context, req agentsvc.AccountLedgerQuery) (agentsvc.AccountLedgerResult, error) {
+	return agentsvc.AccountLedgerResult{
+		AccountCode:  req.Account,
+		BaseCurrency: "IDR",
+		Postings:     []agentsvc.AccountLedgerItem{},
+	}, nil
+}
+
+func (m *mockFinanceDraftContext) SearchTransactions(ctx context.Context, req agentsvc.TransactionSearchQuery) (agentsvc.TransactionSearchResult, error) {
+	return agentsvc.TransactionSearchResult{
+		Items: []agentsvc.TransactionItem{},
+	}, nil
+}
+
+func (m *mockFinanceDraftContext) LookupExchangeRate(ctx context.Context, req agentsvc.ExchangeRateQuery) (agentsvc.ExchangeRateResult, error) {
+	return agentsvc.ExchangeRateResult{
+		FromCurrency: req.FromCurrency,
+		ToCurrency:   req.ToCurrency,
+	}, nil
+}
+
 func newTestMockContext() *mockFinanceDraftContext {
 	return &mockFinanceDraftContext{
 		accounts: []agentsvc.AccountOption{
