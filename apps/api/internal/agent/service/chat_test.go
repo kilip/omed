@@ -9,9 +9,12 @@ import (
 	"iter"
 	"log/slog"
 	"strings"
+	"sync"
 	"testing"
-	"github.com/gofiber/fiber/v3"
 	"time"
+
+	"github.com/getsentry/sentry-go"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/agentchatmessage"
@@ -87,6 +90,7 @@ func (f *chatTestFixture) newService(adapter llmx.Adapter, setting *ent.AgentSet
 	resolver := &fakeAdapterResolver{adapter: adapter}
 	defaultOpts := []service.ChatOption{
 		service.WithChatTimeout(5 * time.Second),
+		service.WithChatRetry(2, 5*time.Millisecond, 10*time.Millisecond),
 	}
 	defaultOpts = append(defaultOpts, opts...)
 	return service.NewChatService(f.chatRepo, settingRepo, resolver, f.draftCtx, f.storage, defaultOpts...)
@@ -1145,4 +1149,255 @@ func TestChatService_ToolNamePropagatedInRoleToolMessage(t *testing.T) {
 		}
 	}
 	assert.True(t, foundRoleTool, "RoleTool message must have ToolName populated from tool call")
+}
+
+type attemptTrackingAdapter struct {
+	mu       sync.Mutex
+	attempts int
+	onChat   func(attempt int, ctx context.Context, req llmx.Request) (*llmx.Response, error)
+	caps     llmx.Capabilities
+}
+
+func (a *attemptTrackingAdapter) Chat(ctx context.Context, req llmx.Request) (*llmx.Response, error) {
+	a.mu.Lock()
+	a.attempts++
+	attempt := a.attempts
+	a.mu.Unlock()
+	if a.onChat != nil {
+		return a.onChat(attempt, ctx, req)
+	}
+	return nil, errors.New("unhandled chat call")
+}
+
+func (a *attemptTrackingAdapter) Stream(ctx context.Context, req llmx.Request) iter.Seq2[llmx.Event, error] {
+	return func(yield func(llmx.Event, error) bool) {
+		yield(llmx.Event{}, errors.New("not implemented"))
+	}
+}
+
+func (a *attemptTrackingAdapter) Capabilities() llmx.Capabilities {
+	return a.caps
+}
+
+func (a *attemptTrackingAdapter) getAttempts() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.attempts
+}
+
+func TestChatService_RetryOnTransientUnavailable_Success(t *testing.T) {
+	f := setupChatFixture(t)
+
+	var logBuf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	adapter := &attemptTrackingAdapter{
+		caps: standardTestCapabilities(),
+		onChat: func(attempt int, ctx context.Context, req llmx.Request) (*llmx.Response, error) {
+			if attempt == 1 {
+				return nil, fmt.Errorf("%w: upstream 500 error", llmx.ErrUnavailable)
+			}
+			return &llmx.Response{
+				Message: llmx.Message{
+					Role:  llmx.RoleAssistant,
+					Parts: []llmx.Part{{Text: "Recovered from transient error!"}},
+				},
+			}, nil
+		},
+	}
+
+	svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true}, service.WithChatLogger(logger, false))
+
+	conv, err := svc.CreateConversation(f.ctx, "Retry Success Chat")
+	require.NoError(t, err)
+
+	resp, err := svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{
+		Content: "Hello after retry",
+	}, nil)
+	require.NoError(t, err)
+
+	assert.Equal(t, "Recovered from transient error!", resp.AssistantMessage.Content)
+	assert.Equal(t, 2, adapter.getAttempts())
+
+	logOutput := logBuf.String()
+	assert.True(t, strings.Contains(logOutput, "transient LLM error, retrying"), "should log retry warning")
+	assert.True(t, strings.Contains(logOutput, "attempt=1"))
+}
+
+type testSentryTransport struct {
+	mu     sync.Mutex
+	events []*sentry.Event
+}
+
+func (t *testSentryTransport) Configure(options sentry.ClientOptions) {}
+func (t *testSentryTransport) SendEvent(event *sentry.Event) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.events = append(t.events, event)
+}
+func (t *testSentryTransport) Flush(timeout time.Duration) bool         { return true }
+func (t *testSentryTransport) FlushWithContext(_ context.Context) bool { return true }
+func (t *testSentryTransport) Close()                                  {}
+
+func TestChatService_RetryOnTransientUnavailable_Exhausted(t *testing.T) {
+	f := setupChatFixture(t)
+
+	transport := &testSentryTransport{}
+	client, err := sentry.NewClient(sentry.ClientOptions{
+		Transport: transport,
+	})
+	require.NoError(t, err)
+	hub := sentry.NewHub(client, sentry.NewScope())
+	ctxWithHub := sentry.SetHubOnContext(f.ctx, hub)
+
+	var logBuf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	adapter := &attemptTrackingAdapter{
+		caps: standardTestCapabilities(),
+		onChat: func(attempt int, ctx context.Context, req llmx.Request) (*llmx.Response, error) {
+			return nil, fmt.Errorf("%w: upstream 503 service unavailable", llmx.ErrUnavailable)
+		},
+	}
+
+	svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true}, service.WithChatLogger(logger, false))
+
+	conv, err := svc.CreateConversation(f.ctx, "Retry Exhausted Chat")
+	require.NoError(t, err)
+
+	_, err = svc.SendMessage(ctxWithHub, conv.ID, model.SendMessageRequest{
+		Content: "Will exhaust retries",
+	}, nil)
+	require.Error(t, err)
+
+	assert.ErrorIs(t, err, domain.ErrAnalysisFailed)
+	assert.ErrorIs(t, err, llmx.ErrUnavailable)
+	assert.Equal(t, 3, adapter.getAttempts())
+
+	logOutput := logBuf.String()
+	assert.True(t, strings.Contains(logOutput, "transient LLM error, retrying"))
+	assert.True(t, strings.Contains(logOutput, "chat LLM call failed"))
+
+	hub.CaptureMessage("flush")
+	transport.mu.Lock()
+	events := transport.events
+	transport.mu.Unlock()
+	require.NotEmpty(t, events)
+	require.NotEmpty(t, events[0].Breadcrumbs)
+	crumb := events[0].Breadcrumbs[0]
+	assert.Equal(t, "llm", crumb.Category)
+	assert.Equal(t, "chat LLM call failed", crumb.Message)
+	assert.Equal(t, conv.ID, crumb.Data["conversation_id"])
+}
+
+func TestChatService_NonRetryableError_FailsFast(t *testing.T) {
+	testCases := []struct {
+		name        string
+		llmErr      error
+		expectedErr error
+	}{
+		{
+			name:        "RateLimit",
+			llmErr:      fmt.Errorf("%w: quota exceeded", llmx.ErrRateLimit),
+			expectedErr: domain.ErrAnalysisRateLimited,
+		},
+		{
+			name:        "BadRequest",
+			llmErr:      fmt.Errorf("%w: invalid parameter", llmx.ErrBadRequest),
+			expectedErr: domain.ErrAnalysisFailed,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := setupChatFixture(t)
+
+			adapter := &attemptTrackingAdapter{
+				caps: standardTestCapabilities(),
+				onChat: func(attempt int, ctx context.Context, req llmx.Request) (*llmx.Response, error) {
+					return nil, tc.llmErr
+				},
+			}
+
+			svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+
+			conv, err := svc.CreateConversation(f.ctx, "Fast Fail Chat")
+			require.NoError(t, err)
+
+			_, err = svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{
+				Content: "Fail fast",
+			}, nil)
+			require.Error(t, err)
+
+			assert.ErrorIs(t, err, tc.expectedErr)
+			assert.Equal(t, 1, adapter.getAttempts(), "non-retryable errors should fail on first attempt")
+		})
+	}
+}
+
+func TestChatService_RetryRespectsContextCancellation(t *testing.T) {
+	t.Run("CanceledBeforeRetry", func(t *testing.T) {
+		f := setupChatFixture(t)
+		ctx, cancel := context.WithCancel(f.ctx)
+
+		adapter := &attemptTrackingAdapter{
+			caps: standardTestCapabilities(),
+			onChat: func(attempt int, c context.Context, req llmx.Request) (*llmx.Response, error) {
+				cancel()
+				return nil, fmt.Errorf("%w: 500 error", llmx.ErrUnavailable)
+			},
+		}
+
+		svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true},
+			service.WithChatRetry(2, 500*time.Millisecond, 1*time.Second),
+		)
+
+		conv, err := svc.CreateConversation(f.ctx, "Canceled Before Retry")
+		require.NoError(t, err)
+
+		start := time.Now()
+		_, err = svc.SendMessage(ctx, conv.ID, model.SendMessageRequest{
+			Content: "Cancel before retry",
+		}, nil)
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, context.Canceled)
+		assert.Equal(t, 1, adapter.getAttempts(), "should not retry after context cancellation")
+		assert.Less(t, elapsed, 400*time.Millisecond)
+	})
+
+	t.Run("CanceledDuringBackoffSleep", func(t *testing.T) {
+		f := setupChatFixture(t)
+		ctx, cancel := context.WithCancel(f.ctx)
+
+		adapter := &attemptTrackingAdapter{
+			caps: standardTestCapabilities(),
+			onChat: func(attempt int, c context.Context, req llmx.Request) (*llmx.Response, error) {
+				go func() {
+					time.Sleep(15 * time.Millisecond)
+					cancel()
+				}()
+				return nil, fmt.Errorf("%w: 500 error", llmx.ErrUnavailable)
+			},
+		}
+
+		svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true},
+			service.WithChatRetry(2, 500*time.Millisecond, 1*time.Second),
+		)
+
+		conv, err := svc.CreateConversation(f.ctx, "Canceled During Sleep")
+		require.NoError(t, err)
+
+		start := time.Now()
+		_, err = svc.SendMessage(ctx, conv.ID, model.SendMessageRequest{
+			Content: "Cancel during sleep",
+		}, nil)
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, context.Canceled)
+		assert.Equal(t, 1, adapter.getAttempts(), "should not retry after context cancellation during backoff")
+		assert.Less(t, elapsed, 400*time.Millisecond, "should abort backoff sleep immediately on cancel")
+	})
 }

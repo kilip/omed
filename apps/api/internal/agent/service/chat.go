@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
 	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
@@ -46,7 +47,10 @@ type chatConfig struct {
 	testFallback  llmx.Adapter
 	logger        *slog.Logger
 	logHTTPBody   bool
-	maxIterations int
+	maxIterations   int
+	maxRetries      int
+	retryBackoff    time.Duration
+	maxRetryBackoff time.Duration
 }
 
 // ChatOption configures ChatService behavior.
@@ -102,6 +106,21 @@ func WithChatMaxIterations(max int) ChatOption {
 	}
 }
 
+// WithChatRetry sets the retry parameters for transient LLM errors.
+func WithChatRetry(maxRetries int, initialBackoff time.Duration, maxBackoff time.Duration) ChatOption {
+	return func(c *chatConfig) {
+		if maxRetries >= 0 {
+			c.maxRetries = maxRetries
+		}
+		if initialBackoff > 0 {
+			c.retryBackoff = initialBackoff
+		}
+		if maxBackoff > 0 {
+			c.maxRetryBackoff = maxBackoff
+		}
+	}
+}
+
 type chatService struct {
 	chatRepo      repository.ChatRepository
 	settings      repository.SettingRepository
@@ -114,7 +133,10 @@ type chatService struct {
 	testFallback  llmx.Adapter
 	logger        *slog.Logger
 	logHTTPBody   bool
-	maxIterations int
+	maxIterations   int
+	maxRetries      int
+	retryBackoff    time.Duration
+	maxRetryBackoff time.Duration
 }
 
 // NewChatService constructs a ready-to-use ChatService instance.
@@ -131,7 +153,10 @@ func NewChatService(
 		timeout:       60 * time.Second,
 		rateCapacity:  10,
 		ratePeriod:    time.Minute,
-		maxIterations: 6,
+		maxIterations:   6,
+		maxRetries:      2,
+		retryBackoff:    500 * time.Millisecond,
+		maxRetryBackoff: 2 * time.Second,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -149,7 +174,10 @@ func NewChatService(
 		testFallback:  cfg.testFallback,
 		logger:        cfg.logger,
 		logHTTPBody:   cfg.logHTTPBody,
-		maxIterations: cfg.maxIterations,
+		maxIterations:   cfg.maxIterations,
+		maxRetries:      cfg.maxRetries,
+		retryBackoff:    cfg.retryBackoff,
+		maxRetryBackoff: cfg.maxRetryBackoff,
 	}
 }
 
@@ -381,6 +409,62 @@ func (s *chatService) GetAttachment(ctx context.Context, attachmentID int64) (mo
 	}, nil
 }
 
+func (s *chatService) recordLLMError(ctx context.Context, conversationID int64, err error) {
+	if s.logger != nil {
+		s.logger.ErrorContext(ctx, "chat LLM call failed", "conversation_id", conversationID, "error", err)
+	}
+	if hub := sentry.GetHubFromContext(ctx); hub != nil {
+		hub.AddBreadcrumb(&sentry.Breadcrumb{
+			Category: "llm",
+			Message:  "chat LLM call failed",
+			Level:    sentry.LevelError,
+			Data: map[string]any{
+				"conversation_id": conversationID,
+				"error":           err.Error(),
+			},
+		}, nil)
+	}
+}
+
+func (s *chatService) chatWithRetry(ctx context.Context, conversationID int64, adapter llmx.Adapter, req llmx.Request) (*llmx.Response, error) {
+	backoff := s.retryBackoff
+	for attempt := 0; ; attempt++ {
+		resp, err := adapter.Chat(ctx, req)
+		if err == nil {
+			return resp, nil
+		}
+
+		if !errors.Is(err, llmx.ErrUnavailable) || ctx.Err() != nil || attempt >= s.maxRetries {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
+			s.recordLLMError(ctx, conversationID, err)
+			return nil, err
+		}
+
+		if s.logger != nil {
+			s.logger.WarnContext(ctx, "transient LLM error, retrying",
+				"attempt", attempt+1,
+				"max_retries", s.maxRetries,
+				"backoff", backoff,
+				"conversation_id", conversationID,
+				"error", err,
+			)
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(backoff):
+		}
+
+		backoff *= 2
+		if s.maxRetryBackoff > 0 && backoff > s.maxRetryBackoff {
+			backoff = s.maxRetryBackoff
+		}
+	}
+}
+
 // SendMessage sends a user message with optional image/PDF attachments, runs the LLM tool loop, and returns the reply.
 func (s *chatService) SendMessage(ctx context.Context, conversationID int64, req model.SendMessageRequest, files []model.AttachmentUpload) (model.SendMessageResponse, error) {
 	// 1. Verify conversation exists and is owned by the user
@@ -573,11 +657,8 @@ func (s *chatService) SendMessage(ctx context.Context, conversationID int64, req
 	var finalAssistantText string
 
 	for range s.maxIterations {
-		resp, err := adapter.Chat(chatCtx, reqLLM)
+		resp, err := s.chatWithRetry(chatCtx, conversationID, adapter, reqLLM)
 		if err != nil {
-			if s.logger != nil {
-				s.logger.ErrorContext(chatCtx, "chat LLM call failed", "conversation_id", conversationID, "error", err)
-			}
 			return model.SendMessageResponse{}, mapLLMError(err, chatCtx)
 		}
 		if resp == nil {
@@ -757,12 +838,18 @@ Instructions:
 func mapLLMError(err error, chatCtx context.Context) error {
 	switch {
 	case errors.Is(err, context.DeadlineExceeded), errors.Is(chatCtx.Err(), context.DeadlineExceeded):
+		if err != nil {
+			return fmt.Errorf("%w: %w", domain.ErrAnalysisTimeout, err)
+		}
 		return domain.ErrAnalysisTimeout
 	case errors.Is(err, llmx.ErrRateLimit):
-		return domain.ErrAnalysisRateLimited
+		return fmt.Errorf("%w: %w", domain.ErrAnalysisRateLimited, err)
 	case errors.Is(err, llmx.ErrUnsupportedContent):
-		return domain.ErrUnsupportedDocument
+		return fmt.Errorf("%w: %w", domain.ErrUnsupportedDocument, err)
 	default:
+		if err != nil {
+			return fmt.Errorf("%w: %w", domain.ErrAnalysisFailed, err)
+		}
 		return domain.ErrAnalysisFailed
 	}
 }
