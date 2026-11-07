@@ -67,3 +67,31 @@ type FinancialSummaryResponse struct {
 	Totals       FinancialSummaryTotals      `json:"totals"`
 	Monthly      []MonthlyRevenueExpenseItem `json:"monthly"`
 }
+
+// ProfitLossBreakdownRequest defines the date range query for category-level Profit & Loss breakdown.
+type ProfitLossBreakdownRequest struct {
+	DateFrom Date `json:"dateFrom,omitempty" swaggertype:"string" example:"2026-01-01"`
+	DateTo   Date `json:"dateTo,omitempty" swaggertype:"string" example:"2026-01-31"`
+}
+
+// ProfitLossCategoryItem represents an account's aggregated net revenue or expense in base currency.
+type ProfitLossCategoryItem struct {
+	AccountID   int64           `json:"accountId"`
+	AccountCode string          `json:"accountCode" example:"4110"`
+	AccountName string          `json:"accountName" example:"Service Revenue"`
+	Type        string          `json:"type" example:"REVENUE"`
+	Amount      decimal.Decimal `json:"amount" swaggertype:"string" example:"25000000.00"`
+}
+
+// ProfitLossBreakdownResponse represents the category-level breakdown of revenues and expenses for a date range.
+type ProfitLossBreakdownResponse struct {
+	DateFrom     Date                     `json:"dateFrom" swaggertype:"string" example:"2026-01-01"`
+	DateTo       Date                     `json:"dateTo" swaggertype:"string" example:"2026-01-31"`
+	BaseCurrency string                   `json:"baseCurrency" example:"IDR"`
+	Revenues     []ProfitLossCategoryItem `json:"revenues"`
+	Expenses     []ProfitLossCategoryItem `json:"expenses"`
+	Categories   []ProfitLossCategoryItem `json:"categories,omitempty"`
+	TotalRevenue decimal.Decimal          `json:"totalRevenue" swaggertype:"string" example:"25000000.00"`
+	TotalExpense decimal.Decimal          `json:"totalExpense" swaggertype:"string" example:"15000000.00"`
+	NetProfit    decimal.Decimal          `json:"netProfit" swaggertype:"string" example:"10000000.00"`
+}

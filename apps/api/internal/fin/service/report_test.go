@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/kilip/omed/api/ent"
+	"github.com/kilip/omed/api/ent/entry"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/internal/fin/repository"
@@ -451,6 +452,258 @@ func (s *ReportServiceSuite) Test_MonthlyRevenueExpense_RangeNotEndingToday() {
 	s.Equal(m2Str, monthly[1].Month)
 	s.True(monthly[1].Revenue.Equal(dec(2000000)))
 	s.True(monthly[1].Expense.Equal(dec(1000000)))
+}
+
+func (s *ReportServiceSuite) postSimpleEntry(date time.Time, debitAccID, creditAccID int64, amt decimal.Decimal, prefix string, status string) {
+	ctx := s.ctx()
+	trx, err := s.client.Transaction.Create().
+		SetNumber("TRX-" + prefix).
+		SetTransactionDate(date).
+		SetDescription("Trx " + prefix).
+		SetSource("MANUAL").
+		SetCurrency("IDR").
+		SetExchangeRate(dec(1)).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	je, err := s.client.Entry.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetTransactionID(trx.ID).
+		SetPeriodID(s.periodID).
+		SetNumber("JE-" + prefix).
+		SetEntryDate(date).
+		SetStatus(entry.Status(status)).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = s.client.Posting.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetEntryID(je.ID).
+		SetAccountID(debitAccID).
+		SetDirection("DEBIT").
+		SetAmount(amt).
+		SetBaseAmount(amt).
+		SetPosition(0).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	_, err = s.client.Posting.Create().
+		SetWorkspaceID(s.workspaceID).
+		SetEntryID(je.ID).
+		SetAccountID(creditAccID).
+		SetDirection("CREDIT").
+		SetAmount(amt).
+		SetBaseAmount(amt).
+		SetPosition(1).
+		Save(ctx)
+	s.Require().NoError(err)
+}
+
+func (s *ReportServiceSuite) Test_ProfitLossBreakdown_FullDateRange_SortingAndTotals() {
+	ctx := s.ctx()
+	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	bankAcc, err := s.accountRepo.FindByCode(ctx, "1111")
+	s.Require().NoError(err)
+
+	rev4110, err := s.accountRepo.FindByCode(ctx, "4110")
+	s.Require().NoError(err)
+	rev4130, err := s.accountRepo.FindByCode(ctx, "4130")
+	s.Require().NoError(err)
+	rev4140, err := s.accountRepo.FindByCode(ctx, "4140")
+	s.Require().NoError(err)
+
+	exp5100, err := s.accountRepo.FindByCode(ctx, "5100")
+	s.Require().NoError(err)
+	exp5200, err := s.accountRepo.FindByCode(ctx, "5200")
+	s.Require().NoError(err)
+	exp5300, err := s.accountRepo.FindByCode(ctx, "5300")
+	s.Require().NoError(err)
+
+	// In-range (March 2026)
+	s.postSimpleEntry(time.Date(2026, 3, 10, 10, 0, 0, 0, time.UTC), bankAcc.ID, rev4110.ID, dec(6000000), "PL-REV-4110", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 3, 15, 11, 0, 0, 0, time.UTC), bankAcc.ID, rev4130.ID, dec(4000000), "PL-REV-4130", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 3, 5, 9, 0, 0, 0, time.UTC), bankAcc.ID, rev4140.ID, dec(2000000), "PL-REV-4140", "POSTED")
+
+	s.postSimpleEntry(time.Date(2026, 3, 12, 14, 0, 0, 0, time.UTC), exp5100.ID, bankAcc.ID, dec(3500000), "PL-EXP-5100", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 3, 18, 16, 0, 0, 0, time.UTC), exp5200.ID, bankAcc.ID, dec(1200000), "PL-EXP-5200", "POSTED")
+
+	// Out-of-range (February & April 2026)
+	s.postSimpleEntry(time.Date(2026, 2, 20, 10, 0, 0, 0, time.UTC), bankAcc.ID, rev4110.ID, dec(10000000), "PL-REV-OOR", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 4, 5, 10, 0, 0, 0, time.UTC), exp5300.ID, bankAcc.ID, dec(2000000), "PL-EXP-OOR", "POSTED")
+
+	// DRAFT entry in March 2026 (must be omitted)
+	s.postSimpleEntry(time.Date(2026, 3, 20, 10, 0, 0, 0, time.UTC), bankAcc.ID, rev4110.ID, dec(9999999), "PL-REV-DRAFT", "DRAFT")
+
+	res, err := s.svc.ProfitLossBreakdown(ctx, model.ProfitLossBreakdownRequest{
+		DateFrom: parseDate("2026-03-01"),
+		DateTo:   parseDate("2026-03-31"),
+	})
+	s.Require().NoError(err)
+
+	s.Equal("IDR", res.BaseCurrency)
+	s.Equal("2026-03-01", time.Time(res.DateFrom).Format("2006-01-02"))
+	s.Equal("2026-03-31", time.Time(res.DateTo).Format("2006-01-02"))
+
+	s.Require().Len(res.Revenues, 3)
+	s.Equal("4110", res.Revenues[0].AccountCode)
+	s.True(res.Revenues[0].Amount.Equal(dec(6000000)))
+	s.Equal("4130", res.Revenues[1].AccountCode)
+	s.True(res.Revenues[1].Amount.Equal(dec(4000000)))
+	s.Equal("4140", res.Revenues[2].AccountCode)
+	s.True(res.Revenues[2].Amount.Equal(dec(2000000)))
+	s.True(res.TotalRevenue.Equal(dec(12000000)))
+
+	s.Require().Len(res.Expenses, 2)
+	s.Equal("5100", res.Expenses[0].AccountCode)
+	s.True(res.Expenses[0].Amount.Equal(dec(3500000)))
+	s.Equal("5200", res.Expenses[1].AccountCode)
+	s.True(res.Expenses[1].Amount.Equal(dec(1200000)))
+	s.True(res.TotalExpense.Equal(dec(4700000)))
+
+	s.True(res.NetProfit.Equal(dec(7300000)))
+
+	s.Require().Len(res.Categories, 5)
+	s.Equal("4110", res.Categories[0].AccountCode)
+	s.Equal("4130", res.Categories[1].AccountCode)
+	s.Equal("5100", res.Categories[2].AccountCode)
+	s.Equal("4140", res.Categories[3].AccountCode)
+	s.Equal("5200", res.Categories[4].AccountCode)
+
+	for _, item := range res.Revenues {
+		s.NotEqual("4120", item.AccountCode, "zero activity account should be omitted")
+	}
+	for _, item := range res.Expenses {
+		s.NotEqual("5300", item.AccountCode, "zero activity account in range should be omitted")
+	}
+}
+
+func (s *ReportServiceSuite) Test_ProfitLossBreakdown_EmptyResults() {
+	ctx := s.ctx()
+	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	res, err := s.svc.ProfitLossBreakdown(ctx, model.ProfitLossBreakdownRequest{
+		DateFrom: parseDate("2024-01-01"),
+		DateTo:   parseDate("2024-01-31"),
+	})
+	s.Require().NoError(err)
+
+	s.Equal("IDR", res.BaseCurrency)
+	s.Empty(res.Revenues)
+	s.Empty(res.Expenses)
+	s.Empty(res.Categories)
+	s.True(res.TotalRevenue.IsZero())
+	s.True(res.TotalExpense.IsZero())
+	s.True(res.NetProfit.IsZero())
+}
+
+func (s *ReportServiceSuite) Test_ProfitLossBreakdown_DefaultCurrentMonth() {
+	ctx := s.ctx()
+	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	bankAcc, err := s.accountRepo.FindByCode(ctx, "1111")
+	s.Require().NoError(err)
+	revAcc, err := s.accountRepo.FindByCode(ctx, "4110")
+	s.Require().NoError(err)
+	expAcc, err := s.accountRepo.FindByCode(ctx, "5100")
+	s.Require().NoError(err)
+
+	fixedTime := time.Date(2026, 8, 15, 10, 0, 0, 0, time.UTC)
+	svcWithClock := service.NewReportService(
+		s.entryRepo,
+		s.accountRepo,
+		repository.NewCurrencyRepository(s.client),
+		service.WithReportClock(func() time.Time { return fixedTime }),
+	)
+
+	s.postSimpleEntry(time.Date(2026, 8, 10, 10, 0, 0, 0, time.UTC), bankAcc.ID, revAcc.ID, dec(5000000), "PL-CURR-REV", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 8, 12, 10, 0, 0, 0, time.UTC), expAcc.ID, bankAcc.ID, dec(2000000), "PL-CURR-EXP", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 7, 31, 10, 0, 0, 0, time.UTC), bankAcc.ID, revAcc.ID, dec(1000000), "PL-PRIOR-REV", "POSTED")
+
+	res, err := svcWithClock.ProfitLossBreakdown(ctx, model.ProfitLossBreakdownRequest{})
+	s.Require().NoError(err)
+
+	s.Equal("2026-08-01", time.Time(res.DateFrom).Format("2006-01-02"))
+	s.Equal("2026-08-31", time.Time(res.DateTo).Format("2006-01-02"))
+	s.True(res.TotalRevenue.Equal(dec(5000000)))
+	s.True(res.TotalExpense.Equal(dec(2000000)))
+	s.True(res.NetProfit.Equal(dec(3000000)))
+	s.Require().Len(res.Revenues, 1)
+	s.Require().Len(res.Expenses, 1)
+}
+
+func (s *ReportServiceSuite) Test_ProfitLossBreakdown_NetLossAndTieBreaker() {
+	ctx := s.ctx()
+	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	bankAcc, err := s.accountRepo.FindByCode(ctx, "1111")
+	s.Require().NoError(err)
+	revAcc, err := s.accountRepo.FindByCode(ctx, "4110")
+	s.Require().NoError(err)
+	exp5100, err := s.accountRepo.FindByCode(ctx, "5100")
+	s.Require().NoError(err)
+	exp5200, err := s.accountRepo.FindByCode(ctx, "5200")
+	s.Require().NoError(err)
+
+	s.postSimpleEntry(time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC), bankAcc.ID, revAcc.ID, dec(1000000), "PL-LOSS-REV", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 9, 2, 10, 0, 0, 0, time.UTC), exp5200.ID, bankAcc.ID, dec(2000000), "PL-LOSS-EXP5200", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 9, 3, 10, 0, 0, 0, time.UTC), exp5100.ID, bankAcc.ID, dec(2000000), "PL-LOSS-EXP5100", "POSTED")
+
+	res, err := s.svc.ProfitLossBreakdown(ctx, model.ProfitLossBreakdownRequest{
+		DateFrom: parseDate("2026-09-01"),
+		DateTo:   parseDate("2026-09-30"),
+	})
+	s.Require().NoError(err)
+
+	s.True(res.TotalRevenue.Equal(dec(1000000)))
+	s.True(res.TotalExpense.Equal(dec(4000000)))
+	s.True(res.NetProfit.Equal(dec(-3000000)))
+
+	s.Require().Len(res.Expenses, 2)
+	s.Equal("5100", res.Expenses[0].AccountCode)
+	s.Equal("5200", res.Expenses[1].AccountCode)
+}
+
+func (s *ReportServiceSuite) Test_ProfitLossBreakdown_InvertedDateRange() {
+	ctx := s.ctx()
+	_, err := s.accountRepo.Seed(ctx, "freelancer", "en")
+	s.Require().NoError(err)
+
+	bankAcc, err := s.accountRepo.FindByCode(ctx, "1111")
+	s.Require().NoError(err)
+	revAcc, err := s.accountRepo.FindByCode(ctx, "4110")
+	s.Require().NoError(err)
+	expAcc, err := s.accountRepo.FindByCode(ctx, "5100")
+	s.Require().NoError(err)
+
+	// Post entry on earlier boundary (start of day after swap) and later boundary
+	s.postSimpleEntry(time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC), bankAcc.ID, revAcc.ID, dec(1500000), "PL-INV-REV", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 3, 10, 23, 59, 59, 0, time.UTC), expAcc.ID, bankAcc.ID, dec(500000), "PL-INV-EXP", "POSTED")
+	// Out-of-bounds entries that should not be included
+	s.postSimpleEntry(time.Date(2026, 2, 28, 23, 59, 59, 0, time.UTC), bankAcc.ID, revAcc.ID, dec(1000000), "PL-INV-REV-BEFORE", "POSTED")
+	s.postSimpleEntry(time.Date(2026, 3, 11, 0, 0, 0, 0, time.UTC), expAcc.ID, bankAcc.ID, dec(1000000), "PL-INV-EXP-AFTER", "POSTED")
+
+	res, err := s.svc.ProfitLossBreakdown(ctx, model.ProfitLossBreakdownRequest{
+		DateFrom: parseDate("2026-03-10"),
+		DateTo:   parseDate("2026-03-01"),
+	})
+	s.Require().NoError(err)
+
+	s.Equal("2026-03-01", time.Time(res.DateFrom).Format("2006-01-02"))
+	s.Equal("2026-03-10", time.Time(res.DateTo).Format("2006-01-02"))
+	s.True(res.TotalRevenue.Equal(dec(1500000)))
+	s.True(res.TotalExpense.Equal(dec(500000)))
+	s.True(res.NetProfit.Equal(dec(1000000)))
+	s.Require().Len(res.Revenues, 1)
+	s.Require().Len(res.Expenses, 1)
+}
+
+func TestReport_ProfitLossBreakdown(t *testing.T) {
+	suite.Run(t, new(ReportServiceSuite))
 }
 
 func TestReportServiceSuite(t *testing.T) {

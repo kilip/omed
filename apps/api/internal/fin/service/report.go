@@ -20,11 +20,22 @@ type ReportRepository interface {
 	GetMonthlyAccountFlows(c context.Context, startDate time.Time, endDate time.Time) ([]repository.MonthlyAccountFlow, error)
 }
 
+// ReportOption configures optional behavior of ReportService.
+type ReportOption func(*ReportService)
+
+// WithReportClock overrides the clock used to determine current time.
+func WithReportClock(now func() time.Time) ReportOption {
+	return func(s *ReportService) {
+		s.now = now
+	}
+}
+
 // ReportService coordinates generation of financial statements and reports.
 type ReportService struct {
 	entryRepo    ReportRepository
 	accountRepo  AccountRepository
 	currencyRepo CurrencyRepository
+	now          func() time.Time
 }
 
 // NewReportService constructs a new ReportService.
@@ -32,12 +43,25 @@ func NewReportService(
 	entryRepo ReportRepository,
 	accountRepo AccountRepository,
 	currencyRepo CurrencyRepository,
+	opts ...ReportOption,
 ) ReportService {
-	return ReportService{
+	s := ReportService{
 		entryRepo:    entryRepo,
 		accountRepo:  accountRepo,
 		currencyRepo: currencyRepo,
+		now:          time.Now,
 	}
+	for _, opt := range opts {
+		opt(&s)
+	}
+	return s
+}
+
+func (s ReportService) clock() time.Time {
+	if s.now != nil {
+		return s.now()
+	}
+	return time.Now()
 }
 
 func (s ReportService) getBaseCurrencyAndDecimals(c context.Context) (string, int) {
@@ -188,7 +212,7 @@ func (s ReportService) Summary(ctx context.Context, months int) (model.Financial
 		return model.FinancialSummaryResponse{}, err
 	}
 
-	now := time.Now()
+	now := s.clock()
 	balances, err := s.entryRepo.GetAccountBalancesAsOf(ctx, now)
 	if err != nil {
 		return model.FinancialSummaryResponse{}, err
@@ -307,4 +331,158 @@ func (s ReportService) MonthlyRevenueExpense(ctx context.Context, firstMonth tim
 	}
 
 	return monthlyItems, nil
+}
+
+// ProfitLossBreakdown calculates category-level revenues, expenses, and net profit for a given date range.
+// Defaults to the current calendar month if dateFrom and dateTo are omitted.
+// Accounts with zero activity in the date range are omitted from breakdown lists.
+func (s ReportService) ProfitLossBreakdown(ctx context.Context, req model.ProfitLossBreakdownRequest) (model.ProfitLossBreakdownResponse, error) {
+	baseCurrency, baseDecimals := s.getBaseCurrencyAndDecimals(ctx)
+
+	now := s.clock()
+	var startDate, endDate time.Time
+
+	if req.DateFrom.IsZero() && req.DateTo.IsZero() {
+		year, month, _ := now.Date()
+		startDate = time.Date(year, month, 1, 0, 0, 0, 0, now.Location())
+		endDate = time.Date(year, month+1, 0, 23, 59, 59, 999999999, now.Location())
+	} else if req.DateFrom.IsZero() {
+		to := req.DateTo.Time()
+		year, month, _ := to.Date()
+		startDate = time.Date(year, month, 1, 0, 0, 0, 0, to.Location())
+		endDate = time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, 999999999, to.Location())
+	} else if req.DateTo.IsZero() {
+		from := req.DateFrom.Time()
+		year, month, _ := from.Date()
+		startDate = time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, from.Location())
+		endDate = time.Date(year, month+1, 0, 23, 59, 59, 999999999, from.Location())
+	} else {
+		from := req.DateFrom.Time()
+		to := req.DateTo.Time()
+		startDate = time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, from.Location())
+		endDate = time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, 999999999, to.Location())
+	}
+
+	if startDate.After(endDate) {
+		startDate, endDate = endDate, startDate
+		startDate = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
+		endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23, 59, 59, 999999999, endDate.Location())
+	}
+
+	accounts, _, err := s.accountRepo.Search(ctx, model.SearchAccountRequest{})
+	if err != nil {
+		return model.ProfitLossBreakdownResponse{}, err
+	}
+
+	accountMap := make(map[int64]domain.Account, len(accounts))
+	for _, acc := range accounts {
+		accountMap[acc.ID] = acc
+	}
+
+	flows, err := s.entryRepo.GetMonthlyAccountFlows(ctx, startDate, endDate)
+	if err != nil {
+		return model.ProfitLossBreakdownResponse{}, err
+	}
+
+	type accFlow struct {
+		baseDebit  decimal.Decimal
+		baseCredit decimal.Decimal
+	}
+	grouped := make(map[int64]*accFlow)
+	for _, f := range flows {
+		af, ok := grouped[f.AccountID]
+		if !ok {
+			af = &accFlow{}
+			grouped[f.AccountID] = af
+		}
+		af.baseDebit = af.baseDebit.Add(f.BaseDebit)
+		af.baseCredit = af.baseCredit.Add(f.BaseCredit)
+	}
+
+	revenueItems := make([]model.ProfitLossCategoryItem, 0)
+	expenseItems := make([]model.ProfitLossCategoryItem, 0)
+	var totalRevenue, totalExpense decimal.Decimal
+
+	for accountID, af := range grouped {
+		acc, ok := accountMap[accountID]
+		if !ok {
+			continue
+		}
+
+		if af.baseDebit.IsZero() && af.baseCredit.IsZero() {
+			continue
+		}
+
+		switch acc.Type {
+		case domain.AccountTypeRevenue:
+			net := af.baseCredit.Sub(af.baseDebit)
+			if net.IsZero() {
+				continue
+			}
+			netRounded := money.Round(net, int32(baseDecimals))
+			revenueItems = append(revenueItems, model.ProfitLossCategoryItem{
+				AccountID:   acc.ID,
+				AccountCode: acc.Code,
+				AccountName: acc.Name,
+				Type:        acc.Type,
+				Amount:      netRounded,
+			})
+			totalRevenue = totalRevenue.Add(netRounded)
+
+		case domain.AccountTypeExpense:
+			net := af.baseDebit.Sub(af.baseCredit)
+			if net.IsZero() {
+				continue
+			}
+			netRounded := money.Round(net, int32(baseDecimals))
+			expenseItems = append(expenseItems, model.ProfitLossCategoryItem{
+				AccountID:   acc.ID,
+				AccountCode: acc.Code,
+				AccountName: acc.Name,
+				Type:        acc.Type,
+				Amount:      netRounded,
+			})
+			totalExpense = totalExpense.Add(netRounded)
+		}
+	}
+
+	sort.Slice(revenueItems, func(i, j int) bool {
+		if !revenueItems[i].Amount.Equal(revenueItems[j].Amount) {
+			return revenueItems[i].Amount.GreaterThan(revenueItems[j].Amount)
+		}
+		return revenueItems[i].AccountCode < revenueItems[j].AccountCode
+	})
+
+	sort.Slice(expenseItems, func(i, j int) bool {
+		if !expenseItems[i].Amount.Equal(expenseItems[j].Amount) {
+			return expenseItems[i].Amount.GreaterThan(expenseItems[j].Amount)
+		}
+		return expenseItems[i].AccountCode < expenseItems[j].AccountCode
+	})
+
+	categories := make([]model.ProfitLossCategoryItem, 0, len(revenueItems)+len(expenseItems))
+	categories = append(categories, revenueItems...)
+	categories = append(categories, expenseItems...)
+	sort.Slice(categories, func(i, j int) bool {
+		if !categories[i].Amount.Equal(categories[j].Amount) {
+			return categories[i].Amount.GreaterThan(categories[j].Amount)
+		}
+		return categories[i].AccountCode < categories[j].AccountCode
+	})
+
+	netProfit := money.Round(totalRevenue.Sub(totalExpense), int32(baseDecimals))
+	totalRevenue = money.Round(totalRevenue, int32(baseDecimals))
+	totalExpense = money.Round(totalExpense, int32(baseDecimals))
+
+	return model.ProfitLossBreakdownResponse{
+		DateFrom:     model.Date(startDate),
+		DateTo:       model.Date(endDate),
+		BaseCurrency: baseCurrency,
+		Revenues:     revenueItems,
+		Expenses:     expenseItems,
+		Categories:   categories,
+		TotalRevenue: totalRevenue,
+		TotalExpense: totalExpense,
+		NetProfit:    netProfit,
+	}, nil
 }
