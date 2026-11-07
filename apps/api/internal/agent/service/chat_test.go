@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"strings"
 	"testing"
+	"github.com/gofiber/fiber/v3"
 	"time"
 
 	"github.com/kilip/omed/api/ent"
@@ -603,7 +604,157 @@ func TestChatService_DeleteConversation_S3Cleanup(t *testing.T) {
 	_, err = svc.GetConversation(f.ctx, conv.ID)
 	assert.ErrorIs(t, err, domain.ErrConversationNotFound)
 }
+func TestChatService_UpdateConversation(t *testing.T) {
+	f := setupChatFixture(t)
+	mem := llmx.NewMemory(llmx.Response{
+	})
+	adapter := &customCapAdapter{Adapter: mem, caps: standardTestCapabilities()}
+	svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+	conv, err := svc.CreateConversation(f.ctx, "Original Title")
+	require.NoError(t, err)
 
+	// Update with valid title
+	updated, err := svc.UpdateConversation(f.ctx, conv.ID, "Renamed Title")
+	require.NoError(t, err)
+	assert.Equal(t, "Renamed Title", updated.Title)
+	assert.Equal(t, conv.ID, updated.ID)
+
+	// Verification via GetConversation
+	detail, err := svc.GetConversation(f.ctx, conv.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Renamed Title", detail.Title)
+
+	// Whitespace-only title returns 422 error
+	_, err = svc.UpdateConversation(f.ctx, conv.ID, "   ")
+	require.Error(t, err)
+	var fiberErr *fiber.Error
+	require.True(t, errors.As(err, &fiberErr))
+	assert.Equal(t, fiber.StatusUnprocessableEntity, fiberErr.Code)
+
+	// Non-existent conversation returns ErrConversationNotFound
+	_, err = svc.UpdateConversation(f.ctx, 999999, "Title")
+	assert.ErrorIs(t, err, domain.ErrConversationNotFound)
+}
+
+func TestChatService_AutoTitle_Priorities(t *testing.T) {
+	f := setupChatFixture(t)
+
+	t.Run("Priority 1: Draft proposal description wins over attachment and content", func(t *testing.T) {
+		propJSON := `{
+			"kind": "expense",
+			"paymentAccountId": 101,
+			"transactionDate": "2026-01-15",
+			"description": "Office Supplies Mart",
+			"currency": "IDR",
+			"totalAmount": "70000.00",
+			"items": [{"accountId": 202, "description": "Paper", "quantity": "1", "unitPrice": "70000.00", "amount": "70000.00"}]
+		}`
+		mem := llmx.NewMemory(
+			llmx.Response{
+				Message: llmx.Message{
+					Role: llmx.RoleAssistant,
+					ToolCalls: []llmx.ToolCall{
+						{
+							ID:        "prop_1",
+							Name:      service.ToolProposeDraft,
+							Arguments: json.RawMessage(propJSON),
+						},
+					},
+				},
+			},
+			llmx.Response{
+				Message: llmx.Message{Role: llmx.RoleAssistant, Parts: []llmx.Part{{Text: "Created draft."}}},
+			},
+		)
+		adapter := &customCapAdapter{Adapter: mem, caps: standardTestCapabilities()}
+		svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+		// Start with default title "New conversation"
+		conv, err := svc.CreateConversation(f.ctx, "New conversation")
+		require.NoError(t, err)
+
+		files := []model.AttachmentUpload{
+			{FileName: "receipt_january.png", MIME: "image/png", Data: []byte("test")},
+		}
+		resp, err := svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{Content: "Please analyze this receipt"}, files)
+		require.NoError(t, err)
+
+		assert.Equal(t, "Office Supplies Mart", resp.ConversationTitle)
+		detail, err := svc.GetConversation(f.ctx, conv.ID)
+		require.NoError(t, err)
+		assert.Equal(t, "Office Supplies Mart", detail.Title)
+	})
+
+	t.Run("Priority 2: Attachment filename sanitized when no proposal", func(t *testing.T) {
+		mem := llmx.NewMemory(
+			llmx.Response{
+				Message: llmx.Message{Role: llmx.RoleAssistant, Parts: []llmx.Part{{Text: "Here is what I see."}}},
+			},
+		)
+		adapter := &customCapAdapter{Adapter: mem, caps: standardTestCapabilities()}
+		svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+
+		// Start with empty title
+		conv, err := svc.CreateConversation(f.ctx, "")
+		require.NoError(t, err)
+
+		files := []model.AttachmentUpload{
+			{FileName: "monthly_financial_report_2026.pdf", MIME: "application/pdf", Data: []byte("test")},
+		}
+		resp, err := svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{Content: "What is this?"}, files)
+		require.NoError(t, err)
+
+		assert.Equal(t, "monthly financial report 2026", resp.ConversationTitle)
+		detail, err := svc.GetConversation(f.ctx, conv.ID)
+		require.NoError(t, err)
+		assert.Equal(t, "monthly financial report 2026", detail.Title)
+	})
+
+	t.Run("Priority 3: User content snippet when no proposal and no attachment", func(t *testing.T) {
+		mem := llmx.NewMemory(
+			llmx.Response{
+				Message: llmx.Message{Role: llmx.RoleAssistant, Parts: []llmx.Part{{Text: "Sure thing."}}},
+			},
+		)
+		adapter := &customCapAdapter{Adapter: mem, caps: standardTestCapabilities()}
+		svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+
+		// Start with default title "Percakapan baru"
+		conv, err := svc.CreateConversation(f.ctx, "Percakapan baru")
+		require.NoError(t, err)
+
+		content := "Can you please check our balance sheet for errors and discrepancies?"
+		resp, err := svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{Content: content}, nil)
+		require.NoError(t, err)
+
+		// Snippet truncates to 35 runes + "..."
+		expectedTitle := string([]rune(content)[:35]) + "..."
+		assert.Equal(t, expectedTitle, resp.ConversationTitle)
+		detail, err := svc.GetConversation(f.ctx, conv.ID)
+		require.NoError(t, err)
+		assert.Equal(t, expectedTitle, detail.Title)
+	})
+
+	t.Run("Non-default title is NOT overridden", func(t *testing.T) {
+		mem := llmx.NewMemory(
+			llmx.Response{
+				Message: llmx.Message{Role: llmx.RoleAssistant, Parts: []llmx.Part{{Text: "Hello."}}},
+			},
+		)
+		adapter := &customCapAdapter{Adapter: mem, caps: standardTestCapabilities()}
+		svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+
+		conv, err := svc.CreateConversation(f.ctx, "Custom Handpicked Title")
+		require.NoError(t, err)
+
+		resp, err := svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{Content: "A quick message"}, nil)
+		require.NoError(t, err)
+
+		assert.Empty(t, resp.ConversationTitle)
+		detail, err := svc.GetConversation(f.ctx, conv.ID)
+		require.NoError(t, err)
+		assert.Equal(t, "Custom Handpicked Title", detail.Title)
+	})
+}
 func TestChatService_RateLimiterAndDisabledAgent(t *testing.T) {
 	f := setupChatFixture(t)
 

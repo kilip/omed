@@ -27,6 +27,7 @@ type ChatServiceContract interface {
 	ListConversations(ctx context.Context, page, limit int) (model.ListConversationsResponse, error)
 	GetConversation(ctx context.Context, id int64) (model.ConversationDetailResponse, error)
 	DeleteConversation(ctx context.Context, id int64) error
+	UpdateConversation(ctx context.Context, id int64, title string) (model.ConversationResponse, error)
 	SendMessage(ctx context.Context, conversationID int64, req model.SendMessageRequest, files []model.AttachmentUpload) (model.SendMessageResponse, error)
 	ConfirmDraft(ctx context.Context, messageID int64, editedProposal *model.DraftProposal) (int64, error)
 	DiscardDraft(ctx context.Context, messageID int64) error
@@ -139,6 +140,42 @@ func (ctl ChatController) GetConversation(c fiber.Ctx) error {
 	}
 
 	res, err := ctl.svc.GetConversation(c, id)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, res)
+}
+// UpdateConversation updates a conversation's title.
+//
+//	@Summary		Update conversation title
+//	@Description	Rename an existing agent chat conversation
+//	@Tags			Agent Chat
+//	@Accept			json
+//	@Produce		json
+//	@Param			wid		path		int								true	"Workspace ID"
+//	@Param			id		path		int								true	"Conversation ID"
+//	@Param			request	body		model.UpdateConversationRequest	true	"Update conversation payload"
+//	@Success		200		{object}	httpx.WebResponse[model.ConversationResponse]
+//	@Failure		400		{object}	httpx.ErrorResponse
+//	@Failure		401		{object}	httpx.ErrorResponse
+//	@Failure		403		{object}	httpx.ErrorResponse
+//	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		422		{object}	httpx.ErrorResponse
+//	@Failure		500		{object}	httpx.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/workspaces/{wid}/agent/chat/conversations/{id} [patch]
+func (ctl ChatController) UpdateConversation(c fiber.Ctx) error {
+	id, err := httpx.GetParamID[int64](c, "id")
+	if err != nil {
+		return err
+	}
+
+	var req model.UpdateConversationRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+
+	res, err := ctl.svc.UpdateConversation(c, id, req.Title)
 	if err != nil {
 		return err
 	}

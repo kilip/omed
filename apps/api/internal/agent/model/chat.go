@@ -91,6 +91,11 @@ type CreateConversationRequest struct {
 	Title string `json:"title,omitempty" example:"Receipt Analysis"`
 }
 
+// UpdateConversationRequest defines payload to update a conversation title.
+type UpdateConversationRequest struct {
+	Title string `json:"title" validate:"required" example:"Purchase at Mitra Sejahtera Mart"`
+}
+
 // SendMessageRequest defines payload to post a message in a conversation.
 type SendMessageRequest struct {
 	Content string `json:"content" example:"Please analyze this receipt"`
@@ -214,7 +219,8 @@ type ConversationDetailResponse struct {
 
 // SendMessageResponse represents the result of sending a message in a conversation.
 type SendMessageResponse struct {
-	UserMessage      MessageResponse `json:"userMessage"`
-	AssistantMessage MessageResponse `json:"assistantMessage"`
-	DraftProposal    *DraftProposal  `json:"draftProposal,omitempty"`
+	UserMessage       MessageResponse `json:"userMessage"`
+	AssistantMessage  MessageResponse `json:"assistantMessage"`
+	DraftProposal     *DraftProposal  `json:"draftProposal,omitempty"`
+	ConversationTitle string          `json:"conversationTitle,omitempty"`
 }

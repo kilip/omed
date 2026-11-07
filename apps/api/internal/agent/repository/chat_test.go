@@ -261,6 +261,35 @@ func TestChat_DeleteConversation(t *testing.T) {
 	assert.ErrorIs(t, err, domain.ErrConversationNotFound)
 }
 
+func TestChat_UpdateConversationTitle(t *testing.T) {
+	f := setupChatRepo(t)
+
+	conv, err := f.repo.CreateConversation(f.ctxUser1, "Old Title")
+	require.NoError(t, err)
+
+	// User 2 cannot update User 1's conversation title
+	err = f.repo.UpdateConversationTitle(f.ctxUser2, conv.ID, "Hacked Title")
+	assert.ErrorIs(t, err, domain.ErrConversationNotFound)
+
+	// User 1 successfully updates title
+	err = f.repo.UpdateConversationTitle(f.ctxUser1, conv.ID, "New Renamed Title")
+	require.NoError(t, err)
+
+	updated, err := f.repo.GetConversation(f.ctxUser1, conv.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "New Renamed Title", updated.Title)
+
+	// Updating non-existent conversation returns ErrConversationNotFound
+	err = f.repo.UpdateConversationTitle(f.ctxUser1, 999999, "Another Title")
+	assert.ErrorIs(t, err, domain.ErrConversationNotFound)
+
+	// Updating soft-deleted conversation returns ErrConversationNotFound
+	err = f.repo.DeleteConversation(f.ctxUser1, conv.ID)
+	require.NoError(t, err)
+	err = f.repo.UpdateConversationTitle(f.ctxUser1, conv.ID, "After Delete Title")
+	assert.ErrorIs(t, err, domain.ErrConversationNotFound)
+}
+
 func TestChat_AppendMessage(t *testing.T) {
 	f := setupChatRepo(t)
 
@@ -543,6 +572,9 @@ func TestChat_ContextValidation(t *testing.T) {
 	_, err = f.repo.AppendMessage(noWsCtx, repository.AppendMessageParams{})
 	assert.ErrorIs(t, err, base.ErrWorkspaceRequired)
 
+	err = f.repo.UpdateConversationTitle(noWsCtx, 1, "Title")
+	assert.ErrorIs(t, err, base.ErrWorkspaceRequired)
+
 	_, err = f.repo.ListMessages(noWsCtx, 1)
 	assert.ErrorIs(t, err, base.ErrWorkspaceRequired)
 
@@ -571,6 +603,9 @@ func TestChat_ContextValidation(t *testing.T) {
 	assert.ErrorIs(t, err, base.ErrUnauthorized)
 
 	_, _, err = f.repo.GetConversationWithMessages(noUserCtx, 1)
+	assert.ErrorIs(t, err, base.ErrUnauthorized)
+
+	err = f.repo.UpdateConversationTitle(noUserCtx, 1, "Title")
 	assert.ErrorIs(t, err, base.ErrUnauthorized)
 
 	err = f.repo.DeleteConversation(noUserCtx, 1)

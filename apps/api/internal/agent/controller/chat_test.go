@@ -21,9 +21,16 @@ import (
 
 type dummyChatService struct {
 	controller.ChatServiceContract
-	sendMessageFn func(ctx context.Context, conversationID int64, req model.SendMessageRequest, files []model.AttachmentUpload) (model.SendMessageResponse, error)
+	sendMessageFn        func(ctx context.Context, conversationID int64, req model.SendMessageRequest, files []model.AttachmentUpload) (model.SendMessageResponse, error)
+	updateConversationFn func(ctx context.Context, id int64, title string) (model.ConversationResponse, error)
 }
 
+func (d *dummyChatService) UpdateConversation(ctx context.Context, id int64, title string) (model.ConversationResponse, error) {
+	if d.updateConversationFn != nil {
+		return d.updateConversationFn(ctx, id, title)
+	}
+	return model.ConversationResponse{}, nil
+}
 func (d *dummyChatService) SendMessage(ctx context.Context, conversationID int64, req model.SendMessageRequest, files []model.AttachmentUpload) (model.SendMessageResponse, error) {
 	if d.sendMessageFn != nil {
 		return d.sendMessageFn(ctx, conversationID, req, files)
@@ -32,10 +39,9 @@ func (d *dummyChatService) SendMessage(ctx context.Context, conversationID int64
 }
 
 func setupChatTestApp(ctl controller.ChatController) *fiber.App {
-	app := fiber.New(fiber.Config{
-		ErrorHandler: config.ErrorHandler(slog.New(slog.NewTextHandler(io.Discard, nil))),
-	})
+	app := config.GetFiber(config.Config{Env: "test"}, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	app.Post("/workspaces/:wid/agent/chat/conversations/:id/messages", ctl.SendMessage)
+	app.Patch("/workspaces/:wid/agent/chat/conversations/:id", ctl.UpdateConversation)
 	return app
 }
 
@@ -147,5 +153,45 @@ func TestChatController_SendMessage_AttachmentLimit(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 		assert.True(t, svcCalled, "Service should be called for files <= 500KB")
+	})
+}
+
+func TestChatController_UpdateConversation(t *testing.T) {
+	allowed := []string{"image/png"}
+
+	t.Run("valid title updates successfully", func(t *testing.T) {
+		svcCalled := false
+		svc := &dummyChatService{
+			updateConversationFn: func(ctx context.Context, id int64, title string) (model.ConversationResponse, error) {
+				svcCalled = true
+				assert.Equal(t, int64(100), id)
+				assert.Equal(t, "Renamed Title", title)
+				return model.ConversationResponse{ID: id, Title: title}, nil
+			},
+		}
+
+		ctl := controller.NewChatController(svc, 10, allowed)
+		app := setupChatTestApp(ctl)
+
+		req := httptest.NewRequest(http.MethodPatch, "/workspaces/1/agent/chat/conversations/100", bytes.NewBufferString(`{"title":"Renamed Title"}`))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+		assert.True(t, svcCalled)
+	})
+
+	t.Run("empty title payload returns 422 validation error", func(t *testing.T) {
+		svc := &dummyChatService{}
+		ctl := controller.NewChatController(svc, 10, allowed)
+		app := setupChatTestApp(ctl)
+
+		req := httptest.NewRequest(http.MethodPatch, "/workspaces/1/agent/chat/conversations/100", bytes.NewBufferString(`{"title":""}`))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusUnprocessableEntity, resp.StatusCode)
 	})
 }

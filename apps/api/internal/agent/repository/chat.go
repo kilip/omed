@@ -26,6 +26,7 @@ type ChatRepository interface {
 	GetConversation(ctx context.Context, id int64) (*ent.AgentChatConversation, error)
 	GetConversationWithMessages(ctx context.Context, id int64) (*ent.AgentChatConversation, []*ent.AgentChatMessage, error)
 	DeleteConversation(ctx context.Context, id int64) error
+	UpdateConversationTitle(ctx context.Context, id int64, title string) error
 	AppendMessage(ctx context.Context, params AppendMessageParams) (*ent.AgentChatMessage, error)
 	ListMessages(ctx context.Context, conversationID int64) ([]*ent.AgentChatMessage, error)
 	GetMessage(ctx context.Context, id int64) (*ent.AgentChatMessage, error)
@@ -209,6 +210,37 @@ func (r *chatRepository) DeleteConversation(ctx context.Context, id int64) error
 	return nil
 }
 
+
+// UpdateConversationTitle updates the title of a conversation owned by the authenticated user.
+func (r *chatRepository) UpdateConversationTitle(ctx context.Context, id int64, title string) error {
+	wsID := base.WorkspaceIDFromContext(ctx)
+	if wsID == 0 {
+		return base.ErrWorkspaceRequired
+	}
+	userID := base.UserIDFromContext(ctx)
+	if userID == 0 {
+		return base.ErrUnauthorized
+	}
+
+	affected, err := r.cli.AgentChatConversation.Update().
+		Where(
+			agentchatconversation.IDEQ(id),
+			agentchatconversation.WorkspaceIDEQ(wsID),
+			agentchatconversation.CreatedByEQ(userID),
+			agentchatconversation.DeletedAtIsNil(),
+		).
+		SetTitle(title).
+		SetUpdatedBy(userID).
+		Save(ctx)
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return domain.ErrConversationNotFound
+	}
+
+	return nil
+}
 // AppendMessage persists a new message in the conversation and refreshes conversation updated_at.
 func (r *chatRepository) AppendMessage(ctx context.Context, params AppendMessageParams) (*ent.AgentChatMessage, error) {
 	wsID := base.WorkspaceIDFromContext(ctx)

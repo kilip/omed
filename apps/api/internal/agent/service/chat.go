@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gofiber/fiber/v3"
 	"github.com/kilip/omed/api/ent"
 	"github.com/kilip/omed/api/ent/agentchatmessage"
 	"github.com/kilip/omed/api/internal/agent/domain"
@@ -28,6 +30,7 @@ type ChatService interface {
 	CreateConversation(ctx context.Context, title string) (model.ConversationResponse, error)
 	ListConversations(ctx context.Context, page, limit int) (model.ListConversationsResponse, error)
 	GetConversation(ctx context.Context, id int64) (model.ConversationDetailResponse, error)
+	UpdateConversation(ctx context.Context, id int64, title string) (model.ConversationResponse, error)
 	DeleteConversation(ctx context.Context, id int64) error
 	SendMessage(ctx context.Context, conversationID int64, req model.SendMessageRequest, files []model.AttachmentUpload) (model.SendMessageResponse, error)
 	ConfirmDraft(ctx context.Context, messageID int64, editedProposal *model.DraftProposal) (int64, error)
@@ -287,6 +290,73 @@ func (s *chatService) DeleteConversation(ctx context.Context, id int64) error {
 }
 
 // GetAttachment retrieves an attachment stream and its metadata.
+
+// UpdateConversation validates and updates a conversation title.
+func (s *chatService) UpdateConversation(ctx context.Context, id int64, title string) (model.ConversationResponse, error) {
+	conv, err := s.chatRepo.GetConversation(ctx, id)
+	if err != nil {
+		return model.ConversationResponse{}, err
+	}
+
+	trimmed := strings.TrimSpace(title)
+	if trimmed == "" {
+		return model.ConversationResponse{}, fiber.NewError(fiber.StatusUnprocessableEntity, "title cannot be empty")
+	}
+
+	if err := s.chatRepo.UpdateConversationTitle(ctx, id, trimmed); err != nil {
+		return model.ConversationResponse{}, err
+	}
+
+	return model.ConversationResponse{
+		ID:    conv.ID,
+		Title: trimmed,
+		AuditMeta: base.AuditMeta{
+			CreatedAt: conv.CreatedAt,
+			UpdatedAt: time.Now(),
+		},
+	}, nil
+}
+
+func isDefaultConversationTitle(title string) bool {
+	trimmed := strings.ToLower(strings.TrimSpace(title))
+	return trimmed == "" || trimmed == "new conversation" || trimmed == "percakapan baru"
+}
+
+func sanitizeAttachmentTitle(filename string) string {
+	name := strings.TrimSpace(filename)
+	ext := filepath.Ext(name)
+	if ext != "" {
+		name = strings.TrimSuffix(name, ext)
+	}
+	name = strings.ReplaceAll(name, "_", " ")
+	name = strings.ReplaceAll(name, "-", " ")
+	return strings.TrimSpace(name)
+}
+
+func snippetFromContent(content string) string {
+	trimmed := strings.TrimSpace(content)
+	runes := []rune(trimmed)
+	if len(runes) > 35 {
+		return string(runes[:35]) + "..."
+	}
+	return string(runes)
+}
+
+func computeAutoTitle(proposal *model.DraftProposal, files []model.AttachmentUpload, content string) string {
+	if proposal != nil && strings.TrimSpace(proposal.Description) != "" {
+		return strings.TrimSpace(proposal.Description)
+	}
+	if len(files) > 0 && strings.TrimSpace(files[0].FileName) != "" {
+		sanitized := sanitizeAttachmentTitle(files[0].FileName)
+		if sanitized != "" {
+			return sanitized
+		}
+	}
+	if strings.TrimSpace(content) != "" {
+		return snippetFromContent(content)
+	}
+	return ""
+}
 func (s *chatService) GetAttachment(ctx context.Context, attachmentID int64) (model.AttachmentDownload, error) {
 	att, err := s.chatRepo.GetAttachment(ctx, attachmentID)
 	if err != nil {
@@ -314,7 +384,7 @@ func (s *chatService) GetAttachment(ctx context.Context, attachmentID int64) (mo
 // SendMessage sends a user message with optional image/PDF attachments, runs the LLM tool loop, and returns the reply.
 func (s *chatService) SendMessage(ctx context.Context, conversationID int64, req model.SendMessageRequest, files []model.AttachmentUpload) (model.SendMessageResponse, error) {
 	// 1. Verify conversation exists and is owned by the user
-	_, err := s.chatRepo.GetConversation(ctx, conversationID)
+	conv, err := s.chatRepo.GetConversation(ctx, conversationID)
 	if err != nil {
 		return model.SendMessageResponse{}, err
 	}
@@ -577,11 +647,27 @@ func (s *chatService) SendMessage(ctx context.Context, conversationID int64, req
 			"response", finalAssistantText,
 		)
 	}
+	// 11. Auto-title conversation on first turn if it has a default title
+	var updatedTitle string
+	if isDefaultConversationTitle(conv.Title) {
+		newTitle := computeAutoTitle(latestProposal, files, req.Content)
+		if newTitle != "" {
+			if err := s.chatRepo.UpdateConversationTitle(ctx, conversationID, newTitle); err == nil {
+				updatedTitle = newTitle
+			} else if s.logger != nil {
+				s.logger.WarnContext(ctx, "failed to auto-update conversation title",
+					"conversation_id", conversationID,
+					"error", err,
+				)
+			}
+		}
+	}
 
 	return model.SendMessageResponse{
-		UserMessage:      toMessageResponse(userMsg, userAttachmentResponses),
-		AssistantMessage: toMessageResponse(asstMsg, nil),
-		DraftProposal:    latestProposal,
+		UserMessage:       toMessageResponse(userMsg, userAttachmentResponses),
+		AssistantMessage:  toMessageResponse(asstMsg, nil),
+		DraftProposal:     latestProposal,
+		ConversationTitle: updatedTitle,
 	}, nil
 }
 

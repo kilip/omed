@@ -41,6 +41,7 @@ func initRoutes(mod AgentModule, r fiber.Router, az *authz.Authorizer) {
 	chat.Post("/conversations", chatCtl.CreateConversation)
 	chat.Get("/conversations/:id", chatCtl.GetConversation)
 	chat.Delete("/conversations/:id", chatCtl.DeleteConversation)
+	chat.Patch("/conversations/:id", chatCtl.UpdateConversation)
 	chat.Post("/conversations/:id/messages", chatCtl.SendMessage)
 	chat.Post("/messages/:id/confirm", chatCtl.ConfirmDraft)
 	chat.Post("/messages/:id/discard", chatCtl.DiscardDraft)

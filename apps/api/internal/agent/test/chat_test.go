@@ -589,6 +589,68 @@ func (s *ChatIntegrationSuite) TestChat_DeleteConversation() {
 	s.AssertStatus(fiber.StatusNotFound)
 }
 
+func (s *ChatIntegrationSuite) TestChat_UpdateConversation_AndAutoTitle() {
+	ws := s.ensureWorkspace("Chat Rename & AutoTitle WS", s.User.ID)
+	s.createProviderAndEnable(ws.ID)
+
+	// 1. Create a default-titled conversation
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/chat/conversations", ws.ID), fiber.MethodPost, model.CreateConversationRequest{
+		Title: "New conversation",
+	})
+	s.Created()
+	conv := testutil.DecodeOther[model.ConversationResponse](s).Data
+	s.Require().Positive(conv.ID)
+
+	// 2. Manual rename via PATCH
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/chat/conversations/%d", ws.ID, conv.ID), fiber.MethodPatch, model.UpdateConversationRequest{
+		Title: "Renamed by User",
+	})
+	s.OK()
+	updatedConv := testutil.DecodeOther[model.ConversationResponse](s).Data
+	s.Equal("Renamed by User", updatedConv.Title)
+
+	// 3. Rename with blank/whitespace returns 422
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/chat/conversations/%d", ws.ID, conv.ID), fiber.MethodPatch, model.UpdateConversationRequest{
+		Title: "   ",
+	})
+	s.AssertStatus(fiber.StatusUnprocessableEntity)
+
+	// 4. Create another conversation with default title to test auto-titling in SendMessage
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/chat/conversations", ws.ID), fiber.MethodPost, model.CreateConversationRequest{
+		Title: "Percakapan baru",
+	})
+	s.Created()
+	autoConv := testutil.DecodeOther[model.ConversationResponse](s).Data
+
+	s.setChatSteps(func(w http.ResponseWriter, r *http.Request) {
+		resp := map[string]any{
+			"choices": []map[string]any{
+				{
+					"message": map[string]any{
+						"role":    "assistant",
+						"content": "I understand your query.",
+					},
+					"finish_reason": "stop",
+				},
+			},
+		}
+		_ = json.NewEncoder(w).Encode(resp)
+	})
+
+	msgContent := "Please help analyze our latest expenses"
+	expectedSnippet := string([]rune(msgContent)[:35]) + "..."
+	s.sendMessageMultipart(ws.ID, autoConv.ID, msgContent)
+	s.OK()
+	msgResp := testutil.DecodeOther[model.SendMessageResponse](s).Data
+	s.Equal(expectedSnippet, msgResp.ConversationTitle)
+
+	// Verify conversation detail reflects auto-generated title
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/chat/conversations/%d", ws.ID, autoConv.ID), fiber.MethodGet, nil)
+	s.OK()
+	convDetail := testutil.DecodeOther[model.ConversationDetailResponse](s).Data
+	s.Equal(expectedSnippet, convDetail.Title)
+}
+
 func (s *ChatIntegrationSuite) TestChat_Authz_PermissionsDenial_403() {
 	ws := s.ensureWorkspace("Chat Authz Denial WS", s.User.ID)
 	s.createProviderAndEnable(ws.ID)
