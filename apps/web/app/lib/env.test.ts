@@ -65,4 +65,45 @@ describe("env runtime config", () => {
 
     expect(env.publicUrl).toBe("http://web.example.com");
   });
+
+  it("parses Sentry runtime configuration and clamps sample rate", async () => {
+    vi.stubGlobal("window", {
+      __OMED_CONFIG__: {
+        sentryDsn: "https://public@sentry.example.com/1",
+        sentryEnvironment: "staging",
+        sentryRelease: "1.2.3",
+        sentryTracesSampleRate: "0.25",
+      },
+    });
+
+    const env = await loadEnv();
+
+    expect(env.sentryDsn).toBe("https://public@sentry.example.com/1");
+    expect(env.sentryEnvironment).toBe("staging");
+    expect(env.sentryRelease).toBe("1.2.3");
+    expect(env.sentryTracesSampleRate).toBe(0.25);
+  });
+
+  it("clamps sentryTracesSampleRate to [0, 1] and defaults to 0 on invalid values", async () => {
+    vi.stubGlobal("window", {
+      __OMED_CONFIG__: {
+        sentryTracesSampleRate: "2.5",
+      },
+    });
+    expect((await loadEnv()).sentryTracesSampleRate).toBe(1);
+
+    vi.stubGlobal("window", {
+      __OMED_CONFIG__: {
+        sentryTracesSampleRate: -0.5,
+      },
+    });
+    expect((await loadEnv()).sentryTracesSampleRate).toBe(0);
+
+    vi.stubGlobal("window", {
+      __OMED_CONFIG__: {
+        sentryTracesSampleRate: "invalid",
+      },
+    });
+    expect((await loadEnv()).sentryTracesSampleRate).toBe(0);
+  });
 });

@@ -14,6 +14,19 @@ const readNumber = (value: unknown, fallback: number): number => {
   return fallback;
 };
 
+const readSampleRate = (value: unknown, fallback: number): number => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.min(1, Math.max(0, value));
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return Math.min(1, Math.max(0, parsed));
+    }
+  }
+  return fallback;
+};
+
 const readList = (value: unknown, fallback: string[]): string[] => {
   if (typeof value === "string" && value.trim().length > 0) {
     const items = value
@@ -60,7 +73,11 @@ export type RuntimeConfig = Partial<
     | "attachmentMaxSizeMB"
     | "attachmentAllowedTypes"
     | "cmsMediaMaxSizeMB"
-    | "cmsMediaAllowedTypes",
+    | "cmsMediaAllowedTypes"
+    | "sentryDsn"
+    | "sentryEnvironment"
+    | "sentryRelease"
+    | "sentryTracesSampleRate",
     unknown
   >
 >;
@@ -119,5 +136,21 @@ export const env = {
       import.meta.env.VITE_CMS_MEDIA_ALLOWED_TYPES,
     ),
     DEFAULT_CMS_MEDIA_ALLOWED_TYPES,
+  ),
+  sentryDsn: read(pick(runtime.sentryDsn, import.meta.env.VITE_SENTRY_DSN), ""),
+  sentryEnvironment: read(
+    pick(runtime.sentryEnvironment, import.meta.env.VITE_SENTRY_ENVIRONMENT),
+    read(import.meta.env.MODE, "production"),
+  ),
+  sentryRelease: read(
+    pick(runtime.sentryRelease, import.meta.env.VITE_SENTRY_RELEASE),
+    "",
+  ),
+  sentryTracesSampleRate: readSampleRate(
+    pick(
+      runtime.sentryTracesSampleRate,
+      import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE,
+    ),
+    0,
   ),
 };

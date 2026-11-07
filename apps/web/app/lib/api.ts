@@ -1,6 +1,7 @@
 import type { paths } from "@omed/openapi";
 import createClient from "openapi-fetch";
 import { env } from "./env";
+import { captureApiError } from "./sentry";
 
 export const api = createClient<paths>({
   baseUrl: env.apiUrl,
@@ -10,12 +11,19 @@ export const api = createClient<paths>({
 export class ApiError extends Error {
   readonly status: number;
   readonly code?: string;
+  readonly requestId?: string;
 
-  constructor(message: string, status: number, code?: string) {
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    requestId?: string,
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.requestId = requestId;
   }
 }
 
@@ -27,15 +35,30 @@ export const orForbidden =
     throw error;
   };
 
-type ErrorBody = { error?: { code?: string; message?: string } };
+type ErrorBody = {
+  error?: { code?: string; message?: string };
+  meta?: { request_id?: string };
+};
 
 function toApiError(error: unknown, response: Response): ApiError {
   const body = (error ?? {}) as ErrorBody;
-  return new ApiError(
+  const requestId =
+    typeof body.meta?.request_id === "string" && body.meta.request_id.length > 0
+      ? body.meta.request_id
+      : undefined;
+  const apiError = new ApiError(
     body.error?.message || response.statusText || "Request failed",
     response.status,
     body.error?.code,
+    requestId,
   );
+  if (response.status >= 500) {
+    captureApiError(apiError, {
+      requestId,
+      url: response.url || undefined,
+    });
+  }
+  return apiError;
 }
 
 type Result<T> = {

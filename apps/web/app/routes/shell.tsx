@@ -6,6 +6,7 @@ import { NavBar } from "~/components/NavBar";
 import i18n, { setLanguage } from "~/i18n";
 import { authClient } from "~/lib/auth-client";
 import type { Lang } from "~/lib/format";
+import { setSentryUserContext } from "~/lib/sentry";
 import {
   refreshWorkspaces,
   requireWorkspaceId,
@@ -34,6 +35,7 @@ export async function clientLoader() {
     apiError = error instanceof Error ? error.message : String(error);
   }
 
+  setSentryUserContext(data.user, activeId);
   return { user: data.user, workspaces, activeId, apiError };
 }
 
@@ -55,6 +57,7 @@ export default function Shell({ loaderData }: Route.ComponentProps) {
 
   const signOut = async () => {
     await authClient.signOut();
+    setSentryUserContext(null);
     navigate("/login");
   };
 

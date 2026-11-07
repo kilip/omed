@@ -1,5 +1,6 @@
 import type { components } from "@omed/openapi";
 import { api, unwrapList } from "./api";
+import { setSentryWorkspaceTag } from "./sentry";
 
 export type Workspace = components["schemas"]["model.WorkspaceResponse"];
 
@@ -23,6 +24,7 @@ export function setActiveWorkspaceId(id: number) {
   } catch {
     // Ignore storage failures; the selection then lasts for this load only.
   }
+  setSentryWorkspaceTag(id);
 }
 
 /** Loads the workspaces the caller can see and remembers the promise. */

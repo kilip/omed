@@ -1,6 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authClient } from "~/lib/auth-client";
+import { setSentryUserContext } from "~/lib/sentry";
 import { refreshWorkspaces, requireWorkspaceId } from "~/lib/workspace";
 import Shell, { clientLoader } from "./shell";
 
@@ -33,6 +34,10 @@ vi.mock("~/lib/workspace", () => ({
   refreshWorkspaces: vi.fn(),
   requireWorkspaceId: vi.fn(),
   setActiveWorkspaceId: vi.fn(),
+}));
+
+vi.mock("~/lib/sentry", () => ({
+  setSentryUserContext: vi.fn(),
 }));
 
 describe("Shell clientLoader", () => {
@@ -71,6 +76,7 @@ describe("Shell clientLoader", () => {
       activeId: 1,
       apiError: undefined,
     });
+    expect(setSentryUserContext).toHaveBeenCalledWith(mockUser, 1);
   });
 
   it("handles empty workspaces without apiError when user has no workspace yet", async () => {

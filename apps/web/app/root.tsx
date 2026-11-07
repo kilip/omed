@@ -11,8 +11,11 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { Spin } from "antd";
+import { captureErrorBoundary, initSentry } from "./lib/sentry";
 import { Providers } from "./providers";
 import { themeInitScript } from "./theme/init-script";
+
+initSentry();
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -71,6 +74,7 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  captureErrorBoundary(error);
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
