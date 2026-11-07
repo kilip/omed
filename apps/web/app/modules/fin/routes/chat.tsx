@@ -23,6 +23,7 @@ import {
   useDiscardDraft,
   useFinancialStatus,
   useSendMessage,
+  useUpdateConversation,
 } from "../hooks/use-agent-chat";
 import { useFinPermissions } from "../hooks/use-fin-permissions";
 import { accountsQueryOptions } from "../queries";
@@ -81,10 +82,10 @@ export default function FinChatPage({
 
   const createConversation = useCreateConversation(wid);
   const deleteConversation = useDeleteConversation(wid);
+  const updateConversation = useUpdateConversation(wid);
   const sendMessage = useSendMessage(wid, activeConversationId ?? undefined);
   const confirmDraft = useConfirmDraft(wid);
   const discardDraft = useDiscardDraft(wid);
-
   const handleNewConversation = async () => {
     try {
       const conv = await createConversation.mutateAsync({
@@ -110,7 +111,18 @@ export default function FinChatPage({
       // Error handled by query/mutation
     }
   };
-
+  const handleRenameConversation = async (id: number, title: string) => {
+    try {
+      await updateConversation.mutateAsync({ conversationId: id, title });
+    } catch (err) {
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : t("fin.chat.renameFailed", "Failed to rename conversation");
+      message.error(errorMsg);
+      throw err;
+    }
+  };
   const handleSendMessage = async (params: SendMessageParams) => {
     try {
       let targetConvId = activeConversationId;
@@ -219,9 +231,11 @@ export default function FinChatPage({
               onSelectConversation={(id) => setSelectedId(id)}
               onNewConversation={handleNewConversation}
               onDeleteConversation={handleDeleteConversation}
+              onRenameConversation={handleRenameConversation}
               isLoading={isConversationsLoading}
               isCreating={createConversation.isPending}
               isDeleting={deleteConversation.isPending}
+              isRenaming={updateConversation.isPending}
             />
           </div>
 
@@ -244,12 +258,13 @@ export default function FinChatPage({
                 void handleNewConversation();
               }}
               onDeleteConversation={handleDeleteConversation}
+              onRenameConversation={handleRenameConversation}
               isLoading={isConversationsLoading}
               isCreating={createConversation.isPending}
               isDeleting={deleteConversation.isPending}
+              isRenaming={updateConversation.isPending}
             />
           </Drawer>
-
           {/* Chat main pane */}
           <div className="flex-1 flex flex-col min-w-0 bg-[var(--omed-bg)] h-full">
             {/* Chat header */}

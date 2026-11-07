@@ -19,8 +19,15 @@ let capturedComposerProps: {
   isSending?: boolean;
 } = {};
 
+let capturedSidebarProps: {
+  onRenameConversation?: (id: number, title: string) => Promise<void> | void;
+  isRenaming?: boolean;
+  activeConversationId?: number | null;
+} = {};
+
 const mockMutateAsync = vi.fn();
 const mockCreateConversationMutateAsync = vi.fn();
+const mockUpdateConversationMutateAsync = vi.fn();
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -105,10 +112,17 @@ vi.mock("../hooks/use-agent-chat", () => ({
   useDiscardDraft: () => ({
     mutateAsync: vi.fn(),
   }),
+  useUpdateConversation: () => ({
+    mutateAsync: mockUpdateConversationMutateAsync,
+    isPending: false,
+  }),
 }));
 
 vi.mock("../components/chat", () => ({
-  ConversationSidebar: () => <div>Sidebar</div>,
+  ConversationSidebar: (props: typeof capturedSidebarProps) => {
+    capturedSidebarProps = props;
+    return <div>Sidebar</div>;
+  },
   MessageList: () => <div>MessageList</div>,
   MessageComposer: (props: typeof capturedComposerProps) => {
     capturedComposerProps = props;
@@ -119,6 +133,7 @@ vi.mock("../components/chat", () => ({
 describe("FinChatPage error toast handling", () => {
   beforeEach(() => {
     capturedComposerProps = {};
+    capturedSidebarProps = {};
     vi.clearAllMocks();
   });
 
@@ -165,5 +180,47 @@ describe("FinChatPage error toast handling", () => {
     });
 
     expect(mockMessage.error).toHaveBeenCalledWith("Network timeout");
+  });
+});
+
+describe("FinChatPage conversation rename handling", () => {
+  beforeEach(() => {
+    capturedComposerProps = {};
+    capturedSidebarProps = {};
+    vi.clearAllMocks();
+  });
+
+  it("calls updateConversation.mutateAsync when onRenameConversation is called", async () => {
+    mockUpdateConversationMutateAsync.mockResolvedValueOnce({
+      id: 101,
+      title: "Updated Title",
+    });
+
+    renderToString(<FinChatPage loaderData={{ wid: 1 }} />);
+
+    expect(capturedSidebarProps.onRenameConversation).toBeDefined();
+    await capturedSidebarProps.onRenameConversation?.(101, "Updated Title");
+
+    expect(mockUpdateConversationMutateAsync).toHaveBeenCalledWith({
+      conversationId: 101,
+      title: "Updated Title",
+    });
+  });
+
+  it("shows error toast when rename fails", async () => {
+    mockUpdateConversationMutateAsync.mockRejectedValueOnce(
+      new Error("Failed to rename conversation"),
+    );
+
+    renderToString(<FinChatPage loaderData={{ wid: 1 }} />);
+
+    expect(capturedSidebarProps.onRenameConversation).toBeDefined();
+    await expect(
+      capturedSidebarProps.onRenameConversation?.(101, "Bad Title"),
+    ).rejects.toThrow("Failed to rename conversation");
+
+    expect(mockMessage.error).toHaveBeenCalledWith(
+      "Failed to rename conversation",
+    );
   });
 });

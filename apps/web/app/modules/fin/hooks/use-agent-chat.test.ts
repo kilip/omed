@@ -15,6 +15,7 @@ import {
   useDiscardDraft,
   useFinancialStatus,
   useSendMessage,
+  useUpdateConversation,
 } from "./use-agent-chat";
 
 vi.mock("~/lib/api", async (importOriginal) => {
@@ -24,6 +25,7 @@ vi.mock("~/lib/api", async (importOriginal) => {
     api: {
       GET: vi.fn(),
       POST: vi.fn(),
+      PATCH: vi.fn(),
       DELETE: vi.fn(),
     },
   };
@@ -289,6 +291,67 @@ describe("agent chat hooks", () => {
       queryKey: agentChatKeys.all(wid),
     });
   });
+  it("useUpdateConversation updates conversation title and updates cache", async () => {
+    let capturedOptions: {
+      mutationFn: (variables: {
+        conversationId: number;
+        title: string;
+      }) => Promise<unknown>;
+      onSuccess?: (
+        data: unknown,
+        variables: { conversationId: number; title: string },
+      ) => void;
+    } = {} as never;
+
+    mockUseMutation.mockImplementation((opts) => {
+      capturedOptions = opts;
+      return { mutate: vi.fn() };
+    });
+
+    useUpdateConversation(wid);
+
+    const updatedConv = { id: 77, title: "Renamed Title" };
+    vi.mocked(api.PATCH).mockResolvedValueOnce({
+      data: { data: updatedConv },
+      response: new Response(null, { status: 200 }),
+    } as never);
+
+    const result = await capturedOptions.mutationFn({
+      conversationId: 77,
+      title: "Renamed Title",
+    });
+    expect(result).toEqual(updatedConv);
+    expect(api.PATCH).toHaveBeenCalledWith(
+      "/workspaces/{wid}/agent/chat/conversations/{id}",
+      expect.objectContaining({
+        params: { path: { wid, id: 77 } },
+        body: { title: "Renamed Title" },
+      }),
+    );
+
+    capturedOptions.onSuccess?.(updatedConv, {
+      conversationId: 77,
+      title: "Renamed Title",
+    });
+    expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(
+      agentChatKeys.conversation(wid, 77),
+      expect.any(Function),
+    );
+    // Test updater fn passed to setQueryData
+    const updater = vi.mocked(mockQueryClient.setQueryData).mock
+      .calls[0][1] as (old: unknown) => unknown;
+    expect(updater({ id: 77, title: "Old Title", messages: [] })).toEqual({
+      id: 77,
+      title: "Renamed Title",
+      messages: [],
+    });
+    expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: agentChatKeys.conversations(wid),
+    });
+    expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: agentChatKeys.conversation(wid, 77),
+    });
+  });
 
   it("useSendMessage packs FormData for content and multiple files", async () => {
     let capturedOptions: {
@@ -354,6 +417,58 @@ describe("agent chat hooks", () => {
     });
     expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: agentChatKeys.all(wid),
+    });
+  });
+
+  it("useSendMessage updates conversation title in cache if conversationTitle is returned", async () => {
+    let capturedOptions: {
+      mutationFn: (params: {
+        content?: string;
+        conversationId?: number;
+      }) => Promise<unknown>;
+      onSuccess?: (
+        data: unknown,
+        variables: { conversationId?: number; content?: string },
+      ) => void;
+    } = {} as never;
+
+    mockUseMutation.mockImplementation((opts) => {
+      capturedOptions = opts;
+      return { mutate: vi.fn() };
+    });
+
+    useSendMessage(wid, 42);
+
+    const sendResponse = {
+      conversationTitle: "Auto Generated Title",
+      userMessage: { id: 1, role: "user", content: "Analyze receipt" },
+      assistantMessage: {
+        id: 2,
+        role: "assistant",
+        content: "Draft ready",
+      },
+    };
+
+    capturedOptions.onSuccess?.(sendResponse, { conversationId: 42 });
+
+    expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(
+      agentChatKeys.conversation(wid, 42),
+      expect.any(Function),
+    );
+    const updater = vi.mocked(mockQueryClient.setQueryData).mock
+      .calls[0][1] as (old: unknown) => unknown;
+    const updated = updater({
+      id: 42,
+      title: "New conversation",
+      messages: [],
+    });
+    expect(updated).toMatchObject({
+      id: 42,
+      title: "Auto Generated Title",
+    });
+
+    expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: agentChatKeys.conversations(wid),
     });
   });
 

@@ -25,6 +25,8 @@ export type ConfirmDraftResponse =
   components["schemas"]["model.ConfirmDraftResponse"];
 export type CreateConversationRequest =
   components["schemas"]["model.CreateConversationRequest"];
+export type UpdateConversationRequest =
+  components["schemas"]["model.UpdateConversationRequest"];
 export type FinancialStatus = components["schemas"]["model.FinancialStatus"];
 
 export type SendMessageParams = {
@@ -165,6 +167,46 @@ export function useDeleteConversation(wid?: number) {
     },
   });
 }
+export function useUpdateConversation(wid?: number) {
+  const resolvedWid = useResolvedWid(wid);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      conversationId,
+      title,
+    }: {
+      conversationId: number;
+      title: string;
+    }) =>
+      unwrapOne(
+        api.PATCH("/workspaces/{wid}/agent/chat/conversations/{id}", {
+          params: { path: { wid: resolvedWid, id: conversationId } },
+          body: { title },
+        }),
+      ),
+    onSuccess: (data, variables) => {
+      const targetId = variables.conversationId;
+      const updatedTitle = data?.title ?? variables.title;
+      queryClient.setQueryData(
+        agentChatKeys.conversation(resolvedWid, targetId),
+        (old: ConversationDetailResponse | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            title: updatedTitle,
+          };
+        },
+      );
+      queryClient.invalidateQueries({
+        queryKey: agentChatKeys.conversations(resolvedWid),
+      });
+      queryClient.invalidateQueries({
+        queryKey: agentChatKeys.conversation(resolvedWid, targetId),
+      });
+    },
+  });
+}
 
 export function useSendMessage(wid?: number, conversationId?: number) {
   const resolvedWid = useResolvedWid(wid);
@@ -218,12 +260,20 @@ export function useSendMessage(wid?: number, conversationId?: number) {
             }
             return {
               ...(old || { id: targetId, title: "Chat" }),
+              ...(data?.conversationTitle
+                ? { title: data.conversationTitle }
+                : {}),
               messages: newMessages,
             };
           },
         );
         queryClient.invalidateQueries({
           queryKey: agentChatKeys.conversation(resolvedWid, targetId),
+        });
+      }
+      if (data?.conversationTitle) {
+        queryClient.invalidateQueries({
+          queryKey: agentChatKeys.conversations(resolvedWid),
         });
       }
       queryClient.invalidateQueries({
