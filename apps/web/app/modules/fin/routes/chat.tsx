@@ -1,6 +1,6 @@
 import { MenuOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Button, Drawer, Result, Spin } from "antd";
+import { Alert, App, Button, Drawer, Result, Spin } from "antd";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Page } from "~/components/Page";
@@ -39,6 +39,7 @@ export default function FinChatPage({
   loaderData?: { wid: number };
 }) {
   const { t } = useTranslation();
+  const { message } = App.useApp();
   const wid = loaderData?.wid ?? 0;
 
   const agentPerms = useAgentPermissions(wid);
@@ -131,8 +132,12 @@ export default function FinChatPage({
         ...params,
         conversationId: targetConvId ?? undefined,
       });
-    } catch {
-      // Error handled by query/mutation
+    } catch (err) {
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : t("fin.chat.sendFailed", "Failed to send message");
+      message.error(errorMsg);
     }
   };
 

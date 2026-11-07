@@ -759,6 +759,7 @@ export const id: Translation = {
       thinking: "Sedang berpikir...",
       sending: "Mengirim...",
       send: "Kirim",
+      sendFailed: "Gagal mengirim pesan",
       delete: "Hapus",
       confirm: "Konfirmasi",
       discard: "Buang",

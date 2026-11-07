@@ -758,6 +758,7 @@ export const en = {
       thinking: "Thinking...",
       sending: "Sending...",
       send: "Send",
+      sendFailed: "Failed to send message",
       delete: "Delete",
       confirm: "Confirm",
       discard: "Discard",
