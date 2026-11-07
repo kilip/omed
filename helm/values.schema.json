@@ -64,7 +64,8 @@
         "mailerUser": { "type": "string" },
         "mailerPassword": { "type": "string" },
         "s3AccessKey": { "type": "string" },
-        "s3SecretKey": { "type": "string" }
+        "s3SecretKey": { "type": "string" },
+        "sentryDsn": { "type": "string" }
       }
     },
     "api": {
@@ -141,7 +142,19 @@
               }
             },
             "llmAllowPrivateURLs": { "type": "boolean" },
-            "logHttpBody": { "type": "boolean" }
+            "logHttpBody": { "type": "boolean" },
+            "sentry": {
+              "type": "object",
+              "properties": {
+                "environment": { "type": "string" },
+                "release": { "type": "string" },
+                "tracesSampleRate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
           }
         },
         "extraEnv": { "type": "array" },
@@ -164,7 +177,15 @@
             "attachmentMaxSizeMB": { "$ref": "#/definitions/sizeMB" },
             "attachmentAllowedTypes": { "type": "string" },
             "cmsMediaMaxSizeMB": { "$ref": "#/definitions/sizeMB" },
-            "cmsMediaAllowedTypes": { "type": "string" }
+            "cmsMediaAllowedTypes": { "type": "string" },
+            "sentryDsn": { "type": "string" },
+            "sentryEnvironment": { "type": "string" },
+            "sentryRelease": { "type": "string" },
+            "sentryTracesSampleRate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
           }
         },
         "extraEnv": { "type": "array" },

@@ -205,6 +205,12 @@ Non-secret env vars shared by the api Deployment and the migration Job.
   value: {{ $c.llmAllowPrivateURLs | quote }}
 - name: OMED_LOG_HTTP_BODY
   value: {{ $c.logHttpBody | quote }}
+- name: OMED_SENTRY_ENVIRONMENT
+  value: {{ $c.sentry.environment | quote }}
+- name: OMED_SENTRY_RELEASE
+  value: {{ $c.sentry.release | quote }}
+- name: OMED_SENTRY_TRACES_SAMPLE_RATE
+  value: {{ $c.sentry.tracesSampleRate | quote }}
 {{- with .Values.api.extraEnv }}
 {{ toYaml . }}
 {{- end }}

@@ -13,6 +13,7 @@ secrets:
   s3AccessKey: access
   s3SecretKey: secret
   secretKey: YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=
+  sentryDsn: https://examplePublicKey@o0.ingest.sentry.io/0
 
 api:
   config:
@@ -28,6 +29,10 @@ api:
       hourlyLimit: 5
     llmAllowPrivateURLs: true
     logHttpBody: true
+    sentry:
+      environment: staging
+      release: omed-api@1.0.0
+      tracesSampleRate: 0.25
   extraEnv:
     - name: OMED_READ_TIMEOUT
       value: 15s
@@ -41,6 +46,11 @@ api:
     enabled: true
 
 web:
+  config:
+    sentryDsn: https://exampleWebKey@o0.ingest.sentry.io/1
+    sentryEnvironment: staging
+    sentryRelease: omed-web@1.0.0
+    sentryTracesSampleRate: 0.25
   extraEnv:
     - name: NODE_OPTIONS
       value: --max-old-space-size=256

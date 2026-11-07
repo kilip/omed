@@ -96,6 +96,7 @@ Both containers load the Secret with `envFrom`, so its keys are the env var name
 | `OMED_GOOGLE_SECRET` | `googleClientSecret` | no | Google OAuth client secret |
 | `OMED_GITHUB_ID` | `githubClientId` | no | GitHub OAuth client ID |
 | `OMED_GITHUB_SECRET` | `githubClientSecret` | no | GitHub OAuth client secret |
+| `OMED_SENTRY_DSN` | `sentryDsn` | no | Sentry DSN for backend error and trace reporting (disabled when empty) |
 
 ### Example: Gmail SMTP Setup
 
@@ -181,7 +182,8 @@ See [`values.yaml`](./values.yaml) for every option with comments. Most-used key
 | `global.imageRegistry` | `ghcr.io` | Registry prefix for both images |
 | `api.image.tag` / `web.image.tag` | `""` (chart `appVersion`) | Image tags |
 | `api.replicaCount` / `web.replicaCount` | `2` | Replicas when HPA is off |
-| `api.config.*` | see file | Non-secret `OMED_*` settings (mailer, S3, limits) |
+| `api.config.*` | see file | Non-secret `OMED_*` settings (mailer, S3, limits, `sentry.*`) |
+| `web.config.*` | see file | Runtime `OMED_WEB_*` settings (URLs, upload limits, `sentry*`) |
 | `api.extraEnv` / `web.extraEnv` | `[]` | Extra env vars (`api.extraEnv` also applies to the migration Job) |
 | `secrets.existingSecret` | `""` | Use an existing Secret instead of chart-managed values |
 | `migrations.enabled` | `true` | Run the migration hook Job |

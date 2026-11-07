@@ -48,6 +48,8 @@ secrets:
   s3AccessKey: ""
   # -- OMED_S3_SECRET_KEY
   s3SecretKey: ""
+  # -- OMED_SENTRY_DSN
+  sentryDsn: ""
 
 api:
   image:
@@ -98,6 +100,13 @@ api:
     llmAllowPrivateURLs: false
     # -- OMED_LOG_HTTP_BODY. Log sanitized HTTP request bodies on error responses (status >= 400).
     logHttpBody: false
+    sentry:
+      # -- OMED_SENTRY_ENVIRONMENT. Defaults to api.config.env when empty.
+      environment: ""
+      # -- OMED_SENTRY_RELEASE
+      release: ""
+      # -- OMED_SENTRY_TRACES_SAMPLE_RATE (0.0 to 1.0)
+      tracesSampleRate: 0
   # -- Extra env vars for the api container (and migration Job).
   extraEnv: []
   service:
@@ -149,6 +158,10 @@ web:
     attachmentAllowedTypes: .pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx
     cmsMediaMaxSizeMB: 25
     cmsMediaAllowedTypes: .png,.jpg,.jpeg,.webp,.gif,.pdf
+    sentryDsn: ""
+    sentryEnvironment: ""
+    sentryRelease: ""
+    sentryTracesSampleRate: 0
   extraEnv: []
   service:
     type: ClusterIP

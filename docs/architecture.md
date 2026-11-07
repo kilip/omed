@@ -168,9 +168,17 @@ Passwordless email authentication is active only when an SMTP transport is confi
   - `fin_find_cashflow`: Search income and expense cashflow documents (requires `fin:transaction` `read` and `fin:account` `read`).
     - Arguments: `workspace_id` (required, `int64`), `type` (required, `income` or `expense`), `date_from` (optional, `YYYY-MM-DD`), `date_to` (optional, `YYYY-MM-DD`), `status` (optional, `draft` or `posted`), `query` (optional, description text search), `payment_account` (optional, code or name), `category_account` (optional, code or name), `limit` (optional, integer `1`–`50`, default `20`), `cursor` (optional, pagination cursor).
 
+## Observability & Error Monitoring (Sentry)
+
+Both `apps/api` (`sentry-go`) and `apps/web` (`@sentry/react`) integrate optional Sentry error/panic reporting and distributed performance tracing, operating as a safe no-op when no DSN is configured:
+
+- **Backend (`apps/api`):** Configured via `OMED_SENTRY_DSN`, `OMED_SENTRY_ENVIRONMENT` (defaults to `OMED_ENV`), `OMED_SENTRY_RELEASE`, and `OMED_SENTRY_TRACES_SAMPLE_RATE` (`0.0`–`1.0`, default `0`). Fiber middleware recovers panics and `ErrorHandler` reports unhandled `5xx` (`ERR_UNKNOWN`) responses (ignoring expected `4xx` domain/validation errors), attaching safe tags (`request_id`, `workspace_id`, `error.code`, `http.method`, `http.route`) and `user.id` while scrubbing `Authorization`/`Cookie`/`Set-Cookie` headers and sensitive body fields in `BeforeSend`.
+- **Frontend (`apps/web`):** Configured at runtime via `/config.js` (`OMED_WEB_SENTRY_DSN`, `OMED_WEB_SENTRY_ENVIRONMENT`, `OMED_WEB_SENTRY_RELEASE`, `OMED_WEB_SENTRY_TRACES_SAMPLE_RATE`). Reports unhandled React Router `ErrorBoundary` errors (excluding 404 route responses) and `5xx` `ApiError` responses with the backend `request_id` tag, synchronizes `user.id` and `workspace_id` scope in `shell.tsx`, and propagates `sentry-trace`/`baggage` headers to `env.apiUrl`.
+- **Helm Chart (`helm/`):** Exposes `secrets.sentryDsn`, `api.config.sentry.*`, and `web.config.sentry*`.
+
 ## Tech Stack
 
-- **Backend & Auth:** Go, Fiber v3, Ent, Casbin, Swaggo, MCP Go SDK
-- **Frontend:** React 19, React Router v8 (SPA), Ant Design 6, Tailwind CSS 4, i18next
+- **Backend & Auth:** Go, Fiber v3, Ent, Casbin, Swaggo, MCP Go SDK, Sentry Go SDK
+- **Frontend:** React 19, React Router v8 (SPA), Ant Design 6, Tailwind CSS 4, i18next, `@sentry/react`
 - **Data & Infrastructure:** PostgreSQL 18, RustFS / S3-compatible object storage, SMTP mailer (plus Redis 8 and Apache Kafka provisioned in devcontainer/CI for future use)
 - **Tooling:** Bun, Turborepo, Biome, Husky + Commitlint, Air, Swag, Atlas, Vitest, Cucumber, Playwright

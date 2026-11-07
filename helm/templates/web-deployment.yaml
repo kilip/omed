@@ -56,6 +56,14 @@ spec:
               value: {{ .Values.web.config.cmsMediaMaxSizeMB | quote }}
             - name: OMED_WEB_CMS_MEDIA_ALLOWED_TYPES
               value: {{ .Values.web.config.cmsMediaAllowedTypes | quote }}
+            - name: OMED_WEB_SENTRY_DSN
+              value: {{ .Values.web.config.sentryDsn | quote }}
+            - name: OMED_WEB_SENTRY_ENVIRONMENT
+              value: {{ .Values.web.config.sentryEnvironment | quote }}
+            - name: OMED_WEB_SENTRY_RELEASE
+              value: {{ .Values.web.config.sentryRelease | quote }}
+            - name: OMED_WEB_SENTRY_TRACES_SAMPLE_RATE
+              value: {{ .Values.web.config.sentryTracesSampleRate | quote }}
             {{- with .Values.web.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
