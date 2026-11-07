@@ -59,6 +59,7 @@ type Message struct {
 	Parts      []Part
 	ToolCalls  []ToolCall
 	ToolCallID string
+	ToolName   string
 }
 
 // Tool describes a callable function tool provided to the model.

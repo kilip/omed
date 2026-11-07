@@ -155,7 +155,7 @@ func (a *geminiAdapter) buildParams(req Request) (string, []*genai.Content, *gen
 
 	var systemParts []*genai.Part
 	var contents []*genai.Content
-
+	toolCallNames := make(map[string]string)
 	for _, m := range req.Messages {
 		switch m.Role {
 		case RoleSystem:
@@ -193,6 +193,9 @@ func (a *geminiAdapter) buildParams(req Request) (string, []*genai.Content, *gen
 				}
 			}
 			for _, tc := range m.ToolCalls {
+				if tc.ID != "" && tc.Name != "" {
+					toolCallNames[tc.ID] = tc.Name
+				}
 				var argsMap map[string]any
 				if len(tc.Arguments) > 0 {
 					_ = json.Unmarshal(tc.Arguments, &argsMap)
@@ -221,17 +224,25 @@ func (a *geminiAdapter) buildParams(req Request) (string, []*genai.Content, *gen
 			if err := json.Unmarshal([]byte(sb.String()), &respMap); err != nil {
 				respMap = map[string]any{"output": sb.String()}
 			}
-			contents = append(contents, &genai.Content{
-				Role: "user",
-				Parts: []*genai.Part{
-					{
-						FunctionResponse: &genai.FunctionResponse{
-							ID:       m.ToolCallID,
-							Response: respMap,
-						},
-					},
+			toolName := m.ToolName
+			if toolName == "" && m.ToolCallID != "" {
+				toolName = toolCallNames[m.ToolCallID]
+			}
+			part := &genai.Part{
+				FunctionResponse: &genai.FunctionResponse{
+					Name:     toolName,
+					ID:       m.ToolCallID,
+					Response: respMap,
 				},
-			})
+			}
+			if len(contents) > 0 && contents[len(contents)-1].Role == "user" && hasFunctionResponse(contents[len(contents)-1].Parts) {
+				contents[len(contents)-1].Parts = append(contents[len(contents)-1].Parts, part)
+			} else {
+				contents = append(contents, &genai.Content{
+					Role:  "user",
+					Parts: []*genai.Part{part},
+				})
+			}
 		}
 	}
 
@@ -242,6 +253,15 @@ func (a *geminiAdapter) buildParams(req Request) (string, []*genai.Content, *gen
 	}
 
 	return model, contents, genConfig
+}
+
+func hasFunctionResponse(parts []*genai.Part) bool {
+	for _, p := range parts {
+		if p != nil && p.FunctionResponse != nil {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *geminiAdapter) Chat(ctx context.Context, req Request) (*Response, error) {
