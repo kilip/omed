@@ -753,7 +753,8 @@ export const id: Translation = {
       inputPlaceholder:
         "Ketik pesan... (Tekan Enter untuk kirim, Shift+Enter untuk baris baru)",
       attachFile: "Lampirkan berkas",
-      attachTooltip: "Lampirkan gambar atau PDF (otomatis dikirim)",
+      attachTooltip: "Lampirkan gambar atau PDF",
+      removeAttachment: "Hapus lampiran",
       analyzing: "Agen sedang menganalisis...",
       thinking: "Sedang berpikir...",
       sending: "Mengirim...",

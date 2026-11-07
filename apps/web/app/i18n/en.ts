@@ -752,7 +752,8 @@ export const en = {
       inputPlaceholder:
         "Type a message... (Press Enter to send, Shift+Enter for new line)",
       attachFile: "Attach file",
-      attachTooltip: "Attach image or PDF (auto-sends)",
+      attachTooltip: "Attach image or PDF",
+      removeAttachment: "Remove attachment",
       analyzing: "Agent is analyzing...",
       thinking: "Thinking...",
       sending: "Sending...",
