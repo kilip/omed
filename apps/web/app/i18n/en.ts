@@ -752,7 +752,7 @@ export const en = {
       inputPlaceholder:
         "Type a message... (Press Enter to send, Shift+Enter for new line)",
       attachFile: "Attach file",
-      attachTooltip: "Attach image or PDF",
+      attachTooltip: "Attach image or PDF (max 500KB)",
       removeAttachment: "Remove attachment",
       analyzing: "Agent is analyzing...",
       thinking: "Thinking...",
@@ -792,7 +792,7 @@ export const en = {
       addEntry: "Add Entry",
       download: "Download",
       preview: "Preview",
-      fileTooLarge: "File exceeds maximum size of {{maxSize}}MB",
+      fileTooLarge: "File exceeds maximum size of {{maxSize}}",
       invalidFileType: "Only images and PDF files are allowed",
       forbidden:
         "You need permission to use the financial agent and create transactions to access Talk to Agent.",

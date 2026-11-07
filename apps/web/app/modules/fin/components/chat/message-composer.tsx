@@ -8,10 +8,10 @@ import {
 import { App, Button, Tooltip } from "antd";
 import { type ChangeEvent, type KeyboardEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { env } from "~/lib/env";
 import type { SendMessageParams } from "../../hooks/use-agent-chat";
 import { formatFileSize } from "../transaction-attachments";
 
+export const MAX_CHAT_ATTACHMENT_BYTES = 500 * 1024;
 export interface MessageComposerHandle {
   stageFile: (file: File) => void;
   removeStagedFile: () => void;
@@ -118,13 +118,12 @@ export function MessageComposer({
       return;
     }
 
-    // Validate size (max 25MB)
-    const maxBytes = env.attachmentMaxSizeMB * 1024 * 1024;
-    if (file.size > maxBytes) {
+    // Validate size (max 500KB)
+    if (file.size > MAX_CHAT_ATTACHMENT_BYTES) {
       message.error(
         t("fin.chat.fileTooLarge", {
-          maxSize: env.attachmentMaxSizeMB,
-          defaultValue: `File exceeds maximum size of ${env.attachmentMaxSizeMB}MB`,
+          maxSize: "500KB",
+          defaultValue: "File exceeds maximum size of 500KB",
         }),
       );
       return;
@@ -226,7 +225,9 @@ export function MessageComposer({
       )}
 
       <div className="flex items-end gap-2 rounded-lg border border-[var(--omed-border)] bg-[var(--omed-bg)] p-2 focus-within:border-[var(--omed-primary)] transition-colors">
-        <Tooltip title={t("fin.chat.attachTooltip", "Attach image or PDF")}>
+        <Tooltip
+          title={t("fin.chat.attachTooltip", "Attach image or PDF (max 500KB)")}
+        >
           <Button
             type="text"
             icon={<PaperClipOutlined className="text-base" />}

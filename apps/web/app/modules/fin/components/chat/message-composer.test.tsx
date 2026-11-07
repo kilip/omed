@@ -3,9 +3,9 @@ import type React from "react";
 import { renderToString } from "react-dom/server";
 import type * as reactI18next from "react-i18next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { env } from "~/lib/env";
 import {
   detectMimeType,
+  MAX_CHAT_ATTACHMENT_BYTES,
   MessageComposer,
   type MessageComposerHandle,
 } from "./message-composer";
@@ -233,7 +233,7 @@ describe("MessageComposer", () => {
       expect(onSend).not.toHaveBeenCalled();
     });
 
-    it("rejects files larger than max size with error toast and does not stage", () => {
+    it("rejects files larger than 500KB with error toast and does not stage", () => {
       const onSend = vi.fn();
       const onStagedFileChange = vi.fn();
       const composerRef: { current: MessageComposerHandle | null } = {
@@ -248,7 +248,7 @@ describe("MessageComposer", () => {
         />,
       );
 
-      const oversizedBytes = (env.attachmentMaxSizeMB + 1) * 1024 * 1024;
+      const oversizedBytes = MAX_CHAT_ATTACHMENT_BYTES + 1;
       const file = createMockFile(
         "huge.pdf",
         oversizedBytes,
@@ -257,9 +257,38 @@ describe("MessageComposer", () => {
       composerRef.current?.stageFile(file);
 
       expect(mockMessage.error).toHaveBeenCalledWith(
-        `File exceeds maximum size of ${env.attachmentMaxSizeMB}MB`,
+        "File exceeds maximum size of 500KB",
       );
       expect(onStagedFileChange).not.toHaveBeenCalled();
+      expect(onSend).not.toHaveBeenCalled();
+    });
+
+    it("stages files with size exactly equal to 500KB successfully", () => {
+      const onSend = vi.fn();
+      const onStagedFileChange = vi.fn();
+      const composerRef: { current: MessageComposerHandle | null } = {
+        current: null,
+      };
+
+      renderToString(
+        <MessageComposer
+          onSend={onSend}
+          onStagedFileChange={onStagedFileChange}
+          composerRef={composerRef}
+        />,
+      );
+
+      const maxAllowedFile = createMockFile(
+        "max.pdf",
+        MAX_CHAT_ATTACHMENT_BYTES,
+        "application/pdf",
+      );
+      composerRef.current?.stageFile(maxAllowedFile);
+
+      expect(mockMessage.error).not.toHaveBeenCalled();
+      expect(onStagedFileChange).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "max.pdf" }),
+      );
       expect(onSend).not.toHaveBeenCalled();
     });
 
@@ -370,10 +399,10 @@ describe("MessageComposer", () => {
       expect(sendBtn?.loading).toBe(true);
     });
 
-    it("renders tooltip without auto-sends wording", () => {
+    it("renders tooltip with max 500KB and without auto-sends wording", () => {
       const onSend = vi.fn();
       const html = renderToString(<MessageComposer onSend={onSend} />);
-      expect(html).toContain("Attach image or PDF");
+      expect(html).toContain("Attach image or PDF (max 500KB)");
       expect(html).not.toContain("auto-sends");
     });
   });

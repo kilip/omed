@@ -753,7 +753,7 @@ export const id: Translation = {
       inputPlaceholder:
         "Ketik pesan... (Tekan Enter untuk kirim, Shift+Enter untuk baris baru)",
       attachFile: "Lampirkan berkas",
-      attachTooltip: "Lampirkan gambar atau PDF",
+      attachTooltip: "Lampirkan gambar atau PDF (maks 500KB)",
       removeAttachment: "Hapus lampiran",
       analyzing: "Agen sedang menganalisis...",
       thinking: "Sedang berpikir...",
@@ -793,7 +793,7 @@ export const id: Translation = {
       addEntry: "Tambah Entri",
       download: "Unduh",
       preview: "Pratinjau",
-      fileTooLarge: "Ukuran berkas melebihi batas {{maxSize}}MB",
+      fileTooLarge: "Ukuran berkas melebihi batas {{maxSize}}",
       invalidFileType: "Hanya berkas gambar dan PDF yang diperbolehkan",
       forbidden:
         "Anda memerlukan izin untuk menggunakan agen keuangan dan membuat transaksi untuk mengakses Bicara dengan Agen.",
