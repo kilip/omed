@@ -22,6 +22,8 @@ var (
 	ErrInvalidDraftProposal = errors.New("INVALID_DRAFT_PROPOSAL")
 	// ErrAttachmentNotFound indicates that the requested chat attachment was not found.
 	ErrAttachmentNotFound = errors.New("ATTACHMENT_NOT_FOUND")
+	// ErrFileTooLarge indicates that the uploaded file exceeds the maximum allowed size.
+	ErrFileTooLarge = errors.New("FILE_TOO_LARGE")
 )
 
 func init() {
@@ -32,4 +34,5 @@ func init() {
 	base.AddToErrorMap(ErrDraftNotProposed, fiber.StatusUnprocessableEntity, "message does not contain a proposed draft")
 	base.AddToErrorMap(ErrInvalidDraftProposal, fiber.StatusUnprocessableEntity, "invalid draft proposal")
 	base.AddToErrorMap(ErrAttachmentNotFound, fiber.StatusNotFound, "attachment not found")
+	base.AddToErrorMap(ErrFileTooLarge, fiber.StatusRequestEntityTooLarge, "file size exceeds maximum allowed limit")
 }

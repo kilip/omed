@@ -58,6 +58,12 @@ func TestChatErrorsRegistered(t *testing.T) {
 			expectedStatus: fiber.StatusNotFound,
 			expectedMsg:    "attachment not found",
 		},
+		{
+			err:            domain.ErrFileTooLarge,
+			expectedCode:   "FILE_TOO_LARGE",
+			expectedStatus: fiber.StatusRequestEntityTooLarge,
+			expectedMsg:    "file size exceeds maximum allowed limit",
+		},
 	}
 
 	for _, tc := range testCases {

@@ -17,6 +17,10 @@ import (
 	"github.com/kilip/omed/api/internal/platform/httpx"
 )
 
+// MaxChatAttachmentSize defines the maximum allowed chat attachment size (500KB = 512,000 bytes)
+// to prevent upstream LLM provider timeouts and internal errors.
+const MaxChatAttachmentSize int64 = 500 * 1024
+
 // ChatServiceContract defines the operations required by ChatController.
 type ChatServiceContract interface {
 	CreateConversation(ctx context.Context, title string) (model.ConversationResponse, error)
@@ -186,6 +190,7 @@ func (ctl ChatController) DeleteConversation(c fiber.Ctx) error {
 //	@Failure		401		{object}	httpx.ErrorResponse
 //	@Failure		403		{object}	httpx.ErrorResponse
 //	@Failure		404		{object}	httpx.ErrorResponse
+//	@Failure		413		{object}	httpx.ErrorResponse
 //	@Failure		422		{object}	httpx.ErrorResponse
 //	@Failure		429		{object}	httpx.ErrorResponse
 //	@Failure		500		{object}	httpx.ErrorResponse
@@ -220,8 +225,8 @@ func (ctl ChatController) SendMessage(c fiber.Ctx) error {
 			if fh.Size <= 0 {
 				return coredomain.ErrFileEmpty
 			}
-			if ctl.maxSizeMB > 0 && fh.Size > int64(ctl.maxSizeMB)*1024*1024 {
-				return domain.ErrUnsupportedDocument
+			if fh.Size > MaxChatAttachmentSize || (ctl.maxSizeMB > 0 && fh.Size > int64(ctl.maxSizeMB)*1024*1024) {
+				return domain.ErrFileTooLarge
 			}
 
 			ext := strings.ToLower(filepath.Ext(fh.Filename))

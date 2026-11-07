@@ -336,6 +336,31 @@ func (s *ChatIntegrationSuite) TestChat_SendMessageWithAttachment_AndDownload() 
 	s.Equal(fakePNG, bodyBytes)
 }
 
+func (s *ChatIntegrationSuite) TestChat_SendMessageAttachment_SizeLimit() {
+	ws := s.ensureWorkspace("Chat Attachment Limit WS", s.User.ID)
+	s.createProviderAndEnable(ws.ID)
+
+	s.Request(fmt.Sprintf("/workspaces/%d/agent/chat/conversations", ws.ID), fiber.MethodPost, model.CreateConversationRequest{
+		Title: "Size Limit Test Conversation",
+	})
+	s.Created()
+	conv := testutil.DecodeOther[model.ConversationResponse](s).Data
+
+	// Test oversized attachment (> 500KB) -> returns 413 FILE_TOO_LARGE
+	oversizedBytes := make([]byte, 500*1024+1)
+	copy(oversizedBytes, []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"))
+
+	s.sendMessageMultipart(ws.ID, conv.ID, "Upload oversized file", struct {
+		filename string
+		data     []byte
+	}{filename: "too_large.png", data: oversizedBytes})
+
+	s.Equal(fiber.StatusRequestEntityTooLarge, s.HttpResponse.StatusCode)
+	errResp := s.GetErrorResponse()
+	s.Equal("FILE_TOO_LARGE", errResp.Error.Code)
+	s.Equal("file size exceeds maximum allowed limit", errResp.Error.Message)
+}
+
 func (s *ChatIntegrationSuite) TestChat_ConfirmDraft_AndIdempotency() {
 	ws := s.ensureWorkspace("Chat Confirm Draft WS", s.User.ID)
 	s.createProviderAndEnable(ws.ID)
