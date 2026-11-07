@@ -115,6 +115,8 @@ export class FinTalkToAgentPage extends BasePage {
       mimeType,
       buffer: Buffer.from(sampleContent, isPdf ? "utf-8" : "binary"),
     });
+    await this.sendButton.waitFor({ state: "visible" });
+    await this.sendButton.click();
   }
 
   async confirmDraft(): Promise<void> {
