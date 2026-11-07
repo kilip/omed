@@ -25,6 +25,21 @@ type mockFinanceDraftContext struct {
 	saveDraftCalls int
 	saveDraftErr   error
 	saveDraftID    int64
+
+	accountBalancesRes  agentsvc.AccountBalanceResult
+	accountBalancesErr  error
+	financialSummaryRes agentsvc.FinancialSummaryResult
+	financialSummaryErr error
+	profitLossRes       agentsvc.ProfitLossResult
+	profitLossErr       error
+	cashflowsRes        agentsvc.CashflowSearchResult
+	cashflowsErr        error
+	ledgerRes           agentsvc.AccountLedgerResult
+	ledgerErr           error
+	transactionsRes     agentsvc.TransactionSearchResult
+	transactionsErr     error
+	exchangeRateRes     agentsvc.ExchangeRateResult
+	exchangeRateErr     error
 }
 
 func (m *mockFinanceDraftContext) ListAccounts(ctx context.Context) ([]agentsvc.AccountOption, error) {
@@ -57,6 +72,12 @@ func (m *mockFinanceDraftContext) SaveDraft(ctx context.Context, proposal model.
 }
 
 func (m *mockFinanceDraftContext) GetAccountBalances(ctx context.Context, req agentsvc.AccountBalanceQuery) (agentsvc.AccountBalanceResult, error) {
+	if m.accountBalancesErr != nil {
+		return agentsvc.AccountBalanceResult{}, m.accountBalancesErr
+	}
+	if len(m.accountBalancesRes.Accounts) > 0 || m.accountBalancesRes.BaseCurrency != "" {
+		return m.accountBalancesRes, nil
+	}
 	return agentsvc.AccountBalanceResult{
 		BaseCurrency: "IDR",
 		Accounts:     []agentsvc.AccountBalanceItem{},
@@ -64,12 +85,24 @@ func (m *mockFinanceDraftContext) GetAccountBalances(ctx context.Context, req ag
 }
 
 func (m *mockFinanceDraftContext) GetFinancialSummary(ctx context.Context, req agentsvc.FinancialSummaryQuery) (agentsvc.FinancialSummaryResult, error) {
+	if m.financialSummaryErr != nil {
+		return agentsvc.FinancialSummaryResult{}, m.financialSummaryErr
+	}
+	if m.financialSummaryRes.BaseCurrency != "" {
+		return m.financialSummaryRes, nil
+	}
 	return agentsvc.FinancialSummaryResult{
 		BaseCurrency: "IDR",
 	}, nil
 }
 
 func (m *mockFinanceDraftContext) GetProfitLossBreakdown(ctx context.Context, req agentsvc.ProfitLossQuery) (agentsvc.ProfitLossResult, error) {
+	if m.profitLossErr != nil {
+		return agentsvc.ProfitLossResult{}, m.profitLossErr
+	}
+	if m.profitLossRes.BaseCurrency != "" {
+		return m.profitLossRes, nil
+	}
 	return agentsvc.ProfitLossResult{
 		BaseCurrency: "IDR",
 		Revenues:     []agentsvc.ProfitLossCategoryItem{},
@@ -78,12 +111,24 @@ func (m *mockFinanceDraftContext) GetProfitLossBreakdown(ctx context.Context, re
 }
 
 func (m *mockFinanceDraftContext) SearchCashflows(ctx context.Context, req agentsvc.CashflowSearchQuery) (agentsvc.CashflowSearchResult, error) {
+	if m.cashflowsErr != nil {
+		return agentsvc.CashflowSearchResult{}, m.cashflowsErr
+	}
+	if len(m.cashflowsRes.Items) > 0 || !m.cashflowsRes.ReturnedBaseAmountSum.IsZero() {
+		return m.cashflowsRes, nil
+	}
 	return agentsvc.CashflowSearchResult{
 		Items: []agentsvc.CashflowDocItem{},
 	}, nil
 }
 
 func (m *mockFinanceDraftContext) GetAccountLedger(ctx context.Context, req agentsvc.AccountLedgerQuery) (agentsvc.AccountLedgerResult, error) {
+	if m.ledgerErr != nil {
+		return agentsvc.AccountLedgerResult{}, m.ledgerErr
+	}
+	if m.ledgerRes.AccountCode != "" || len(m.ledgerRes.AmbiguousMatches) > 0 || len(m.ledgerRes.Postings) > 0 {
+		return m.ledgerRes, nil
+	}
 	return agentsvc.AccountLedgerResult{
 		AccountCode:  req.Account,
 		BaseCurrency: "IDR",
@@ -92,12 +137,24 @@ func (m *mockFinanceDraftContext) GetAccountLedger(ctx context.Context, req agen
 }
 
 func (m *mockFinanceDraftContext) SearchTransactions(ctx context.Context, req agentsvc.TransactionSearchQuery) (agentsvc.TransactionSearchResult, error) {
+	if m.transactionsErr != nil {
+		return agentsvc.TransactionSearchResult{}, m.transactionsErr
+	}
+	if len(m.transactionsRes.Items) > 0 {
+		return m.transactionsRes, nil
+	}
 	return agentsvc.TransactionSearchResult{
 		Items: []agentsvc.TransactionItem{},
 	}, nil
 }
 
 func (m *mockFinanceDraftContext) LookupExchangeRate(ctx context.Context, req agentsvc.ExchangeRateQuery) (agentsvc.ExchangeRateResult, error) {
+	if m.exchangeRateErr != nil {
+		return agentsvc.ExchangeRateResult{}, m.exchangeRateErr
+	}
+	if !m.exchangeRateRes.Rate.IsZero() || len(m.exchangeRateRes.Rates) > 0 {
+		return m.exchangeRateRes, nil
+	}
 	return agentsvc.ExchangeRateResult{
 		FromCurrency: req.FromCurrency,
 		ToCurrency:   req.ToCurrency,
@@ -140,7 +197,7 @@ func newTestMockContext() *mockFinanceDraftContext {
 
 func TestAgentTools_Definitions(t *testing.T) {
 	tools := agentsvc.AgentTools()
-	require.Len(t, tools, 4)
+	require.Len(t, tools, 11)
 
 	toolNames := make(map[string]llmx.Tool)
 	for _, tool := range tools {
@@ -152,8 +209,14 @@ func TestAgentTools_Definitions(t *testing.T) {
 		agentsvc.ToolListCurrencies,
 		agentsvc.ToolListPeriods,
 		agentsvc.ToolProposeDraft,
+		agentsvc.ToolGetAccountBalances,
+		agentsvc.ToolGetFinancialSummary,
+		agentsvc.ToolGetProfitLossBreakdown,
+		agentsvc.ToolSearchCashflows,
+		agentsvc.ToolGetAccountLedger,
+		agentsvc.ToolSearchTransactions,
+		agentsvc.ToolLookupExchangeRate,
 	}
-
 	for _, name := range expectedNames {
 		tool, exists := toolNames[name]
 		assert.True(t, exists, "tool %s must exist", name)
@@ -1186,4 +1249,467 @@ func TestExecuteTool_ProofOfNoWrite(t *testing.T) {
 
 	// Zero-write assertion
 	assert.Equal(t, 0, mockCtx.saveDraftCalls, "SaveDraft must NEVER be called by any tool execution!")
+}
+
+func TestExecuteTool_GetAccountBalances(t *testing.T) {
+	ctx := context.Background()
+	mockCtx := newTestMockContext()
+	mockCtx.accountBalancesRes = agentsvc.AccountBalanceResult{
+		AsOfDate:        "2026-02-15",
+		BaseCurrency:    "IDR",
+		MatchedNetTotal: decimal.NewFromInt(15000000),
+		TotalDebit:      decimal.NewFromInt(15000000),
+		TotalCredit:     decimal.Zero,
+		IsBalanced:      false,
+		Accounts: []agentsvc.AccountBalanceItem{
+			{
+				AccountID:  101,
+				Code:       "1101",
+				Name:       "Kas Utama",
+				Type:       "ASSET",
+				NetBalance: decimal.NewFromInt(15000000),
+			},
+		},
+	}
+
+	t.Run("ValidQuery", func(t *testing.T) {
+		rawArgs := `{"asOfDate":"2026-02-15","account":"1101","type":"ASSET","includePerCurrencyBreakdown":false}`
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_bal",
+			Name:      agentsvc.ToolGetAccountBalances,
+			Arguments: json.RawMessage(rawArgs),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.AccountBalanceResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		assert.Equal(t, "IDR", out.BaseCurrency)
+		assert.True(t, out.MatchedNetTotal.Equal(decimal.NewFromInt(15000000)))
+		require.Len(t, out.Accounts, 1)
+		assert.Equal(t, "Kas Utama", out.Accounts[0].Name)
+	})
+
+	t.Run("EmptyArgumentsUsesDefaults", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_bal_empty",
+			Name:      agentsvc.ToolGetAccountBalances,
+			Arguments: json.RawMessage(`{}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+		assert.Contains(t, res, "Kas Utama")
+	})
+
+	t.Run("MalformedJSON", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_bal_bad",
+			Name:      agentsvc.ToolGetAccountBalances,
+			Arguments: json.RawMessage(`{invalid`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+		assert.Contains(t, res, "invalid arguments")
+	})
+
+	t.Run("ContextCancellationPropagates", func(t *testing.T) {
+		canceledCtx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, _, err := agentsvc.ExecuteTool(canceledCtx, mockCtx, llmx.ToolCall{
+			ID:   "call_canceled",
+			Name: agentsvc.ToolGetAccountBalances,
+		})
+		require.ErrorIs(t, err, context.Canceled)
+	})
+}
+
+func TestExecuteTool_GetFinancialSummary(t *testing.T) {
+	ctx := context.Background()
+	mockCtx := newTestMockContext()
+	mockCtx.financialSummaryRes = agentsvc.FinancialSummaryResult{
+		BaseCurrency: "IDR",
+		Totals: agentsvc.FinancialSummaryTotals{
+			Assets:      decimal.NewFromInt(50000000),
+			Liabilities: decimal.NewFromInt(10000000),
+			Equity:      decimal.NewFromInt(40000000),
+			Revenue:     decimal.NewFromInt(25000000),
+			Expense:     decimal.NewFromInt(15000000),
+			NetIncome:   decimal.NewFromInt(10000000),
+		},
+		Monthly: []agentsvc.MonthlyRevenueExpense{
+			{
+				Month:   "2026-01",
+				Revenue: decimal.NewFromInt(25000000),
+				Expense: decimal.NewFromInt(15000000),
+				Net:     decimal.NewFromInt(10000000),
+			},
+		},
+	}
+
+	t.Run("ValidQuery", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_summary",
+			Name:      agentsvc.ToolGetFinancialSummary,
+			Arguments: json.RawMessage(`{"fromMonth":"2026-01","toMonth":"2026-01","comparePrevious":true}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.FinancialSummaryResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		assert.Equal(t, "IDR", out.BaseCurrency)
+		assert.True(t, out.Totals.NetIncome.Equal(decimal.NewFromInt(10000000)))
+		require.Len(t, out.Monthly, 1)
+		assert.Equal(t, "2026-01", out.Monthly[0].Month)
+	})
+}
+
+func TestExecuteTool_GetProfitLossBreakdown(t *testing.T) {
+	ctx := context.Background()
+	mockCtx := newTestMockContext()
+	mockCtx.profitLossRes = agentsvc.ProfitLossResult{
+		DateFrom:     "2026-01-01",
+		DateTo:       "2026-01-31",
+		BaseCurrency: "IDR",
+		TotalRevenue: decimal.NewFromInt(30000000),
+		TotalExpense: decimal.NewFromInt(12000000),
+		NetProfit:    decimal.NewFromInt(18000000),
+		Revenues: []agentsvc.ProfitLossCategoryItem{
+			{
+				AccountID:   301,
+				AccountCode: "4101",
+				AccountName: "Pendapatan Operasional",
+				Type:        "REVENUE",
+				Amount:      decimal.NewFromInt(30000000),
+			},
+		},
+		Expenses: []agentsvc.ProfitLossCategoryItem{
+			{
+				AccountID:   201,
+				AccountCode: "5101",
+				AccountName: "Beban Operasional",
+				Type:        "EXPENSE",
+				Amount:      decimal.NewFromInt(12000000),
+			},
+		},
+	}
+
+	t.Run("ValidQuery", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_pl",
+			Name:      agentsvc.ToolGetProfitLossBreakdown,
+			Arguments: json.RawMessage(`{"dateFrom":"2026-01-01","dateTo":"2026-01-31"}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.ProfitLossResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		assert.Equal(t, "IDR", out.BaseCurrency)
+		assert.True(t, out.NetProfit.Equal(decimal.NewFromInt(18000000)))
+		assert.True(t, out.TotalRevenue.Equal(decimal.NewFromInt(30000000)))
+		assert.True(t, out.TotalExpense.Equal(decimal.NewFromInt(12000000)))
+	})
+}
+
+func TestExecuteTool_SearchCashflows(t *testing.T) {
+	ctx := context.Background()
+	mockCtx := newTestMockContext()
+	mockCtx.cashflowsRes = agentsvc.CashflowSearchResult{
+		ReturnedBaseAmountSum: decimal.NewFromInt(450000),
+		Items: []agentsvc.CashflowDocItem{
+			{
+				ID:                 1,
+				Number:             "EXP-2026-001",
+				Date:               "2026-01-15",
+				Type:               "expense",
+				Status:             "posted",
+				PaymentAccountCode: "1101",
+				PaymentAccountName: "Kas Utama",
+				Description:        "Beli ATK",
+				Amount:             decimal.NewFromInt(450000),
+				Currency:           "IDR",
+				BaseAmount:         decimal.NewFromInt(450000),
+			},
+		},
+	}
+
+	t.Run("ValidExpenseSearch", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_cf",
+			Name:      agentsvc.ToolSearchCashflows,
+			Arguments: json.RawMessage(`{"type":"expense","dateFrom":"2026-01-01","limit":10}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.CashflowSearchResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		assert.True(t, out.ReturnedBaseAmountSum.Equal(decimal.NewFromInt(450000)))
+		require.Len(t, out.Items, 1)
+		assert.Equal(t, "EXP-2026-001", out.Items[0].Number)
+	})
+
+	t.Run("MissingTypeReturnsError", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_cf_no_type",
+			Name:      agentsvc.ToolSearchCashflows,
+			Arguments: json.RawMessage(`{"dateFrom":"2026-01-01"}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+		assert.Contains(t, res, "type is required")
+	})
+
+	t.Run("InvalidTypeReturnsError", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_cf_bad_type",
+			Name:      agentsvc.ToolSearchCashflows,
+			Arguments: json.RawMessage(`{"type":"investment"}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+		assert.Contains(t, res, "must be 'income' or 'expense'")
+	})
+
+	t.Run("InvalidLimitReturnsError", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_cf_bad_lim",
+			Name:      agentsvc.ToolSearchCashflows,
+			Arguments: json.RawMessage(`{"type":"expense","limit":"ten"}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+		assert.Contains(t, res, "invalid limit: expected integer")
+	})
+
+	t.Run("ExplicitNullLimitAllowed", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_cf_null_lim",
+			Name:      agentsvc.ToolSearchCashflows,
+			Arguments: json.RawMessage(`{"type":"expense","limit":null}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.CashflowSearchResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		assert.True(t, out.ReturnedBaseAmountSum.Equal(decimal.NewFromInt(450000)))
+	})
+}
+
+func TestExecuteTool_GetAccountLedger(t *testing.T) {
+	ctx := context.Background()
+	mockCtx := newTestMockContext()
+	mockCtx.ledgerRes = agentsvc.AccountLedgerResult{
+		AccountID:          101,
+		AccountCode:        "1101",
+		AccountName:        "Kas Utama",
+		Type:               "ASSET",
+		Currency:           "IDR",
+		BaseCurrency:       "IDR",
+		TotalCount:         1,
+		Page:               1,
+		Limit:              20,
+		Postings: []agentsvc.AccountLedgerItem{
+			{
+				PostingID:          1001,
+				EntryID:            501,
+				EntryNumber:        "TRX-001",
+				EntryDate:          "2026-01-10",
+				Direction:          "DEBIT",
+				Amount:             decimal.NewFromInt(5000000),
+				BaseAmount:         decimal.NewFromInt(5000000),
+				RunningBalance:     decimal.NewFromInt(5000000),
+				RunningBaseBalance: decimal.NewFromInt(5000000),
+			},
+		},
+	}
+
+	t.Run("ValidAccountQuery", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_ledger",
+			Name:      agentsvc.ToolGetAccountLedger,
+			Arguments: json.RawMessage(`{"account":"1101","page":1,"limit":20}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.AccountLedgerResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		assert.Equal(t, "1101", out.AccountCode)
+		require.Len(t, out.Postings, 1)
+		assert.True(t, out.Postings[0].RunningBalance.Equal(decimal.NewFromInt(5000000)))
+	})
+
+	t.Run("MissingAccountReturnsError", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_ledger_no_acc",
+			Name:      agentsvc.ToolGetAccountLedger,
+			Arguments: json.RawMessage(`{"page":1}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+		assert.Contains(t, res, "account is required")
+	})
+
+	t.Run("AmbiguousMatchesReturnedInPayload", func(t *testing.T) {
+		ambigCtx := newTestMockContext()
+		ambigCtx.ledgerRes = agentsvc.AccountLedgerResult{
+			AmbiguousMatches: []agentsvc.AccountOption{
+				{ID: 101, Code: "1101", Name: "Kas Utama"},
+				{ID: 102, Code: "1102", Name: "Kas Kecil"},
+			},
+		}
+		res, proposal, err := agentsvc.ExecuteTool(ctx, ambigCtx, llmx.ToolCall{
+			ID:        "call_ledger_ambig",
+			Name:      agentsvc.ToolGetAccountLedger,
+			Arguments: json.RawMessage(`{"account":"Kas"}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.AccountLedgerResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		require.Len(t, out.AmbiguousMatches, 2)
+		assert.Equal(t, "1101", out.AmbiguousMatches[0].Code)
+		assert.Equal(t, "1102", out.AmbiguousMatches[1].Code)
+	})
+
+	t.Run("ExplicitNullPageAndLimitAllowed", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_ledger_null_params",
+			Name:      agentsvc.ToolGetAccountLedger,
+			Arguments: json.RawMessage(`{"account":"1101","page":null,"limit":null}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.AccountLedgerResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		assert.Equal(t, "1101", out.AccountCode)
+	})
+}
+
+func TestExecuteTool_SearchTransactions(t *testing.T) {
+	ctx := context.Background()
+	mockCtx := newTestMockContext()
+	mockCtx.transactionsRes = agentsvc.TransactionSearchResult{
+		Items: []agentsvc.TransactionItem{
+			{
+				ID:              501,
+				Number:          "TRX-2026-0001",
+				TransactionDate: "2026-01-10",
+				Description:     "Setoran Modal",
+				Currency:        "IDR",
+				ExchangeRate:    decimal.NewFromInt(1),
+				Source:          "MANUAL",
+				EntryCount:      2,
+			},
+		},
+	}
+
+	t.Run("ValidTransactionSearch", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_trx",
+			Name:      agentsvc.ToolSearchTransactions,
+			Arguments: json.RawMessage(`{"query":"Setoran","source":"MANUAL","limit":10}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.TransactionSearchResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		require.Len(t, out.Items, 1)
+		assert.Equal(t, "TRX-2026-0001", out.Items[0].Number)
+		assert.Equal(t, 2, out.Items[0].EntryCount)
+	})
+
+	t.Run("ExplicitNullLimitAllowed", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_trx_null_lim",
+			Name:      agentsvc.ToolSearchTransactions,
+			Arguments: json.RawMessage(`{"query":"Setoran","source":"MANUAL","limit":null}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.TransactionSearchResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		require.Len(t, out.Items, 1)
+		assert.Equal(t, "TRX-2026-0001", out.Items[0].Number)
+	})
+}
+
+func TestExecuteTool_LookupExchangeRate(t *testing.T) {
+	ctx := context.Background()
+	mockCtx := newTestMockContext()
+	mockCtx.exchangeRateRes = agentsvc.ExchangeRateResult{
+		FromCurrency: "USD",
+		ToCurrency:   "IDR",
+		Date:         "2026-02-15",
+		Rate:         decimal.NewFromInt(16250),
+	}
+
+	t.Run("ValidLookup", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_rate",
+			Name:      agentsvc.ToolLookupExchangeRate,
+			Arguments: json.RawMessage(`{"fromCurrency":"usd","toCurrency":"idr","date":"2026-02-15"}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+
+		var out agentsvc.ExchangeRateResult
+		err = json.Unmarshal([]byte(res), &out)
+		require.NoError(t, err)
+		assert.Equal(t, "USD", out.FromCurrency)
+		assert.Equal(t, "IDR", out.ToCurrency)
+		assert.True(t, out.Rate.Equal(decimal.NewFromInt(16250)))
+	})
+
+	t.Run("MissingCurrenciesReturnsError", func(t *testing.T) {
+		res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, llmx.ToolCall{
+			ID:        "call_rate_no_curr",
+			Name:      agentsvc.ToolLookupExchangeRate,
+			Arguments: json.RawMessage(`{"fromCurrency":"USD"}`),
+		})
+		require.NoError(t, err)
+		assert.Nil(t, proposal)
+		assert.Contains(t, res, "toCurrency is required")
+	})
+}
+
+func TestExecuteTool_ReadonlyToolsProofOfNoProposal(t *testing.T) {
+	ctx := context.Background()
+	mockCtx := newTestMockContext()
+
+	readOnlyTools := []llmx.ToolCall{
+		{Name: agentsvc.ToolGetAccountBalances, Arguments: json.RawMessage(`{}`)},
+		{Name: agentsvc.ToolGetFinancialSummary, Arguments: json.RawMessage(`{}`)},
+		{Name: agentsvc.ToolGetProfitLossBreakdown, Arguments: json.RawMessage(`{}`)},
+		{Name: agentsvc.ToolSearchCashflows, Arguments: json.RawMessage(`{"type":"expense"}`)},
+		{Name: agentsvc.ToolGetAccountLedger, Arguments: json.RawMessage(`{"account":"1101"}`)},
+		{Name: agentsvc.ToolSearchTransactions, Arguments: json.RawMessage(`{}`)},
+		{Name: agentsvc.ToolLookupExchangeRate, Arguments: json.RawMessage(`{"fromCurrency":"USD","toCurrency":"IDR"}`)},
+	}
+
+	for _, call := range readOnlyTools {
+		t.Run(call.Name, func(t *testing.T) {
+			res, proposal, err := agentsvc.ExecuteTool(ctx, mockCtx, call)
+			require.NoError(t, err)
+			assert.Nil(t, proposal, "read-only tool %s must never return a DraftProposal", call.Name)
+			assert.NotEmpty(t, res)
+		})
+	}
 }

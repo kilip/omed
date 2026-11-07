@@ -17,10 +17,17 @@ import (
 
 // Tool names for Talk-to-Agent chat assistant.
 const (
-	ToolListAccounts   = "list_accounts"
-	ToolListCurrencies = "list_currencies"
-	ToolListPeriods    = "list_periods"
-	ToolProposeDraft   = "propose_draft"
+	ToolListAccounts          = "list_accounts"
+	ToolListCurrencies        = "list_currencies"
+	ToolListPeriods           = "list_periods"
+	ToolProposeDraft          = "propose_draft"
+	ToolGetAccountBalances    = "get_account_balances"
+	ToolGetFinancialSummary   = "get_financial_summary"
+	ToolGetProfitLossBreakdown = "get_profit_loss_breakdown"
+	ToolSearchCashflows       = "search_cashflows"
+	ToolGetAccountLedger      = "get_account_ledger"
+	ToolSearchTransactions    = "search_transactions"
+	ToolLookupExchangeRate    = "lookup_exchange_rate"
 )
 
 var listAccountsSchema = json.RawMessage(`{
@@ -142,6 +149,193 @@ var proposeDraftSchema = json.RawMessage(`{
   "required": ["kind", "transactionDate", "description", "currency", "totalAmount"]
 }`)
 
+var getAccountBalancesSchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "asOfDate": {
+      "type": "string",
+      "description": "Optional as-of date in YYYY-MM-DD format (defaults to current date)"
+    },
+    "account": {
+      "type": "string",
+      "description": "Optional account code prefix (e.g. '11', '51') or name substring (e.g. 'Kas', 'Bank')"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"],
+      "description": "Optional account type filter"
+    },
+    "includePerCurrencyBreakdown": {
+      "type": "boolean",
+      "description": "Optional flag to include multi-currency balance breakdown"
+    }
+  },
+  "additionalProperties": false
+}`)
+
+var getFinancialSummarySchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "fromMonth": {
+      "type": "string",
+      "description": "Optional starting month in YYYY-MM format"
+    },
+    "toMonth": {
+      "type": "string",
+      "description": "Optional ending month in YYYY-MM format"
+    },
+    "comparePrevious": {
+      "type": "boolean",
+      "description": "Optional flag to compare with previous period"
+    }
+  },
+  "additionalProperties": false
+}`)
+
+var getProfitLossBreakdownSchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "dateFrom": {
+      "type": "string",
+      "description": "Optional start date in YYYY-MM-DD format (defaults to first day of current month)"
+    },
+    "dateTo": {
+      "type": "string",
+      "description": "Optional end date in YYYY-MM-DD format (defaults to last day of current month)"
+    }
+  },
+  "additionalProperties": false
+}`)
+
+var searchCashflowsSchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["income", "expense"],
+      "description": "Required cashflow type: 'income' or 'expense'"
+    },
+    "dateFrom": {
+      "type": "string",
+      "description": "Optional start date in YYYY-MM-DD format"
+    },
+    "dateTo": {
+      "type": "string",
+      "description": "Optional end date in YYYY-MM-DD format"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "posted"],
+      "description": "Optional document status: 'draft' or 'posted'"
+    },
+    "query": {
+      "type": "string",
+      "description": "Optional search term for description or reference"
+    },
+    "paymentAccount": {
+      "type": "string",
+      "description": "Optional payment account code or name filter"
+    },
+    "categoryAccount": {
+      "type": "string",
+      "description": "Optional category/line account code or name filter"
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "description": "Optional maximum number of records to return (1-50, default 20)"
+    },
+    "cursor": {
+      "type": "string",
+      "description": "Optional pagination cursor"
+    }
+  },
+  "required": ["type"],
+  "additionalProperties": false
+}`)
+
+var getAccountLedgerSchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "account": {
+      "type": "string",
+      "description": "Required account identifier: account code (e.g. '1101'), name (e.g. 'Kas Kecil'), or numeric ID"
+    },
+    "page": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Optional page number (>= 1, default 1)"
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "description": "Optional items per page (1-50, default 20)"
+    }
+  },
+  "required": ["account"],
+  "additionalProperties": false
+}`)
+
+var searchTransactionsSchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "Optional text search across description, reference, or transaction number"
+    },
+    "reference": {
+      "type": "string",
+      "description": "Optional exact or partial reference number"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["MANUAL", "IMPORT", "SYSTEM"],
+      "description": "Optional transaction source filter"
+    },
+    "dateFrom": {
+      "type": "string",
+      "description": "Optional start date in YYYY-MM-DD format"
+    },
+    "dateTo": {
+      "type": "string",
+      "description": "Optional end date in YYYY-MM-DD format"
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "description": "Optional maximum number of records to return (1-50, default 20)"
+    },
+    "cursor": {
+      "type": "string",
+      "description": "Optional pagination cursor"
+    }
+  },
+  "additionalProperties": false
+}`)
+
+var lookupExchangeRateSchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "fromCurrency": {
+      "type": "string",
+      "description": "Required source currency code (e.g. 'USD')"
+    },
+    "toCurrency": {
+      "type": "string",
+      "description": "Required target currency code (e.g. 'IDR')"
+    },
+    "date": {
+      "type": "string",
+      "description": "Optional effective date in YYYY-MM-DD format (defaults to latest available)"
+    }
+  },
+  "required": ["fromCurrency", "toCurrency"],
+  "additionalProperties": false
+}`)
+
 // ListAccountsTool returns the llmx.Tool definition for list_accounts.
 func ListAccountsTool() llmx.Tool {
 	return llmx.Tool{
@@ -178,6 +372,69 @@ func ProposeDraftTool() llmx.Tool {
 	}
 }
 
+// GetAccountBalancesTool returns the llmx.Tool definition for get_account_balances.
+func GetAccountBalancesTool() llmx.Tool {
+	return llmx.Tool{
+		Name:        ToolGetAccountBalances,
+		Description: "Query account balances and trial balances as of a specific date with optional type or code filtering. Returns server-aggregated totals and matched net total.",
+		Schema:      getAccountBalancesSchema,
+	}
+}
+
+// GetFinancialSummaryTool returns the llmx.Tool definition for get_financial_summary.
+func GetFinancialSummaryTool() llmx.Tool {
+	return llmx.Tool{
+		Name:        ToolGetFinancialSummary,
+		Description: "Get high-level financial summary (assets, liabilities, equity, revenue, expense, net income) and monthly revenue/expense trends for a given period.",
+		Schema:      getFinancialSummarySchema,
+	}
+}
+
+// GetProfitLossBreakdownTool returns the llmx.Tool definition for get_profit_loss_breakdown.
+func GetProfitLossBreakdownTool() llmx.Tool {
+	return llmx.Tool{
+		Name:        ToolGetProfitLossBreakdown,
+		Description: "Get category-level Profit & Loss breakdown (revenues, expenses, net profit) over a date range with exact server-calculated decimal totals.",
+		Schema:      getProfitLossBreakdownSchema,
+	}
+}
+
+// SearchCashflowsTool returns the llmx.Tool definition for search_cashflows.
+func SearchCashflowsTool() llmx.Tool {
+	return llmx.Tool{
+		Name:        ToolSearchCashflows,
+		Description: "Search income or expense cashflow documents by date range, status, payment account, category account, or text query. Returns matching documents and server-computed total base amount.",
+		Schema:      searchCashflowsSchema,
+	}
+}
+
+// GetAccountLedgerTool returns the llmx.Tool definition for get_account_ledger.
+func GetAccountLedgerTool() llmx.Tool {
+	return llmx.Tool{
+		Name:        ToolGetAccountLedger,
+		Description: "Get detailed account ledger (mutasi / buku besar) showing historical debit/credit postings and running balances for a specific account.",
+		Schema:      getAccountLedgerSchema,
+	}
+}
+
+// SearchTransactionsTool returns the llmx.Tool definition for search_transactions.
+func SearchTransactionsTool() llmx.Tool {
+	return llmx.Tool{
+		Name:        ToolSearchTransactions,
+		Description: "Search general journal transactions by query, reference, source, or date range.",
+		Schema:      searchTransactionsSchema,
+	}
+}
+
+// LookupExchangeRateTool returns the llmx.Tool definition for lookup_exchange_rate.
+func LookupExchangeRateTool() llmx.Tool {
+	return llmx.Tool{
+		Name:        ToolLookupExchangeRate,
+		Description: "Lookup exchange rate between two currencies for a specific date or retrieve latest rate.",
+		Schema:      lookupExchangeRateSchema,
+	}
+}
+
 // AgentTools returns the standard tools available to the Talk-to-Agent assistant.
 func AgentTools() []llmx.Tool {
 	return []llmx.Tool{
@@ -185,6 +442,13 @@ func AgentTools() []llmx.Tool {
 		ListCurrenciesTool(),
 		ListPeriodsTool(),
 		ProposeDraftTool(),
+		GetAccountBalancesTool(),
+		GetFinancialSummaryTool(),
+		GetProfitLossBreakdownTool(),
+		SearchCashflowsTool(),
+		GetAccountLedgerTool(),
+		SearchTransactionsTool(),
+		LookupExchangeRateTool(),
 	}
 }
 
@@ -273,6 +537,70 @@ func parseOptionalInt64Helper(raw json.RawMessage, fieldName string) (*int64, st
 		return nil, ""
 	}
 	n, errStr := parseInt64Helper(raw, fieldName)
+	if errStr != "" {
+		return nil, errStr
+	}
+	return &n, ""
+}
+
+func parseStringHelper(raw json.RawMessage) string {
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" {
+		return ""
+	}
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		return strings.TrimSpace(s)
+	}
+	return strings.Trim(trimmed, "\"")
+}
+
+func parseBoolHelper(raw json.RawMessage) bool {
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" {
+		return false
+	}
+	var b bool
+	if err := json.Unmarshal(raw, &b); err == nil {
+		return b
+	}
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		s = strings.ToLower(strings.TrimSpace(s))
+		return s == "true" || s == "1" || s == "yes"
+	}
+	return false
+}
+
+func parseIntHelper(raw json.RawMessage, fieldName string) (int, string) {
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" {
+		return 0, fmt.Sprintf("%s is required", fieldName)
+	}
+	var num int
+	if err := json.Unmarshal(raw, &num); err == nil {
+		return num, ""
+	}
+	var f float64
+	if err := json.Unmarshal(raw, &f); err == nil {
+		return int(f), ""
+	}
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		s = strings.TrimSpace(s)
+		if n, err := strconv.Atoi(s); err == nil {
+			return n, ""
+		}
+	}
+	return 0, fmt.Sprintf("invalid %s: expected integer", fieldName)
+}
+
+func parseOptionalIntHelper(raw json.RawMessage, fieldName string) (*int, string) {
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" {
+		return nil, ""
+	}
+	n, errStr := parseIntHelper(raw, fieldName)
 	if errStr != "" {
 		return nil, errStr
 	}
@@ -731,6 +1059,288 @@ func ExecuteTool(ctx context.Context, draftCtx FinanceDraftContext, call llmx.To
 			return "", nil, err
 		}
 		return string(b), validated, nil
+
+	case ToolGetAccountBalances:
+		var raw struct {
+			AsOfDate                    json.RawMessage `json:"asOfDate"`
+			Account                     json.RawMessage `json:"account"`
+			Type                        json.RawMessage `json:"type"`
+			IncludePerCurrencyBreakdown json.RawMessage `json:"includePerCurrencyBreakdown"`
+		}
+		if len(bytes.TrimSpace(call.Arguments)) > 0 {
+			if err := json.Unmarshal(call.Arguments, &raw); err != nil {
+				return formatToolError(fmt.Sprintf("invalid arguments: %v", err)), nil, nil
+			}
+		}
+		query := AccountBalanceQuery{
+			AsOfDate:                    parseStringHelper(raw.AsOfDate),
+			Account:                     parseStringHelper(raw.Account),
+			Type:                        strings.ToUpper(parseStringHelper(raw.Type)),
+			IncludePerCurrencyBreakdown: parseBoolHelper(raw.IncludePerCurrencyBreakdown),
+		}
+		res, err := draftCtx.GetAccountBalances(ctx, query)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", nil, err
+			}
+			return formatToolError(err.Error()), nil, nil
+		}
+		b, err := json.Marshal(res)
+		if err != nil {
+			return "", nil, err
+		}
+		return string(b), nil, nil
+
+	case ToolGetFinancialSummary:
+		var raw struct {
+			FromMonth       json.RawMessage `json:"fromMonth"`
+			ToMonth         json.RawMessage `json:"toMonth"`
+			ComparePrevious json.RawMessage `json:"comparePrevious"`
+		}
+		if len(bytes.TrimSpace(call.Arguments)) > 0 {
+			if err := json.Unmarshal(call.Arguments, &raw); err != nil {
+				return formatToolError(fmt.Sprintf("invalid arguments: %v", err)), nil, nil
+			}
+		}
+		query := FinancialSummaryQuery{
+			FromMonth:       parseStringHelper(raw.FromMonth),
+			ToMonth:         parseStringHelper(raw.ToMonth),
+			ComparePrevious: parseBoolHelper(raw.ComparePrevious),
+		}
+		res, err := draftCtx.GetFinancialSummary(ctx, query)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", nil, err
+			}
+			return formatToolError(err.Error()), nil, nil
+		}
+		b, err := json.Marshal(res)
+		if err != nil {
+			return "", nil, err
+		}
+		return string(b), nil, nil
+
+	case ToolGetProfitLossBreakdown:
+		var raw struct {
+			DateFrom json.RawMessage `json:"dateFrom"`
+			DateTo   json.RawMessage `json:"dateTo"`
+		}
+		if len(bytes.TrimSpace(call.Arguments)) > 0 {
+			if err := json.Unmarshal(call.Arguments, &raw); err != nil {
+				return formatToolError(fmt.Sprintf("invalid arguments: %v", err)), nil, nil
+			}
+		}
+		query := ProfitLossQuery{
+			DateFrom: parseStringHelper(raw.DateFrom),
+			DateTo:   parseStringHelper(raw.DateTo),
+		}
+		res, err := draftCtx.GetProfitLossBreakdown(ctx, query)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", nil, err
+			}
+			return formatToolError(err.Error()), nil, nil
+		}
+		b, err := json.Marshal(res)
+		if err != nil {
+			return "", nil, err
+		}
+		return string(b), nil, nil
+
+	case ToolSearchCashflows:
+		var raw struct {
+			Type            json.RawMessage `json:"type"`
+			DateFrom        json.RawMessage `json:"dateFrom"`
+			DateTo          json.RawMessage `json:"dateTo"`
+			Status          json.RawMessage `json:"status"`
+			Query           json.RawMessage `json:"query"`
+			PaymentAccount  json.RawMessage `json:"paymentAccount"`
+			CategoryAccount json.RawMessage `json:"categoryAccount"`
+			Limit           json.RawMessage `json:"limit"`
+			Cursor          json.RawMessage `json:"cursor"`
+		}
+		if len(bytes.TrimSpace(call.Arguments)) > 0 {
+			if err := json.Unmarshal(call.Arguments, &raw); err != nil {
+				return formatToolError(fmt.Sprintf("invalid arguments: %v", err)), nil, nil
+			}
+		}
+		cfType := strings.ToLower(parseStringHelper(raw.Type))
+		if cfType == "" {
+			return formatToolError("type is required (must be 'income' or 'expense')"), nil, nil
+		}
+		if cfType != "income" && cfType != "expense" {
+			return formatToolError(fmt.Sprintf("invalid type %q: must be 'income' or 'expense'", cfType)), nil, nil
+		}
+		var limit int
+		if len(raw.Limit) > 0 {
+			lim, errStr := parseOptionalIntHelper(raw.Limit, "limit")
+			if errStr != "" {
+				return formatToolError(errStr), nil, nil
+			}
+			if lim != nil {
+				limit = *lim
+			}
+		}
+		query := CashflowSearchQuery{
+			Type:            cfType,
+			DateFrom:        parseStringHelper(raw.DateFrom),
+			DateTo:          parseStringHelper(raw.DateTo),
+			Status:          strings.ToLower(parseStringHelper(raw.Status)),
+			Query:           parseStringHelper(raw.Query),
+			PaymentAccount:  parseStringHelper(raw.PaymentAccount),
+			CategoryAccount: parseStringHelper(raw.CategoryAccount),
+			Limit:           limit,
+			Cursor:          parseStringHelper(raw.Cursor),
+		}
+		res, err := draftCtx.SearchCashflows(ctx, query)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", nil, err
+			}
+			return formatToolError(err.Error()), nil, nil
+		}
+		b, err := json.Marshal(res)
+		if err != nil {
+			return "", nil, err
+		}
+		return string(b), nil, nil
+
+	case ToolGetAccountLedger:
+		var raw struct {
+			Account json.RawMessage `json:"account"`
+			Page    json.RawMessage `json:"page"`
+			Limit   json.RawMessage `json:"limit"`
+		}
+		if len(bytes.TrimSpace(call.Arguments)) > 0 {
+			if err := json.Unmarshal(call.Arguments, &raw); err != nil {
+				return formatToolError(fmt.Sprintf("invalid arguments: %v", err)), nil, nil
+			}
+		}
+		account := parseStringHelper(raw.Account)
+		if account == "" {
+			return formatToolError("account is required"), nil, nil
+		}
+		var page int
+		if len(raw.Page) > 0 {
+			p, errStr := parseOptionalIntHelper(raw.Page, "page")
+			if errStr != "" {
+				return formatToolError(errStr), nil, nil
+			}
+			if p != nil {
+				page = *p
+			}
+		}
+		var limit int
+		if len(raw.Limit) > 0 {
+			lim, errStr := parseOptionalIntHelper(raw.Limit, "limit")
+			if errStr != "" {
+				return formatToolError(errStr), nil, nil
+			}
+			if lim != nil {
+				limit = *lim
+			}
+		}
+		query := AccountLedgerQuery{
+			Account: account,
+			Page:    page,
+			Limit:   limit,
+		}
+		res, err := draftCtx.GetAccountLedger(ctx, query)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", nil, err
+			}
+			return formatToolError(err.Error()), nil, nil
+		}
+		b, err := json.Marshal(res)
+		if err != nil {
+			return "", nil, err
+		}
+		return string(b), nil, nil
+
+	case ToolSearchTransactions:
+		var raw struct {
+			Query     json.RawMessage `json:"query"`
+			Reference json.RawMessage `json:"reference"`
+			Source    json.RawMessage `json:"source"`
+			DateFrom  json.RawMessage `json:"dateFrom"`
+			DateTo    json.RawMessage `json:"dateTo"`
+			Limit     json.RawMessage `json:"limit"`
+			Cursor    json.RawMessage `json:"cursor"`
+		}
+		if len(bytes.TrimSpace(call.Arguments)) > 0 {
+			if err := json.Unmarshal(call.Arguments, &raw); err != nil {
+				return formatToolError(fmt.Sprintf("invalid arguments: %v", err)), nil, nil
+			}
+		}
+		var limit int
+		if len(raw.Limit) > 0 {
+			lim, errStr := parseOptionalIntHelper(raw.Limit, "limit")
+			if errStr != "" {
+				return formatToolError(errStr), nil, nil
+			}
+			if lim != nil {
+				limit = *lim
+			}
+		}
+		query := TransactionSearchQuery{
+			Query:     parseStringHelper(raw.Query),
+			Reference: parseStringHelper(raw.Reference),
+			Source:    strings.ToUpper(parseStringHelper(raw.Source)),
+			DateFrom:  parseStringHelper(raw.DateFrom),
+			DateTo:    parseStringHelper(raw.DateTo),
+			Limit:     limit,
+			Cursor:    parseStringHelper(raw.Cursor),
+		}
+		res, err := draftCtx.SearchTransactions(ctx, query)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", nil, err
+			}
+			return formatToolError(err.Error()), nil, nil
+		}
+		b, err := json.Marshal(res)
+		if err != nil {
+			return "", nil, err
+		}
+		return string(b), nil, nil
+
+	case ToolLookupExchangeRate:
+		var raw struct {
+			FromCurrency json.RawMessage `json:"fromCurrency"`
+			ToCurrency   json.RawMessage `json:"toCurrency"`
+			Date         json.RawMessage `json:"date"`
+		}
+		if len(bytes.TrimSpace(call.Arguments)) > 0 {
+			if err := json.Unmarshal(call.Arguments, &raw); err != nil {
+				return formatToolError(fmt.Sprintf("invalid arguments: %v", err)), nil, nil
+			}
+		}
+		fromCurr := strings.ToUpper(parseStringHelper(raw.FromCurrency))
+		toCurr := strings.ToUpper(parseStringHelper(raw.ToCurrency))
+		if fromCurr == "" {
+			return formatToolError("fromCurrency is required"), nil, nil
+		}
+		if toCurr == "" {
+			return formatToolError("toCurrency is required"), nil, nil
+		}
+		query := ExchangeRateQuery{
+			FromCurrency: fromCurr,
+			ToCurrency:   toCurr,
+			Date:         parseStringHelper(raw.Date),
+		}
+		res, err := draftCtx.LookupExchangeRate(ctx, query)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return "", nil, err
+			}
+			return formatToolError(err.Error()), nil, nil
+		}
+		b, err := json.Marshal(res)
+		if err != nil {
+			return "", nil, err
+		}
+		return string(b), nil, nil
 
 	default:
 		return formatToolError(fmt.Sprintf("unknown tool: %q", call.Name)), nil, nil
