@@ -19,9 +19,7 @@ import (
 	"github.com/kilip/omed/api/internal/agent/model"
 	"github.com/kilip/omed/api/internal/base"
 	"github.com/kilip/omed/api/internal/config"
-	finmodel "github.com/kilip/omed/api/internal/fin/model"
 	"github.com/kilip/omed/api/testutil"
-	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -500,7 +498,7 @@ func (s *FinancialIntegrationSuite) TestFinancial_ExpenseFlow_DateOutsideOpenPer
 	s.True(hasDateWarning, "expected DATE_OUTSIDE_OPEN_PERIOD warning in response")
 
 	// Use retained default date (2026-11-15, inside open period) to submit expense
-	defaultDate := finmodel.Date(time.Date(2026, 11, 15, 0, 0, 0, 0, time.UTC))
+	defaultDate := "2026-11-15"
 	s.Require().NotNil(res.PaymentAccountID)
 	s.Require().Len(res.Items, 1)
 	s.Require().NotNil(res.Items[0].AccountID)
@@ -518,25 +516,25 @@ func (s *FinancialIntegrationSuite) TestFinancial_ExpenseFlow_DateOutsideOpenPer
 		curr = *res.Currency
 	}
 
-	s.Request(fmt.Sprintf("/workspaces/%d/fin/expense", ws.ID), fiber.MethodPost, finmodel.SaveCashFlowRequest{
-		PaymentAccountID: *res.PaymentAccountID,
-		TransactionDate:  defaultDate,
-		Description:      desc,
-		Reference:        ref,
-		Currency:         curr,
-		Items: []finmodel.CashFlowItemRequest{
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/expense", ws.ID), fiber.MethodPost, map[string]any{
+		"paymentAccountId": *res.PaymentAccountID,
+		"transactionDate":  defaultDate,
+		"description":      desc,
+		"reference":        ref,
+		"currency":         curr,
+		"items": []map[string]any{
 			{
-				AccountID:   *res.Items[0].AccountID,
-				Description: res.Items[0].Description,
-				Quantity:    decimal.RequireFromString(res.Items[0].Quantity),
-				UnitPrice:   decimal.RequireFromString(res.Items[0].UnitPrice),
+				"accountId":   *res.Items[0].AccountID,
+				"description": res.Items[0].Description,
+				"quantity":    res.Items[0].Quantity,
+				"unitPrice":   res.Items[0].UnitPrice,
 			},
 		},
 	})
 	s.Created()
 
-	createdExp := testutil.DecodeOther[finmodel.CashFlowItemResponse](s).Data
-	s.Require().Positive(createdExp.ID, "expense should be created successfully without 404 PERIOD_NOT_FOUND")
+	createdExp := testutil.DecodeOther[map[string]any](s).Data
+	s.Require().NotNil(createdExp["id"], "expense should be created successfully without 404 PERIOD_NOT_FOUND")
 }
 
 func (s *FinancialIntegrationSuite) TestFinancial_IncomeFlow_DateOutsideOpenPeriod_Eliminates404() {
@@ -585,7 +583,7 @@ func (s *FinancialIntegrationSuite) TestFinancial_IncomeFlow_DateOutsideOpenPeri
 	s.True(hasDateWarning, "expected DATE_OUTSIDE_OPEN_PERIOD warning in response")
 
 	// Use retained default date (2026-11-15, inside open period) to submit income
-	defaultDate := finmodel.Date(time.Date(2026, 11, 15, 0, 0, 0, 0, time.UTC))
+	defaultDate := "2026-11-15"
 	s.Require().NotNil(res.PaymentAccountID)
 	s.Require().Len(res.Items, 1)
 	s.Require().NotNil(res.Items[0].AccountID)
@@ -603,25 +601,25 @@ func (s *FinancialIntegrationSuite) TestFinancial_IncomeFlow_DateOutsideOpenPeri
 		curr = *res.Currency
 	}
 
-	s.Request(fmt.Sprintf("/workspaces/%d/fin/income", ws.ID), fiber.MethodPost, finmodel.SaveCashFlowRequest{
-		PaymentAccountID: *res.PaymentAccountID,
-		TransactionDate:  defaultDate,
-		Description:      desc,
-		Reference:        ref,
-		Currency:         curr,
-		Items: []finmodel.CashFlowItemRequest{
+	s.Request(fmt.Sprintf("/workspaces/%d/fin/income", ws.ID), fiber.MethodPost, map[string]any{
+		"paymentAccountId": *res.PaymentAccountID,
+		"transactionDate":  defaultDate,
+		"description":      desc,
+		"reference":        ref,
+		"currency":         curr,
+		"items": []map[string]any{
 			{
-				AccountID:   *res.Items[0].AccountID,
-				Description: res.Items[0].Description,
-				Quantity:    decimal.RequireFromString(res.Items[0].Quantity),
-				UnitPrice:   decimal.RequireFromString(res.Items[0].UnitPrice),
+				"accountId":   *res.Items[0].AccountID,
+				"description": res.Items[0].Description,
+				"quantity":    res.Items[0].Quantity,
+				"unitPrice":   res.Items[0].UnitPrice,
 			},
 		},
 	})
 	s.Created()
 
-	createdInc := testutil.DecodeOther[finmodel.CashFlowItemResponse](s).Data
-	s.Require().Positive(createdInc.ID, "income should be created successfully without 404 PERIOD_NOT_FOUND")
+	createdInc := testutil.DecodeOther[map[string]any](s).Data
+	s.Require().NotNil(createdInc["id"], "income should be created successfully without 404 PERIOD_NOT_FOUND")
 }
 
 func (s *FinancialIntegrationSuite) TestFinancial_DevFallbackProvider_Integration() {
