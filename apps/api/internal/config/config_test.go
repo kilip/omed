@@ -103,6 +103,22 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 		}
 	})
 
+	for _, sentryEnv := range []string{
+		"OMED_SENTRY_DSN",
+		"OMED_SENTRY_ENVIRONMENT",
+		"OMED_SENTRY_RELEASE",
+		"OMED_SENTRY_TRACES_SAMPLE_RATE",
+	} {
+		if val, ok := os.LookupEnv(sentryEnv); ok {
+			s.Require().NoError(os.Unsetenv(sentryEnv))
+			v := val
+			k := sentryEnv
+			s.T().Cleanup(func() {
+				s.Require().NoError(os.Setenv(k, v))
+			})
+		}
+	}
+
 	cfg := config.GetConfig()
 	s.Equal(8001, cfg.Port)
 	s.Equal("/auth", cfg.AuthPath)
@@ -123,6 +139,11 @@ func (s *ConfigSuite) Test_GetConfig_Defaults() {
 	s.False(cfg.LogHTTPBody)
 	s.False(cfg.DatabaseMigrateOnStart)
 	s.False(cfg.DatabaseAutoMigrate)
+	s.Equal("", cfg.SentryDSN)
+	s.Equal(cfg.Env, cfg.SentryEnvironment)
+	s.Equal(cfg.Env, cfg.GetSentryEnvironment())
+	s.Equal("", cfg.SentryRelease)
+	s.Equal(0.0, cfg.SentryTracesSampleRate)
 }
 
 func (s *ConfigSuite) Test_GetConfig_CustomValues() {
@@ -146,6 +167,10 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.T().Setenv("OMED_DB_DEV_URL", "postgres://omed:omed@localhost:5432/omed_dev?sslmode=disable")
 	s.T().Setenv("OMED_DB_MIGRATE_ON_START", "true")
 	s.T().Setenv("OMED_DB_AUTO_MIGRATE", "true")
+	s.T().Setenv("OMED_SENTRY_DSN", "https://public@sentry.example.com/1")
+	s.T().Setenv("OMED_SENTRY_ENVIRONMENT", "staging")
+	s.T().Setenv("OMED_SENTRY_RELEASE", "omed@1.2.3")
+	s.T().Setenv("OMED_SENTRY_TRACES_SAMPLE_RATE", "0.25")
 
 	cfg := config.GetConfig()
 	s.Equal(9001, cfg.Port)
@@ -168,6 +193,11 @@ func (s *ConfigSuite) Test_GetConfig_CustomValues() {
 	s.Equal("postgres://omed:omed@localhost:5432/omed_dev?sslmode=disable", cfg.DatabaseDevUrl)
 	s.True(cfg.DatabaseMigrateOnStart)
 	s.True(cfg.DatabaseAutoMigrate)
+	s.Equal("https://public@sentry.example.com/1", cfg.SentryDSN)
+	s.Equal("staging", cfg.SentryEnvironment)
+	s.Equal("staging", cfg.GetSentryEnvironment())
+	s.Equal("omed@1.2.3", cfg.SentryRelease)
+	s.Equal(0.25, cfg.SentryTracesSampleRate)
 }
 
 func (s *ConfigSuite) Test_GetConfig_Port_Fallback() {
@@ -207,6 +237,24 @@ func (s *ConfigSuite) Test_Validate() {
 		TestAgentModel:  "gpt-4o",
 	}
 	s.NoError(prodCfgWithTestAgent.Validate())
+
+	// SentryTracesSampleRate validation bounds [0.0, 1.0]
+	negSampleCfg := config.Config{Env: "development", SentryTracesSampleRate: -0.1}
+	s.EqualError(negSampleCfg.Validate(), "OMED_SENTRY_TRACES_SAMPLE_RATE must be between 0 and 1")
+
+	highSampleCfg := config.Config{Env: "development", SentryTracesSampleRate: 1.5}
+	s.EqualError(highSampleCfg.Validate(), "OMED_SENTRY_TRACES_SAMPLE_RATE must be between 0 and 1")
+
+	boundaryZeroCfg := config.Config{Env: "development", SentryTracesSampleRate: 0.0}
+	s.NoError(boundaryZeroCfg.Validate())
+
+	boundaryOneCfg := config.Config{Env: "development", SentryTracesSampleRate: 1.0}
+	s.NoError(boundaryOneCfg.Validate())
+
+	// GetSentryEnvironment fallback behavior
+	s.Equal("production", (config.Config{}).GetSentryEnvironment())
+	s.Equal("development", (config.Config{Env: "development"}).GetSentryEnvironment())
+	s.Equal("canary", (config.Config{Env: "production", SentryEnvironment: "canary"}).GetSentryEnvironment())
 }
 
 func (s *ConfigSuite) Test_GetConfig_Production_Requires32ByteSecret() {

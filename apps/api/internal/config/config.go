@@ -124,6 +124,14 @@ type Config struct {
 	OTPResendCooldown time.Duration `env:"OMED_OTP_RESEND_COOLDOWN,default=60s"`
 	// OTPHourlyLimit is the maximum number of OTP requests allowed per email per hour. Defaults to 5.
 	OTPHourlyLimit int `env:"OMED_OTP_HOURLY_LIMIT,default=5"`
+	// SentryDSN is the Sentry Data Source Name for error and performance reporting. Empty disables Sentry.
+	SentryDSN string `env:"OMED_SENTRY_DSN"`
+	// SentryEnvironment is the environment name reported to Sentry (defaults to Env when empty).
+	SentryEnvironment string `env:"OMED_SENTRY_ENVIRONMENT"`
+	// SentryRelease is the application release/version identifier reported to Sentry.
+	SentryRelease string `env:"OMED_SENTRY_RELEASE"`
+	// SentryTracesSampleRate is the Sentry performance tracing sample rate in [0.0, 1.0]. Defaults to 0.
+	SentryTracesSampleRate float64 `env:"OMED_SENTRY_TRACES_SAMPLE_RATE,default=0"`
 }
 
 // IsTestRoutesEnabled returns true when the environment is development or test.
@@ -136,6 +144,17 @@ func (c Config) IsOTPEnabled() bool {
 	return c.MailerDriver == "smtp" || c.IsTestRoutesEnabled()
 }
 
+// GetSentryEnvironment returns SentryEnvironment when set, falling back to Env (or "production" when both are empty).
+func (c Config) GetSentryEnvironment() string {
+	if c.SentryEnvironment != "" {
+		return c.SentryEnvironment
+	}
+	if c.Env != "" {
+		return c.Env
+	}
+	return "production"
+}
+
 // Validate checks application configuration integrity.
 // In production mode, AuthSecret must be at least 32 bytes long.
 func (c Config) Validate() error {
@@ -144,6 +163,9 @@ func (c Config) Validate() error {
 	}
 	if c.Env == "production" && (c.TestAgentAPIKey != "" || c.TestAgentKind != "" || c.TestAgentModel != "") {
 		log.Println("WARNING: OMED_TEST_AGENT_* is configured in production; fallback LLM provider is disabled in production")
+	}
+	if c.SentryTracesSampleRate < 0.0 || c.SentryTracesSampleRate > 1.0 {
+		return errors.New("OMED_SENTRY_TRACES_SAMPLE_RATE must be between 0 and 1")
 	}
 	return nil
 }
@@ -179,6 +201,10 @@ func GetConfig() Config {
 
 	if config.Env == "" {
 		config.Env = "production"
+	}
+
+	if config.SentryEnvironment == "" {
+		config.SentryEnvironment = config.Env
 	}
 
 	if config.Port <= 0 {

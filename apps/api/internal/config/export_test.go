@@ -1,8 +1,9 @@
 package config
 
 var (
-	InitBaseMiddleware = initBaseMiddleware
-	InitFirewall       = initFirewall
+	InitBaseMiddleware      = initBaseMiddleware
+	InitFirewall            = initFirewall
+	InitSentryWithTransport = initSentryWithTransport
 )
 
 // SetLogFatalf overrides logFatalf for tests and returns a restore function.

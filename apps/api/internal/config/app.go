@@ -304,6 +304,12 @@ func (a *Omed) Boot() error {
 // Run boots the application and starts the HTTP server listening on the configured port.
 // It listens for context cancellation to perform graceful shutdown.
 func (a *Omed) Run(ctx context.Context) error {
+	flushSentry, err := InitSentry(a.state.Config)
+	if err != nil {
+		return fmt.Errorf("failed to initialize sentry: %w", err)
+	}
+	defer flushSentry()
+
 	if err := a.Boot(); err != nil {
 		return err
 	}

@@ -131,6 +131,7 @@ func (s *FiberSuite) Test_GetFiber_CORS_Preflight() {
 	req := httptest.NewRequest(fiber.MethodOptions, "/data", nil)
 	req.Header.Set("Origin", "http://trusted.com")
 	req.Header.Set("Access-Control-Request-Method", "POST")
+	req.Header.Set("Access-Control-Request-Headers", "Authorization, Content-Type, sentry-trace, baggage")
 
 	resp, err := app.Test(req)
 	s.Require().NoError(err)
@@ -138,6 +139,9 @@ func (s *FiberSuite) Test_GetFiber_CORS_Preflight() {
 
 	s.Equal("http://trusted.com", resp.Header.Get("Access-Control-Allow-Origin"))
 	s.Contains(resp.Header.Get("Access-Control-Allow-Methods"), "POST")
+	allowHeaders := strings.ToLower(resp.Header.Get("Access-Control-Allow-Headers"))
+	s.Contains(allowHeaders, "sentry-trace")
+	s.Contains(allowHeaders, "baggage")
 }
 
 func (s *FiberSuite) Test_GetFiber_RecoverMiddleware() {
