@@ -535,6 +535,7 @@ func (s *chatService) SendMessage(ctx context.Context, conversationID int64, req
 			}
 			reqLLM.Messages = append(reqLLM.Messages, llmx.Message{
 				Role:       llmx.RoleTool,
+				ToolName:   tc.Name,
 				ToolCallID: tc.ID,
 				Parts:      []llmx.Part{{Text: resultStr}},
 			})

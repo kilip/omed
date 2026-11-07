@@ -224,6 +224,19 @@ func TestChatService_AttachmentTurnWithTools(t *testing.T) {
 		assert.NotNil(t, download.Body)
 		_ = download.Body.Close()
 	}
+
+	// Verify ToolName was propagated in RoleTool message
+	reqs := mem.Requests()
+	require.Len(t, reqs, 2)
+	var toolMsgFound bool
+	for _, msg := range reqs[1].Messages {
+		if msg.Role == llmx.RoleTool {
+			assert.Equal(t, service.ToolProposeDraft, msg.ToolName)
+			assert.Equal(t, "call_1", msg.ToolCallID)
+			toolMsgFound = true
+		}
+	}
+	assert.True(t, toolMsgFound, "RoleTool message should be sent to LLM on subsequent turn")
 }
 
 func TestChatService_PromptInjectionInDocument(t *testing.T) {
@@ -915,4 +928,70 @@ func TestChatService_LLMError_LoggedAtErrorLevel(t *testing.T) {
 	assert.True(t, strings.Contains(logOutput, "chat LLM call failed"))
 	assert.True(t, strings.Contains(logOutput, fmt.Sprintf("conversation_id=%d", conv.ID)))
 	assert.True(t, strings.Contains(logOutput, "upstream gemini 500 internal error"))
+}
+
+func TestChatService_ToolNamePropagatedInRoleToolMessage(t *testing.T) {
+	f := setupChatFixture(t)
+
+	propJSON := `{
+		"kind": "expense",
+		"paymentAccountId": 100,
+		"transactionDate": "2026-02-01",
+		"description": "Internet Bill",
+		"currency": "IDR",
+		"totalAmount": "350000.00",
+		"items": [
+			{
+				"accountId": 200,
+				"description": "Monthly fiber",
+				"quantity": "1",
+				"unitPrice": "350000.00",
+				"amount": "350000.00"
+			}
+		]
+	}`
+
+	mem := llmx.NewMemory(
+		llmx.Response{
+			Message: llmx.Message{
+				Role: llmx.RoleAssistant,
+				ToolCalls: []llmx.ToolCall{
+					{
+						ID:        "call_prop_99",
+						Name:      service.ToolProposeDraft,
+						Arguments: json.RawMessage(propJSON),
+					},
+				},
+			},
+		},
+		llmx.Response{
+			Message: llmx.Message{
+				Role:  llmx.RoleAssistant,
+				Parts: []llmx.Part{{Text: "Draft created successfully."}},
+			},
+		},
+	)
+	adapter := &customCapAdapter{Adapter: mem, caps: standardTestCapabilities()}
+	svc := f.newService(adapter, &ent.AgentSetting{FinancialEnabled: true})
+
+	conv, err := svc.CreateConversation(f.ctx, "Tool Name Test")
+	require.NoError(t, err)
+
+	_, err = svc.SendMessage(f.ctx, conv.ID, model.SendMessageRequest{
+		Content: "Create draft for internet bill",
+	}, nil)
+	require.NoError(t, err)
+
+	reqs := mem.Requests()
+	require.Len(t, reqs, 2)
+
+	var foundRoleTool bool
+	for _, msg := range reqs[1].Messages {
+		if msg.Role == llmx.RoleTool {
+			assert.Equal(t, service.ToolProposeDraft, msg.ToolName)
+			assert.Equal(t, "call_prop_99", msg.ToolCallID)
+			foundRoleTool = true
+		}
+	}
+	assert.True(t, foundRoleTool, "RoleTool message must have ToolName populated from tool call")
 }
