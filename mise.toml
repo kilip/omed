@@ -9,7 +9,7 @@ golangci-lint = "latest"
 helm = "latest"
 kubeconform = "0.8.0"
 gh = "latest"
-starship = "1.26.0"
+starship = "1.27.0"
 
 [tasks.dev]
 description = "Start all applications in watch mode"
