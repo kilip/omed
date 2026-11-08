@@ -3,7 +3,7 @@ module github.com/kilip/omed/api
 go 1.27.1
 
 require (
-	ariga.io/atlas v0.36.2-0.20250730182955-2c6300d0a3e1
+	ariga.io/atlas v0.38.0
 	entgo.io/ent v0.14.6
 	github.com/anthropics/anthropic-sdk-go v1.82.0
 	github.com/aws/aws-sdk-go-v2 v1.47.3
