@@ -80,7 +80,7 @@ jobs:
           client-id: ${{ secrets.ASPRI_CLIENT_ID }}
           private-key: ${{ secrets.ASPRI_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ steps.app.outputs.token }}
