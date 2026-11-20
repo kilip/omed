@@ -60,7 +60,7 @@ services:
       retries: 10
 
   rustfs:
-    image: rustfs/rustfs:1.0.4
+    image: rustfs/rustfs:1.0.6
     restart: unless-stopped
     environment:
       RUSTFS_ACCESS_KEY: rustfsadmin
@@ -100,7 +100,7 @@ services:
       - kafka-data:/var/lib/kafka/data
 
   kafka-ui:
-    image: ghcr.io/kafbat/kafka-ui:v1.5.0
+    image: ghcr.io/kafbat/kafka-ui:v1.5.1
     # Start on demand: docker compose --profile tools up -d kafka-ui
     profiles: ["tools"]
     environment:
